@@ -43,17 +43,21 @@ async function lookupAppleEpisodeUrl(itunesId: string, episodeTitle: string): Pr
 }
 
 async function backfillAppleEpisodeUrls() {
-  logMsg("=== Phase 1: Apple Episode URLs ===");
+  logMsg("=== Phase 1: Apple Episode URLs, Audio URLs & Show Notes ===");
   const { rows } = await pool.query(`
-    SELECT id, slug, itunes_id, episode_title 
+    SELECT id, slug, itunes_id, episode_title, apple_episode_url, audio_url, show_notes
     FROM landing_page_recaps 
-    WHERE (apple_episode_url IS NULL OR apple_episode_url = '')
-      AND itunes_id IS NOT NULL AND itunes_id != ''
+    WHERE itunes_id IS NOT NULL AND itunes_id != ''
+      AND (
+        (apple_episode_url IS NULL OR apple_episode_url = '')
+        OR (audio_url IS NULL OR audio_url = '')
+        OR (show_notes IS NULL OR show_notes = '')
+      )
     ORDER BY slug, id
   `);
   backfillState.total = rows.length;
   backfillState.processed = 0;
-  logMsg(`Found ${rows.length} episodes missing Apple URLs`);
+  logMsg(`Found ${rows.length} episodes missing Apple URL, audio URL, or show notes`);
 
   const byPodcast: Record<string, typeof rows> = {};
   for (const r of rows) {
@@ -62,6 +66,7 @@ async function backfillAppleEpisodeUrls() {
   }
 
   for (const [itunesId, episodes] of Object.entries(byPodcast)) {
+    if (!backfillState.running) break;
     try {
       const url = `https://itunes.apple.com/lookup?id=${itunesId}&media=podcast&entity=podcastEpisode&limit=200`;
       const resp = await fetch(url);
@@ -75,37 +80,49 @@ async function backfillAppleEpisodeUrls() {
 
       for (const ep of episodes) {
         const titleLower = ep.episode_title.toLowerCase().trim();
-        let matchedUrl: string | null = null;
-        let matchedAudio: string | null = null;
+        let matched: any = null;
 
         for (const appleEp of appleEps) {
           const appleTitle = (appleEp.trackName || "").toLowerCase().trim();
           if (appleTitle === titleLower || appleTitle.includes(titleLower) || titleLower.includes(appleTitle)) {
-            matchedUrl = appleEp.trackViewUrl || appleEp.collectionViewUrl || null;
-            matchedAudio = appleEp.episodeUrl || null;
+            matched = appleEp;
             break;
           }
         }
 
-        if (matchedUrl) {
-          const updates: string[] = [`apple_episode_url = $2`];
-          const params: any[] = [ep.id, matchedUrl];
-          
-          if (matchedAudio) {
-            const { rows: existing } = await pool.query(
-              `SELECT audio_url FROM landing_page_recaps WHERE id = $1`, [ep.id]
-            );
-            if (!existing[0]?.audio_url) {
-              updates.push(`audio_url = $${params.length + 1}`);
-              params.push(matchedAudio);
+        if (matched) {
+          const updates: string[] = [];
+          const params: any[] = [ep.id];
+          let paramIdx = 2;
+
+          if (!ep.apple_episode_url) {
+            const appleUrl = matched.trackViewUrl || matched.collectionViewUrl;
+            if (appleUrl) {
+              updates.push(`apple_episode_url = $${paramIdx}`);
+              params.push(appleUrl);
+              paramIdx++;
             }
           }
 
-          await pool.query(
-            `UPDATE landing_page_recaps SET ${updates.join(", ")} WHERE id = $1`,
-            params
-          );
-          backfillState.fixed++;
+          if (!ep.audio_url && matched.episodeUrl) {
+            updates.push(`audio_url = $${paramIdx}`);
+            params.push(matched.episodeUrl);
+            paramIdx++;
+          }
+
+          if (!ep.show_notes && matched.description) {
+            updates.push(`show_notes = $${paramIdx}`);
+            params.push(matched.description);
+            paramIdx++;
+          }
+
+          if (updates.length > 0) {
+            await pool.query(
+              `UPDATE landing_page_recaps SET ${updates.join(", ")} WHERE id = $1`,
+              params
+            );
+            backfillState.fixed++;
+          }
         }
         backfillState.processed++;
       }
@@ -117,25 +134,9 @@ async function backfillAppleEpisodeUrls() {
       backfillState.processed += episodes.length;
     }
   }
-  logMsg(`Apple URLs done: ${backfillState.fixed} fixed out of ${rows.length}`);
+  logMsg(`Apple phase done: ${backfillState.fixed} episodes fixed out of ${rows.length}`);
 }
 
-async function backfillShowNotes() {
-  logMsg("=== Phase 2: Show Notes from RSS ===");
-  const { rows } = await pool.query(`
-    SELECT r.id, r.slug, r.episode_title, r.itunes_id
-    FROM landing_page_recaps r
-    WHERE (r.show_notes IS NULL OR r.show_notes = '')
-    ORDER BY r.id
-  `);
-  logMsg(`Found ${rows.length} episodes missing show notes`);
-  backfillState.total += rows.length;
-  
-  for (const row of rows) {
-    backfillState.processed++;
-  }
-  logMsg(`Show notes phase complete (skipped — requires RSS feed access)`);
-}
 
 async function backfillAIFields() {
   logMsg("=== Phase 3: AI-Generated Fields (sponsors, guests, resources, questions) ===");
