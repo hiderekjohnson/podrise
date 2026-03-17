@@ -1877,9 +1877,137 @@ function EntityBackfillBanner() {
   );
 }
 
+interface EntityPerson {
+  id: number; slug: string; name: string; bio: string | null; photoUrl: string | null;
+  title: string | null; company: string | null; twitterHandle: string | null;
+  linkedinUrl: string | null; websiteUrl: string | null; category: string | null;
+  searchTerms: string[]; hostedSlugs: string[]; verified: boolean; episodeCount: number; context: string;
+}
+
+interface EntityCompany {
+  id: number; slug: string; name: string; description: string | null; logoUrl: string | null;
+  industry: string | null; websiteUrl: string | null; twitterHandle: string | null;
+  category: string | null; searchTerms: string[]; associatedTerms: string[];
+  verified: boolean; episodeCount: number; context: string;
+}
+
+interface EntityMention {
+  id: number; episodeSlug: string; podcastSlug: string; podcastName: string;
+  episodeTitle: string; publishDate: string; context: string;
+}
+
+function PersonDetailPanel({ slug, onClose }: { slug: string; onClose: () => void }) {
+  const { toast } = useToast();
+  const { data, isLoading } = useQuery<EntityPerson & { mentions: EntityMention[] }>({
+    queryKey: ["/api/admin/cms/people", slug],
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/cms/people/${slug}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+  });
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState<Partial<EntityPerson>>({});
+  const updateMut = useMutation({
+    mutationFn: (body: Partial<EntityPerson>) => apiRequest("PATCH", `/api/admin/cms/people/${slug}`, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/people"] });
+      toast({ title: "Person updated" });
+      setEditing(false);
+    },
+    onError: (err: Error) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+  });
+
+  if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
+  if (!data) return null;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <button onClick={onClose} className="text-sm text-primary hover:underline flex items-center gap-1" data-testid="button-back-people">
+          <ChevronLeft className="w-4 h-4" /> Back to People
+        </button>
+        <div className="flex items-center gap-2">
+          {data.verified && <span className="px-2 py-0.5 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-md text-xs">Verified</span>}
+          <button onClick={() => { setEditing(!editing); setForm(data); }} className="text-xs text-primary hover:underline" data-testid="button-edit-person">
+            {editing ? "Cancel" : "Edit"}
+          </button>
+        </div>
+      </div>
+      <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
+        <div className="flex items-start gap-4">
+          {data.photoUrl ? (
+            <img src={data.photoUrl} alt={data.name} className="w-16 h-16 rounded-full object-cover" />
+          ) : (
+            <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-700 dark:text-blue-400 text-xl font-bold">{data.name.charAt(0)}</div>
+          )}
+          <div className="flex-1">
+            {editing ? (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="text-xs text-muted-foreground">Name</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.name || ""} onChange={e => setForm({...form, name: e.target.value})} /></div>
+                  <div><label className="text-xs text-muted-foreground">Title</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.title || ""} onChange={e => setForm({...form, title: e.target.value})} /></div>
+                  <div><label className="text-xs text-muted-foreground">Company</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.company || ""} onChange={e => setForm({...form, company: e.target.value})} /></div>
+                  <div><label className="text-xs text-muted-foreground">Category</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.category || ""} onChange={e => setForm({...form, category: e.target.value})} placeholder="entrepreneur, investor, host..." /></div>
+                  <div><label className="text-xs text-muted-foreground">Photo URL</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.photoUrl || ""} onChange={e => setForm({...form, photoUrl: e.target.value})} /></div>
+                  <div><label className="text-xs text-muted-foreground">Twitter</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.twitterHandle || ""} onChange={e => setForm({...form, twitterHandle: e.target.value})} /></div>
+                  <div><label className="text-xs text-muted-foreground">LinkedIn</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.linkedinUrl || ""} onChange={e => setForm({...form, linkedinUrl: e.target.value})} /></div>
+                  <div><label className="text-xs text-muted-foreground">Website</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.websiteUrl || ""} onChange={e => setForm({...form, websiteUrl: e.target.value})} /></div>
+                </div>
+                <div><label className="text-xs text-muted-foreground">Bio</label><textarea className="w-full border rounded px-2 py-1 text-sm min-h-[60px]" value={form.bio || ""} onChange={e => setForm({...form, bio: e.target.value})} /></div>
+                <div className="flex gap-2">
+                  <button onClick={() => updateMut.mutate(form)} disabled={updateMut.isPending} className="px-3 py-1 bg-primary text-white rounded text-sm" data-testid="button-save-person">
+                    {updateMut.isPending ? "Saving..." : "Save"}
+                  </button>
+                  <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={form.verified || false} onChange={e => setForm({...form, verified: e.target.checked})} /> Verified</label>
+                </div>
+              </div>
+            ) : (
+              <>
+                <h3 className="text-lg font-semibold">{data.name}</h3>
+                {data.title && <p className="text-sm text-muted-foreground">{data.title}{data.company ? ` at ${data.company}` : ""}</p>}
+                {data.bio && <p className="text-sm text-muted-foreground mt-2">{data.bio}</p>}
+                {data.category && <span className="inline-block mt-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs">{data.category}</span>}
+                <div className="flex gap-3 mt-2 text-xs text-muted-foreground">
+                  {data.twitterHandle && <span>@{data.twitterHandle}</span>}
+                  {data.linkedinUrl && <a href={data.linkedinUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline">LinkedIn</a>}
+                  {data.websiteUrl && <a href={data.websiteUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline">Website</a>}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <h4 className="text-sm font-semibold flex items-center gap-2">
+          Episode Mentions
+          <span className="px-2 py-0.5 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-md text-xs">{data.mentions?.length || 0}</span>
+        </h4>
+        {data.mentions?.length ? (
+          <div className="space-y-2 max-h-[400px] overflow-y-auto">
+            {data.mentions.map((m, i) => (
+              <div key={i} className="bg-white dark:bg-zinc-900 border border-border rounded-lg p-3 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">{m.episodeTitle}</span>
+                  <span className="text-xs text-muted-foreground">{m.publishDate}</span>
+                </div>
+                <span className="text-xs text-muted-foreground">{m.podcastName}</span>
+                {m.context && <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{m.context.replace(/^\.\.\./, '').replace(/\.\.\.$/, '')}</p>}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">No episode mentions found. Run backfill to populate.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function PeopleTab() {
   const [search, setSearch] = useState("");
-  const { data: people, isLoading } = useQuery<Array<{ name: string; slug: string; count: number; context: string }>>({
+  const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
+  const { data: people, isLoading } = useQuery<EntityPerson[]>({
     queryKey: ["/api/admin/cms/people", search],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -1889,6 +2017,11 @@ function PeopleTab() {
       return res.json();
     },
   });
+
+  if (selectedSlug) {
+    return <PersonDetailPanel slug={selectedSlug} onClose={() => setSelectedSlug(null)} />;
+  }
+
   return (
     <div className="space-y-4" data-testid="cms-people-tab">
       <EntityBackfillBanner />
@@ -1906,12 +2039,25 @@ function PeopleTab() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {people.map((person) => (
-            <div key={person.slug} className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4 space-y-2" data-testid={`person-card-${person.slug}`}>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-foreground">{person.name}</span>
-                <span className="px-2 py-0.5 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-md text-xs font-medium">{person.count} episodes</span>
+            <div key={person.slug} onClick={() => setSelectedSlug(person.slug)} className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4 space-y-2 cursor-pointer hover:border-primary/50 transition-colors" data-testid={`person-card-${person.slug}`}>
+              <div className="flex items-center gap-3">
+                {person.photoUrl ? (
+                  <img src={person.photoUrl} alt={person.name} className="w-10 h-10 rounded-full object-cover" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-700 dark:text-blue-400 text-sm font-bold">{person.name.charAt(0)}</div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-foreground truncate">{person.name}</span>
+                    <span className="px-2 py-0.5 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-md text-xs font-medium shrink-0 ml-2">{person.episodeCount}</span>
+                  </div>
+                  {person.title && <p className="text-xs text-muted-foreground truncate">{person.title}{person.company ? ` · ${person.company}` : ""}</p>}
+                </div>
               </div>
-              {person.context && <p className="text-xs text-muted-foreground line-clamp-2">{person.context.replace(/^\.\.\./, '').replace(/\.\.\.$/, '')}</p>}
+              <div className="flex items-center gap-2">
+                {person.verified && <span className="px-1.5 py-0.5 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded text-[10px]">Verified</span>}
+                {person.category && <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-[10px] text-muted-foreground">{person.category}</span>}
+              </div>
             </div>
           ))}
         </div>
@@ -1920,9 +2066,115 @@ function PeopleTab() {
   );
 }
 
+function CompanyDetailPanel({ slug, onClose }: { slug: string; onClose: () => void }) {
+  const { toast } = useToast();
+  const { data, isLoading } = useQuery<EntityCompany & { mentions: EntityMention[] }>({
+    queryKey: ["/api/admin/cms/companies", slug],
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/cms/companies/${slug}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+  });
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState<Partial<EntityCompany>>({});
+  const updateMut = useMutation({
+    mutationFn: (body: Partial<EntityCompany>) => apiRequest("PATCH", `/api/admin/cms/companies/${slug}`, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/companies"] });
+      toast({ title: "Company updated" });
+      setEditing(false);
+    },
+    onError: (err: Error) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+  });
+
+  if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
+  if (!data) return null;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <button onClick={onClose} className="text-sm text-primary hover:underline flex items-center gap-1" data-testid="button-back-companies">
+          <ChevronLeft className="w-4 h-4" /> Back to Companies
+        </button>
+        <div className="flex items-center gap-2">
+          {data.verified && <span className="px-2 py-0.5 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-md text-xs">Verified</span>}
+          <button onClick={() => { setEditing(!editing); setForm(data); }} className="text-xs text-primary hover:underline" data-testid="button-edit-company">
+            {editing ? "Cancel" : "Edit"}
+          </button>
+        </div>
+      </div>
+      <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
+        <div className="flex items-start gap-4">
+          {data.logoUrl ? (
+            <img src={data.logoUrl} alt={data.name} className="w-16 h-16 rounded-lg object-contain bg-white border" />
+          ) : (
+            <div className="w-16 h-16 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-700 dark:text-purple-400 text-xl font-bold">{data.name.charAt(0)}</div>
+          )}
+          <div className="flex-1">
+            {editing ? (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="text-xs text-muted-foreground">Name</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.name || ""} onChange={e => setForm({...form, name: e.target.value})} /></div>
+                  <div><label className="text-xs text-muted-foreground">Industry</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.industry || ""} onChange={e => setForm({...form, industry: e.target.value})} placeholder="AI, Finance, Social..." /></div>
+                  <div><label className="text-xs text-muted-foreground">Category</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.category || ""} onChange={e => setForm({...form, category: e.target.value})} placeholder="tech, finance, vc..." /></div>
+                  <div><label className="text-xs text-muted-foreground">Logo URL</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.logoUrl || ""} onChange={e => setForm({...form, logoUrl: e.target.value})} /></div>
+                  <div><label className="text-xs text-muted-foreground">Website</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.websiteUrl || ""} onChange={e => setForm({...form, websiteUrl: e.target.value})} /></div>
+                  <div><label className="text-xs text-muted-foreground">Twitter</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.twitterHandle || ""} onChange={e => setForm({...form, twitterHandle: e.target.value})} /></div>
+                </div>
+                <div><label className="text-xs text-muted-foreground">Description</label><textarea className="w-full border rounded px-2 py-1 text-sm min-h-[60px]" value={form.description || ""} onChange={e => setForm({...form, description: e.target.value})} /></div>
+                <div className="flex gap-2">
+                  <button onClick={() => updateMut.mutate(form)} disabled={updateMut.isPending} className="px-3 py-1 bg-primary text-white rounded text-sm" data-testid="button-save-company">
+                    {updateMut.isPending ? "Saving..." : "Save"}
+                  </button>
+                  <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={form.verified || false} onChange={e => setForm({...form, verified: e.target.checked})} /> Verified</label>
+                </div>
+              </div>
+            ) : (
+              <>
+                <h3 className="text-lg font-semibold">{data.name}</h3>
+                {data.industry && <span className="inline-block px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs mr-2">{data.industry}</span>}
+                {data.category && <span className="inline-block px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs">{data.category}</span>}
+                {data.description && <p className="text-sm text-muted-foreground mt-2">{data.description}</p>}
+                <div className="flex gap-3 mt-2 text-xs text-muted-foreground">
+                  {data.twitterHandle && <span>@{data.twitterHandle}</span>}
+                  {data.websiteUrl && <a href={data.websiteUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline">Website</a>}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <h4 className="text-sm font-semibold flex items-center gap-2">
+          Episode Mentions
+          <span className="px-2 py-0.5 bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded-md text-xs">{data.mentions?.length || 0}</span>
+        </h4>
+        {data.mentions?.length ? (
+          <div className="space-y-2 max-h-[400px] overflow-y-auto">
+            {data.mentions.map((m, i) => (
+              <div key={i} className="bg-white dark:bg-zinc-900 border border-border rounded-lg p-3 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">{m.episodeTitle}</span>
+                  <span className="text-xs text-muted-foreground">{m.publishDate}</span>
+                </div>
+                <span className="text-xs text-muted-foreground">{m.podcastName}</span>
+                {m.context && <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{m.context.replace(/^\.\.\./, '').replace(/\.\.\.$/, '')}</p>}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">No episode mentions found. Run backfill to populate.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function CompaniesTab() {
   const [search, setSearch] = useState("");
-  const { data: companies, isLoading } = useQuery<Array<{ name: string; slug: string; count: number; context: string }>>({
+  const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
+  const { data: companies, isLoading } = useQuery<EntityCompany[]>({
     queryKey: ["/api/admin/cms/companies", search],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -1932,6 +2184,11 @@ function CompaniesTab() {
       return res.json();
     },
   });
+
+  if (selectedSlug) {
+    return <CompanyDetailPanel slug={selectedSlug} onClose={() => setSelectedSlug(null)} />;
+  }
+
   return (
     <div className="space-y-4" data-testid="cms-companies-tab">
       <EntityBackfillBanner />
@@ -1949,12 +2206,25 @@ function CompaniesTab() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {companies.map((company) => (
-            <div key={company.slug} className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4 space-y-2" data-testid={`company-card-${company.slug}`}>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-foreground">{company.name}</span>
-                <span className="px-2 py-0.5 bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded-md text-xs font-medium">{company.count} episodes</span>
+            <div key={company.slug} onClick={() => setSelectedSlug(company.slug)} className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4 space-y-2 cursor-pointer hover:border-primary/50 transition-colors" data-testid={`company-card-${company.slug}`}>
+              <div className="flex items-center gap-3">
+                {company.logoUrl ? (
+                  <img src={company.logoUrl} alt={company.name} className="w-10 h-10 rounded-lg object-contain bg-white border" />
+                ) : (
+                  <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-700 dark:text-purple-400 text-sm font-bold">{company.name.charAt(0)}</div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-foreground truncate">{company.name}</span>
+                    <span className="px-2 py-0.5 bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded-md text-xs font-medium shrink-0 ml-2">{company.episodeCount}</span>
+                  </div>
+                  {company.industry && <p className="text-xs text-muted-foreground truncate">{company.industry}</p>}
+                </div>
               </div>
-              {company.context && <p className="text-xs text-muted-foreground line-clamp-2">{company.context.replace(/^\.\.\./, '').replace(/\.\.\.$/, '')}</p>}
+              <div className="flex items-center gap-2">
+                {company.verified && <span className="px-1.5 py-0.5 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded text-[10px]">Verified</span>}
+                {company.category && <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-[10px] text-muted-foreground">{company.category}</span>}
+              </div>
             </div>
           ))}
         </div>

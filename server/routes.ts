@@ -679,6 +679,57 @@ export async function registerRoutes(
     if (dupeResult.rowCount && dupeResult.rowCount > 0) {
       console.log(`[startup] Cleaned up ${dupeResult.rowCount} duplicate book entries`);
     }
+    await migrationPool.query(`
+      CREATE TABLE IF NOT EXISTS entity_people (
+        id SERIAL PRIMARY KEY,
+        slug TEXT NOT NULL UNIQUE,
+        name TEXT NOT NULL,
+        bio TEXT,
+        photo_url TEXT,
+        title TEXT,
+        company TEXT,
+        twitter_handle TEXT,
+        linkedin_url TEXT,
+        website_url TEXT,
+        category TEXT,
+        search_terms TEXT[] NOT NULL DEFAULT '{}',
+        hosted_slugs TEXT[] NOT NULL DEFAULT '{}',
+        verified BOOLEAN NOT NULL DEFAULT false,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS entity_companies (
+        id SERIAL PRIMARY KEY,
+        slug TEXT NOT NULL UNIQUE,
+        name TEXT NOT NULL,
+        description TEXT,
+        logo_url TEXT,
+        industry TEXT,
+        website_url TEXT,
+        twitter_handle TEXT,
+        category TEXT,
+        search_terms TEXT[] NOT NULL DEFAULT '{}',
+        associated_terms TEXT[] NOT NULL DEFAULT '{}',
+        verified BOOLEAN NOT NULL DEFAULT false,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS entity_episode_mentions (
+        id SERIAL PRIMARY KEY,
+        entity_type TEXT NOT NULL,
+        entity_slug TEXT NOT NULL,
+        recap_id INTEGER NOT NULL,
+        episode_slug TEXT NOT NULL,
+        podcast_slug TEXT NOT NULL,
+        context TEXT,
+        mention_count INTEGER DEFAULT 1,
+        created_at TIMESTAMP DEFAULT NOW(),
+        CONSTRAINT entity_episode_unique UNIQUE (entity_type, entity_slug, recap_id)
+      );
+      CREATE INDEX IF NOT EXISTS idx_entity_mentions_slug ON entity_episode_mentions (entity_type, entity_slug);
+      CREATE INDEX IF NOT EXISTS idx_entity_mentions_recap ON entity_episode_mentions (recap_id);
+      CREATE INDEX IF NOT EXISTS idx_entity_mentions_podcast ON entity_episode_mentions (podcast_slug);
+    `);
   } catch (e: any) {
     console.error("[startup] Schema migration error:", e.message);
   }
@@ -702,6 +753,58 @@ export async function registerRoutes(
     }
   } catch (e: any) {
     console.error("[startup] Referral backfill error:", e.message);
+  }
+
+  try {
+    const { ENTITY_PEOPLE, ENTITY_COMPANIES } = await import("./entityContextGenerator");
+    const { pool: seedPool } = await import("./db");
+    const { rows: existingPeople } = await seedPool.query(`SELECT count(*)::int as cnt FROM entity_people`);
+    if (existingPeople[0].cnt === 0) {
+      for (const p of ENTITY_PEOPLE) {
+        await seedPool.query(
+          `INSERT INTO entity_people (slug, name, search_terms, hosted_slugs) VALUES ($1, $2, $3, $4) ON CONFLICT (slug) DO NOTHING`,
+          [p.slug, p.name, p.searchTerms, p.hostedSlugs || []]
+        );
+      }
+      console.log(`[startup] Seeded ${ENTITY_PEOPLE.length} entity people`);
+    }
+    const { rows: existingCompanies } = await seedPool.query(`SELECT count(*)::int as cnt FROM entity_companies`);
+    if (existingCompanies[0].cnt === 0) {
+      for (const c of ENTITY_COMPANIES) {
+        await seedPool.query(
+          `INSERT INTO entity_companies (slug, name, search_terms, associated_terms) VALUES ($1, $2, $3, $4) ON CONFLICT (slug) DO NOTHING`,
+          [c.slug, c.name, c.searchTerms, c.associatedTerms || []]
+        );
+      }
+      console.log(`[startup] Seeded ${ENTITY_COMPANIES.length} entity companies`);
+    }
+    const { rows: [mentionCount] } = await seedPool.query(`SELECT count(*)::int as cnt FROM entity_episode_mentions`);
+    if (mentionCount.cnt === 0) {
+      const { rows: cachedEpisodes } = await seedPool.query(
+        `SELECT id, slug, episode_slug, entity_contexts_cache FROM landing_page_recaps WHERE entity_contexts_cache IS NOT NULL`
+      );
+      const companySlugs = new Set(ENTITY_COMPANIES.map(c => c.slug));
+      const peopleSlugs = new Set(ENTITY_PEOPLE.map(p => p.slug));
+      let inserted = 0;
+      for (const ep of cachedEpisodes) {
+        try {
+          const entities = typeof ep.entity_contexts_cache === "string" ? JSON.parse(ep.entity_contexts_cache) : ep.entity_contexts_cache;
+          for (const [entitySlug, context] of Object.entries(entities as Record<string, string>)) {
+            const entityType = companySlugs.has(entitySlug) ? "company" : peopleSlugs.has(entitySlug) ? "person" : null;
+            if (!entityType) continue;
+            await seedPool.query(
+              `INSERT INTO entity_episode_mentions (entity_type, entity_slug, recap_id, episode_slug, podcast_slug, context)
+               VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (entity_type, entity_slug, recap_id) DO NOTHING`,
+              [entityType, entitySlug, ep.id, ep.episode_slug, ep.slug, typeof context === "string" ? context : ""]
+            );
+            inserted++;
+          }
+        } catch {}
+      }
+      if (inserted > 0) console.log(`[startup] Backfilled ${inserted} entity episode mentions from cache`);
+    }
+  } catch (e: any) {
+    console.error("[startup] Entity seed error:", e.message);
   }
 
   app.use((req, res, next) => {
@@ -9023,6 +9126,20 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
             [JSON.stringify(entityContexts), ep.id]
           );
 
+          const { ENTITY_PEOPLE: EP, ENTITY_COMPANIES: EC } = await import("./entityContextGenerator");
+          const companySlugsSet = new Set(EC.map(c => c.slug));
+          const peopleSlugsSet = new Set(EP.map(p => p.slug));
+          for (const [entitySlug, context] of Object.entries(entityContexts)) {
+            const entityType = companySlugsSet.has(entitySlug) ? "company" : peopleSlugsSet.has(entitySlug) ? "person" : null;
+            if (!entityType) continue;
+            await pool.query(
+              `INSERT INTO entity_episode_mentions (entity_type, entity_slug, recap_id, episode_slug, podcast_slug, context)
+               VALUES ($1, $2, $3, $4, $5, $6)
+               ON CONFLICT (entity_type, entity_slug, recap_id) DO UPDATE SET context = EXCLUDED.context`,
+              [entityType, entitySlug, ep.id, ep.episode_slug, ep.slug, typeof context === "string" ? context : ""]
+            );
+          }
+
           totalEntities += Object.keys(entityContexts).length;
           processed++;
         } catch (err: any) {
@@ -9042,41 +9159,126 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {
       const { search } = req.query;
-      const { ENTITY_PEOPLE, ENTITY_COMPANIES } = await import("./entityContextGenerator");
-      const companySlugs = new Set(ENTITY_COMPANIES.map(c => c.slug));
-      const personNameMap: Record<string, string> = {};
-      for (const p of ENTITY_PEOPLE) personNameMap[p.slug] = p.name;
-      const { rows } = await pool.query(
-        `SELECT entity_contexts_cache FROM landing_page_recaps WHERE entity_contexts_cache IS NOT NULL`
-      );
-      const peopleCounts: Record<string, { name: string; slug: string; count: number; context: string }> = {};
-      for (const row of rows) {
-        try {
-          const entities: Record<string, string> = typeof row.entity_contexts_cache === "string"
-            ? JSON.parse(row.entity_contexts_cache) : row.entity_contexts_cache;
-          for (const [entitySlug, context] of Object.entries(entities)) {
-            if (companySlugs.has(entitySlug)) continue;
-            if (!personNameMap[entitySlug]) continue;
-            const name = personNameMap[entitySlug];
-            if (!peopleCounts[entitySlug]) {
-              peopleCounts[entitySlug] = { name, slug: entitySlug, count: 0, context: typeof context === "string" ? context : "" };
-            }
-            peopleCounts[entitySlug].count++;
-            if (context && (!peopleCounts[entitySlug].context || peopleCounts[entitySlug].context.startsWith("..."))) {
-              peopleCounts[entitySlug].context = typeof context === "string" ? context : "";
-            }
-          }
-        } catch {}
-      }
-      let people = Object.values(peopleCounts).sort((a, b) => b.count - a.count);
+      let where = "";
+      const params: any[] = [];
       if (search) {
-        const q = (search as string).toLowerCase();
-        people = people.filter(p => p.name.toLowerCase().includes(q));
+        params.push(`%${search}%`);
+        where = `WHERE ep.name ILIKE $${params.length}`;
       }
-      res.json(people.slice(0, 200));
+      const { rows } = await pool.query(`
+        SELECT ep.*, 
+          COALESCE(m.mention_count, 0)::int as episode_count,
+          m.latest_context
+        FROM entity_people ep
+        LEFT JOIN (
+          SELECT entity_slug, COUNT(*)::int as mention_count,
+            (array_agg(context ORDER BY created_at DESC))[1] as latest_context
+          FROM entity_episode_mentions WHERE entity_type = 'person'
+          GROUP BY entity_slug
+        ) m ON m.entity_slug = ep.slug
+        ${where}
+        ORDER BY COALESCE(m.mention_count, 0) DESC, ep.name ASC
+        LIMIT 200
+      `, params);
+      res.json(rows.map(r => ({
+        id: r.id,
+        slug: r.slug,
+        name: r.name,
+        bio: r.bio,
+        photoUrl: r.photo_url,
+        title: r.title,
+        company: r.company,
+        twitterHandle: r.twitter_handle,
+        linkedinUrl: r.linkedin_url,
+        websiteUrl: r.website_url,
+        category: r.category,
+        searchTerms: r.search_terms,
+        hostedSlugs: r.hosted_slugs,
+        verified: r.verified,
+        episodeCount: r.episode_count,
+        context: r.latest_context || "",
+      })));
     } catch (err: any) {
       console.error("[CMS] People error:", err);
       res.status(500).json({ message: err?.message || "Failed to fetch people" });
+    }
+  });
+
+  app.get("/api/admin/cms/people/:slug", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { rows: [person] } = await pool.query(`SELECT * FROM entity_people WHERE slug = $1`, [req.params.slug]);
+      if (!person) return res.status(404).json({ message: "Person not found" });
+      const { rows: mentions } = await pool.query(`
+        SELECT eem.*, lpr.podcast_name, lpr.episode_title, lpr.publish_date, lpr.slug as podcast_slug_full
+        FROM entity_episode_mentions eem
+        JOIN landing_page_recaps lpr ON lpr.id = eem.recap_id
+        WHERE eem.entity_type = 'person' AND eem.entity_slug = $1
+        ORDER BY lpr.publish_date DESC
+        LIMIT 100
+      `, [req.params.slug]);
+      res.json({
+        id: person.id, slug: person.slug, name: person.name, bio: person.bio,
+        photoUrl: person.photo_url, title: person.title, company: person.company,
+        twitterHandle: person.twitter_handle, linkedinUrl: person.linkedin_url,
+        websiteUrl: person.website_url, category: person.category,
+        searchTerms: person.search_terms, hostedSlugs: person.hosted_slugs,
+        verified: person.verified,
+        mentions: mentions.map(m => ({
+          episodeSlug: m.episode_slug,
+          podcastSlug: m.podcast_slug,
+          podcastName: m.podcast_name,
+          episodeTitle: m.episode_title,
+          publishDate: m.publish_date,
+          context: m.context,
+        })),
+      });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to fetch person" });
+    }
+  });
+
+  app.patch("/api/admin/cms/people/:slug", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { name, bio, photoUrl, title, company, twitterHandle, linkedinUrl, websiteUrl, category, verified } = req.body;
+      const { rows: [updated] } = await pool.query(`
+        UPDATE entity_people SET 
+          name = COALESCE($1, name), bio = COALESCE($2, bio), photo_url = COALESCE($3, photo_url),
+          title = COALESCE($4, title), company = COALESCE($5, company), twitter_handle = COALESCE($6, twitter_handle),
+          linkedin_url = COALESCE($7, linkedin_url), website_url = COALESCE($8, website_url),
+          category = COALESCE($9, category), verified = COALESCE($10, verified),
+          updated_at = NOW()
+        WHERE slug = $11 RETURNING *
+      `, [name, bio, photoUrl, title, company, twitterHandle, linkedinUrl, websiteUrl, category, verified, req.params.slug]);
+      if (!updated) return res.status(404).json({ message: "Person not found" });
+      res.json({
+        id: updated.id, slug: updated.slug, name: updated.name, bio: updated.bio,
+        photoUrl: updated.photo_url, title: updated.title, company: updated.company,
+        twitterHandle: updated.twitter_handle, linkedinUrl: updated.linkedin_url,
+        websiteUrl: updated.website_url, category: updated.category,
+        searchTerms: updated.search_terms, hostedSlugs: updated.hosted_slugs,
+        verified: updated.verified,
+      });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to update person" });
+    }
+  });
+
+  app.post("/api/admin/cms/people", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { slug, name, bio, photoUrl, title, company, twitterHandle, linkedinUrl, websiteUrl, category, searchTerms } = req.body;
+      if (!slug || !name) return res.status(400).json({ message: "slug and name are required" });
+      const { rows: [created] } = await pool.query(`
+        INSERT INTO entity_people (slug, name, bio, photo_url, title, company, twitter_handle, linkedin_url, website_url, category, search_terms)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        ON CONFLICT (slug) DO NOTHING RETURNING *
+      `, [slug, name, bio || null, photoUrl || null, title || null, company || null, twitterHandle || null, linkedinUrl || null, websiteUrl || null, category || null, searchTerms || [name]]);
+      if (!created) return res.status(409).json({ message: "Person with this slug already exists" });
+      res.json(created);
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to create person" });
     }
   });
 
@@ -9084,40 +9286,149 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {
       const { search } = req.query;
-      const { ENTITY_COMPANIES } = await import("./entityContextGenerator");
-      const companySlugs = new Set(ENTITY_COMPANIES.map(c => c.slug));
-      const companyNameMap: Record<string, string> = {};
-      for (const c of ENTITY_COMPANIES) companyNameMap[c.slug] = c.name;
-      const { rows } = await pool.query(
-        `SELECT entity_contexts_cache FROM landing_page_recaps WHERE entity_contexts_cache IS NOT NULL`
-      );
-      const companyCounts: Record<string, { name: string; slug: string; count: number; context: string }> = {};
-      for (const row of rows) {
-        try {
-          const entities: Record<string, string> = typeof row.entity_contexts_cache === "string"
-            ? JSON.parse(row.entity_contexts_cache) : row.entity_contexts_cache;
-          for (const [entitySlug, context] of Object.entries(entities)) {
-            if (!companySlugs.has(entitySlug)) continue;
-            const name = companyNameMap[entitySlug] || entitySlug.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-            if (!companyCounts[entitySlug]) {
-              companyCounts[entitySlug] = { name, slug: entitySlug, count: 0, context: typeof context === "string" ? context : "" };
-            }
-            companyCounts[entitySlug].count++;
-            if (context && (!companyCounts[entitySlug].context || companyCounts[entitySlug].context.startsWith("..."))) {
-              companyCounts[entitySlug].context = typeof context === "string" ? context : "";
-            }
-          }
-        } catch {}
-      }
-      let companies = Object.values(companyCounts).sort((a, b) => b.count - a.count);
+      let where = "";
+      const params: any[] = [];
       if (search) {
-        const q = (search as string).toLowerCase();
-        companies = companies.filter(c => c.name.toLowerCase().includes(q));
+        params.push(`%${search}%`);
+        where = `WHERE ec.name ILIKE $${params.length}`;
       }
-      res.json(companies.slice(0, 200));
+      const { rows } = await pool.query(`
+        SELECT ec.*, 
+          COALESCE(m.mention_count, 0)::int as episode_count,
+          m.latest_context
+        FROM entity_companies ec
+        LEFT JOIN (
+          SELECT entity_slug, COUNT(*)::int as mention_count,
+            (array_agg(context ORDER BY created_at DESC))[1] as latest_context
+          FROM entity_episode_mentions WHERE entity_type = 'company'
+          GROUP BY entity_slug
+        ) m ON m.entity_slug = ec.slug
+        ${where}
+        ORDER BY COALESCE(m.mention_count, 0) DESC, ec.name ASC
+        LIMIT 200
+      `, params);
+      res.json(rows.map(r => ({
+        id: r.id,
+        slug: r.slug,
+        name: r.name,
+        description: r.description,
+        logoUrl: r.logo_url,
+        industry: r.industry,
+        websiteUrl: r.website_url,
+        twitterHandle: r.twitter_handle,
+        category: r.category,
+        searchTerms: r.search_terms,
+        associatedTerms: r.associated_terms,
+        verified: r.verified,
+        episodeCount: r.episode_count,
+        context: r.latest_context || "",
+      })));
     } catch (err: any) {
       console.error("[CMS] Companies error:", err);
       res.status(500).json({ message: err?.message || "Failed to fetch companies" });
+    }
+  });
+
+  app.get("/api/admin/cms/companies/:slug", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { rows: [company] } = await pool.query(`SELECT * FROM entity_companies WHERE slug = $1`, [req.params.slug]);
+      if (!company) return res.status(404).json({ message: "Company not found" });
+      const { rows: mentions } = await pool.query(`
+        SELECT eem.*, lpr.podcast_name, lpr.episode_title, lpr.publish_date, lpr.slug as podcast_slug_full
+        FROM entity_episode_mentions eem
+        JOIN landing_page_recaps lpr ON lpr.id = eem.recap_id
+        WHERE eem.entity_type = 'company' AND eem.entity_slug = $1
+        ORDER BY lpr.publish_date DESC
+        LIMIT 100
+      `, [req.params.slug]);
+      res.json({
+        id: company.id, slug: company.slug, name: company.name, description: company.description,
+        logoUrl: company.logo_url, industry: company.industry, websiteUrl: company.website_url,
+        twitterHandle: company.twitter_handle, category: company.category,
+        searchTerms: company.search_terms, associatedTerms: company.associated_terms,
+        verified: company.verified,
+        mentions: mentions.map(m => ({
+          episodeSlug: m.episode_slug,
+          podcastSlug: m.podcast_slug,
+          podcastName: m.podcast_name,
+          episodeTitle: m.episode_title,
+          publishDate: m.publish_date,
+          context: m.context,
+        })),
+      });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to fetch company" });
+    }
+  });
+
+  app.patch("/api/admin/cms/companies/:slug", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { name, description, logoUrl, industry, websiteUrl, twitterHandle, category, verified } = req.body;
+      const { rows: [updated] } = await pool.query(`
+        UPDATE entity_companies SET 
+          name = COALESCE($1, name), description = COALESCE($2, description), logo_url = COALESCE($3, logo_url),
+          industry = COALESCE($4, industry), website_url = COALESCE($5, website_url),
+          twitter_handle = COALESCE($6, twitter_handle), category = COALESCE($7, category),
+          verified = COALESCE($8, verified), updated_at = NOW()
+        WHERE slug = $9 RETURNING *
+      `, [name, description, logoUrl, industry, websiteUrl, twitterHandle, category, verified, req.params.slug]);
+      if (!updated) return res.status(404).json({ message: "Company not found" });
+      res.json({
+        id: updated.id, slug: updated.slug, name: updated.name, description: updated.description,
+        logoUrl: updated.logo_url, industry: updated.industry, websiteUrl: updated.website_url,
+        twitterHandle: updated.twitter_handle, category: updated.category,
+        searchTerms: updated.search_terms, associatedTerms: updated.associated_terms,
+        verified: updated.verified,
+      });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to update company" });
+    }
+  });
+
+  app.post("/api/admin/cms/companies", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { slug, name, description, logoUrl, industry, websiteUrl, twitterHandle, category, searchTerms, associatedTerms } = req.body;
+      if (!slug || !name) return res.status(400).json({ message: "slug and name are required" });
+      const { rows: [created] } = await pool.query(`
+        INSERT INTO entity_companies (slug, name, description, logo_url, industry, website_url, twitter_handle, category, search_terms, associated_terms)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        ON CONFLICT (slug) DO NOTHING RETURNING *
+      `, [slug, name, description || null, logoUrl || null, industry || null, websiteUrl || null, twitterHandle || null, category || null, searchTerms || [name], associatedTerms || []]);
+      if (!created) return res.status(409).json({ message: "Company with this slug already exists" });
+      res.json(created);
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to create company" });
+    }
+  });
+
+  app.get("/api/admin/cms/entity-mentions/:type/:slug", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { type, slug } = req.params;
+      if (!["person", "company"].includes(type)) return res.status(400).json({ message: "Invalid entity type" });
+      const { rows } = await pool.query(`
+        SELECT eem.*, lpr.podcast_name, lpr.episode_title, lpr.publish_date, lpr.artwork_url
+        FROM entity_episode_mentions eem
+        JOIN landing_page_recaps lpr ON lpr.id = eem.recap_id
+        WHERE eem.entity_type = $1 AND eem.entity_slug = $2
+        ORDER BY lpr.publish_date DESC
+        LIMIT 200
+      `, [type, slug]);
+      res.json(rows.map(r => ({
+        id: r.id,
+        episodeSlug: r.episode_slug,
+        podcastSlug: r.podcast_slug,
+        podcastName: r.podcast_name,
+        episodeTitle: r.episode_title,
+        publishDate: r.publish_date,
+        artworkUrl: r.artwork_url,
+        context: r.context,
+      })));
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to fetch mentions" });
     }
   });
 

@@ -726,3 +726,79 @@ export const insertSupportArticleSchema = createInsertSchema(supportArticles).om
 export type SupportArticle = typeof supportArticles.$inferSelect;
 export type InsertSupportArticle = z.infer<typeof insertSupportArticleSchema>;
 
+export const entityPeople = pgTable("entity_people", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  bio: text("bio"),
+  photoUrl: text("photo_url"),
+  title: text("title"),
+  company: text("company"),
+  twitterHandle: text("twitter_handle"),
+  linkedinUrl: text("linkedin_url"),
+  websiteUrl: text("website_url"),
+  category: text("category"),
+  searchTerms: text("search_terms").array().notNull().default([]),
+  hostedSlugs: text("hosted_slugs").array().notNull().default([]),
+  verified: boolean("verified").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertEntityPersonSchema = createInsertSchema(entityPeople).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type EntityPerson = typeof entityPeople.$inferSelect;
+export type InsertEntityPerson = z.infer<typeof insertEntityPersonSchema>;
+
+export const entityCompanies = pgTable("entity_companies", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description"),
+  logoUrl: text("logo_url"),
+  industry: text("industry"),
+  websiteUrl: text("website_url"),
+  twitterHandle: text("twitter_handle"),
+  category: text("category"),
+  searchTerms: text("search_terms").array().notNull().default([]),
+  associatedTerms: text("associated_terms").array().notNull().default([]),
+  verified: boolean("verified").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertEntityCompanySchema = createInsertSchema(entityCompanies).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type EntityCompany = typeof entityCompanies.$inferSelect;
+export type InsertEntityCompany = z.infer<typeof insertEntityCompanySchema>;
+
+export const entityEpisodeMentions = pgTable("entity_episode_mentions", {
+  id: serial("id").primaryKey(),
+  entityType: text("entity_type").notNull(),
+  entitySlug: text("entity_slug").notNull(),
+  recapId: integer("recap_id").notNull(),
+  episodeSlug: text("episode_slug").notNull(),
+  podcastSlug: text("podcast_slug").notNull(),
+  context: text("context"),
+  mentionCount: integer("mention_count").default(1),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  entityEpisodeUnique: unique("entity_episode_unique").on(table.entityType, table.entitySlug, table.recapId),
+}));
+
+export const insertEntityEpisodeMentionSchema = createInsertSchema(entityEpisodeMentions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type EntityEpisodeMention = typeof entityEpisodeMentions.$inferSelect;
+export type InsertEntityEpisodeMention = z.infer<typeof insertEntityEpisodeMentionSchema>;
+
