@@ -1,0 +1,67 @@
+We need to build a CMS section inside the existing admin panel. This is our editorial control room — a clean interface for viewing and editing all the content that powers the public site and the logged-in product. Everything reads from and writes back to the existing database. No new data sources. No hardcoded content. No new tables unless absolutely necessary and approved first.
+How our content is created — read this first
+Everything starts with a transcript pulled from Taddy. That transcript is sent to OpenAI, which generates all the structured content you see on the site — recaps, takeaways, quotes, people mentioned, companies mentioned, books mentioned, products mentioned, topics, and key ideas. That content is stored in the database. The CMS is a window into what OpenAI produced, with the ability to review and edit anything before it appears on the public site.
+The transcript is the source of truth for every episode. It is always read-only — never editable. Everything generated from it can be edited. The transcript itself never changes.
+What to build
+A CMS section with five top-level sections in the nav: Podcasts, Episodes, People, Companies, and Products.
+Each section is a searchable, sortable list of everything in the database for that content type. Clicking into any item opens a detail view where you can see and edit all the fields for that item.
+The hierarchy
+Episodes live inside Podcasts — when viewing a podcast you can navigate directly to its episodes. People, Companies, and Products are their own top-level sections.
+Podcasts
+
+Name, description, artwork
+Hosts
+Apple Podcasts, Spotify, YouTube links
+Active / inactive toggle
+Published status
+Auto-calculated from episode data — visible but read-only: episode count, recent guests, most discussed companies, most mentioned people, top topics
+
+Episodes (inside each podcast)
+
+Raw transcript — visible, read-only
+Title, date, duration, artwork
+Recap
+Takeaways (ordered list — reorderable, editable, addable, deletable)
+Quotes (who said it, what they said)
+Hosts, guests (name, title)
+People mentioned (with context)
+Companies mentioned (with context)
+Books mentioned (with "why they talked about it")
+Products and tools mentioned (product vs tool category, with context)
+Published / hidden / needs review toggle
+A regenerate button that re-runs the OpenAI generation on the existing transcript if the output needs to be redone
+
+People
+
+Name, title, description, photo
+Twitter, Instagram, website links
+Related companies, similar people
+Auto-calculated, read-only: mention count, episodes they appear in, podcasts they appear on, timeline of mentions
+
+Companies
+
+Name, description, logo
+Headquarters, founded, employees, market cap, CEO, industry, website
+Associated terms and tags
+Similar companies, related people
+Auto-calculated, read-only: mention count, episodes mentioning them
+
+Products
+
+Title, author or brand, image
+Purchase link
+Description
+Featured on which podcasts
+Product vs tool category
+Auto-calculated, read-only: mention count, podcast mentions with context per episode
+
+Status toggles — every content type needs these
+
+Published — live on the public site
+Needs review — AI output that hasn't been checked yet, not visible on public site
+Hidden — manually removed from public site, not deleted
+
+How to approach this
+Use good judgment on design and structure — you know the data model better than we do at this point. Build something clean and functional that makes it easy to find, review, and edit any piece of content quickly. If you see a better way to organize something, flag it before building it.
+Start with Podcasts and Episodes only. Show us what you've built and get approval before moving on to People, Companies, and Products.
+Tell us your approach before writing any code.

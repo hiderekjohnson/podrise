@@ -8569,7 +8569,19 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       return res.status(401).json({ message: "Not authenticated as admin" });
     }
     try {
-      const { query: sqlQuery, params = [] } = req.body;
+      const { query: sqlQuery, params = [], batch } = req.body;
+      if (batch && Array.isArray(batch)) {
+        let inserted = 0;
+        let errors = 0;
+        for (const item of batch) {
+          if (!item.query || !item.query.trim().toUpperCase().startsWith("INSERT")) { errors++; continue; }
+          try {
+            await pool.query(item.query, item.params || []);
+            inserted++;
+          } catch { errors++; }
+        }
+        return res.json({ inserted, errors });
+      }
       if (!sqlQuery || typeof sqlQuery !== "string") {
         return res.status(400).json({ message: "query required" });
       }
