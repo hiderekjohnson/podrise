@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery, useMutation, useInfiniteQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, MessageCircle, Bookmark, BookmarkCheck, Share, ChevronDown, Copy, ExternalLink, Search, Gift, ChevronRight, MoreHorizontal, Users, Building2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { FeatureTour } from "@/components/FeatureTour";
 import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "@/data/entityDirectoryData";
 
 const PEOPLE_IMAGE_MAP = new Map<string, string>();
@@ -668,9 +669,19 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toa
 export default function FeedPage() {
   const { data: user } = useAuth();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<"foryou" | "following">("foryou");
+  const [location, navigate] = useLocation();
+  const urlParams = useMemo(() => new URLSearchParams(window.location.search), [location]);
+  const isWelcome = urlParams.get("welcome") === "true";
+  const podcastFilter = urlParams.get("podcast") || "";
+  const tabParam = urlParams.get("tab");
+  const initialTab = tabParam === "following" || isWelcome ? "following" : "foryou";
+  const [activeTab, setActiveTab] = useState<"foryou" | "following">(initialTab);
   const observerRef = useRef<HTMLDivElement>(null);
-  const [, navigate] = useLocation();
+
+  useEffect(() => {
+    if (tabParam === "following") setActiveTab("following");
+    else if (tabParam === "foryou") setActiveTab("foryou");
+  }, [tabParam]);
 
   type BookmarkRecord = { id: number; episodeSlug: string; podcastSlug: string };
 
@@ -737,10 +748,11 @@ export default function FeedPage() {
     isFetchingNextPage,
     isLoading,
   } = useInfiniteQuery({
-    queryKey: ["/api/feed", activeTab],
+    queryKey: ["/api/feed", activeTab, podcastFilter],
     queryFn: async ({ pageParam }) => {
       const params = new URLSearchParams({ tab: activeTab, limit: "20" });
       if (pageParam) params.set("cursor", pageParam.toString());
+      if (podcastFilter) params.set("podcast", podcastFilter);
       const res = await fetch(`/api/feed?${params}`);
       if (!res.ok) throw new Error("Failed to load feed");
       return res.json();
@@ -800,6 +812,7 @@ export default function FeedPage() {
                     : "text-[#A1A1AA] border-transparent hover:text-[#52525B] hover:bg-[#FAFAFA]"
                 }`}
                 data-testid={`feed-tab-${tab}`}
+                data-tour={tab === "following" ? "following-tab" : tab === "foryou" ? "foryou-tab" : undefined}
               >
                 {tab === "foryou" ? "For You" : "Following"}
                 <div className="feed-tab-tooltip">
@@ -818,6 +831,21 @@ export default function FeedPage() {
             <Search className="w-5 h-5" />
           </button>
         </div>
+
+        {podcastFilter && (
+          <div className="bg-[#EEF2FF] px-4 py-2.5 flex items-center justify-between gap-2" data-testid="feed-podcast-filter-bar">
+            <p className="text-[14px] font-medium text-[#6366F1]">
+              Filtered by podcast: <span className="font-bold">{podcastFilter.replace(/-/g, ' ')}</span>
+            </p>
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="text-[13px] font-semibold text-[#6366F1] hover:text-[#4F46E5] px-2 py-1 rounded-md hover:bg-[#6366F1]/10 transition-colors"
+              data-testid="feed-clear-filter"
+            >
+              Clear filter
+            </button>
+          </div>
+        )}
 
         <PodSquadBanner />
 
@@ -870,6 +898,7 @@ export default function FeedPage() {
           <div className="h-[60px] md:h-4" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />
         </div>
       </div>
+      <FeatureTour enabled={isWelcome} />
     </DashboardLayout>
   );
 }

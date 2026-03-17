@@ -6420,6 +6420,68 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.post("/api/onboarding/related-podcasts", async (req, res) => {
+    try {
+      const userId = getAuthUserId(req);
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      const { slugs } = req.body;
+      if (!slugs || !Array.isArray(slugs) || slugs.length === 0) {
+        return res.json({ podcasts: [] });
+      }
+
+      const relatedResult = await pool.query(
+        `SELECT DISTINCT pd2.slug, pd2.name, pd2.artwork_url, pd2.category, pd2.description, pd2.followers
+         FROM podcast_directory pd1
+         JOIN podcast_directory pd2 ON pd2.slug = ANY(pd1.related_slugs)
+         WHERE pd1.slug = ANY($1)
+           AND pd2.slug != ALL($1)
+         ORDER BY pd2.followers DESC NULLS LAST
+         LIMIT 8`,
+        [slugs]
+      );
+
+      let results = relatedResult.rows;
+
+      if (results.length < 4) {
+        const existingSlugs = [...slugs, ...results.map((r: any) => r.slug)];
+        const categoryResult = await pool.query(
+          `SELECT category FROM podcast_directory WHERE slug = ANY($1) AND category IS NOT NULL LIMIT 3`,
+          [slugs]
+        );
+        const categories = categoryResult.rows.map((r: any) => r.category).filter(Boolean);
+        if (categories.length > 0) {
+          const catResult = await pool.query(
+            `SELECT slug, name, artwork_url, category, description, followers
+             FROM podcast_directory
+             WHERE category = ANY($1)
+               AND slug != ALL($2)
+               AND has_landing_page = true
+             ORDER BY followers DESC NULLS LAST
+             LIMIT $3`,
+            [categories, existingSlugs, 8 - results.length]
+          );
+          results = [...results, ...catResult.rows];
+        }
+      }
+
+      const podcasts = results.map((p: any) => ({
+        slug: p.slug,
+        name: p.name,
+        artworkUrl: p.artwork_url,
+        category: p.category,
+        description: p.description ? (p.description.length > 120 ? p.description.slice(0, 120) + "..." : p.description) : null,
+        followers: p.followers,
+      }));
+
+      res.json({ podcasts });
+    } catch (err) {
+      console.error("Related podcasts error:", err);
+      res.status(500).json({ message: "Failed to load related podcasts" });
+    }
+  });
+
   app.post("/api/onboarding/complete", async (req, res) => {
     try {
       const onbCompleteUserId = getAuthUserId(req);
@@ -6477,6 +6539,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const tab = (req.query.tab as string) || "foryou";
       const cursor = req.query.cursor ? parseInt(req.query.cursor as string) : null;
       const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+      const podcastFilter = (req.query.podcast as string) || "";
 
       let userPodcastSlugs: string[] = [];
       let userTopics: string[] = [];
@@ -6513,6 +6576,10 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         if (!isAuthenticated || userPodcastSlugs.length === 0) {
           return res.json({ items: [], nextCursor: null, tab });
         }
+        const effectiveSlugs = podcastFilter ? [podcastFilter].filter(s => userPodcastSlugs.includes(s)) : userPodcastSlugs;
+        if (effectiveSlugs.length === 0) {
+          return res.json({ items: [], nextCursor: null, tab, podcastFilter });
+        }
         const cursorParam = cursor ? `AND lr.id < $3` : "";
         query = `
           SELECT lr.id, lr.slug, lr.podcast_name, lr.episode_title, lr.episode_slug,
@@ -6534,7 +6601,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           ORDER BY lr.publish_date DESC NULLS LAST, lr.id DESC
           LIMIT $2
         `;
-        params = [userPodcastSlugs, limit];
+        params = [effectiveSlugs, limit];
         if (cursor) params.push(cursor);
       } else {
         const cursorParam = cursor ? `AND lr.id < $2` : "";

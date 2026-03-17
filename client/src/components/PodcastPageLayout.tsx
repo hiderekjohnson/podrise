@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useLocation } from "wouter";
-import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, Compass, Headphones, Mail, X, Sparkles, ExternalLink, ChevronRight, BookOpen, ShoppingBag, Shield } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, Compass, Headphones, Mail, X, Sparkles, ExternalLink, ChevronRight, BookOpen, ShoppingBag, Shield, Heart, Rss } from "lucide-react";
 import { SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
@@ -10,6 +10,8 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { GetRecapsModal } from "@/components/GetRecapsModal";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import { useSetConversion } from "@/contexts/PageConversionContext";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export type PodcastTab = "episodes" | "about" | "discover" | "books" | "shop" | "get-recaps";
 
@@ -52,8 +54,29 @@ export function PodcastPageLayout({
   const appleUrl = config.appleUrl || `https://podcasts.apple.com/podcast/id${itunesId}`;
   const effectiveSpotifyUrl = spotifyUrl || `https://open.spotify.com/search/${encodeURIComponent(name)}`;
 
+  const { data: followData } = useQuery<{ followedSlugs: string[] }>({
+    queryKey: ["/api/feed/followed-slugs"],
+    enabled: isLoggedIn,
+  });
+
+  const isFollowing = followData?.followedSlugs?.includes(config.slug) ?? false;
+
+  const followMutation = useMutation({
+    mutationFn: async ({ follow }: { follow: boolean }) => {
+      const endpoint = follow ? "/api/feed/follow" : "/api/feed/unfollow";
+      await apiRequest("POST", endpoint, { podcastSlug: config.slug });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/feed/followed-slugs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/feed"] });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to update subscription", variant: "destructive" });
+    },
+  });
+
   useEffect(() => {
-    if (stickyDismissed) return;
+    if (isLoggedIn || stickyDismissed) return;
     const handleScroll = () => {
       const scrollY = window.scrollY;
       const threshold = 600;
@@ -65,7 +88,7 @@ export function PodcastPageLayout({
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [stickyDismissed]);
+  }, [isLoggedIn, stickyDismissed]);
 
   useEffect(() => {
     const sectionIds = [
@@ -140,7 +163,10 @@ export function PodcastPageLayout({
     { id: "section-episodes", label: "Episode Recaps", icon: Mic },
     { id: "section-discover", label: "Discover", icon: Compass },
     { id: "section-shop", label: "Shop", icon: ShoppingBag, beta: true },
-    { id: "get-recaps-modal", label: "Get Recaps", icon: Mail, accent: true, action: () => setShowRecapsModal(true) },
+    ...(isLoggedIn
+      ? []
+      : [{ id: "get-recaps-modal", label: "Get Recaps", icon: Mail, accent: true, action: () => setShowRecapsModal(true) }]
+    ),
   ];
 
   return (
@@ -211,6 +237,37 @@ export function PodcastPageLayout({
               </div>
 
               <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 mt-2 justify-center sm:justify-start" data-testid="hero-listen-links">
+                {isLoggedIn && (
+                  <>
+                    <button
+                      onClick={() => followMutation.mutate({ follow: !isFollowing })}
+                      disabled={followMutation.isPending}
+                      className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-[15px] sm:text-[16px] font-semibold min-h-[44px] whitespace-nowrap shrink-0 transition-all active:scale-[0.98] ${
+                        isFollowing
+                          ? "bg-primary/[0.08] text-primary border border-primary/20 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                          : "bg-primary text-white hover:bg-[#4F46E5] shadow-sm shadow-primary/20"
+                      }`}
+                      data-testid="button-follow-podcast"
+                    >
+                      {followMutation.isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <>
+                          <Heart className={`w-4 h-4 ${isFollowing ? "fill-current" : ""}`} />
+                          {isFollowing ? "Following" : "Follow"}
+                        </>
+                      )}
+                    </button>
+                    <Link
+                      href={`/dashboard?tab=following&podcast=${encodeURIComponent(config.slug)}`}
+                      className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#52525B] hover:text-foreground transition-colors min-h-[44px] whitespace-nowrap shrink-0"
+                      data-testid="hero-link-feed"
+                    >
+                      <Rss className="w-4 h-4" />
+                      View in feed
+                    </Link>
+                  </>
+                )}
                 <a
                   href={appleUrl}
                   target="_blank"
@@ -289,50 +346,52 @@ export function PodcastPageLayout({
           {children}
         </motion.div>
 
-        <motion.section
-          ref={ctaSectionRef}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.25 }}
-          className="w-full max-w-7xl pb-16"
-        >
-          <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-2xl p-6 sm:p-8" data-testid="section-bottom-cta">
-            <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
-              <div className="flex-1 text-center sm:text-left">
-                <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground leading-snug mb-2">
-                  Get {name} recaps in your inbox
-                </h2>
-                <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">
-                  We'll send a recap whenever a new episode drops.
-                </p>
+        {!isLoggedIn && (
+          <motion.section
+            ref={ctaSectionRef}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+            className="w-full max-w-7xl pb-16"
+          >
+            <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-2xl p-6 sm:p-8" data-testid="section-bottom-cta">
+              <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
+                <div className="flex-1 text-center sm:text-left">
+                  <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground leading-snug mb-2">
+                    Get {name} recaps in your inbox
+                  </h2>
+                  <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">
+                    We'll send a recap whenever a new episode drops.
+                  </p>
+                </div>
+                <form onSubmit={handleSubmit} className="flex gap-2.5 w-full sm:w-auto" data-testid="form-signup-bottom">
+                  <input
+                    data-testid="input-email-bottom"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="flex-1 sm:w-56 h-[52px] px-4 bg-white border-[1.5px] border-[#D4D4D8] rounded-xl text-foreground text-[17px] focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-[#71717A] shadow-sm shadow-black/[0.03]"
+                  />
+                  <button
+                    data-testid="button-signup-bottom"
+                    type="submit"
+                    disabled={isPending}
+                    className="min-h-[52px] px-6 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[17px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 transition-all active:scale-[0.98] whitespace-nowrap"
+                  >
+                    {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Get Started"}
+                  </button>
+                </form>
               </div>
-              <form onSubmit={handleSubmit} className="flex gap-2.5 w-full sm:w-auto" data-testid="form-signup-bottom">
-                <input
-                  data-testid="input-email-bottom"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  className="flex-1 sm:w-56 h-[52px] px-4 bg-white border-[1.5px] border-[#D4D4D8] rounded-xl text-foreground text-[17px] focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-[#71717A] shadow-sm shadow-black/[0.03]"
-                />
-                <button
-                  data-testid="button-signup-bottom"
-                  type="submit"
-                  disabled={isPending}
-                  className="min-h-[52px] px-6 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[17px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 transition-all active:scale-[0.98] whitespace-nowrap"
-                >
-                  {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Get Started"}
-                </button>
-              </form>
             </div>
-          </div>
-        </motion.section>
+          </motion.section>
+        )}
       </main>
 
       {!isLoggedIn && <Footer />}
 
       <AnimatePresence>
-        {showStickyBar && !stickyDismissed && (
+        {!isLoggedIn && showStickyBar && !stickyDismissed && (
           <motion.div
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}

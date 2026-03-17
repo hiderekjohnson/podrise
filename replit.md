@@ -12,7 +12,7 @@ PodCap is a full-stack web application providing personalized daily podcast dige
 **Database**: PostgreSQL with Drizzle ORM and connection pooling.
 **Authentication**: Dual session + JWT token auth supporting email magic link and Google OAuth for web, and JWT Bearer tokens for mobile.
 **Mobile API**: Dedicated endpoints for iOS companion app, including registration, login, token management, and push notifications via APNs.
-**Onboarding Flow**: A 2-step onboarding process (podcast suggestions, topic interests) for new users after email verification.
+**Onboarding Flow**: A single-step onboarding process (podcast search with smart "You might also listen to" suggestions) for new users after email verification. Auto-redirects from verify-email to onboarding on success. Register and verify-email pages use minimal logo-only layout. After onboarding, dashboard defaults to "Following" tab and shows a guided feature walkthrough tour (localStorage-persisted, shown once). Logged-in podcast pages have dedicated layout with follow/unfollow button in hero and no conversion CTAs.
 **Core Features**:
 - **Pages**: Includes marketing landing, 2-step signup, user dashboards, podcast and episode recaps, archives, and entity/category directories (Industries, Interests, Roles) with dedicated `/pulse` AI briefings.
 - **AI Integration**: Utilizes OpenAI (GPT-4o, GPT-4o-mini) for 2-pass recap generation, key takeaways, and episode chat. Curated `topicContexts` ensure consistency in AI-generated insights. AI prompt logic is centralized in `server/recapGenerator.ts` as the single source of truth — `regenerateFullRecaps.ts` and `backgroundRecapGenerator.ts` both import and call shared functions from it.
