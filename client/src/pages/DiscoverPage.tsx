@@ -43,16 +43,6 @@ const DISCOVER_TOPICS = [
   { slug: "geopolitics", name: "Geopolitics", icon: Globe, color: "#64748B" },
 ] as const;
 
-interface TopicRecap {
-  slug: string;
-  episode_slug: string;
-  podcast_name: string;
-  episode_title: string;
-  publish_date: string;
-  artwork_url: string;
-  tldl: string;
-}
-
 function AllPodcastsGrid({
   podcasts,
   followedSlugs,
@@ -112,9 +102,26 @@ function AllPodcastsGrid({
   );
 }
 
-function TopicRecapsFeed({ topicSlug }: { topicSlug: string }) {
-  const { data: recaps, isLoading, isError } = useQuery<TopicRecap[]>({
-    queryKey: ["/api/topics", topicSlug, "episodes"],
+function TopicPodcastsGrid({
+  topicSlug,
+  followedSlugs,
+  onFollow,
+  onUnfollow,
+}: {
+  topicSlug: string;
+  followedSlugs: Set<string>;
+  onFollow: (slug: string) => void;
+  onUnfollow: (slug: string) => void;
+}) {
+  const { data: podcasts, isLoading, isError } = useQuery<DirectoryPodcast[]>({
+    queryKey: ["/api/podcasts/directory/by-topic", topicSlug],
+    select: (data: any[]) => data.map((p: any) => ({
+      slug: p.slug,
+      name: p.name,
+      artworkUrl: p.artwork_url || p.artworkUrl,
+      description: p.description,
+      category: p.category,
+    })),
   });
 
   if (isLoading) {
@@ -127,46 +134,47 @@ function TopicRecapsFeed({ topicSlug }: { topicSlug: string }) {
 
   if (isError) {
     return (
-      <div className="text-center py-10" data-testid="topic-recaps-error">
-        <p className="text-[14px] text-[#EF4444]">Failed to load recaps. Please try again later.</p>
+      <div className="text-center py-10" data-testid="topic-podcasts-error">
+        <p className="text-[14px] text-[#EF4444]">Failed to load podcasts. Please try again later.</p>
       </div>
     );
   }
 
-  if (!recaps || recaps.length === 0) {
+  if (!podcasts || podcasts.length === 0) {
     return (
       <div className="text-center py-10">
-        <p className="text-[14px] text-[#A1A1AA]">No recent recaps for this topic</p>
+        <p className="text-[14px] text-[#A1A1AA]">No podcasts found for this topic</p>
       </div>
     );
   }
 
   return (
-    <div className="divide-y divide-[#F0F0F2] dark:divide-[#1C1C22]" data-testid="topic-recaps-feed">
-      {recaps.map((recap) => {
-        const date = new Date(recap.publish_date);
-        const formatted = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-        return (
-          <Link
-            key={`${recap.slug}/${recap.episode_slug}`}
-            href={`/podcasts/${recap.slug}/${recap.episode_slug}`}
-            className="flex gap-3 py-3.5 hover:bg-[#FAFAFA] dark:hover:bg-[#111114] transition-colors -mx-4 px-4 md:-mx-8 md:px-8 cursor-pointer no-underline"
-            data-testid={`topic-recap-${recap.episode_slug}`}
-          >
-            <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl overflow-hidden bg-[#F4F4F5] dark:bg-[#1C1C22] flex-shrink-0 ring-[0.5px] ring-black/5">
-              <img src={recap.artwork_url} alt={recap.podcast_name} className="w-full h-full object-cover" loading="lazy" />
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3" data-testid="topic-podcasts-grid">
+      {podcasts.map((p) => (
+        <div key={p.slug} className="bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.06] rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#6366F1]/20 transition-all duration-200" data-testid={`topic-podcast-${p.slug}`}>
+          <Link href={`/podcasts/${p.slug}`} className="block">
+            <div className="aspect-square overflow-hidden bg-[#F4F4F5] dark:bg-[#1C1C22]">
+              <img src={p.artworkUrl} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[15px] md:text-[16px] font-semibold text-[#09090B] dark:text-white line-clamp-2 leading-snug">{recap.episode_title}</p>
-              <p className="text-[12px] text-[#A1A1AA] mt-0.5">{recap.podcast_name} · {formatted}</p>
-              {recap.tldl && (
-                <p className="text-[13px] text-[#71717A] dark:text-[#A1A1AA] mt-1 line-clamp-2 leading-relaxed">{recap.tldl}</p>
-              )}
-            </div>
-            <ChevronRight className="w-4 h-4 text-[#D4D4D8] flex-shrink-0 mt-1" />
           </Link>
-        );
-      })}
+          <div className="p-3">
+            <Link href={`/podcasts/${p.slug}`}>
+              <h3 className="text-[14px] font-bold text-[#09090B] dark:text-white leading-snug line-clamp-2 hover:text-[#6366F1] transition-colors" data-testid={`topic-podcast-name-${p.slug}`}>
+                {p.name}
+              </h3>
+            </Link>
+            {p.category && <p className="text-[12px] text-[#A1A1AA] mt-0.5 line-clamp-1">{p.category}</p>}
+            <div className="mt-2">
+              <FollowButton
+                slug={p.slug}
+                isFollowing={followedSlugs.has(p.slug)}
+                onFollow={onFollow}
+                onUnfollow={onUnfollow}
+              />
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -474,11 +482,13 @@ export default function DiscoverPage() {
                   <div className="divide-y divide-[#F4F4F5] dark:divide-[#1C1C22]">
                     {filteredPodcasts.slice(0, 20).map((p) => (
                       <div key={p.slug} className="flex items-center gap-3 py-3" data-testid={`search-podcast-${p.slug}`}>
-                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#F4F4F5] dark:bg-[#1C1C22] flex-shrink-0 ring-[0.5px] ring-black/5">
+                        <Link href={`/podcasts/${p.slug}`} className="w-12 h-12 rounded-xl overflow-hidden bg-[#F4F4F5] dark:bg-[#1C1C22] flex-shrink-0 ring-[0.5px] ring-black/5 block">
                           <img src={p.artworkUrl} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
-                        </div>
+                        </Link>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[15px] md:text-[16px] font-semibold text-[#09090B] dark:text-white truncate">{p.name}</p>
+                          <Link href={`/podcasts/${p.slug}`}>
+                            <p className="text-[15px] md:text-[16px] font-semibold text-[#09090B] dark:text-white truncate hover:text-[#6366F1] transition-colors" data-testid={`search-podcast-name-${p.slug}`}>{p.name}</p>
+                          </Link>
                           {p.category && <p className="text-[12px] text-[#A1A1AA] mt-0.5">{p.category}</p>}
                         </div>
                         <FollowButton
@@ -538,7 +548,12 @@ export default function DiscoverPage() {
                 </div>
                 {selectedTopic && (
                   <div className="mt-3">
-                    <TopicRecapsFeed topicSlug={selectedTopic} />
+                    <TopicPodcastsGrid
+                      topicSlug={selectedTopic}
+                      followedSlugs={resolvedFollowedSlugs}
+                      onFollow={handleFollow}
+                      onUnfollow={handleUnfollow}
+                    />
                   </div>
                 )}
               </div>

@@ -2110,6 +2110,60 @@ If you don't know the answer to something, be honest about it and suggest the us
     res.json({ message: "Bookmark removed" });
   });
 
+  app.get("/api/bookmarks/enriched", async (req, res) => {
+    const userId = getAuthUserId(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    try {
+      const bookmarksList = await storage.getBookmarksByUserId(userId);
+      if (bookmarksList.length === 0) {
+        return res.json([]);
+      }
+
+      const podcastSlugs = bookmarksList.map(b => b.podcastSlug);
+      const episodeSlugs = bookmarksList.map(b => b.episodeSlug);
+      const { rows: recaps } = await pool.query(
+        `SELECT lpr.slug, lpr.episode_slug, lpr.podcast_name, lpr.episode_title,
+                lpr.publish_date, lpr.artwork_url, lpr.tldl, lpr.key_insights,
+                lpr.what_happened, lpr.quote, lpr.quote_attribution
+         FROM landing_page_recaps lpr
+         INNER JOIN unnest($1::text[], $2::text[]) AS bm(p_slug, e_slug)
+           ON lpr.slug = bm.p_slug AND lpr.episode_slug = bm.e_slug`,
+        [podcastSlugs, episodeSlugs]
+      );
+
+      const recapMap = new Map<string, any>();
+      for (const r of recaps) {
+        recapMap.set(`${r.slug}::${r.episode_slug}`, r);
+      }
+
+      const enriched = bookmarksList.map(bm => {
+        const recap = recapMap.get(`${bm.podcastSlug}::${bm.episodeSlug}`);
+        return {
+          id: bm.id,
+          podcastSlug: bm.podcastSlug,
+          episodeSlug: bm.episodeSlug,
+          createdAt: bm.createdAt,
+          podcastName: recap?.podcast_name || bm.podcastSlug.replace(/-/g, " "),
+          episodeTitle: recap?.episode_title || bm.episodeSlug.replace(/-/g, " "),
+          publishDate: recap?.publish_date || null,
+          artworkUrl: recap?.artwork_url || null,
+          tldl: recap?.tldl || null,
+          keyInsights: recap?.key_insights || null,
+          whatHappened: recap?.what_happened || null,
+          quote: recap?.quote || null,
+          quoteAttribution: recap?.quote_attribution || null,
+        };
+      });
+
+      res.json(enriched);
+    } catch (err) {
+      console.error("[Bookmarks] Failed to fetch enriched bookmarks:", err);
+      res.status(500).json({ message: "Failed to fetch enriched bookmarks" });
+    }
+  });
+
   function wrapLinksWithClickTracking(html: string, emailId: number): string {
     const baseUrl = "https://podcap.io";
     return html.replace(/href="(https?:\/\/[^"]+)"/g, (_match, url) => {
@@ -2506,13 +2560,57 @@ If you don't know the answer to something, be honest about it and suggest the us
       const cached = directoryCache.podcastsDirectory.get();
       if (cached) return res.json(cached);
       const result = await pool.query(
-        `SELECT slug, name, artwork_url FROM podcast_directory WHERE slug IS NOT NULL ORDER BY name ASC`
+        `SELECT slug, name, artwork_url, category FROM podcast_directory WHERE slug IS NOT NULL ORDER BY name ASC`
       );
       directoryCache.podcastsDirectory.set(result.rows);
       res.json(result.rows);
     } catch (err) {
       console.error("[Directory] Error:", err);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/podcasts/directory/by-topic/:slug", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const cacheKey = `topic_podcasts_${slug}`;
+      const cached = (directoryCache as any)[cacheKey]?.get?.();
+      if (cached) return res.json(cached);
+
+      const topicCategoryMap: Record<string, string[]> = {
+        "ai": ["Technology", "Tech", "AI", "Artificial Intelligence", "Science"],
+        "startups": ["Entrepreneurship", "Business", "Startups", "Technology"],
+        "investing": ["Investing", "Finance", "Business", "Economics"],
+        "crypto-web3": ["Crypto", "Web3", "Blockchain", "Technology", "Finance"],
+        "health-longevity": ["Health", "Fitness", "Science", "Wellness", "Health & Fitness"],
+        "psychology": ["Psychology", "Science", "Education", "Self-Improvement", "Mental Health"],
+        "productivity": ["Productivity", "Self-Improvement", "Business", "Education"],
+        "geopolitics": ["Politics", "News", "Society", "Government", "Geopolitics", "News & Politics"],
+      };
+
+      const categories = topicCategoryMap[slug];
+      if (!categories || categories.length === 0) {
+        return res.json([]);
+      }
+
+      const ilikeConds = categories.map((_, i) => `category ILIKE $${i + 1}`).join(" OR ");
+      const result = await pool.query(
+        `SELECT slug, name, artwork_url, category, description
+         FROM podcast_directory
+         WHERE slug IS NOT NULL AND (${ilikeConds})
+         ORDER BY followers DESC NULLS LAST, name ASC
+         LIMIT 40`,
+        categories.map(c => `%${c}%`)
+      );
+
+      if (!(directoryCache as any)[cacheKey]) {
+        (directoryCache as any)[cacheKey] = new DataCache<any[]>(cacheKey, 60 * 60 * 1000);
+      }
+      (directoryCache as any)[cacheKey].set(result.rows);
+      res.json(result.rows);
+    } catch (err) {
+      console.error("[TopicPodcasts] Error:", err);
+      res.status(500).json({ message: "Failed to fetch topic podcasts" });
     }
   });
 
