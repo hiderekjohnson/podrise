@@ -896,7 +896,7 @@ function PublicShopPage() {
   return (
     <div className="min-h-screen flex flex-col bg-[#F7F7FC] dark:bg-[#08080F]">
       <SEOHead />
-      <SiteHeader />
+      {!user && <SiteHeader />}
 
       <div className="bg-gradient-to-b from-[#6366F1]/[0.03] via-[#F7F7FC] to-[#F7F7FC] dark:from-[#6366F1]/[0.02] dark:via-[#08080F] dark:to-[#08080F]">
         <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-6">
@@ -1095,7 +1095,7 @@ function PublicShopPage() {
         <AffiliateDisclosure />
       </main>
 
-      <Footer />
+      {!user && <Footer />}
     </div>
   );
 }

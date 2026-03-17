@@ -477,12 +477,13 @@ interface ShopItemDetailProps {
   itemKind: ItemKind;
   bookData?: BookData;
   productData?: ProductData;
+  isLoggedIn?: boolean;
 }
 
 export { normalizeBook, normalizeProduct };
 export type { BookData, ProductData, NormalizedItem };
 
-export default function ShopItemDetailPage({ itemKind, bookData, productData }: ShopItemDetailProps) {
+export default function ShopItemDetailPage({ itemKind, bookData, productData, isLoggedIn = false }: ShopItemDetailProps) {
   const item = useMemo(() => {
     if (itemKind === "book" && bookData) return normalizeBook(bookData);
     if (itemKind === "product" && productData) return normalizeProduct(productData);
@@ -564,13 +565,13 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData }: 
   if (!item) {
     return (
       <div className="min-h-screen flex flex-col bg-[#F7F7FC] dark:bg-[#08080F]">
-        <SiteHeader />
+        {!isLoggedIn && <SiteHeader />}
         <div className="flex-1 flex flex-col items-center justify-center gap-4">
           {isBook ? <BookOpen className="w-12 h-12 text-[#A1A1AA]/30" /> : <ShoppingBag className="w-12 h-12 text-[#A1A1AA]/30" />}
           <h1 className="text-xl font-bold text-[#09090B] dark:text-white">{isBook ? "Book" : "Product"} not found</h1>
           <Link href="/shop" className="text-[#6366F1] hover:text-[#6366F1]/80 font-medium" data-testid="link-back-shop">Back to Shop</Link>
         </div>
-        <Footer />
+        {!isLoggedIn && <Footer />}
       </div>
     );
   }
@@ -597,7 +598,7 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData }: 
   return (
     <div className="min-h-screen flex flex-col bg-[#F7F7FC] dark:bg-[#08080F]">
       <SEOHead item={item} />
-      <SiteHeader />
+      {!isLoggedIn && <SiteHeader />}
 
       <div
         className={`fixed left-0 right-0 z-[55] bg-white/95 dark:bg-[#08080F]/95 backdrop-blur-md border-b border-[#F0F0F2] dark:border-white/[0.08] transition-all duration-300 ${showStickyBar ? "top-[69px] opacity-100" : "top-[12px] opacity-0 pointer-events-none"}`}
@@ -883,7 +884,7 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData }: 
         </div>
       </main>
 
-      <Footer />
+      {!isLoggedIn && <Footer />}
     </div>
   );
 }

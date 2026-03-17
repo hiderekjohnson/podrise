@@ -4,9 +4,22 @@ import { useQuery, useMutation, useInfiniteQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MessageCircle, Bookmark, BookmarkCheck, Share, ChevronDown, Copy, ExternalLink, Search, Gift, ChevronRight, MoreHorizontal } from "lucide-react";
+import { Loader2, MessageCircle, Bookmark, BookmarkCheck, Share, ChevronDown, Copy, ExternalLink, Search, Gift, ChevronRight, MoreHorizontal, Users, Building2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "@/data/entityDirectoryData";
+
+const PEOPLE_IMAGE_MAP = new Map<string, string>();
+PEOPLE_DIRECTORY.forEach(p => {
+  PEOPLE_IMAGE_MAP.set(p.slug, p.imageUrl);
+  PEOPLE_IMAGE_MAP.set(p.name.toLowerCase(), p.imageUrl);
+});
+
+const COMPANY_LOGO_MAP = new Map<string, string>();
+COMPANIES_DIRECTORY.forEach(c => {
+  COMPANY_LOGO_MAP.set(c.slug, c.logoUrl);
+  COMPANY_LOGO_MAP.set(c.name.toLowerCase(), c.logoUrl);
+});
 
 interface MentionEntry {
   slug: string;
@@ -47,6 +60,7 @@ interface FeedItem {
   yearStarted: number | null;
   appleUrl: string | null;
   spotifyUrl: string | null;
+  youtubeUrl: string | null;
   mentions: {
     people: MentionEntry[];
     companies: MentionEntry[];
@@ -200,6 +214,30 @@ function SharePopover({ episodeTitle, podcastSlug, episodeSlug, itemId, toast }:
   );
 }
 
+function MentionAvatar({ src, name, index, kind }: { src: string; name: string; index: number; kind: "person" | "company" }) {
+  const [failed, setFailed] = useState(!src);
+  if (failed) {
+    const colors = getAvatarColor(index);
+    return (
+      <div
+        className={`w-[42px] h-[42px] flex-shrink-0 flex items-center justify-center text-[13px] font-bold ${kind === "person" ? "rounded-full" : "rounded-[10px]"}`}
+        style={{ background: colors.bg, color: colors.color }}
+      >
+        {getInitials(name)}
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt={name}
+      className={`w-[42px] h-[42px] flex-shrink-0 object-cover ${kind === "person" ? "rounded-full" : "rounded-[10px] bg-white border border-[#F0F0F2]"}`}
+      loading="lazy"
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
 function MentionsSection({ item, isBookmarked, onBookmarkToggle, onFollowToggle, toast }: {
   item: FeedItem;
   isBookmarked: boolean;
@@ -257,17 +295,17 @@ function MentionsSection({ item, isBookmarked, onBookmarkToggle, onFollowToggle,
     const hiddenCount = items.length - 3;
     return (
       <>
-        {visibleItems.map((m, i) => (
+        {visibleItems.map((m, i) => {
+          const personImg = type === "person" ? (PEOPLE_IMAGE_MAP.get(m.slug) || PEOPLE_IMAGE_MAP.get(m.name.toLowerCase())) : null;
+          const companyImg = type === "company" ? (COMPANY_LOGO_MAP.get(m.slug) || COMPANY_LOGO_MAP.get(m.name.toLowerCase())) : null;
+          return (
           <div key={m.slug + i} className="flex items-start gap-[14px] py-[15px] border-b border-[#F0F0F2] last:border-b-0" data-testid={`mention-${type}-${m.slug}`}>
-            {type === "person" ? (
-              <div className="w-[42px] h-[42px] rounded-full flex-shrink-0 flex items-center justify-center text-[13px] font-bold" style={{ background: getAvatarColor(i).bg, color: getAvatarColor(i).color }}>
-                {getInitials(m.name)}
-              </div>
-            ) : (
-              <div className="w-[42px] h-[42px] rounded-[10px] flex-shrink-0 bg-white border border-[#F0F0F2] flex items-center justify-center text-[20px]">
-                🏢
-              </div>
-            )}
+            <MentionAvatar
+              src={type === "person" ? (personImg || "/people/default-avatar.png") : (companyImg || "")}
+              name={m.name}
+              index={i}
+              kind={type === "person" ? "person" : "company"}
+            />
             <div className="flex-1 min-w-0">
               <div className="flex items-baseline gap-2 flex-wrap mb-1">
                 <span className="text-[15px] font-bold text-[#09090B]">{m.name}</span>
@@ -280,7 +318,8 @@ function MentionsSection({ item, isBookmarked, onBookmarkToggle, onFollowToggle,
               {m.context && <div className="text-[14px] text-[#52525B] leading-[1.55]">{m.context}</div>}
             </div>
           </div>
-        ))}
+          );
+        })}
         {!showAll && hiddenCount > 0 && (
           <div className="py-3 flex justify-center">
             <button onClick={onShowMore} className="text-[14px] font-medium text-[#6366F1] bg-transparent border-[1.5px] border-[#A5B4FC] rounded-full px-[18px] py-[7px] hover:bg-[#EEF2FF] hover:border-[#6366F1] transition-all" data-testid={`mention-show-more-${type}`}>
@@ -329,17 +368,30 @@ function MentionsSection({ item, isBookmarked, onBookmarkToggle, onFollowToggle,
           data-testid={`feed-mentions-toggle-${item.id}`}
         >
           <div className="flex items-center flex-shrink-0">
-            {stackItems.map((m, i) => (
-              <div
-                key={m.slug + i}
-                className={`w-[34px] h-[34px] flex-shrink-0 flex items-center justify-center text-[11px] font-bold ${i > 0 ? "-ml-[9px]" : ""} ${
-                  i >= people.length ? "rounded-lg text-[16px] bg-white border border-[#F0F0F2]" : "rounded-full"
-                }`}
-                style={i < people.length ? { background: getAvatarColor(i).bg, color: getAvatarColor(i).color, border: `2.5px solid ${open ? "#EEF2FF" : "#F7F7FC"}` } : { border: `2.5px solid ${open ? "#EEF2FF" : "#F7F7FC"}` }}
-              >
-                {i < people.length ? getInitials(m.name) : "🏢"}
-              </div>
-            ))}
+            {stackItems.map((m, i) => {
+              const isPerson = i < people.length;
+              const personImg = isPerson ? (PEOPLE_IMAGE_MAP.get(m.slug) || PEOPLE_IMAGE_MAP.get(m.name.toLowerCase())) : null;
+              const companyImg = !isPerson ? (COMPANY_LOGO_MAP.get(m.slug) || COMPANY_LOGO_MAP.get(m.name.toLowerCase())) : null;
+              const borderColor = open ? "#EEF2FF" : "#F7F7FC";
+              if (isPerson && personImg) {
+                return <img key={m.slug + i} src={personImg} alt={m.name} className={`w-[34px] h-[34px] rounded-full flex-shrink-0 object-cover ${i > 0 ? "-ml-[9px]" : ""}`} style={{ border: `2.5px solid ${borderColor}` }} loading="lazy" />;
+              }
+              if (!isPerson && companyImg) {
+                return <img key={m.slug + i} src={companyImg} alt={m.name} className={`w-[34px] h-[34px] rounded-lg flex-shrink-0 object-cover bg-white ${i > 0 ? "-ml-[9px]" : ""}`} style={{ border: `2.5px solid ${borderColor}` }} loading="lazy" />;
+              }
+              const colors = getAvatarColor(i);
+              return (
+                <div
+                  key={m.slug + i}
+                  className={`w-[34px] h-[34px] flex-shrink-0 flex items-center justify-center text-[11px] font-bold ${i > 0 ? "-ml-[9px]" : ""} ${
+                    isPerson ? "rounded-full" : "rounded-lg"
+                  }`}
+                  style={{ background: colors.bg, color: colors.color, border: `2.5px solid ${borderColor}` }}
+                >
+                  {getInitials(m.name)}
+                </div>
+              );
+            })}
             {remaining > 0 && (
               <div className="w-[34px] h-[34px] rounded-full flex-shrink-0 -ml-[9px] bg-[#E4E4E7] text-[#71717A] text-[10px] font-bold flex items-center justify-center" style={{ fontFamily: "var(--font-mono)", border: `2.5px solid ${open ? "#EEF2FF" : "#F7F7FC"}` }}>
                 +{remaining}
@@ -478,7 +530,6 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toa
   const headerTint = getHeaderTint(item.artworkUrl || item.podcastSlug);
   const allInsights = item.keyInsights || [];
   const whatHappenedParagraphs = item.whatHappened ? item.whatHappened.split(/\n\n+/).filter((p) => p.trim()) : [];
-  const episodeUrl = `/podcasts/${item.podcastSlug}/${item.episodeSlug}`;
 
   return (
     <article
@@ -486,11 +537,9 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toa
       data-testid={`feed-card-${item.id}`}
     >
       <div className="flex items-start gap-[18px] px-5 md:px-6 pt-5 pb-[18px]" style={{ background: headerTint }}>
-        <Link href={episodeUrl}>
-          <div className="w-[120px] h-[120px] rounded-[14px] overflow-hidden flex-shrink-0 shadow-[0_4px_16px_rgba(0,0,0,0.16),0_1px_3px_rgba(0,0,0,0.08)] border border-black/[0.08]">
-            <img src={hiResArtwork(item.artworkUrl)} alt={item.podcastName} className="w-full h-full object-cover" loading="lazy" />
-          </div>
-        </Link>
+        <div className="w-[120px] h-[120px] rounded-[14px] overflow-hidden flex-shrink-0 shadow-[0_4px_16px_rgba(0,0,0,0.16),0_1px_3px_rgba(0,0,0,0.08)] border border-black/[0.08]">
+          <img src={hiResArtwork(item.artworkUrl)} alt={item.podcastName} className="w-full h-full object-cover" loading="lazy" />
+        </div>
         <div className="flex-1 min-w-0 flex flex-col justify-between min-h-[120px]">
           <div>
             <Link href={`/podcasts/${item.podcastSlug}`}>
@@ -532,6 +581,12 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toa
                 Spotify
               </a>
             )}
+            {item.youtubeUrl && (
+              <a href={item.youtubeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-[6px] px-[14px] py-[7px] rounded-lg text-[14px] font-medium text-[#52525B] border border-black/[0.12] transition-all hover:bg-white whitespace-nowrap no-underline" style={{ background: "rgba(255,255,255,0.75)" }} data-testid={`feed-youtube-${item.id}`}>
+                <svg width="13" height="13" viewBox="0 0 20 20"><rect width="20" height="20" rx="4" fill="#FF0000"/><polygon points="8,5.5 8,14.5 15,10" fill="white"/></svg>
+                YouTube
+              </a>
+            )}
             {item.isFollowing ? (
               <FollowMenuDropdown onUnfollow={() => onFollowToggle(item.podcastSlug, false)} itemId={item.id} />
             ) : (
@@ -556,11 +611,9 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toa
             {relativeTime(item.publishDate)}
           </span>
         </div>
-        <Link href={episodeUrl}>
-          <h3 className="text-[26px] font-normal text-[#09090B] leading-[1.2] tracking-[-0.01em] hover:text-[#6366F1] transition-colors" style={{ fontFamily: "var(--font-serif)" }} data-testid={`feed-headline-${item.id}`}>
-            {item.tldl}
-          </h3>
-        </Link>
+        <h3 className="text-[26px] font-normal text-[#09090B] leading-[1.2] tracking-[-0.01em]" style={{ fontFamily: "var(--font-serif)" }} data-testid={`feed-headline-${item.id}`}>
+          {item.tldl}
+        </h3>
       </div>
 
       <div className="px-5 md:px-6 py-[22px]">

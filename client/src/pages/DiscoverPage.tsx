@@ -53,6 +53,65 @@ interface TopicRecap {
   tldl: string;
 }
 
+function AllPodcastsGrid({
+  podcasts,
+  followedSlugs,
+  onFollow,
+  onUnfollow,
+}: {
+  podcasts: DirectoryPodcast[];
+  followedSlugs: Set<string>;
+  onFollow: (slug: string) => void;
+  onUnfollow: (slug: string) => void;
+}) {
+  const [showAll, setShowAll] = useState(false);
+  const visible = showAll ? podcasts : podcasts.slice(0, 20);
+
+  return (
+    <div className="px-4 md:px-8 pt-2 pb-4" data-testid="all-podcasts-grid">
+      <h2 className="text-[16px] md:text-[18px] font-bold text-[#09090B] dark:text-white mb-3">All Podcasts</h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+        {visible.map((p) => (
+          <div key={p.slug} className="bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.06] rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#6366F1]/20 transition-all duration-200" data-testid={`discover-podcast-${p.slug}`}>
+            <Link href={`/podcasts/${p.slug}`} className="block">
+              <div className="aspect-square overflow-hidden bg-[#F4F4F5] dark:bg-[#1C1C22]">
+                <img src={p.artworkUrl} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
+              </div>
+            </Link>
+            <div className="p-3">
+              <Link href={`/podcasts/${p.slug}`}>
+                <h3 className="text-[14px] font-bold text-[#09090B] dark:text-white leading-snug line-clamp-2 hover:text-[#6366F1] transition-colors" data-testid={`discover-podcast-name-${p.slug}`}>
+                  {p.name}
+                </h3>
+              </Link>
+              {p.category && <p className="text-[12px] text-[#A1A1AA] mt-0.5 line-clamp-1">{p.category}</p>}
+              <div className="mt-2">
+                <FollowButton
+                  slug={p.slug}
+                  isFollowing={followedSlugs.has(p.slug)}
+                  onFollow={onFollow}
+                  onUnfollow={onUnfollow}
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      {!showAll && podcasts.length > 20 && (
+        <div className="flex justify-center mt-6">
+          <button
+            onClick={() => setShowAll(true)}
+            className="px-8 py-3 bg-[#09090B] dark:bg-white text-white dark:text-[#09090B] font-semibold text-[15px] rounded-full hover:opacity-90 transition-opacity shadow-sm"
+            data-testid="discover-see-more"
+          >
+            See more
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TopicRecapsFeed({ topicSlug }: { topicSlug: string }) {
   const { data: recaps, isLoading, isError } = useQuery<TopicRecap[]>({
     queryKey: ["/api/topics", topicSlug, "episodes"],
@@ -484,6 +543,14 @@ export default function DiscoverPage() {
                 )}
               </div>
 
+              {!selectedTopic && directoryData && directoryData.length > 0 && (
+                <AllPodcastsGrid
+                  podcasts={directoryData}
+                  followedSlugs={resolvedFollowedSlugs}
+                  onFollow={handleFollow}
+                  onUnfollow={handleUnfollow}
+                />
+              )}
             </>
           )}
           <div className="h-[80px] md:h-4" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />

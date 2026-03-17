@@ -6523,7 +6523,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
                  pd.total_episodes as pd_total_episodes,
                  pd.year_started as pd_year_started,
                  pd.apple_url as pd_apple_url,
-                 pd.spotify_url as pd_spotify_url
+                 pd.spotify_url as pd_spotify_url,
+                 pd.youtube_url as pd_youtube_url
           FROM landing_page_recaps lr
           LEFT JOIN podcast_directory pd ON pd.slug = lr.slug
           WHERE lr.episode_slug IS NOT NULL
@@ -6546,7 +6547,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
                  pd.total_episodes as pd_total_episodes,
                  pd.year_started as pd_year_started,
                  pd.apple_url as pd_apple_url,
-                 pd.spotify_url as pd_spotify_url
+                 pd.spotify_url as pd_spotify_url,
+                 pd.youtube_url as pd_youtube_url
           FROM landing_page_recaps lr
           LEFT JOIN podcast_directory pd ON pd.slug = lr.slug
           WHERE lr.episode_slug IS NOT NULL
@@ -6642,6 +6644,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           yearStarted: r.pd_year_started || null,
           appleUrl: r.pd_apple_url || null,
           spotifyUrl: r.pd_spotify_url || null,
+          youtubeUrl: r.pd_youtube_url || null,
           mentions: {
             people: mentions.people,
             companies: mentions.companies,

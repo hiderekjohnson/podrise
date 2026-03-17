@@ -28,6 +28,7 @@ interface ShopProduct {
   imageUrl: string | null;
   podcastSlug: string;
   podcastName?: string;
+  slug?: string;
 }
 
 interface DirectoryPodcast {
@@ -357,7 +358,7 @@ function ShopSection() {
         <div className="text-[15px] font-bold text-[#09090B]">From your podcasts' shop</div>
       </div>
       {items.slice(0, 3).map((item, i) => (
-        <Link key={i} href="/shop">
+        <Link key={i} href={item.slug ? `/shop/${item.slug}` : "/shop"}>
           <div className="flex items-start gap-3 px-4 py-3 border-b border-[#F0F0F2] last:border-b-0 cursor-pointer hover:bg-[#F7F7FC] transition-colors" data-testid={`rail-shop-item-${i}`}>
             <div className="w-[46px] h-[46px] rounded-[10px] bg-[#F7F7FC] border border-[#F0F0F2] flex-shrink-0 flex items-center justify-center text-[22px] overflow-hidden">
               {item.imageUrl ? (

@@ -13,7 +13,7 @@ function PageLoader() {
 
 export default function PodcastSubRouter() {
   return (
-    <AuthAwareLayout hideRightSidebar>
+    <AuthAwareLayout>
       <Suspense fallback={<PageLoader />}>
         <EpisodeRecapPage />
       </Suspense>

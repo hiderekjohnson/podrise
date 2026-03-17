@@ -8,6 +8,7 @@ import { TOPICS, getTopicBySlug, getCategoryPath } from "@/data/topicData";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
+import { useAuth } from "@/hooks/use-auth";
 
 const PAGE_SIZE = 20;
 
@@ -58,6 +59,8 @@ function matchesDurationRange(dur: string | undefined, range: DurationRange): bo
 }
 
 export default function EpisodeArchivePage() {
+  const { data: authUser } = useAuth();
+  const isLoggedIn = !!authUser;
   const params = useParams<{ slug: string }>();
   const slug = params.slug || "";
 
@@ -386,7 +389,7 @@ export default function EpisodeArchivePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <SiteHeader />
+      {!isLoggedIn && <SiteHeader />}
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-7xl pt-8 sm:pt-12 pb-16">
@@ -792,6 +795,7 @@ export default function EpisodeArchivePage() {
                     episodeTitle={ep.episodeTitle}
                     tldl={ep.tldl}
                     duration={ep.duration}
+                    artworkUrl={config.artworkUrl}
                   />
                 ))}
               </div>
@@ -828,7 +832,7 @@ export default function EpisodeArchivePage() {
         </div>
       </main>
 
-      <Footer />
+      {!isLoggedIn && <Footer />}
     </div>
   );
 }

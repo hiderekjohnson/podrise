@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
 import { Link } from "wouter";
 import { ShoppingBag, AlertCircle } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 function is404(error: unknown): boolean {
   if (!error) return false;
@@ -19,6 +20,8 @@ function isServerError(error: unknown): boolean {
 }
 
 export default function ShopDetailRouter() {
+  const { data: authUser } = useAuth();
+  const isLoggedIn = !!authUser;
   const [, params] = useRoute("/shop/:slug");
   const slug = params?.slug || "";
 
@@ -40,7 +43,7 @@ export default function ShopDetailRouter() {
   if (bookLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-[#F7F7FC] dark:bg-[#08080F]">
-        <SiteHeader />
+        {!isLoggedIn && <SiteHeader />}
         <div className="flex-1 flex items-center justify-center">
           <div className="w-8 h-8 border-4 border-[#6366F1] border-t-transparent rounded-full animate-spin" />
         </div>
@@ -51,26 +54,26 @@ export default function ShopDetailRouter() {
   if (isServerError(bookError)) {
     return (
       <div className="min-h-screen flex flex-col bg-[#F7F7FC] dark:bg-[#08080F]">
-        <SiteHeader />
+        {!isLoggedIn && <SiteHeader />}
         <div className="flex-1 flex flex-col items-center justify-center gap-4">
           <AlertCircle className="w-12 h-12 text-red-400/60" />
           <h1 className="text-xl font-bold text-[#09090B] dark:text-white" data-testid="heading-error">Something went wrong</h1>
           <p className="text-[#A1A1AA] text-sm">Please try refreshing the page.</p>
           <Link href="/shop" className="text-[#6366F1] hover:text-[#6366F1]/80 font-medium" data-testid="link-back-shop">Back to Shop</Link>
         </div>
-        <Footer />
+        {!isLoggedIn && <Footer />}
       </div>
     );
   }
 
   if (bookData) {
-    return <ShopItemDetailPage itemKind="book" bookData={bookData} />;
+    return <ShopItemDetailPage itemKind="book" bookData={bookData} isLoggedIn={isLoggedIn} />;
   }
 
   if (shouldTryProduct && productLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-[#F7F7FC] dark:bg-[#08080F]">
-        <SiteHeader />
+        {!isLoggedIn && <SiteHeader />}
         <div className="flex-1 flex items-center justify-center">
           <div className="w-8 h-8 border-4 border-[#6366F1] border-t-transparent rounded-full animate-spin" />
         </div>
@@ -79,18 +82,18 @@ export default function ShopDetailRouter() {
   }
 
   if (productData) {
-    return <ShopItemDetailPage itemKind="product" productData={productData} />;
+    return <ShopItemDetailPage itemKind="product" productData={productData} isLoggedIn={isLoggedIn} />;
   }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F7F7FC] dark:bg-[#08080F]">
-      <SiteHeader />
+      {!isLoggedIn && <SiteHeader />}
       <div className="flex-1 flex flex-col items-center justify-center gap-4">
         <ShoppingBag className="w-12 h-12 text-[#A1A1AA]/30" />
         <h1 className="text-xl font-bold text-[#09090B] dark:text-white" data-testid="heading-not-found">Item not found</h1>
         <Link href="/shop" className="text-[#6366F1] hover:text-[#6366F1]/80 font-medium" data-testid="link-back-shop">Back to Shop</Link>
       </div>
-      <Footer />
+      {!isLoggedIn && <Footer />}
     </div>
   );
 }

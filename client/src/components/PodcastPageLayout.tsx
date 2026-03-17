@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, Compass, Headphones, Mail, X, Sparkles, ExternalLink, ChevronRight, BookOpen, ShoppingBag, Shield } from "lucide-react";
 import { SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRegister } from "@/hooks/use-auth";
+import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -26,6 +26,8 @@ export function PodcastPageLayout({
 }: PodcastPageLayoutProps) {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { data: authUser } = useAuth();
+  const isLoggedIn = !!authUser;
   const { mutate: register, isPending } = useRegister();
   const [email, setEmail] = useState("");
   const [stickyEmail, setStickyEmail] = useState("");
@@ -143,7 +145,7 @@ export function PodcastPageLayout({
 
   return (
     <div className="min-h-screen flex flex-col overflow-x-clip">
-      <SiteHeader />
+      {!isLoggedIn && <SiteHeader />}
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">
         <section className="w-full max-w-7xl pt-8 sm:pt-12 pb-8 sm:pb-10">
@@ -327,7 +329,7 @@ export function PodcastPageLayout({
         </motion.section>
       </main>
 
-      <Footer />
+      {!isLoggedIn && <Footer />}
 
       <AnimatePresence>
         {showStickyBar && !stickyDismissed && (

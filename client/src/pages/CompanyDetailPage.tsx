@@ -7,6 +7,7 @@ import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { Footer } from "@/components/Footer";
 import { getCompanyBySlug, getPersonBySlug as getPersonData, COMPANIES_DIRECTORY, PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
 import { SiteHeader } from "@/components/SiteHeader";
+import { useAuth } from "@/hooks/use-auth";
 
 interface EpisodeEntry {
   slug: string;
@@ -27,6 +28,8 @@ interface CompanyDetail {
 }
 
 export default function CompanyDetailPage() {
+  const { data: authUser } = useAuth();
+  const isLoggedIn = !!authUser;
   const [, navigate] = useLocation();
   const [match, params] = useRoute("/companies/:slug");
   const slug = params?.slug || "";
@@ -116,7 +119,7 @@ export default function CompanyDetailPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background overflow-x-clip">
-      <SiteHeader />
+      {!isLoggedIn && <SiteHeader />}
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
         <div className="w-full max-w-6xl">
@@ -395,7 +398,7 @@ export default function CompanyDetailPage() {
         </div>
       </main>
 
-      <Footer />
+      {!isLoggedIn && <Footer />}
     </div>
   );
 }

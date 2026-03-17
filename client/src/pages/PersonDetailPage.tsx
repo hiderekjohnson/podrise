@@ -12,6 +12,7 @@ import { LinkedHosts } from "@/components/LinkedHosts";
 import { TOPICS, getTopicBySlug, getCategoryPath } from "@/data/topicData";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import { SiteHeader } from "@/components/SiteHeader";
+import { useAuth } from "@/hooks/use-auth";
 
 interface EpisodeEntry {
   slug: string;
@@ -141,6 +142,8 @@ function EpisodeCard({ episode, showType }: { episode: EpisodeEntry; showType?: 
 }
 
 export default function PersonDetailPage() {
+  const { data: authUser } = useAuth();
+  const isLoggedIn = !!authUser;
   const [, navigate] = useLocation();
   const [match, params] = useRoute("/people/:slug");
   const slug = params?.slug || "";
@@ -445,7 +448,7 @@ export default function PersonDetailPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background overflow-x-clip">
-      <SiteHeader />
+      {!isLoggedIn && <SiteHeader />}
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-20">
         <div className="w-full max-w-6xl">
@@ -1006,7 +1009,7 @@ export default function PersonDetailPage() {
         </div>
       </main>
 
-      <Footer />
+      {!isLoggedIn && <Footer />}
     </div>
   );
 }

@@ -113,11 +113,6 @@ function PersonalBookCard({ book, index }: { book: ShopBook; index: number }) {
           <span className="text-[12px] text-[#A1A1AA] dark:text-[#71717A]">
             {book.mentionCount} mention{book.mentionCount !== 1 ? "s" : ""}
           </span>
-          <span className="text-[#E4E4E7] dark:text-[#333]">·</span>
-          <span className="text-[12px] text-[#A1A1AA] dark:text-[#71717A] truncate">
-            {book.podcastNames[0]}
-            {book.podcastNames.length > 1 && ` +${book.podcastNames.length - 1}`}
-          </span>
         </div>
       </div>
     </motion.div>
@@ -179,11 +174,6 @@ function PersonalProductCard({ product, index }: { product: ShopProduct; index: 
           <div className="flex items-center gap-1.5 mt-2">
             <span className="text-[12px] text-[#A1A1AA] dark:text-[#71717A]">
               {product.mentionCount} mention{product.mentionCount !== 1 ? "s" : ""}
-            </span>
-            <span className="text-[#E4E4E7] dark:text-[#333]">·</span>
-            <span className="text-[12px] text-[#A1A1AA] dark:text-[#71717A] truncate">
-              {product.podcastNames[0]}
-              {product.podcastNames.length > 1 && ` +${product.podcastNames.length - 1}`}
             </span>
           </div>
         </div>

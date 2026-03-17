@@ -518,7 +518,7 @@ export default function PodcastLandingGeneric() {
   if (!config && !dbEntry && !staticConfig) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        <SiteHeader />
+        {!user && <SiteHeader />}
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-2">Podcast not found</h1>
@@ -526,7 +526,7 @@ export default function PodcastLandingGeneric() {
             <a href="/" className="text-primary hover:underline">Back to home</a>
           </div>
         </main>
-        <Footer />
+        {!user && <Footer />}
       </div>
     );
   }
@@ -597,6 +597,7 @@ export default function PodcastLandingGeneric() {
                     episodeTitle={ep.episodeTitle}
                     tldl={ep.tldl}
                     duration={ep.duration}
+                    artworkUrl={artworkUrl}
                   />
                 ))}
               </div>

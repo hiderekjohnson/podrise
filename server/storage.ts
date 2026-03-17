@@ -751,12 +751,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async addBookmark(data: InsertBookmark): Promise<Bookmark> {
-    const [created] = await db.insert(bookmarks).values(data).onConflictDoNothing().returning();
-    if (!created) {
-      const [existing] = await db.select().from(bookmarks).where(and(eq(bookmarks.userId, data.userId!), eq(bookmarks.podcastSlug, data.podcastSlug), eq(bookmarks.episodeSlug, data.episodeSlug)));
-      return existing;
+    const existing = await db.select().from(bookmarks).where(and(eq(bookmarks.userId, data.userId!), eq(bookmarks.podcastSlug, data.podcastSlug), eq(bookmarks.episodeSlug, data.episodeSlug)));
+    if (existing.length > 0) {
+      return existing[0];
     }
-    return created;
+    try {
+      const [created] = await db.insert(bookmarks).values(data).returning();
+      return created;
+    } catch (e: any) {
+      if (e.code === "23505") {
+        const [dup] = await db.select().from(bookmarks).where(and(eq(bookmarks.userId, data.userId!), eq(bookmarks.podcastSlug, data.podcastSlug), eq(bookmarks.episodeSlug, data.episodeSlug)));
+        return dup;
+      }
+      throw e;
+    }
   }
 
   async removeBookmark(userId: number, podcastSlug: string, episodeSlug: string): Promise<void> {
