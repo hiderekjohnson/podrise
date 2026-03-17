@@ -9496,7 +9496,7 @@ Rules:
     try {
       const { slug } = req.params;
       const { search, sort, order, status } = req.query;
-      let query = `SELECT id, slug, episode_slug, episode_title, publish_date, duration, artwork_url, status, tldl FROM landing_page_recaps WHERE slug = $1`;
+      let query = `SELECT id, slug, episode_slug, episode_title, publish_date, duration, artwork_url, status, tldl, tabloid_headline, tabloid_sub_headline FROM landing_page_recaps WHERE slug = $1`;
       const params: any[] = [slug];
       if (search) {
         params.push(`%${search}%`);
@@ -9597,6 +9597,7 @@ Rules:
         entityContextsCache: "entity_contexts_cache",
         spotifyEpisodeUrl: "spotify_episode_url", appleEpisodeUrl: "apple_episode_url",
         audioUrl: "audio_url",
+        tabloidHeadline: "tabloid_headline", tabloidSubHeadline: "tabloid_sub_headline",
       };
       const sets: string[] = [];
       const params: any[] = [];

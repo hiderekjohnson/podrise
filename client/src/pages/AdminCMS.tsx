@@ -128,6 +128,8 @@ interface CMSEpisodeListItem {
   duration: string;
   status: string;
   tldl: string;
+  tabloid_headline: string;
+  tabloid_sub_headline: string;
 }
 
 interface CMSGuest {
@@ -188,6 +190,8 @@ interface CMSEpisodeDetail {
   audio_url: string;
   show_notes: string;
   topic_contexts: string;
+  tabloid_headline: string;
+  tabloid_sub_headline: string;
 }
 
 interface PodcastForm {
@@ -254,6 +258,8 @@ interface EpisodeForm {
   appleEpisodeUrl: string;
   audioUrl: string;
   showNotes: string;
+  tabloidHeadline: string;
+  tabloidSubHeadline: string;
 }
 
 interface EditingQuote {
@@ -1206,6 +1212,8 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
         appleEpisodeUrl: episode.apple_episode_url || "",
         audioUrl: episode.audio_url || "",
         showNotes: episode.show_notes || "",
+        tabloidHeadline: episode.tabloid_headline || "",
+        tabloidSubHeadline: episode.tabloid_sub_headline || "",
       });
     }
   }, [episode]);
@@ -1415,6 +1423,33 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
+          <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
+            <h4 className="text-sm font-bold text-foreground">Email Headlines</h4>
+
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Tabloid Headline</label>
+              <input
+                data-testid="input-cms-tabloid-headline"
+                value={form.tabloidHeadline}
+                onChange={(e) => setForm({ ...form, tabloidHeadline: e.target.value })}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm"
+                placeholder="e.g. The food critic who saved his own life"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Tabloid Sub-Headline</label>
+              <textarea
+                data-testid="input-cms-tabloid-sub-headline"
+                value={form.tabloidSubHeadline}
+                onChange={(e) => setForm({ ...form, tabloidSubHeadline: e.target.value })}
+                rows={2}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm resize-none"
+                placeholder="e.g. He eliminated sugar and white flour to reclaim his health — and he now spends 25 minutes savoring just one raisin"
+              />
+            </div>
+          </div>
+
           <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
             <h4 className="text-sm font-bold text-foreground">Recap</h4>
 
