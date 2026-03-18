@@ -116,7 +116,7 @@ async function processEpisode(
         quoteAttribution: recap.quoteAttribution,
         keyTopics: recap.keyTopics,
         topicContexts: recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
-        topQuestions: recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
+        topQuestions: null,
         audioUrl: ep.audio_url || "",
         sponsors: recap.sponsors ? JSON.stringify(recap.sponsors) : "[]",
         guests: recap.guests ? JSON.stringify(recap.guests) : "[]",
