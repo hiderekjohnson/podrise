@@ -10,8 +10,9 @@ import { Footer } from "@/components/Footer";
 import { getPersonBySlug, getCompanyBySlug, PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "@/data/entityDirectoryData";
 import { LinkedHosts } from "@/components/LinkedHosts";
 import { TOPICS, getTopicBySlug, getCategoryPath } from "@/data/topicData";
-import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
+import { PODCAST_LANDINGS, type PodcastLandingConfig } from "@/data/podcastLandingData";
 import { SiteHeader } from "@/components/SiteHeader";
+import { FeedStyleCard, FeedStyleCardHeader } from "@/components/FeedStyleCard";
 import { useAuth } from "@/hooks/use-auth";
 
 interface EpisodeEntry {
@@ -446,6 +447,405 @@ export default function PersonDetailPage() {
     window.scrollTo({ top, behavior: "smooth" });
   };
 
+  const personMetaItems = [];
+  if (person) {
+    if (hasGuestAppearances) personMetaItems.push({ icon: "host" as const, text: `${person.guestCount} guest appearance${person.guestCount !== 1 ? "s" : ""}` });
+    if (person.mentionCount > 0) personMetaItems.push({ icon: "mentions" as const, text: `${person.mentionCount} mention${person.mentionCount !== 1 ? "s" : ""}` });
+    if (person.podcastsFeaturingPerson?.length > 0) personMetaItems.push({ icon: "episodes" as const, text: `${person.podcastsFeaturingPerson.length} podcast${person.podcastsFeaturingPerson.length !== 1 ? "s" : ""}` });
+  }
+
+  const personContentNav = person ? (
+    <>
+      {navSections.length > 1 && (
+        <nav className={`sticky ${isLoggedIn ? "top-0 bg-[#F9F9FB]/90" : "top-[68px] bg-background/90"} z-40 -mx-4 sm:-mx-0 px-4 sm:px-0 py-2.5 backdrop-blur-md border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar mb-6`} data-testid="nav-in-page">
+          {navSections.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => scrollToNav(s.id)}
+              className={`px-3 sm:px-4 py-2 sm:py-2.5 text-[14px] sm:text-[15px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === s.id ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              data-testid={`nav-${s.id}`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </nav>
+      )}
+    </>
+  ) : null;
+
+  if (isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-[#F9F9FB] pb-[calc(60px+env(safe-area-inset-bottom,0px))] md:pb-0">
+        <div className="px-4 md:px-6 py-6 pb-24 md:pb-8">
+          {isLoading ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-6">
+                <div className="w-28 h-28 rounded-full bg-muted animate-pulse" />
+                <div className="flex-1">
+                  <div className="h-10 bg-muted rounded w-64 animate-pulse mb-3" />
+                  <div className="h-5 bg-muted rounded w-96 animate-pulse" />
+                </div>
+              </div>
+              <div className="h-64 bg-muted rounded animate-pulse mt-8" />
+            </div>
+          ) : person ? (
+            <>
+              <FeedStyleCard testId="person-feed-card">
+                <FeedStyleCardHeader
+                  imageUrl={personData?.imageUrl || "/people/default-avatar.png"}
+                  imageAlt={person.name}
+                  imageRounded="rounded-full"
+                  name={person.name}
+                  subtitle={person.title}
+                  meta={personMetaItems}
+                  tintSource={personData?.imageUrl || person.name}
+                  testIdPrefix="person-card"
+                />
+              </FeedStyleCard>
+              <div className="mt-5">
+                {personContentNav}
+
+                {personData?.hostedPodcastSlugs && personData.hostedPodcastSlugs.length > 0 && (() => {
+                  const hostedPodcasts = personData.hostedPodcastSlugs
+                    .map(slug => PODCAST_LANDINGS.find(p => p.slug === slug))
+                    .filter((p): p is PodcastLandingConfig => !!p);
+                  if (hostedPodcasts.length === 0) return null;
+                  return (
+                    <section id="section-hosted-podcasts" className="mb-8" data-testid="section-hosted-podcasts">
+                      <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">
+                        <Mic className="w-5 h-5 text-primary" />
+                        Podcast Host
+                      </h2>
+                      <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mb-4">
+                        {person?.name} is the host of the following podcast{hostedPodcasts.length !== 1 ? "s" : ""}:
+                      </p>
+                      <div className="grid grid-cols-1 gap-4">
+                        {hostedPodcasts.map((podcast) => (
+                          <Link key={podcast.slug} href={`/podcasts/${podcast.slug}`} className="flex items-start gap-5 bg-card border border-border rounded-xl p-5 hover:border-primary/30 hover:shadow-md transition-all group" data-testid={`hosted-podcast-${podcast.slug}`}>
+                            <img src={podcast.artworkUrl} alt={podcast.name} className="w-20 h-20 rounded-xl object-cover flex-shrink-0 shadow-md shadow-black/[0.06]" loading="lazy" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-base font-bold text-foreground group-hover:text-primary transition-colors">{podcast.name}</p>
+                              <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] mt-0.5 line-clamp-2">{podcast.description}</p>
+                              <div className="flex flex-wrap items-center gap-3 mt-2.5 text-[16px] text-[#52525B] dark:text-[#A1A1AA] font-medium">
+                                {podcast.yearStarted && (<span className="inline-flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />Since {podcast.yearStarted}</span>)}
+                                {podcast.totalEpisodes && (<span className="inline-flex items-center gap-1"><Headphones className="w-3.5 h-3.5" />{podcast.totalEpisodes.toLocaleString()} episodes</span>)}
+                                {podcast.frequency && (<span className="inline-flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{podcast.frequency}</span>)}
+                              </div>
+                              <p className="text-[16px] text-primary font-semibold mt-2.5 flex items-center gap-1">View Podcast<ArrowRight className="w-3.5 h-3.5" /></p>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })()}
+
+                {keyIdeas.length >= 2 && (
+                  <section id="section-key-ideas" className="mb-8" data-testid="section-key-ideas">
+                    <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                      <Tag className="w-5 h-5 text-primary" />
+                      Key Ideas {person.name} {hasGuestAppearances ? "Discusses" : "Is Discussed About"} on Podcasts
+                    </h2>
+                    <div className="space-y-4">
+                      {keyIdeas.map((idea, i) => (
+                        <div key={i} className="bg-card border border-border rounded-xl p-5" data-testid={`key-idea-${i}`}>
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <h3 className="text-base font-semibold text-foreground">{idea.topic}</h3>
+                            <span className="text-[14px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{idea.count} episode{idea.count !== 1 ? "s" : ""}</span>
+                            <Link href={`${getCategoryPath(getTopicBySlug(idea.topicPageSlug)?.category || "interest")}/${idea.topicPageSlug}`} className="text-[14px] text-primary hover:text-primary/80 font-medium transition-colors sm:ml-auto" data-testid={`link-topic-${idea.topicPageSlug}`}>Explore Topic &rarr;</Link>
+                          </div>
+                          <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed mb-3">
+                            {hasGuestAppearances
+                              ? `${person.name} discusses ${idea.topic.toLowerCase()} across ${idea.count} podcast episode${idea.count !== 1 ? "s" : ""}. Explore the full recaps for in-depth coverage of this theme.`
+                              : `${person.name} is discussed in the context of ${idea.topic.toLowerCase()} across ${idea.count} episode${idea.count !== 1 ? "s" : ""}. Explore recaps for detailed coverage.`}
+                          </p>
+                          {idea.relatedEps.length > 0 && (
+                            <div className="flex flex-col gap-1.5">
+                              {idea.relatedEps.map((ep, j) => (
+                                <Link key={j} href={`/podcasts/${ep.slug}/${ep.episode_slug}`} className="text-[14px] text-primary/80 hover:text-primary transition-colors flex items-start gap-1.5 min-w-0" data-testid={`key-idea-ep-${i}-${j}`}>
+                                  <Headphones className="w-3 h-3 mt-0.5 shrink-0" />
+                                  <span className="line-clamp-1">{ep.episode_title}</span>
+                                  <span className="text-muted-foreground text-[14px] shrink-0 hidden sm:inline">on {ep.podcast_name}</span>
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {showQuotesSection && (
+                  <section id="section-quotes" className="mb-8" data-testid="section-quotes">
+                    <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-primary" />
+                      {quoteSectionTitle}
+                    </h2>
+                    <div className="space-y-3">
+                      {displayQuotes.map((quote, i) => {
+                        const date = quote.date ? new Date(quote.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
+                        return (
+                          <Link key={i} href={`/podcasts/${quote.slug}/${quote.episodeSlug}`} className="block">
+                            <div className="bg-card border border-border rounded-xl p-5 hover:border-primary/20 hover:shadow-sm transition-all group" data-testid={`quote-${i}`}>
+                              <p className="text-[16px] text-foreground leading-relaxed mb-3">{quote.text}</p>
+                              <div className="flex items-center justify-between flex-wrap gap-2">
+                                <div className="text-base text-[#52525B] dark:text-[#A1A1AA] flex items-center gap-1.5">
+                                  <Headphones className="w-3.5 h-3.5" />
+                                  <span>{quote.podcastName}</span>
+                                  {date && <><span>&middot;</span><span>{date}</span></>}
+                                </div>
+                                <span className="text-[16px] text-primary font-medium group-hover:text-primary/80 transition-colors" data-testid={`link-quote-recap-${i}`}>Read Recap →</span>
+                              </div>
+                              <p className="text-[16px] text-muted-foreground mt-1 truncate">{quote.episodeTitle}</p>
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </section>
+                )}
+
+                <section id="section-appearances" className="mb-8" data-testid="section-appearances">
+                  <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <Mic className="w-5 h-5 text-primary" />
+                    All {hasGuestAppearances ? "Appearances & " : ""}Mentions
+                  </h2>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4">
+                    <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-xl flex-shrink-0" data-testid="tabs-episode-type">
+                      {(["all", "guests", "mentions"] as const).map(tab => {
+                        if (tab === "guests" && !hasGuestAppearances) return null;
+                        return (
+                          <button key={tab} onClick={() => setActiveTab(tab)} className={`px-3 py-2 rounded-lg text-[14px] font-semibold transition-all whitespace-nowrap ${activeTab === tab ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`} data-testid={`tab-${tab}`}>
+                            {tab === "all" ? "All" : tab === "guests" ? "Guest" : "Mentions"}
+                            <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[12px] font-bold ${activeTab === tab ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                              {tab === "all" ? totalEpisodes : tab === "guests" ? person.guestCount : person.mentionCount}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="flex items-center gap-2 flex-1">
+                      <div className="relative flex-1">
+                        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                        <input type="text" placeholder="Filter episodes..." value={filterText} onChange={(e) => setFilterText(e.target.value)} className="w-full pl-9 pr-3 py-2 text-base bg-muted/50 border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/30" data-testid="input-filter-episodes" />
+                      </div>
+                      <button onClick={() => setSortOrder(o => o === "relevance" ? "newest" : o === "newest" ? "oldest" : "relevance")} className="flex items-center gap-1 px-3 py-2 text-base text-[#52525B] dark:text-[#A1A1AA] hover:text-foreground bg-muted/50 border border-border rounded-lg transition-colors flex-shrink-0" data-testid="button-sort">
+                        <ArrowUpDown className="w-3.5 h-3.5" />
+                        {sortOrder === "relevance" ? "Top" : sortOrder === "newest" ? "Newest" : "Oldest"}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-4">
+                    {filteredEpisodes.length > 0 ? (
+                      (showAllEpisodes ? filteredEpisodes : filteredEpisodes.slice(0, 8)).map((ep) => (
+                        <EpisodeCard key={`${ep.slug}/${ep.episode_slug}`} episode={ep} showType />
+                      ))
+                    ) : (
+                      <p className="text-center py-8 text-muted-foreground text-[16px]">No episodes match your filters.</p>
+                    )}
+                  </div>
+                  {!showAllEpisodes && filteredEpisodes.length > 8 && (
+                    <button onClick={() => setShowAllEpisodes(true)} className="mt-4 w-full py-3 text-base font-semibold text-primary hover:text-primary/80 bg-primary/5 hover:bg-primary/10 border border-primary/20 rounded-xl transition-all" data-testid="button-show-all-episodes">
+                      See All {filteredEpisodes.length} Episodes
+                    </button>
+                  )}
+                </section>
+
+                {showPodcastsSection && (
+                  <section id="section-podcasts-featuring" className="mb-8" data-testid="section-podcasts-featuring">
+                    <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                      <Radio className="w-5 h-5 text-primary" />
+                      Podcasts Featuring {person.name}
+                    </h2>
+                    <div className="grid gap-3">
+                      {(showAllPodcasts ? person.podcastsFeaturingPerson : person.podcastsFeaturingPerson.slice(0, 6)).map((podcast, i) => {
+                        const latestDate = podcast.latestDate ? new Date(podcast.latestDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
+                        return (
+                          <Link key={i} href={`/podcasts/${podcast.podcastSlug}`} className="bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:border-primary/30 hover:shadow-sm transition-all group" data-testid={`podcast-featuring-${i}`}>
+                            {podcast.artwork_url && (<img src={podcast.artwork_url} alt={podcast.name} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />)}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[16px] font-semibold text-foreground group-hover:text-primary transition-colors" data-testid={`link-podcast-${podcast.podcastSlug}`}>{podcast.name}</p>
+                              <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-0.5">{podcast.count} episode{podcast.count !== 1 ? "s" : ""} {latestDate && <>&middot; Latest: {latestDate}</>}</p>
+                              <p className="text-[16px] text-[#52525B] mt-1 truncate">{podcast.latestTitle}</p>
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                    {!showAllPodcasts && person.podcastsFeaturingPerson.length > 6 && (
+                      <button onClick={() => setShowAllPodcasts(true)} className="mt-4 w-full py-3 text-base font-semibold text-primary hover:text-primary/80 bg-primary/5 hover:bg-primary/10 border border-primary/20 rounded-xl transition-all" data-testid="button-show-all-podcasts">
+                        See All {person.podcastsFeaturingPerson.length} Podcasts
+                      </button>
+                    )}
+                  </section>
+                )}
+
+                {personData?.similarPeople && personData.similarPeople.filter(s => EXISTING_PEOPLE_SLUGS.has(s)).length > 0 && (
+                  <section id="section-related-people" className="mb-8" data-testid="section-related-people">
+                    <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                      <Users className="w-5 h-5 text-primary" />
+                      People Often Mentioned With {person.name}
+                    </h2>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {personData.similarPeople.filter(s => EXISTING_PEOPLE_SLUGS.has(s)).map((personSlug) => {
+                        const p = PEOPLE_DIRECTORY.find(x => x.slug === personSlug);
+                        if (!p) return null;
+                        return (
+                          <Link key={personSlug} href={`/people/${personSlug}`} className="flex items-center gap-3 bg-card border border-border rounded-xl p-3 hover:border-primary/30 transition-all group" data-testid={`related-person-${personSlug}`}>
+                            <img src={p.imageUrl || '/people/default-avatar.png'} alt={p.name} className="w-10 h-10 rounded-full object-cover flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).src = '/people/default-avatar.png'; }} />
+                            <div className="min-w-0">
+                              <p className="text-base font-semibold text-foreground group-hover:text-primary transition-colors truncate">{p.name}</p>
+                              <p className="text-[16px] text-muted-foreground truncate">{p.title}</p>
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </section>
+                )}
+
+                {showTopicsSection && (
+                  <section className="mb-8" data-testid="section-associated-topics">
+                    <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                      <Tag className="w-5 h-5 text-primary" />
+                      Topics Associated With {person.name}
+                    </h2>
+                    <div className="flex flex-wrap gap-2">
+                      {broadTopics.slice(0, 5).map((topic, i) => (
+                        <Link key={i} href={`${getCategoryPath(getTopicBySlug(topic.slug)?.category || "interest")}/${topic.slug}`} className="flex items-center gap-1.5 bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full transition-colors group" data-testid={`chip-topic-${topic.slug}`}>
+                          <span className="text-base font-medium text-foreground group-hover:text-primary transition-colors">{topic.topic}</span>
+                          <span className="text-[16px] text-muted-foreground">{topic.count}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {faqItems.length > 0 && (
+                  <section id="section-faq" className="mb-8" data-testid="section-faq">
+                    <h2 className="text-xl font-bold text-foreground mb-4">
+                      Frequently Asked Questions About {person.name} on Podcasts
+                    </h2>
+                    <div className="space-y-2">
+                      {faqItems.map((item, i) => (
+                        <div key={i} className="bg-card border border-border rounded-xl overflow-hidden" data-testid={`faq-${i}`}>
+                          <button
+                            onClick={() => setFaqOpen(prev => ({ ...prev, [i]: !prev[i] }))}
+                            className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/30 transition-colors"
+                            data-testid={`faq-toggle-${i}`}
+                          >
+                            <span className="text-[16px] font-semibold text-foreground pr-4">{item.q}</span>
+                            {faqOpen[i] ? <ChevronUp className="w-4 h-4 text-muted-foreground flex-shrink-0" /> : <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
+                          </button>
+                          {faqOpen[i] && (
+                            <div className="px-4 pb-4" data-testid={`faq-answer-${i}`}>
+                              <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">{item.a}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {showTimelineSection && (
+                  <section id="section-timeline" className="mb-8" data-testid="section-timeline">
+                    <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                      <Clock className="w-5 h-5 text-primary" />
+                      Timeline
+                    </h2>
+                    <div className="space-y-6">
+                      {Object.entries(timelineByYear).map(([year, episodes]) => (
+                        <div key={year} data-testid={`timeline-year-${year}`}>
+                          <h3 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
+                            <span className="w-8 h-8 rounded-full bg-primary/10 text-primary text-base font-bold flex items-center justify-center">{year}</span>
+                          </h3>
+                          <div className="border-l-2 border-border pl-5 ml-4 space-y-3">
+                            {episodes.map((ep, i) => {
+                              const date = ep.publish_date ? new Date(ep.publish_date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
+                              return (
+                                <div key={i} className="relative" data-testid={`timeline-item-${year}-${i}`}>
+                                  <div className="absolute -left-[1.625rem] top-1.5 w-3 h-3 rounded-full bg-border border-2 border-background" />
+                                  <div className="flex items-start gap-2">
+                                    <div className="flex-1 min-w-0">
+                                      <Link href={`/podcasts/${ep.slug}/${ep.episode_slug}`} className="text-base font-medium text-foreground hover:text-primary transition-colors">
+                                        {ep.episode_title}
+                                      </Link>
+                                      <p className="text-[16px] text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                                        <Link href={`/podcasts/${ep.slug}`} className="hover:text-foreground transition-colors">{ep.podcast_name}</Link>
+                                        {date && <><span>&middot;</span><span>{date}</span></>}
+                                        <span>&middot;</span>
+                                        <span className={ep.type === "guest" ? "text-primary font-medium" : ""}>{ep.type === "guest" ? "Guest" : "Mentioned"}</span>
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {person.recommendedBooks && person.recommendedBooks.length > 0 && (
+                  <section id="section-recommended-books" className="mb-8" data-testid="section-recommended-books">
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                        <BookOpen className="w-5 h-5 text-primary" />
+                        Books Discussed by {person.name}
+                      </h2>
+                      <Link
+                        href="/shop"
+                        className="text-[16px] font-semibold text-amber-700 dark:text-amber-400 hover:underline underline-offset-2 flex items-center gap-1"
+                        data-testid="link-browse-shop"
+                      >
+                        Browse Shop <ArrowRight className="w-3 h-3" />
+                      </Link>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                      {person.recommendedBooks.slice(0, 8).map((book) => (
+                        <Link
+                          key={book.slug}
+                          href={`/shop/${book.slug}`}
+                          className="block group"
+                          data-testid={`book-card-${book.slug}`}
+                        >
+                          <div className="bg-card border border-border rounded-xl p-3 hover:border-primary/30 hover:shadow-sm transition-all h-full flex flex-col">
+                            <div className="w-full aspect-[2/3] rounded-lg bg-gradient-to-br from-amber-100 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/10 flex items-center justify-center mb-3 overflow-hidden">
+                              <BookCoverFill title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} />
+                            </div>
+                            <h3 className="text-[16px] font-semibold text-foreground group-hover:text-primary transition-colors leading-tight line-clamp-2">
+                              {book.name}
+                            </h3>
+                            {book.author && (
+                              <p className="text-[16px] text-muted-foreground mt-1 line-clamp-1">{book.author}</p>
+                            )}
+                            {book.podcastCount >= 1 && (
+                              <div className="mt-1.5">
+                                <PodcastMicBadge count={book.podcastCount} size="sm" />
+                              </div>
+                            )}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-16 text-muted-foreground">
+              <p className="text-lg">Person not found.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-background overflow-x-clip">
       {!isLoggedIn && <SiteHeader />}
@@ -603,7 +1003,7 @@ export default function PersonDetailPage() {
               {personData?.hostedPodcastSlugs && personData.hostedPodcastSlugs.length > 0 && (() => {
                 const hostedPodcasts = personData.hostedPodcastSlugs
                   .map(slug => PODCAST_LANDINGS.find(p => p.slug === slug))
-                  .filter(Boolean);
+                  .filter((p): p is PodcastLandingConfig => !!p);
                 if (hostedPodcasts.length === 0) return null;
                 return (
                   <section id="section-hosted-podcasts" className="mb-8" data-testid="section-hosted-podcasts">
@@ -615,7 +1015,7 @@ export default function PersonDetailPage() {
                       {person?.name} is the host of the following podcast{hostedPodcasts.length !== 1 ? "s" : ""}:
                     </p>
                     <div className="grid grid-cols-1 gap-4">
-                      {hostedPodcasts.map((podcast: any) => (
+                      {hostedPodcasts.map((podcast) => (
                         <Link key={podcast.slug} href={`/podcasts/${podcast.slug}`} className="flex items-start gap-5 bg-card border border-border rounded-xl p-5 hover:border-primary/30 hover:shadow-md transition-all group" data-testid={`hosted-podcast-${podcast.slug}`}>
                           <img
                             src={podcast.artworkUrl}

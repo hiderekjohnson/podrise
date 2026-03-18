@@ -227,7 +227,7 @@ export default function BookmarksPage() {
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-[#F9F9FB] dark:bg-[#09090B]" data-testid="bookmarks-page">
-        <div className="max-w-3xl mx-auto px-4 md:px-8 py-8 pb-24 md:pb-8">
+        <div className="px-4 md:px-8 py-8 pb-24 md:pb-8">
           <div className="mb-6">
             <h1 className="text-[24px] md:text-[28px] font-bold text-[#09090B] dark:text-white mb-1" data-testid="bookmarks-title">Saved Episodes</h1>
             <p className="text-[15px] text-[#71717A] dark:text-[#A1A1AA]">Episodes you've saved for later</p>

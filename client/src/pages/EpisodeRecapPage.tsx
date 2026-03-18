@@ -11,6 +11,7 @@ import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "../data/entityDirectoryDa
 import { Link } from "wouter";
 import { EpisodePageLayout } from "@/components/EpisodePageLayout";
 import { GetRecapsModal } from "@/components/GetRecapsModal";
+import { FeedStyleCard, FeedStyleCardHeader, FeedStyleCardSection } from "@/components/FeedStyleCard";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -865,17 +866,7 @@ export default function EpisodeRecapPage() {
     ? podcastConfig.hosts.split(/,\s*|&\s*|\sand\s/i).map((h: string) => h.trim()).filter(Boolean)
     : [];
 
-  return (
-    <EpisodePageLayout
-      episode={episode}
-      podcastSlug={podcastSlug}
-      episodeSlug={episodeSlug}
-      podcastConfig={podcastConfig}
-      activeTab="recap"
-      allRecaps={allRecaps}
-      guests={guests}
-      podcastHosts={podcastHosts || []}
-    >
+  const recapContent = (
       <motion.article
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -957,27 +948,6 @@ export default function EpisodeRecapPage() {
             >
               <Mail className="w-4 h-4" />
               Get Updates
-            </button>
-          )}
-          {authUser && (
-            <button
-              onClick={() => followMutation.mutate({ follow: !isFollowing })}
-              disabled={followMutation.isPending}
-              className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-[16px] font-semibold min-h-[44px] whitespace-nowrap shrink-0 transition-all active:scale-[0.98] ${
-                isFollowing
-                  ? "bg-primary/[0.08] text-primary border border-primary/20 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-                  : "bg-primary text-white hover:bg-[#4F46E5] shadow-sm shadow-primary/20"
-              }`}
-              data-testid="nav-follow-podcast"
-            >
-              {followMutation.isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <>
-                  <Heart className={`w-4 h-4 ${isFollowing ? "fill-current" : ""}`} />
-                  {isFollowing ? "Following" : "Follow"}
-                </>
-              )}
             </button>
           )}
           {authUser && (
@@ -1520,6 +1490,113 @@ export default function EpisodeRecapPage() {
         )}
 
       </motion.article>
+  );
+
+  const metaItems = [];
+  if (podcastConfig?.hosts) metaItems.push({ icon: "host" as const, text: podcastConfig.hosts });
+  if (podcastConfig?.totalEpisodes) metaItems.push({ icon: "episodes" as const, text: `${podcastConfig.totalEpisodes}+ episodes` });
+  if (podcastConfig?.yearStarted) metaItems.push({ icon: "since" as const, text: `Since ${podcastConfig.yearStarted}` });
+
+  function relativeTime(dateStr: string): string {
+    if (!dateStr) return "";
+    const now = new Date();
+    const date = new Date(dateStr + "T00:00:00");
+    const diffMs = now.getTime() - date.getTime();
+    if (diffMs < 0) return "just now";
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days}d ago`;
+    const weeks = Math.floor(days / 7);
+    if (weeks < 4) return `${weeks}w ago`;
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+
+  if (authUser) {
+    return (
+      <div className="min-h-screen bg-[#F9F9FB] pb-[calc(60px+env(safe-area-inset-bottom,0px))] md:pb-0">
+        <div className="px-4 md:px-6 py-6 pb-24 md:pb-8">
+          <FeedStyleCard testId="episode-feed-card">
+            <FeedStyleCardHeader
+              imageUrl={episode.artworkUrl || podcastConfig?.artworkUrl || ""}
+              imageAlt={episode.podcastName}
+              imageLink={`/podcasts/${podcastSlug}`}
+              name={episode.podcastName}
+              nameLink={`/podcasts/${podcastSlug}`}
+              meta={metaItems}
+              tintSource={episode.artworkUrl || podcastSlug}
+              testIdPrefix="episode-card"
+              rightAction={
+                <button
+                  onClick={() => followMutation.mutate({ follow: !isFollowing })}
+                  disabled={followMutation.isPending}
+                  className={`inline-flex items-center px-5 py-[7px] rounded-full text-[14px] font-bold transition-all ${
+                    isFollowing
+                      ? "bg-[#6366F1]/10 text-[#6366F1] hover:bg-red-50 hover:text-red-600"
+                      : "bg-[#6366F1] text-white hover:bg-[#4F46E5]"
+                  }`}
+                  data-testid="episode-card-follow-btn"
+                >
+                  {isFollowing ? "Following" : "Follow"}
+                </button>
+              }
+            />
+            <FeedStyleCardSection>
+              <div className="flex items-baseline justify-between gap-3 mb-[9px]">
+                <span className="text-[12px] text-[#A1A1AA] overflow-hidden text-ellipsis whitespace-nowrap flex-1 min-w-0" style={{ fontFamily: "var(--font-mono)" }} data-testid="episode-card-title">
+                  {episode.episodeTitle}
+                </span>
+                <span className="text-[12px] text-[#A1A1AA] whitespace-nowrap flex-shrink-0" style={{ fontFamily: "var(--font-mono)" }}>
+                  {relativeTime(episode.publishDate)}
+                </span>
+              </div>
+              {episode.tldl && (
+                <h3 className="text-[26px] font-normal text-[#09090B] leading-[1.2] tracking-[-0.01em]" style={{ fontFamily: "var(--font-serif)" }} data-testid="episode-card-headline">
+                  {episode.tldl}
+                </h3>
+              )}
+            </FeedStyleCardSection>
+          </FeedStyleCard>
+
+          <div className="mt-5 bg-white border border-black/[0.06] rounded-2xl shadow-sm shadow-black/[0.02] overflow-hidden px-4 sm:px-6 py-5" data-testid="episode-recap-body-card">
+            {recapContent}
+          </div>
+        </div>
+
+        <GetRecapsModal
+          open={showUpdatesModal}
+          onClose={() => setShowUpdatesModal(false)}
+          podcastName={episode.podcastName}
+          artworkUrl={episode.artworkUrl || podcastConfig?.artworkUrl}
+          itunesId={podcastConfig?.itunesId || ""}
+        />
+
+        <EpisodeChatPanelWithRef
+          ref={chatRef}
+          podcastSlug={podcastSlug}
+          episodeSlug={episodeSlug}
+          episodeTitle={episode?.episodeTitle || ""}
+          podcastName={episode?.podcastName || ""}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <EpisodePageLayout
+      episode={episode}
+      podcastSlug={podcastSlug}
+      episodeSlug={episodeSlug}
+      podcastConfig={podcastConfig}
+      activeTab="recap"
+      allRecaps={allRecaps}
+      guests={guests}
+      podcastHosts={podcastHosts || []}
+    >
+      {recapContent}
 
       <GetRecapsModal
         open={showUpdatesModal}

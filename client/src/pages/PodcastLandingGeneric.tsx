@@ -3,12 +3,14 @@ import { useParams, Link } from "wouter";
 import { Loader2, ArrowRight, Clock, Mic, Users, Headphones, Building2, Tag, UserCircle, BookOpen, Mail, ShoppingBag, ExternalLink } from "lucide-react";
 import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { BookCoverFill } from "@/components/BookCover";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PodcastPageLayout } from "@/components/PodcastPageLayout";
+import { FeedStyleCard, FeedStyleCardHeader } from "@/components/FeedStyleCard";
 
 import { getPodcastBySlug, PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import { getTopicBySlug, getCategoryPath } from "@/data/topicData";
@@ -571,10 +573,33 @@ export default function PodcastLandingGeneric() {
     staleTime: 1000 * 60 * 30,
   });
 
-  return (
-    <PodcastPageLayout
-      config={config}
-    >
+  const { data: followData } = useQuery<{ followedSlugs: string[] }>({
+    queryKey: ["/api/feed/followed-slugs"],
+    enabled: !!user,
+  });
+  const isFollowing = followData?.followedSlugs?.includes(config.slug) ?? false;
+
+  const followMutation = useMutation({
+    mutationFn: async ({ follow }: { follow: boolean }) => {
+      const endpoint = follow ? "/api/feed/follow" : "/api/feed/unfollow";
+      await apiRequest("POST", endpoint, { podcastSlug: config.slug });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/feed/followed-slugs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/feed"] });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to update subscription", variant: "destructive" });
+    },
+  });
+
+  const podcastMetaItems = [];
+  if (hosts) podcastMetaItems.push({ icon: "host" as const, text: hosts });
+  if (config.totalEpisodes) podcastMetaItems.push({ icon: "episodes" as const, text: `${config.totalEpisodes}+ episodes` });
+  if (config.yearStarted) podcastMetaItems.push({ icon: "since" as const, text: `Since ${config.yearStarted}` });
+
+  const contentSections = (
+    <>
       <section id="section-episodes" className="pb-16" data-testid="section-episode-list">
           {episodeRecaps.length > 0 ? (
             <>
@@ -773,7 +798,49 @@ export default function PodcastLandingGeneric() {
           <PodcastBooksTab slug={slug} podcastName={config.name} />
           <PodcastShopTab slug={slug} podcastName={config.name} />
         </div>
+    </>
+  );
 
+  if (user) {
+    return (
+      <div className="min-h-screen bg-[#F9F9FB] pb-[calc(60px+env(safe-area-inset-bottom,0px))] md:pb-0">
+        <div className="px-4 md:px-6 py-6 pb-24 md:pb-8">
+          <FeedStyleCard testId="podcast-feed-card">
+            <FeedStyleCardHeader
+              imageUrl={artworkUrl || ""}
+              imageAlt={name}
+              name={name}
+              meta={podcastMetaItems}
+              tintSource={artworkUrl || config.slug}
+              testIdPrefix="podcast-card"
+              rightAction={
+                <button
+                  onClick={() => followMutation.mutate({ follow: !isFollowing })}
+                  disabled={followMutation.isPending}
+                  className={`inline-flex items-center px-5 py-[7px] rounded-full text-[14px] font-bold transition-all ${
+                    isFollowing
+                      ? "bg-[#6366F1]/10 text-[#6366F1] hover:bg-red-50 hover:text-red-600"
+                      : "bg-[#6366F1] text-white hover:bg-[#4F46E5]"
+                  }`}
+                  data-testid="podcast-card-follow-btn"
+                >
+                  {isFollowing ? "Following" : "Follow"}
+                </button>
+              }
+            />
+          </FeedStyleCard>
+
+          <div className="mt-6">
+            {contentSections}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <PodcastPageLayout config={config}>
+      {contentSections}
     </PodcastPageLayout>
   );
 }
