@@ -94,21 +94,23 @@ function PersonalBookCard({ book, index }: { book: ShopBook; index: number }) {
       className="group bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.06] rounded-2xl overflow-hidden hover:shadow-xl hover:border-[#6366F1]/20 hover:-translate-y-0.5 transition-all duration-200"
       data-testid={`personal-shop-card-${index}`}
     >
-      <div className="aspect-[3/4] relative overflow-hidden bg-[#FAFAFA] dark:bg-white/[0.02] flex items-center justify-center p-4">
+      <div className="h-[232px] sm:h-[280px] relative overflow-hidden bg-[#FAFAFA] dark:bg-white/[0.02] flex items-center justify-center [&>img]:max-w-[calc(100%-1rem)] [&>img]:max-h-[calc(100%-1rem)] [&>div:first-child]:max-w-[calc(100%-1rem)] [&>div:first-child]:max-h-[calc(100%-1rem)]">
         <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} size="xl" />
         <div className="absolute top-2.5 left-2.5">
           <PodcastMicBadge count={book.podcastCount} size="sm" />
         </div>
       </div>
       <div className="p-3.5">
-        <h3 className="text-[15px] font-bold text-[#09090B] dark:text-white leading-snug line-clamp-2 group-hover:text-[#6366F1] transition-colors" data-testid={`personal-item-title-${index}`}>
+        <h3 className="text-[15px] font-bold text-[#09090B] dark:text-white leading-snug line-clamp-2 min-h-[2.5em] group-hover:text-[#6366F1] transition-colors" data-testid={`personal-item-title-${index}`}>
           {book.name}
         </h3>
-        {book.author && book.author !== "null" && (
-          <p className="text-[13px] text-[#71717A] dark:text-[#A1A1AA] mt-0.5 line-clamp-1" data-testid={`personal-item-author-${index}`}>
-            {book.author}
-          </p>
-        )}
+        <div className="min-h-[1.25em] mt-0.5">
+          {book.author && book.author !== "null" && (
+            <p className="text-[13px] text-[#71717A] dark:text-[#A1A1AA] line-clamp-1" data-testid={`personal-item-author-${index}`}>
+              {book.author}
+            </p>
+          )}
+        </div>
         <div className="flex items-center gap-1.5 mt-2">
           <span className="text-[12px] text-[#A1A1AA] dark:text-[#71717A]">
             {book.mentionCount} mention{book.mentionCount !== 1 ? "s" : ""}
@@ -147,7 +149,7 @@ function PersonalProductCard({ product, index }: { product: ShopProduct; index: 
         className="group bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.06] rounded-2xl overflow-hidden hover:shadow-xl hover:border-[#6366F1]/20 hover:-translate-y-0.5 transition-all duration-200"
         data-testid={`personal-shop-card-${index}`}
       >
-        <div className="aspect-[3/4] relative overflow-hidden bg-[#FAFAFA] dark:bg-white/[0.02] flex items-center justify-center p-6">
+        <div className="h-[232px] sm:h-[280px] relative overflow-hidden bg-[#FAFAFA] dark:bg-white/[0.02] flex items-center justify-center p-4">
           {hasImage ? (
             <img src={product.imageUrl!} alt={product.name} className="max-w-full max-h-full object-contain" loading="lazy" onError={() => setImgError(true)} />
           ) : (
@@ -163,14 +165,16 @@ function PersonalProductCard({ product, index }: { product: ShopProduct; index: 
           </div>
         </div>
         <div className="p-3.5">
-          <h3 className="text-[15px] font-bold text-[#09090B] dark:text-white leading-snug line-clamp-2 group-hover:text-[#6366F1] transition-colors" data-testid={`personal-item-title-${index}`}>
+          <h3 className="text-[15px] font-bold text-[#09090B] dark:text-white leading-snug line-clamp-2 min-h-[2.5em] group-hover:text-[#6366F1] transition-colors" data-testid={`personal-item-title-${index}`}>
             {product.name}
           </h3>
-          {product.company && product.company !== product.name && (
-            <p className="text-[13px] text-[#71717A] dark:text-[#A1A1AA] mt-0.5 line-clamp-1">
-              {product.company}
-            </p>
-          )}
+          <div className="min-h-[1.25em] mt-0.5">
+            {product.company && product.company !== product.name && (
+              <p className="text-[13px] text-[#71717A] dark:text-[#A1A1AA] line-clamp-1">
+                {product.company}
+              </p>
+            )}
+          </div>
           <div className="flex items-center gap-1.5 mt-2">
             <span className="text-[12px] text-[#A1A1AA] dark:text-[#71717A]">
               {product.mentionCount} mention{product.mentionCount !== 1 ? "s" : ""}
@@ -374,7 +378,7 @@ export function PersonalShop() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {Array.from({ length: 15 }).map((_, i) => (
                 <div key={i} className="bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.06] rounded-2xl overflow-hidden animate-pulse">
-                  <div className="aspect-[3/4] bg-[#F0F0F2] dark:bg-white/[0.04]" />
+                  <div className="h-[232px] sm:h-[280px] bg-[#F0F0F2] dark:bg-white/[0.04]" />
                   <div className="p-3.5 space-y-2">
                     <div className="h-4 bg-[#F0F0F2] dark:bg-white/[0.04] rounded w-3/4" />
                     <div className="h-3 bg-[#F0F0F2] dark:bg-white/[0.04] rounded w-1/2" />
