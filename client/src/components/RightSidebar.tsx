@@ -17,7 +17,7 @@ interface RecommendedItem {
   name: string;
   subtitle: string | null;
   imageUrl: string | null;
-  type: "book" | "product";
+  type: "book";
   link: string;
 }
 
@@ -417,7 +417,7 @@ function ShopSection() {
             <div className="w-[46px] h-[46px] rounded-[10px] bg-[#F7F7FC] border border-[#F0F0F2] flex-shrink-0 flex items-center justify-center text-[22px] overflow-hidden">
               {item.imageUrl ? (
                 <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-              ) : item.type === "book" ? "📚" : "🛍️"}
+              ) : "📚"}
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[14px] font-semibold text-[#09090B] truncate">{item.name}</div>
