@@ -329,6 +329,29 @@ process.on("uncaughtException", (err) => {
         }
 
         try {
+          await pool.query(`CREATE TABLE IF NOT EXISTS landing_page_visits (
+            id SERIAL PRIMARY KEY,
+            page_slug TEXT NOT NULL,
+            session_id TEXT,
+            utm_source TEXT,
+            utm_medium TEXT,
+            utm_campaign TEXT,
+            utm_content TEXT,
+            utm_term TEXT,
+            ip_address TEXT,
+            user_agent TEXT,
+            device_type TEXT,
+            user_id INTEGER,
+            visited_at TIMESTAMP DEFAULT NOW()
+          )`);
+          await pool.query(`CREATE INDEX IF NOT EXISTS idx_lpv_page_slug ON landing_page_visits(page_slug)`).catch(() => {});
+          await pool.query(`CREATE INDEX IF NOT EXISTS idx_lpv_visited_at ON landing_page_visits(visited_at)`).catch(() => {});
+          console.log("landing_page_visits table ready");
+        } catch (err) {
+          console.warn("landing_page_visits migration skipped:", err);
+        }
+
+        try {
           const existingHosts = await pool.query(`SELECT COUNT(*) FROM podcast_hosts WHERE podcast_slug = 'myfirstmillion'`);
           if (parseInt(existingHosts.rows[0].count) === 0) {
             await pool.query(`

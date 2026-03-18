@@ -61,6 +61,7 @@ const PodSquad = lazy(() => import("./pages/PodSquad"));
 const Upgrade = lazy(() => import("./pages/Upgrade"));
 const MyPulsePage = lazy(() => import("./pages/MyPulsePage"));
 const MyPodcastsPage = lazy(() => import("./pages/MyPodcastsPage"));
+const LandingPage = lazy(() => import("./pages/LandingPage"));
 
 function PageLoader() {
   return (
@@ -109,6 +110,7 @@ function Router() {
         <Route path="/companies/:slug">{() => <AuthAwareLayout><Suspense fallback={<PageLoader />}><CompanyDetailPage /></Suspense></AuthAwareLayout>}</Route>
         <Route path="/companies" component={CompaniesDirectory} />
         <Route path="/get-started">{() => { window.location.replace("/register"); return null; }}</Route>
+        <Route path="/lp/:slug" component={LandingPage} />
         <Route path="/register" component={Register} />
         <Route path="/verify-email" component={VerifyEmail} />
         <Route path="/pod-squad" component={PodSquad} />

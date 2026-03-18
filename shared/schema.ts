@@ -848,3 +848,23 @@ export const feedAdSettings = pgTable("feed_ad_settings", {
 
 export type FeedAdSetting = typeof feedAdSettings.$inferSelect;
 
+export const landingPageVisits = pgTable("landing_page_visits", {
+  id: serial("id").primaryKey(),
+  pageSlug: text("page_slug").notNull(),
+  sessionId: text("session_id"),
+  utmSource: text("utm_source"),
+  utmMedium: text("utm_medium"),
+  utmCampaign: text("utm_campaign"),
+  utmContent: text("utm_content"),
+  utmTerm: text("utm_term"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  deviceType: text("device_type"),
+  userId: integer("user_id"),
+  visitedAt: timestamp("visited_at").defaultNow(),
+});
+
+export const insertLandingPageVisitSchema = createInsertSchema(landingPageVisits).omit({ id: true, visitedAt: true });
+export type InsertLandingPageVisit = z.infer<typeof insertLandingPageVisitSchema>;
+export type LandingPageVisit = typeof landingPageVisits.$inferSelect;
+

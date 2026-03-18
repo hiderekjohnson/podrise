@@ -138,6 +138,8 @@ function extractSignupMetadata(req: any, signupSource?: string, signupSourceDeta
     else if (rawSource.startsWith("quick-subscribe-industry")) source = "industry_page";
     else if (rawSource.startsWith("quick-subscribe-interest")) source = "interest_page";
     else if (rawSource.startsWith("quick-subscribe-role")) source = "role_page";
+    else if (rawSource === "landing_page") source = "landing_page";
+    else if (rawSource.startsWith("/lp/")) source = "landing_page";
   }
   let detail = signupSourceDetail || null;
   if (!detail && rawSource) {
@@ -1249,6 +1251,16 @@ If you don't know the answer to something, be honest about it and suggest the us
         `UPDATE users SET signup_source = $1, signup_source_detail = $2, ip_address = $3, user_agent = $4, device_type = $5 WHERE id = $6`,
         [meta.signupSource, meta.signupSourceDetail, meta.ipAddress, meta.userAgent, meta.deviceType, user.id]
       ).catch(e => console.error("[SignupMeta] Failed:", e));
+
+      if (meta.signupSource === "landing_page" && meta.signupSourceDetail) {
+        pool.query(
+          `UPDATE landing_page_visits SET user_id = $1
+           WHERE page_slug = $2 AND user_id IS NULL
+           AND visited_at >= NOW() - INTERVAL '24 hours'
+           AND ip_address = $3`,
+          [user.id, meta.signupSourceDetail, meta.ipAddress]
+        ).catch(e => console.error("[LandingPage] Conversion linkage failed:", e));
+      }
 
       // Handle referral tracking (session-based from web or direct from mobile app)
       const refCode = req.session.referralCode || req.body.referralCode;
@@ -2554,6 +2566,127 @@ If you don't know the answer to something, be honest about it and suggest the us
     } catch (err) {
       console.error("Email analytics error:", err);
       res.status(500).json({ message: "Failed to load email analytics" });
+    }
+  });
+
+  const landingPageVisitInput = z.object({
+    pageSlug: z.string().min(1).max(100),
+    sessionId: z.string().max(200).optional(),
+    utmSource: z.string().max(200).optional(),
+    utmMedium: z.string().max(200).optional(),
+    utmCampaign: z.string().max(200).optional(),
+    utmContent: z.string().max(200).optional(),
+    utmTerm: z.string().max(200).optional(),
+  });
+
+  app.post("/api/landing-pages/visit", async (req, res) => {
+    try {
+      const parsed = landingPageVisitInput.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Invalid visit data" });
+      }
+      const { pageSlug, sessionId, utmSource, utmMedium, utmCampaign, utmContent, utmTerm } = parsed.data;
+      const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.socket?.remoteAddress || null;
+      const ua = req.headers["user-agent"] || null;
+      let deviceType: string | null = null;
+      if (ua) {
+        if (/tablet|ipad/i.test(ua)) deviceType = "tablet";
+        else if (/mobile|android|iphone|ipod/i.test(ua)) deviceType = "mobile";
+        else deviceType = "desktop";
+      }
+      await pool.query(
+        `INSERT INTO landing_page_visits (page_slug, session_id, utm_source, utm_medium, utm_campaign, utm_content, utm_term, ip_address, user_agent, device_type)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+        [pageSlug, sessionId || null, utmSource || null, utmMedium || null, utmCampaign || null, utmContent || null, utmTerm || null, ip, ua, deviceType]
+      );
+      res.json({ ok: true });
+    } catch (err) {
+      console.error("[LandingPage] Visit tracking error:", err);
+      res.status(500).json({ message: "Failed to track visit" });
+    }
+  });
+
+  app.get("/api/admin/landing-pages/analytics", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const visitsResult = await pool.query(`
+        SELECT page_slug,
+               COUNT(*) as total_visits,
+               COUNT(DISTINCT session_id) as unique_visits
+        FROM landing_page_visits
+        GROUP BY page_slug
+      `);
+
+      const signupsResult = await pool.query(`
+        SELECT signup_source_detail as slug,
+               COUNT(*) as total_signups,
+               SUM(CASE WHEN email_verified = true THEN 1 ELSE 0 END) as verified_users
+        FROM users
+        WHERE signup_source = 'landing_page'
+        GROUP BY signup_source_detail
+      `);
+
+      const utmResult = await pool.query(`
+        SELECT page_slug,
+               COALESCE(utm_source, 'direct') as utm_source,
+               COALESCE(utm_medium, 'none') as utm_medium,
+               COALESCE(utm_campaign, 'none') as utm_campaign,
+               COUNT(*) as visits
+        FROM landing_page_visits
+        GROUP BY page_slug, utm_source, utm_medium, utm_campaign
+        ORDER BY visits DESC
+      `);
+
+      const timeSeriesResult = await pool.query(`
+        SELECT page_slug,
+               date_trunc('day', visited_at) as date,
+               COUNT(*) as visits
+        FROM landing_page_visits
+        WHERE visited_at >= NOW() - INTERVAL '30 days'
+        GROUP BY page_slug, date
+        ORDER BY date ASC
+      `);
+
+      const visitsBySlug: Record<string, any> = {};
+      for (const row of visitsResult.rows) {
+        visitsBySlug[row.page_slug] = {
+          totalVisits: parseInt(row.total_visits),
+          uniqueVisits: parseInt(row.unique_visits),
+        };
+      }
+
+      const signupsBySlug: Record<string, any> = {};
+      for (const row of signupsResult.rows) {
+        signupsBySlug[row.slug] = {
+          totalSignups: parseInt(row.total_signups),
+          verifiedUsers: parseInt(row.verified_users),
+        };
+      }
+
+      const utmBySlug: Record<string, any[]> = {};
+      for (const row of utmResult.rows) {
+        if (!utmBySlug[row.page_slug]) utmBySlug[row.page_slug] = [];
+        utmBySlug[row.page_slug].push({
+          utmSource: row.utm_source,
+          utmMedium: row.utm_medium,
+          utmCampaign: row.utm_campaign,
+          visits: parseInt(row.visits),
+        });
+      }
+
+      const timeSeriesBySlug: Record<string, any[]> = {};
+      for (const row of timeSeriesResult.rows) {
+        if (!timeSeriesBySlug[row.page_slug]) timeSeriesBySlug[row.page_slug] = [];
+        timeSeriesBySlug[row.page_slug].push({
+          date: row.date,
+          visits: parseInt(row.visits),
+        });
+      }
+
+      res.json({ visitsBySlug, signupsBySlug, utmBySlug, timeSeriesBySlug });
+    } catch (err) {
+      console.error("[LandingPage] Analytics error:", err);
+      res.status(500).json({ message: "Failed to load landing page analytics" });
     }
   });
 

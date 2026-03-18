@@ -22,16 +22,21 @@ export function useAuth() {
 
 export function useRegister() {
   return useMutation({
-    mutationFn: async (data: { email: string; podcasts: string[]; signupContext?: string }) => {
+    mutationFn: async (data: { email: string; podcasts: string[]; signupContext?: string; signupSource?: string; signupSourceDetail?: string }) => {
       let detectedTimezone = "America/New_York";
       try {
         const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
         if (tz) detectedTimezone = tz;
       } catch {}
+      const pathname = window.location.pathname;
+      const lpMatch = pathname.match(/^\/lp\/([^/]+)$/);
+      const signupSource = data.signupSource || (lpMatch ? "landing_page" : pathname);
+      const signupSourceDetail = data.signupSourceDetail || (lpMatch ? lpMatch[1] : undefined);
       const res = await apiRequest("POST", "/api/auth/register", {
         ...data,
         deliveryTimezone: detectedTimezone,
-        signupSource: window.location.pathname,
+        signupSource,
+        signupSourceDetail,
       });
       return await res.json();
     },
