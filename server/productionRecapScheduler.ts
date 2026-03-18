@@ -4,9 +4,9 @@ import { generateRecapFromFullTranscript } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 import { isLikelySponsorProduct } from "./productFilter";
 
-const INTERVAL_MS = 10 * 60 * 1000;
-const BATCH_SIZE = 3;
-const PER_PODCAST = 3;
+const INTERVAL_MS = 15 * 60 * 1000;
+const BATCH_SIZE = 1;
+const PER_PODCAST = 1;
 let batchRunning = false;
 
 async function getPodcastInfo(itunesId: string) {
@@ -214,11 +214,6 @@ async function runBatch() {
       const success = await processEpisode(ep, podcastSlug, podcastName, ep.podcast_id, hosts, artwork);
       if (success) generated++;
       else failed++;
-
-      if (episodes.indexOf(ep) < episodes.length - 1) {
-        console.log(`[ProdRecap] Cooling down 30s before next episode...`);
-        await new Promise(r => setTimeout(r, 30_000));
-      }
     }
 
     if (generated > 0 || failed > 0) {
@@ -242,5 +237,5 @@ export function startProductionRecapScheduler() {
   setTimeout(() => {
     runBatch();
     setInterval(runBatch, INTERVAL_MS);
-  }, 30_000);
+  }, 60_000);
 }
