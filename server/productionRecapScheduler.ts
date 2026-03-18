@@ -186,9 +186,9 @@ async function runBatch() {
   batchRunning = true;
   batchStartedAt = Date.now();
   try {
-    const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
-    const cutoffTimestamp = Math.floor(fourteenDaysAgo.getTime() / 1000);
-    const cutoffFetchedAt = fourteenDaysAgo.toISOString();
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+    const cutoffTimestamp = Math.floor(threeDaysAgo.getTime() / 1000);
+    const cutoffFetchedAt = threeDaysAgo.toISOString();
     const { rows: episodes } = await pool.query(
       `WITH ranked AS (
          SELECT et.id, et.podcast_id, et.episode_title, et.transcript, et.description,
@@ -300,5 +300,5 @@ export function startProductionRecapScheduler() {
     await cleanupDuplicateRecaps();
     runBatch();
     setInterval(runBatch, INTERVAL_MS);
-  }, 60_000);
+  }, 120_000);
 }
