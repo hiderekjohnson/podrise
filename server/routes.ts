@@ -650,10 +650,12 @@ export async function registerRoutes(
       );
     `);
     await migrationPool.query(`
+      ALTER TABLE landing_page_recaps ADD COLUMN IF NOT EXISTS youtube_url TEXT;
       ALTER TABLE landing_page_recaps ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'published';
-      ALTER TABLE podcast_directory ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'published';
       ALTER TABLE landing_page_recaps ADD COLUMN IF NOT EXISTS tabloid_headline TEXT;
       ALTER TABLE landing_page_recaps ADD COLUMN IF NOT EXISTS tabloid_sub_headline TEXT;
+      ALTER TABLE podcast_directory ADD COLUMN IF NOT EXISTS youtube_url TEXT;
+      ALTER TABLE podcast_directory ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'published';
     `);
     // Backfill landing_page_recaps: unpublished episodes get status='hidden'
     await migrationPool.query(`
