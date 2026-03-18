@@ -398,6 +398,18 @@ process.on("uncaughtException", (err) => {
         }
 
         try {
+          await pool.query(`CREATE TABLE IF NOT EXISTS site_settings (
+            id SERIAL PRIMARY KEY,
+            key TEXT NOT NULL UNIQUE,
+            value JSONB NOT NULL DEFAULT '{}',
+            updated_at TIMESTAMP DEFAULT NOW()
+          )`);
+          console.log("site_settings table ready");
+        } catch (err) {
+          console.warn("site_settings migration skipped:", err);
+        }
+
+        try {
           const newPodcasts = [
             { itunesId: "1148183612", slug: "almost30", name: "Almost 30", hosts: "Krista Williams & Lindsey Simcik", description: "conversations about personal growth, spirituality, wellness, and navigating your late twenties and beyond", appleUrl: "https://podcasts.apple.com/us/podcast/almost-30/id1148183612", spotifyUrl: "https://open.spotify.com/show/0kBU7FWmLaLf3si3KZ9XQx" },
             { itunesId: "1199977889", slug: "marieforleo", name: "The Marie Forleo Podcast", hosts: "Marie Forleo", description: "actionable strategies for business, personal development, and creating a life you love", appleUrl: "https://podcasts.apple.com/us/podcast/the-marie-forleo-podcast/id1199977889", spotifyUrl: "https://open.spotify.com/show/2BTDPFDY7V3jrtT6JzQ0fX" },
