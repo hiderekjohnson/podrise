@@ -64,6 +64,13 @@
       "when": 1773846719190,
       "tag": "0005_charming_magma",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1773867319048,
+      "tag": "0006_curious_natasha_romanoff",
+      "breakpoints": true
     }
   ]
 }

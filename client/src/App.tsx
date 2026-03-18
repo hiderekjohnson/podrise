@@ -65,6 +65,7 @@ const MyPulsePage = lazy(() => import("./pages/MyPulsePage"));
 const MyPodcastsPage = lazy(() => import("./pages/MyPodcastsPage"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const HowItWorks = lazy(() => import("./pages/HowItWorks"));
+const YouTubeReviewPage = lazy(() => import("./pages/YouTubeReviewPage"));
 
 function PageLoader() {
   return (
@@ -172,6 +173,7 @@ function Router() {
         <Route path="/podcaster/verify" component={PodcasterDashboard} />
         <Route path="/podcaster/dashboard/:slug" component={PodcasterDashboard} />
         <Route path="/podcaster/dashboard" component={PodcasterDashboard} />
+        <Route path="/youtube-review/:token" component={YouTubeReviewPage} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>

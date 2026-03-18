@@ -29,6 +29,7 @@ PodRise is a full-stack web application designed to provide personalized daily p
 **Error Tracking**: Global middleware logs all API errors to a dedicated table for monitoring and deduplication.
 **Facebook Ad Landing Pages**: A scalable system for campaign-specific landing pages with visit tracking and analytics.
 **Recap Validator** (`server/recapValidator.ts`): Unified post-creation validation that runs after every episode recap creation across all 4 code paths (emailScheduler, productionRecapScheduler, backgroundRecapGenerator, admin routes). Checks 14 fields and auto-fills gaps: tabloid headlines, Spotify URLs, Apple URLs, audio URLs, and quotes DB entries. Admin batch validation endpoint at `POST /api/admin/validate-recaps` supports `dateRange`, `limit`, and `dryRun` options.
+**YouTube URL Matching Tool (Mechanical Turk)**: A worker-based review system for matching podcast episodes with YouTube video URLs. Workers access unique token-based review pages at `/youtube-review/:token` to verify auto-searched YouTube matches. Admin manages workers, generates links, and tracks per-worker stats via the "Mech. Turk" tab. Database tables: `mturk_workers`, `youtube_review_log`. Requires `YOUTUBE_API_KEY` env var for auto-search.
 
 ## External Dependencies
 - **Stripe**: Payment processing and subscription management.

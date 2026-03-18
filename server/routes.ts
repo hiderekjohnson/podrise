@@ -18099,7 +18099,374 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     }
   });
 
+  // ─── Mechanical Turk: YouTube Review ─────────────────────────────
+  const MTURK_EPISODE_CUTOFF_DATE = '2026-03-15';
+
+  interface YouTubeSearchItem {
+    id: { videoId: string };
+    snippet: {
+      title: string;
+      channelTitle: string;
+      thumbnails?: {
+        high?: { url: string };
+        default?: { url: string };
+      };
+    };
+  }
+
+  interface YouTubeSearchResponse {
+    items?: YouTubeSearchItem[];
+  }
+
+  interface YouTubeVideoDetail {
+    id: string;
+    contentDetails?: { duration?: string };
+  }
+
+  interface YouTubeVideosResponse {
+    items?: YouTubeVideoDetail[];
+  }
+
+  const MTURK_ELIGIBLE_EPISODE_WHERE = `
+    youtube_url IS NULL
+    AND publish_date >= '2026-03-15'
+    AND published = true
+    AND id NOT IN (
+      SELECT DISTINCT episode_id FROM youtube_review_log WHERE action IN ('confirmed', 'no_video')
+    )
+  `;
+
+  app.get("/api/mturk/worker/:token", async (req, res) => {
+    try {
+      const { rows } = await pool.query(
+        `SELECT id, name, active FROM mturk_workers WHERE token = $1`,
+        [req.params.token]
+      );
+      if (rows.length === 0) return res.status(404).json({ error: "Invalid link" });
+      if (!rows[0].active) return res.status(403).json({ error: "This link has been deactivated" });
+      res.json({ id: rows[0].id, name: rows[0].name });
+    } catch (err) {
+      console.error("[MTurk] Worker lookup error:", err);
+      res.status(500).json({ error: "Server error" });
+    }
+  });
+
+  app.get("/api/mturk/next/:token", async (req, res) => {
+    try {
+      const { rows: workerRows } = await pool.query(
+        `SELECT id, active FROM mturk_workers WHERE token = $1`, [req.params.token]
+      );
+      if (workerRows.length === 0 || !workerRows[0].active) return res.status(403).json({ error: "Invalid or inactive worker" });
+      const workerId = workerRows[0].id;
+
+      const { rows: episodes } = await pool.query(`
+        SELECT id, slug, podcast_name, episode_title, episode_slug, publish_date, duration,
+               artwork_url, hosts, tldl, guests
+        FROM landing_page_recaps
+        WHERE ${MTURK_ELIGIBLE_EPISODE_WHERE}
+          AND id NOT IN (
+            SELECT episode_id FROM youtube_review_log WHERE worker_id = $1 AND action = 'skipped'
+          )
+        ORDER BY publish_date ASC
+        LIMIT 1
+      `, [workerId]);
+
+      const { rows: progressRows } = await pool.query(`
+        SELECT
+          (SELECT COUNT(DISTINCT episode_id)::int FROM youtube_review_log WHERE action IN ('confirmed', 'no_video')) AS done,
+          (SELECT COUNT(DISTINCT episode_id)::int FROM youtube_review_log WHERE action IN ('confirmed', 'no_video')) +
+          (SELECT COUNT(*)::int FROM landing_page_recaps WHERE youtube_url IS NULL AND publish_date >= '${MTURK_EPISODE_CUTOFF_DATE}' AND published = true
+            AND id NOT IN (SELECT DISTINCT episode_id FROM youtube_review_log WHERE action IN ('confirmed', 'no_video'))
+          ) AS total
+      `);
+
+      if (episodes.length === 0) return res.json({ episode: null, progress: { done: progressRows[0]?.done || 0, total: progressRows[0]?.total || 0 } });
+
+      const episode = episodes[0];
+
+      let youtubeResult = null;
+      try {
+        const searchQuery = `${episode.podcast_name} ${episode.episode_title}`;
+        const ytApiKey = process.env.YOUTUBE_API_KEY;
+        if (ytApiKey) {
+          const ytRes = await fetch(
+            `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&type=video&maxResults=1&key=${ytApiKey}`
+          );
+          if (ytRes.ok) {
+            const ytData = await ytRes.json() as YouTubeSearchResponse;
+            if (ytData.items && ytData.items.length > 0) {
+              const item = ytData.items[0];
+              const videoId = item.id.videoId;
+              youtubeResult = {
+                videoId,
+                url: `https://www.youtube.com/watch?v=${videoId}`,
+                title: item.snippet.title,
+                thumbnail: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url,
+                duration: null as string | null,
+              };
+              try {
+                const detailRes = await fetch(
+                  `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoId}&key=${ytApiKey}`
+                );
+                if (detailRes.ok) {
+                  const detailData = await detailRes.json() as YouTubeVideosResponse;
+                  if (detailData.items && detailData.items.length > 0) {
+                    youtubeResult.duration = detailData.items[0].contentDetails?.duration || null;
+                  }
+                }
+              } catch {}
+            }
+          }
+        }
+      } catch (ytErr) {
+        console.error("[MTurk] YouTube search error:", ytErr);
+      }
+
+      res.json({
+        episode: {
+          id: episode.id,
+          podcastName: episode.podcast_name,
+          episodeTitle: episode.episode_title,
+          episodeSlug: episode.episode_slug,
+          slug: episode.slug,
+          publishDate: episode.publish_date,
+          duration: episode.duration,
+          artworkUrl: episode.artwork_url,
+          hosts: episode.hosts,
+          tldl: episode.tldl,
+          guests: episode.guests,
+        },
+        youtubeResult,
+        progress: {
+          done: progressRows[0]?.done || 0,
+          total: progressRows[0]?.total || 0,
+        },
+      });
+    } catch (err) {
+      console.error("[MTurk] Next episode error:", err);
+      res.status(500).json({ error: "Server error" });
+    }
+  });
+
+  app.post("/api/mturk/submit/:token", async (req, res) => {
+    try {
+      const { rows: workerRows } = await pool.query(
+        `SELECT id, active FROM mturk_workers WHERE token = $1`, [req.params.token]
+      );
+      if (workerRows.length === 0 || !workerRows[0].active) return res.status(403).json({ error: "Invalid or inactive worker" });
+      const workerId = workerRows[0].id;
+
+      const { episodeId, action, youtubeUrl } = req.body;
+      if (!episodeId || !action) return res.status(400).json({ error: "Missing episodeId or action" });
+      if (!["confirmed", "skipped", "no_video"].includes(action)) return res.status(400).json({ error: "Invalid action" });
+
+      const { rows: episodeRows } = await pool.query(
+        `SELECT id FROM landing_page_recaps WHERE id = $1 AND published = true AND publish_date >= $2 AND youtube_url IS NULL`,
+        [episodeId, MTURK_EPISODE_CUTOFF_DATE]
+      );
+      if (episodeRows.length === 0) return res.status(400).json({ error: "Episode not found or not eligible" });
+
+      const { rows: alreadyFinalized } = await pool.query(
+        `SELECT 1 FROM youtube_review_log WHERE episode_id = $1 AND action IN ('confirmed', 'no_video') LIMIT 1`,
+        [episodeId]
+      );
+      if (alreadyFinalized.length > 0) return res.status(400).json({ error: "Episode already finalized" });
+
+      let normalizedUrl: string | null = null;
+      if (action === "confirmed") {
+        if (!youtubeUrl || typeof youtubeUrl !== "string") return res.status(400).json({ error: "YouTube URL required for confirmation" });
+        const ytUrlMatch = youtubeUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+        if (!ytUrlMatch) return res.status(400).json({ error: "Invalid YouTube URL format" });
+        normalizedUrl = `https://www.youtube.com/watch?v=${ytUrlMatch[1]}`;
+        const { rowCount } = await pool.query(
+          `UPDATE landing_page_recaps SET youtube_url = $1 WHERE id = $2 AND youtube_url IS NULL`,
+          [normalizedUrl, episodeId]
+        );
+        if (rowCount === 0) return res.status(400).json({ error: "Episode already has a YouTube URL" });
+      }
+
+
+      await pool.query(
+        `INSERT INTO youtube_review_log (episode_id, worker_id, action, youtube_url) VALUES ($1, $2, $3, $4)`,
+        [episodeId, workerId, action, normalizedUrl]
+      );
+
+      res.json({ ok: true });
+    } catch (err) {
+      console.error("[MTurk] Submit error:", err);
+      res.status(500).json({ error: "Server error" });
+    }
+  });
+
+  app.get("/api/mturk/youtube-search", async (req, res) => {
+    try {
+      const token = req.query.token as string;
+      if (token) {
+        const { rows } = await pool.query(`SELECT id, active FROM mturk_workers WHERE token = $1`, [token]);
+        if (rows.length === 0 || !rows[0].active) return res.status(403).json({ error: "Invalid or inactive worker" });
+      } else {
+        if (!req.session?.isAdmin) return res.status(401).json({ error: "Authentication required" });
+      }
+      const query = req.query.q as string;
+      if (!query) return res.status(400).json({ error: "Missing query" });
+      const ytApiKey = process.env.YOUTUBE_API_KEY;
+      if (!ytApiKey) return res.status(500).json({ error: "YouTube API key not configured" });
+
+      const ytRes = await fetch(
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=5&key=${ytApiKey}`
+      );
+      if (!ytRes.ok) return res.status(500).json({ error: "YouTube API error" });
+      const ytData = await ytRes.json() as YouTubeSearchResponse;
+      const items = ytData.items || [];
+      let durations: Record<string, string | null> = {};
+      if (items.length > 0) {
+        try {
+          const videoIds = items.map((i) => i.id.videoId).join(",");
+          const detailRes = await fetch(
+            `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds}&key=${ytApiKey}`
+          );
+          if (detailRes.ok) {
+            const detailData = await detailRes.json() as YouTubeVideosResponse;
+            for (const v of (detailData.items || [])) {
+              durations[v.id] = v.contentDetails?.duration || null;
+            }
+          }
+        } catch {}
+      }
+      const results = items.map((item) => ({
+        videoId: item.id.videoId,
+        url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+        title: item.snippet.title,
+        thumbnail: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url,
+        channelTitle: item.snippet.channelTitle,
+        duration: durations[item.id.videoId] || null,
+      }));
+      res.json({ results });
+    } catch (err) {
+      console.error("[MTurk] YouTube search error:", err);
+      res.status(500).json({ error: "Search failed" });
+    }
+  });
+
+  // ─── Admin: Mechanical Turk Workers ──────────────────────────────
+  app.get("/api/admin/mturk/workers", async (req, res) => {
+    if (!req.session?.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { rows } = await pool.query(`
+        SELECT w.*,
+          COALESCE(s.total_reviewed, 0) AS total_reviewed,
+          COALESCE(s.confirmed, 0) AS confirmed,
+          COALESCE(s.skipped, 0) AS skipped,
+          COALESCE(s.no_video, 0) AS no_video,
+          s.last_active
+        FROM mturk_workers w
+        LEFT JOIN LATERAL (
+          SELECT
+            COUNT(*)::int AS total_reviewed,
+            COUNT(*) FILTER (WHERE action = 'confirmed')::int AS confirmed,
+            COUNT(*) FILTER (WHERE action = 'skipped')::int AS skipped,
+            COUNT(*) FILTER (WHERE action = 'no_video')::int AS no_video,
+            MAX(created_at) AS last_active
+          FROM youtube_review_log WHERE worker_id = w.id
+        ) s ON true
+        ORDER BY w.created_at DESC
+      `);
+      res.json({ workers: rows });
+    } catch (err) {
+      console.error("[MTurk Admin] List workers error:", err);
+      res.status(500).json({ error: "Failed to load workers" });
+    }
+  });
+
+  app.post("/api/admin/mturk/workers", async (req, res) => {
+    if (!req.session?.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { name } = req.body;
+      if (!name || typeof name !== "string" || name.trim().length === 0) return res.status(400).json({ error: "Name is required" });
+      const token = crypto.randomBytes(16).toString("hex");
+      const { rows } = await pool.query(
+        `INSERT INTO mturk_workers (name, token) VALUES ($1, $2) RETURNING *`,
+        [name.trim(), token]
+      );
+      res.json({ worker: rows[0] });
+    } catch (err) {
+      console.error("[MTurk Admin] Create worker error:", err);
+      res.status(500).json({ error: "Failed to create worker" });
+    }
+  });
+
+  app.patch("/api/admin/mturk/workers/:id", async (req, res) => {
+    if (!req.session?.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { active } = req.body;
+      const { rows } = await pool.query(
+        `UPDATE mturk_workers SET active = $1 WHERE id = $2 RETURNING *`,
+        [active, req.params.id]
+      );
+      if (rows.length === 0) return res.status(404).json({ error: "Worker not found" });
+      res.json({ worker: rows[0] });
+    } catch (err) {
+      console.error("[MTurk Admin] Update worker error:", err);
+      res.status(500).json({ error: "Failed to update worker" });
+    }
+  });
+
+  app.delete("/api/admin/mturk/workers/:id", async (req, res) => {
+    if (!req.session?.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      await pool.query(`DELETE FROM mturk_workers WHERE id = $1`, [req.params.id]);
+      res.json({ ok: true });
+    } catch (err) {
+      console.error("[MTurk Admin] Delete worker error:", err);
+      res.status(500).json({ error: "Failed to delete worker" });
+    }
+  });
+
+  app.get("/api/admin/mturk/stats", async (req, res) => {
+    if (!req.session?.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { rows } = await pool.query(`
+        SELECT
+          (SELECT COUNT(DISTINCT episode_id)::int FROM youtube_review_log WHERE action IN ('confirmed', 'no_video')) +
+          (SELECT COUNT(*)::int FROM landing_page_recaps WHERE youtube_url IS NULL AND publish_date >= '${MTURK_EPISODE_CUTOFF_DATE}' AND published = true
+            AND id NOT IN (SELECT DISTINCT episode_id FROM youtube_review_log WHERE action IN ('confirmed', 'no_video'))
+          ) AS total_episodes,
+          (SELECT COUNT(DISTINCT episode_id)::int FROM youtube_review_log WHERE action = 'confirmed') AS confirmed,
+          (SELECT COUNT(DISTINCT episode_id)::int FROM youtube_review_log WHERE action = 'skipped') AS skipped,
+          (SELECT COUNT(DISTINCT episode_id)::int FROM youtube_review_log WHERE action = 'no_video') AS no_video,
+          (SELECT COUNT(DISTINCT episode_id)::int FROM youtube_review_log WHERE action IN ('confirmed', 'no_video')) AS finalized
+      `);
+      res.json(rows[0]);
+    } catch (err) {
+      console.error("[MTurk Admin] Stats error:", err);
+      res.status(500).json({ error: "Failed to load stats" });
+    }
+  });
+
   setTimeout(async () => {
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS mturk_workers (
+          id SERIAL PRIMARY KEY,
+          name TEXT NOT NULL,
+          token TEXT NOT NULL UNIQUE,
+          active BOOLEAN NOT NULL DEFAULT true,
+          created_at TIMESTAMP DEFAULT NOW()
+        );
+        CREATE TABLE IF NOT EXISTS youtube_review_log (
+          id SERIAL PRIMARY KEY,
+          episode_id INTEGER NOT NULL,
+          worker_id INTEGER NOT NULL,
+          action TEXT NOT NULL,
+          youtube_url TEXT,
+          created_at TIMESTAMP DEFAULT NOW()
+        );
+      `);
+      console.log("[MTurk] Tables ensured");
+    } catch (err) {
+      console.error("[MTurk] Table creation failed:", err);
+    }
+
     try {
       const { seedProductionBooks } = await import("./seedProductionBooks");
       await seedProductionBooks();

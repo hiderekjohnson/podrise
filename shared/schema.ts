@@ -970,3 +970,28 @@ export const pixelSettingsSchema = z.object({
 
 export type PixelSettings = z.infer<typeof pixelSettingsSchema>;
 
+export const mturkWorkers = pgTable("mturk_workers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  token: text("token").notNull().unique(),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertMturkWorkerSchema = createInsertSchema(mturkWorkers).omit({ id: true, createdAt: true });
+export type InsertMturkWorker = z.infer<typeof insertMturkWorkerSchema>;
+export type MturkWorker = typeof mturkWorkers.$inferSelect;
+
+export const youtubeReviewLog = pgTable("youtube_review_log", {
+  id: serial("id").primaryKey(),
+  episodeId: integer("episode_id").notNull(),
+  workerId: integer("worker_id").notNull(),
+  action: text("action").notNull(),
+  youtubeUrl: text("youtube_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertYoutubeReviewLogSchema = createInsertSchema(youtubeReviewLog).omit({ id: true, createdAt: true });
+export type InsertYoutubeReviewLog = z.infer<typeof insertYoutubeReviewLogSchema>;
+export type YoutubeReviewLog = typeof youtubeReviewLog.$inferSelect;
+
