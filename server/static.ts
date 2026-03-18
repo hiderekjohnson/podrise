@@ -2,6 +2,7 @@ import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
 import { injectPodcastMeta } from "./podcastMeta";
+import { injectPixels } from "./pixelInjector";
 
 export function serveStatic(app: Express) {
   const distPath = path.resolve(__dirname, "public");
@@ -24,12 +25,9 @@ export function serveStatic(app: Express) {
 
     try {
       let html = fs.readFileSync(indexPath, "utf-8");
-      const injected = await injectPodcastMeta(html, url);
-      if (injected !== html) {
-        res.status(200).set({ "Content-Type": "text/html" }).end(injected);
-      } else {
-        res.sendFile(indexPath);
-      }
+      html = await injectPodcastMeta(html, url);
+      html = await injectPixels(html);
+      res.status(200).set({ "Content-Type": "text/html" }).end(html);
     } catch (err) {
       console.error("[Static] Meta injection error:", err);
       res.sendFile(indexPath);

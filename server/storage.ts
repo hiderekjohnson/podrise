@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, advertisers, bookmarks, deviceTokens, refreshTokens, errorLogs, referrals, referralTiers, pulseSubscriptions, supportArticles, feedAds, feedAdSettings, featureFlags, userFeatureOverrides, adEvents, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog, type Referral, type ReferralTier, type InsertReferralTier, type PulseSubscription, type SupportArticle, type InsertSupportArticle, type FeedAd, type InsertFeedAd, type FeedAdSetting, type FeatureFlag, type InsertFeatureFlag, type UserFeatureOverride, type AdEvent, type InsertAdEvent } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, advertisers, bookmarks, deviceTokens, refreshTokens, errorLogs, referrals, referralTiers, pulseSubscriptions, supportArticles, feedAds, feedAdSettings, featureFlags, userFeatureOverrides, adEvents, siteSettings, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog, type Referral, type ReferralTier, type InsertReferralTier, type PulseSubscription, type SupportArticle, type InsertSupportArticle, type FeedAd, type InsertFeedAd, type FeedAdSetting, type FeatureFlag, type InsertFeatureFlag, type UserFeatureOverride, type AdEvent, type InsertAdEvent, type SiteSetting } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull, asc, inArray } from "drizzle-orm";
 
 export interface IStorage {
@@ -131,6 +131,8 @@ export interface IStorage {
   seedDefaultFeatureFlags(): Promise<void>;
   createAdEvent(data: InsertAdEvent): Promise<AdEvent>;
   getAdEventsByAdId(adId: number, startDate?: Date, endDate?: Date): Promise<AdEvent[]>;
+  getSiteSetting(key: string): Promise<any | undefined>;
+  setSiteSetting(key: string, value: any): Promise<SiteSetting>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1247,6 +1249,23 @@ export class DatabaseStorage implements IStorage {
     if (startDate) conditions.push(sql`${adEvents.createdAt} >= ${startDate}`);
     if (endDate) conditions.push(sql`${adEvents.createdAt} <= ${endDate}`);
     return db.select().from(adEvents).where(and(...conditions)).orderBy(desc(adEvents.createdAt));
+  }
+
+  async getSiteSetting(key: string): Promise<any | undefined> {
+    const [row] = await db.select().from(siteSettings).where(eq(siteSettings.key, key));
+    return row?.value ?? undefined;
+  }
+
+  async setSiteSetting(key: string, value: any): Promise<SiteSetting> {
+    const [result] = await db
+      .insert(siteSettings)
+      .values({ key, value, updatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: siteSettings.key,
+        set: { value, updatedAt: new Date() },
+      })
+      .returning();
+    return result;
   }
 }
 

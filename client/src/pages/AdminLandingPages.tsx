@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Loader2, Copy, Check, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Loader2, Copy, Check, ExternalLink, ChevronDown, ChevronUp, Save } from "lucide-react";
 import { LANDING_PAGES } from "@/data/landingPageConfig";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface LandingPageAnalytics {
   visitsBySlug: Record<string, { totalVisits: number; uniqueVisits: number }>;
@@ -10,6 +11,31 @@ interface LandingPageAnalytics {
   utmBySlug: Record<string, { utmSource: string; utmMedium: string; utmCampaign: string; visits: number }[]>;
   timeSeriesBySlug: Record<string, { date: string; visits: number }[]>;
 }
+
+interface PixelSettings {
+  verificationTags: string;
+  pixels: {
+    facebook: string;
+    tiktok: string;
+    googleAds: string;
+    twitter: string;
+    linkedin: string;
+    pinterest: string;
+    snapchat: string;
+    custom: string;
+  };
+}
+
+const PIXEL_PLATFORMS = [
+  { key: "facebook" as const, label: "Facebook / Meta" },
+  { key: "tiktok" as const, label: "TikTok" },
+  { key: "googleAds" as const, label: "Google Ads" },
+  { key: "twitter" as const, label: "Twitter / X" },
+  { key: "linkedin" as const, label: "LinkedIn" },
+  { key: "pinterest" as const, label: "Pinterest" },
+  { key: "snapchat" as const, label: "Snapchat" },
+  { key: "custom" as const, label: "Custom" },
+] as const;
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -34,6 +60,149 @@ function CopyButton({ text }: { text: string }) {
     >
       {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
     </button>
+  );
+}
+
+function populateFormFromSettings(
+  settings: PixelSettings,
+  setVerificationTags: (v: string) => void,
+  setPixels: (p: Record<string, string>) => void,
+) {
+  setVerificationTags(settings.verificationTags || "");
+  const p: Record<string, string> = {};
+  for (const platform of PIXEL_PLATFORMS) {
+    p[platform.key] = settings.pixels?.[platform.key] || "";
+  }
+  setPixels(p);
+}
+
+function AdPixelsPanel() {
+  const { toast } = useToast();
+  const [verificationTagsOpen, setVerificationTagsOpen] = useState(true);
+  const [trackingPixelsOpen, setTrackingPixelsOpen] = useState(true);
+  const [verificationTags, setVerificationTags] = useState("");
+  const [pixels, setPixels] = useState<Record<string, string>>({});
+  const [initialized, setInitialized] = useState(false);
+
+  const { data, isLoading } = useQuery<PixelSettings>({
+    queryKey: ["/api/admin/site-settings/pixels"],
+  });
+
+  useEffect(() => {
+    if (data && !initialized) {
+      populateFormFromSettings(data, setVerificationTags, setPixels);
+      setInitialized(true);
+    }
+  }, [data, initialized]);
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("PUT", "/api/admin/site-settings/pixels", {
+        verificationTags,
+        pixels,
+      });
+      return response.json() as Promise<{ ok: boolean; settings: PixelSettings }>;
+    },
+    onSuccess: async (result) => {
+      if (result?.settings) {
+        populateFormFromSettings(result.settings, setVerificationTags, setPixels);
+        queryClient.setQueryData(["/api/admin/site-settings/pixels"], result.settings);
+      } else {
+        await queryClient.invalidateQueries({ queryKey: ["/api/admin/site-settings/pixels"] });
+      }
+      toast({ title: "Saved", description: "Ad pixels & verification tags updated successfully." });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-10">
+        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="glass-panel rounded-2xl p-6 space-y-4" data-testid="panel-ad-pixels">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-base font-bold text-foreground" data-testid="heading-ad-pixels">Ad Pixels & Verification</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">Manage tracking pixels and domain verification tags injected into every page</p>
+        </div>
+        <button
+          onClick={() => saveMutation.mutate()}
+          disabled={saveMutation.isPending}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
+          data-testid="button-save-pixels"
+        >
+          {saveMutation.isPending ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Save className="w-4 h-4" />
+          )}
+          Save
+        </button>
+      </div>
+
+      <div className="border border-black/[0.06] rounded-xl overflow-hidden">
+        <button
+          onClick={() => setVerificationTagsOpen(!verificationTagsOpen)}
+          className="w-full flex items-center justify-between px-4 py-3 bg-black/[0.02] hover:bg-black/[0.04] transition-colors text-left"
+          data-testid="button-toggle-verification-tags"
+        >
+          <span className="text-sm font-semibold text-foreground">Domain Verification Tags</span>
+          {verificationTagsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </button>
+        {verificationTagsOpen && (
+          <div className="p-4">
+            <p className="text-xs text-muted-foreground mb-2">
+              Paste domain verification meta tags (e.g. &lt;meta name="facebook-domain-verification" content="..." /&gt;). These are injected into the &lt;head&gt; of every page.
+            </p>
+            <textarea
+              value={verificationTags}
+              onChange={(e) => setVerificationTags(e.target.value)}
+              placeholder='<meta name="facebook-domain-verification" content="abc123" />'
+              className="w-full h-24 px-3 py-2 text-xs font-mono rounded-lg border border-black/[0.08] bg-black/[0.02] focus:outline-none focus:ring-2 focus:ring-primary/20 resize-y"
+              data-testid="textarea-verification-tags"
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="border border-black/[0.06] rounded-xl overflow-hidden">
+        <button
+          onClick={() => setTrackingPixelsOpen(!trackingPixelsOpen)}
+          className="w-full flex items-center justify-between px-4 py-3 bg-black/[0.02] hover:bg-black/[0.04] transition-colors text-left"
+          data-testid="button-toggle-tracking-pixels"
+        >
+          <span className="text-sm font-semibold text-foreground">Tracking Pixels</span>
+          {trackingPixelsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </button>
+        {trackingPixelsOpen && (
+          <div className="p-4 space-y-4">
+            {PIXEL_PLATFORMS.map((platform) => (
+              <div key={platform.key}>
+                <label className="block text-xs font-semibold text-foreground mb-1.5">
+                  {platform.label}
+                </label>
+                <textarea
+                  value={pixels[platform.key] || ""}
+                  onChange={(e) =>
+                    setPixels((prev) => ({ ...prev, [platform.key]: e.target.value }))
+                  }
+                  placeholder={`Paste your ${platform.label} pixel/tag code here...`}
+                  className="w-full h-20 px-3 py-2 text-xs font-mono rounded-lg border border-black/[0.08] bg-black/[0.02] focus:outline-none focus:ring-2 focus:ring-primary/20 resize-y"
+                  data-testid={`textarea-pixel-${platform.key}`}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -223,6 +392,8 @@ export default function AdminLandingPages() {
           </table>
         </div>
       </div>
+
+      <AdPixelsPanel />
     </div>
   );
 }

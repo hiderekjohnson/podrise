@@ -936,3 +936,28 @@ export const adEvents = pgTable("ad_events", {
 export type AdEvent = typeof adEvents.$inferSelect;
 export type InsertAdEvent = typeof adEvents.$inferInsert;
 
+export const siteSettings = pgTable("site_settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: jsonb("value").notNull().default({}),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type SiteSetting = typeof siteSettings.$inferSelect;
+
+export const pixelSettingsSchema = z.object({
+  verificationTags: z.string().optional().default(""),
+  pixels: z.object({
+    facebook: z.string().optional().default(""),
+    tiktok: z.string().optional().default(""),
+    googleAds: z.string().optional().default(""),
+    twitter: z.string().optional().default(""),
+    linkedin: z.string().optional().default(""),
+    pinterest: z.string().optional().default(""),
+    snapchat: z.string().optional().default(""),
+    custom: z.string().optional().default(""),
+  }).optional().default({}),
+});
+
+export type PixelSettings = z.infer<typeof pixelSettingsSchema>;
+

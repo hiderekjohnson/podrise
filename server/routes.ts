@@ -2742,6 +2742,67 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     }
   });
 
+  app.get("/api/admin/site-settings/pixels", async (req, res) => {
+    if (!req.session?.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const settings = await storage.getSiteSetting("pixels");
+      res.json(settings || { verificationTags: "", pixels: {} });
+    } catch (err) {
+      console.error("[SiteSettings] Error fetching pixels:", err);
+      res.status(500).json({ message: "Failed to load pixel settings" });
+    }
+  });
+
+  app.put("/api/admin/site-settings/pixels", async (req, res) => {
+    if (!req.session?.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { pixelSettingsSchema } = await import("@shared/schema");
+      const parseResult = pixelSettingsSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ message: "Invalid pixel settings", errors: parseResult.error.flatten() });
+      }
+      const parsed = parseResult.data;
+
+      const sanitizeVerificationTags = (input: string): string => {
+        if (!input.trim()) return "";
+        const metaTags = input.match(/<meta\s[^>]*\/?>/gi) || [];
+        return metaTags.join("\n");
+      };
+
+      const sanitizePixelSnippet = (input: string): string => {
+        if (!input.trim()) return "";
+        const allowedTags = /^<\/?(script|noscript|img|link)\b/i;
+        const parts = input.split(/(<[^>]+>)/);
+        for (const part of parts) {
+          if (part.startsWith("<") && !allowedTags.test(part) && !/^<!--/.test(part) && !/^-->/.test(part.trim())) {
+            return "";
+          }
+        }
+        return input;
+      };
+
+      const sanitized = {
+        verificationTags: sanitizeVerificationTags(parsed.verificationTags || ""),
+        pixels: Object.fromEntries(
+          Object.entries(parsed.pixels || {}).map(([key, value]) => [
+            key,
+            sanitizePixelSnippet(String(value || "")),
+          ])
+        ),
+      };
+
+      await storage.setSiteSetting("pixels", sanitized);
+
+      const { invalidatePixelCache } = await import("./pixelInjector");
+      invalidatePixelCache();
+
+      res.json({ ok: true, settings: sanitized });
+    } catch (err) {
+      console.error("[SiteSettings] Error saving pixels:", err);
+      res.status(500).json({ message: "Failed to save pixel settings" });
+    }
+  });
+
   app.get("/api/podcasts/directory", async (_req, res) => {
     try {
       const cached = directoryCache.podcastsDirectory.get();
@@ -17694,6 +17755,12 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
         );
         CREATE INDEX IF NOT EXISTS idx_ad_events_ad_id ON ad_events(ad_id);
         CREATE INDEX IF NOT EXISTS idx_ad_events_created_at ON ad_events(created_at);
+        CREATE TABLE IF NOT EXISTS site_settings (
+          id SERIAL PRIMARY KEY,
+          key TEXT NOT NULL UNIQUE,
+          value JSONB NOT NULL DEFAULT '{}',
+          updated_at TIMESTAMP DEFAULT NOW()
+        );
       `);
       const { rows: feedAdCount } = await pool.query("SELECT COUNT(*)::int AS count FROM feed_ads");
       if (feedAdCount[0].count === 0) {

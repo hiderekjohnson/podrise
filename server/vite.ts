@@ -6,6 +6,7 @@ import fs from "fs";
 import path from "path";
 import { nanoid } from "nanoid";
 import { injectPodcastMeta } from "./podcastMeta";
+import { injectPixels } from "./pixelInjector";
 
 const viteLogger = createLogger();
 
@@ -53,6 +54,7 @@ export async function setupVite(server: Server, app: Express) {
       );
       let page = await vite.transformIndexHtml(url, template);
       page = await injectPodcastMeta(page, url);
+      page = await injectPixels(page);
       res.status(200).set({ "Content-Type": "text/html" }).end(page);
     } catch (e) {
       vite.ssrFixStacktrace(e as Error);
