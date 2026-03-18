@@ -8671,8 +8671,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const current = getBackfillProgress();
       if (current.running) return res.status(409).json({ message: "Episode backfill already running", progress: current });
       const phases = req.body.phases || ["apple", "ai", "quotes"];
-      runEpisodeBackfill(phases);
-      res.json({ message: "Episode backfill started", phases });
+      const dateRange = req.body.dateRange || undefined;
+      runEpisodeBackfill(phases, dateRange);
+      res.json({ message: "Episode backfill started", phases, dateRange: dateRange || "all" });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to start episode backfill" });
     }

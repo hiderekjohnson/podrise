@@ -42,8 +42,11 @@ async function lookupAppleEpisodeUrl(itunesId: string, episodeTitle: string): Pr
   }
 }
 
+let activeDateRange: { from: string; to: string } | undefined;
+
 async function backfillAppleEpisodeUrls() {
   logMsg("=== Phase 1: Apple Episode URLs, Audio URLs & Show Notes ===");
+  const dateFilter = activeDateRange ? ` AND publish_date >= '${activeDateRange.from}' AND publish_date <= '${activeDateRange.to}'` : '';
   const { rows } = await pool.query(`
     SELECT id, slug, itunes_id, episode_title, apple_episode_url, audio_url, show_notes
     FROM landing_page_recaps 
@@ -52,7 +55,7 @@ async function backfillAppleEpisodeUrls() {
         (apple_episode_url IS NULL OR apple_episode_url = '')
         OR (audio_url IS NULL OR audio_url = '')
         OR (show_notes IS NULL OR show_notes = '')
-      )
+      )${dateFilter}
     ORDER BY slug, id
   `);
   backfillState.total = rows.length;
@@ -137,10 +140,41 @@ async function backfillAppleEpisodeUrls() {
   logMsg(`Apple phase done: ${backfillState.fixed} episodes fixed out of ${rows.length}`);
 }
 
+async function backfillSpotifyUrls() {
+  logMsg("=== Phase 2: Spotify Episode URLs ===");
+  const dateFilter = activeDateRange ? ` AND publish_date >= '${activeDateRange.from}' AND publish_date <= '${activeDateRange.to}'` : '';
+  const { rows } = await pool.query(`
+    SELECT id, slug, episode_title, podcast_name
+    FROM landing_page_recaps
+    WHERE (spotify_episode_url IS NULL OR spotify_episode_url = '')${dateFilter}
+    ORDER BY id DESC LIMIT 500
+  `);
+  logMsg(`Found ${rows.length} episodes missing Spotify URLs`);
+  backfillState.total += rows.length;
+
+  const { searchSpotifyEpisode } = await import("./spotifyClient");
+  for (const row of rows) {
+    if (!backfillState.running) break;
+    try {
+      const url = await searchSpotifyEpisode(row.podcast_name, row.episode_title);
+      if (url) {
+        await pool.query(`UPDATE landing_page_recaps SET spotify_episode_url = $1 WHERE id = $2`, [url, row.id]);
+        backfillState.fixed++;
+        logMsg(`Spotify URL found for "${row.episode_title.slice(0, 50)}"`);
+      }
+    } catch (err: any) {
+      backfillState.errors++;
+    }
+    backfillState.processed++;
+    await new Promise(r => setTimeout(r, 300));
+  }
+  logMsg(`Spotify phase done: ${backfillState.fixed} total fixed`);
+}
 
 async function backfillAIFields() {
   logMsg("=== Phase 3: AI-Generated Fields (sponsors, guests, resources, questions) ===");
   
+  const dateFilter = activeDateRange ? ` AND r.publish_date >= '${activeDateRange.from}' AND r.publish_date <= '${activeDateRange.to}'` : '';
   const { rows } = await pool.query(`
     SELECT r.id, r.slug, r.episode_title, r.podcast_name, r.show_notes, r.itunes_id,
       CASE WHEN (r.sponsors IS NULL OR r.sponsors = '' OR r.sponsors = '[]') THEN 1 ELSE 0 END as missing_sponsors,
@@ -149,11 +183,11 @@ async function backfillAIFields() {
       CASE WHEN (r.top_questions IS NULL OR r.top_questions = '' OR r.top_questions = '[]') THEN 1 ELSE 0 END as missing_questions,
       CASE WHEN (r.topic_contexts IS NULL OR r.topic_contexts = '') THEN 1 ELSE 0 END as missing_topic_ctx
     FROM landing_page_recaps r
-    WHERE (r.sponsors IS NULL OR r.sponsors = '' OR r.sponsors = '[]')
+    WHERE ((r.sponsors IS NULL OR r.sponsors = '' OR r.sponsors = '[]')
        OR (r.guests IS NULL OR r.guests = '' OR r.guests = '[]')
        OR (r.resources IS NULL OR r.resources = '' OR r.resources = '[]')
        OR (r.top_questions IS NULL OR r.top_questions = '' OR r.top_questions = '[]')
-       OR (r.topic_contexts IS NULL OR r.topic_contexts = '')
+       OR (r.topic_contexts IS NULL OR r.topic_contexts = ''))${dateFilter}
     ORDER BY r.id DESC
     LIMIT 2000
   `);
@@ -242,11 +276,12 @@ async function backfillAIFields() {
 async function backfillQuotes() {
   logMsg("=== Phase 4: Episode Quotes ===");
 
+  const dateFilter = activeDateRange ? ` AND r.publish_date >= '${activeDateRange.from}' AND r.publish_date <= '${activeDateRange.to}'` : '';
   const { rows } = await pool.query(`
     SELECT r.id, r.slug, r.episode_slug, r.episode_title, r.itunes_id, r.podcast_name, r.show_notes
     FROM landing_page_recaps r
     LEFT JOIN episode_quotes eq ON eq.podcast_slug = r.slug AND eq.episode_slug = r.episode_slug
-    WHERE eq.id IS NULL
+    WHERE eq.id IS NULL${dateFilter}
     ORDER BY r.id DESC
     LIMIT 2000
   `);
@@ -304,18 +339,24 @@ async function backfillQuotes() {
   logMsg(`Quotes done: ${backfillState.fixed} total fixed`);
 }
 
-export async function runEpisodeBackfill(phases: string[] = ["apple", "ai", "quotes"]) {
+export async function runEpisodeBackfill(phases: string[] = ["apple", "ai", "quotes"], dateRange?: { from: string; to: string }) {
   if (backfillState.running) {
     throw new Error("Backfill already running");
   }
 
+  activeDateRange = dateRange;
   backfillState = { running: true, phase: "starting", processed: 0, total: 0, fixed: 0, errors: 0, log: [] };
-  logMsg(`Starting episode backfill — phases: ${phases.join(", ")}`);
+  logMsg(`Starting episode backfill — phases: ${phases.join(", ")}${dateRange ? `, date range: ${dateRange.from} to ${dateRange.to}` : ''}`);
 
   try {
     if (phases.includes("apple")) {
       backfillState.phase = "apple_urls";
       await backfillAppleEpisodeUrls();
+    }
+
+    if (phases.includes("spotify") && backfillState.running) {
+      backfillState.phase = "spotify_urls";
+      await backfillSpotifyUrls();
     }
 
     if (phases.includes("ai") && backfillState.running) {
