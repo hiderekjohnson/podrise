@@ -656,6 +656,7 @@ export async function registerRoutes(
       ALTER TABLE landing_page_recaps ADD COLUMN IF NOT EXISTS tabloid_sub_headline TEXT;
       ALTER TABLE podcast_directory ADD COLUMN IF NOT EXISTS youtube_url TEXT;
       ALTER TABLE podcast_directory ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'published';
+      ALTER TABLE podcast_directory ADD COLUMN IF NOT EXISTS followers_count INTEGER DEFAULT 0;
     `);
     // Backfill landing_page_recaps: unpublished episodes get status='hidden'
     await migrationPool.query(`
