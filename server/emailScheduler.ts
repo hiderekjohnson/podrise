@@ -1169,62 +1169,6 @@ export async function refreshLandingPageRecaps(force: boolean = false, dateRange
           });
         }
 
-        try {
-          if (transcriptText) {
-            const { extractQuotesFromTranscript } = await import("./recapGenerator");
-            const extractedQuotes = await extractQuotesFromTranscript(
-              transcriptText,
-              podcast.name,
-              recap.episodeTitle,
-              podcast.hosts || null,
-              recap.guests ? JSON.stringify(recap.guests) : null,
-            );
-            if (extractedQuotes.length > 0) {
-              const quotesToSave = extractedQuotes.map((q: any) => ({
-                podcastSlug: podcast.slug,
-                episodeSlug: epSlug,
-                speakerName: q.speakerName,
-                speakerRole: q.speakerRole || null,
-                quoteText: q.quoteText,
-                context: q.context,
-                quoteType: q.quoteType,
-              }));
-              await storage.saveEpisodeQuotes(quotesToSave);
-              console.log(`[LandingRecaps] Generated ${extractedQuotes.length} quotes for ${podcast.name} - "${epTitle}"`);
-            }
-          }
-        } catch (quoteErr) {
-          console.warn(`[LandingRecaps] Quote generation failed for ${podcast.name} - "${epTitle}":`, quoteErr);
-        }
-
-        try {
-          if (transcriptText && savedRecap?.id) {
-            const { generateEntityContextsForRecap } = await import("./entityContextGenerator");
-            let sponsorNames: string[] = [];
-            try {
-              if (recap.sponsors) {
-                const sponsors = Array.isArray(recap.sponsors) ? recap.sponsors : JSON.parse(recap.sponsors);
-                sponsorNames = sponsors.map((s: any) => s.name || "").filter(Boolean);
-              }
-            } catch {}
-            const entityContexts = await generateEntityContextsForRecap(
-              savedRecap.id,
-              podcast.slug,
-              podcast.name,
-              recap.episodeTitle,
-              transcriptText,
-              sponsorNames,
-              epSlug,
-            );
-            const entityCount = Object.keys(entityContexts).length;
-            if (entityCount > 0) {
-              console.log(`[LandingRecaps] Detected ${entityCount} entity mentions for ${podcast.name} - "${epTitle}"`);
-            }
-          }
-        } catch (entityErr) {
-          console.warn(`[LandingRecaps] Entity detection failed for ${podcast.name} - "${epTitle}":`, entityErr);
-        }
-
         podcastNewRecaps++;
         newRecaps++;
         landingRecapProgress.recapsCreated = newRecaps;
@@ -2257,47 +2201,6 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
               resources: recap.resources ? JSON.stringify(recap.resources) : null,
               showNotes,
             });
-
-            try {
-              if (transcriptText) {
-                const { extractQuotesFromTranscript } = await import("./recapGenerator");
-                const extractedQuotes = await extractQuotesFromTranscript(
-                  transcriptText, podcast.name, recap.episodeTitle,
-                  podcast.hosts || null,
-                  recap.guests ? JSON.stringify(recap.guests) : null,
-                );
-                if (extractedQuotes.length > 0) {
-                  const quotesToSave = extractedQuotes.map((q: any) => ({
-                    podcastSlug: podcast.slug, episodeSlug: epSlug,
-                    speakerName: q.speakerName, speakerRole: q.speakerRole || null,
-                    quoteText: q.quoteText, context: q.context, quoteType: q.quoteType,
-                  }));
-                  await storage.saveEpisodeQuotes(quotesToSave);
-                  console.log(`[BatchExpand] Generated ${extractedQuotes.length} quotes for ${podcast.name} - "${epTitle}"`);
-                }
-              }
-            } catch (quoteErr) {
-              console.warn(`[BatchExpand] Quote generation failed for ${podcast.name} - "${epTitle}":`, quoteErr);
-            }
-
-            try {
-              if (transcriptText && batchSavedRecap?.id) {
-                const { generateEntityContextsForRecap } = await import("./entityContextGenerator");
-                let sponsorNames: string[] = [];
-                try {
-                  if (recap.sponsors) {
-                    const sponsors = Array.isArray(recap.sponsors) ? recap.sponsors : JSON.parse(recap.sponsors);
-                    sponsorNames = sponsors.map((s: any) => s.name || "").filter(Boolean);
-                  }
-                } catch {}
-                await generateEntityContextsForRecap(
-                  batchSavedRecap.id, podcast.slug, podcast.name, recap.episodeTitle,
-                  transcriptText, sponsorNames, epSlug,
-                );
-              }
-            } catch (entityErr) {
-              console.warn(`[BatchExpand] Entity detection failed for ${podcast.name} - "${epTitle}":`, entityErr);
-            }
 
             podcastCreated++;
             batchExpansionProgress.episodesCreated++;
