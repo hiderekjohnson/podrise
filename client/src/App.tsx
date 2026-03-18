@@ -64,6 +64,7 @@ const Upgrade = lazy(() => import("./pages/Upgrade"));
 const MyPulsePage = lazy(() => import("./pages/MyPulsePage"));
 const MyPodcastsPage = lazy(() => import("./pages/MyPodcastsPage"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
+const HowItWorks = lazy(() => import("./pages/HowItWorks"));
 
 function PageLoader() {
   return (
@@ -128,6 +129,7 @@ function Router() {
         <Route path="/support" component={Support} />
         <Route path="/updates" component={FeatureRequests} />
         <Route path="/about" component={About} />
+        <Route path="/how-it-works" component={HowItWorks} />
         <Route path="/contact" component={Contact} />
         <Route path="/advertise" component={Advertise} />
         <Route path="/disclosure" component={Disclosure} />
