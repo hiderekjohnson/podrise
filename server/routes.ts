@@ -2875,7 +2875,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
     try {
       const { rows: localRows } = await pool.query(
-        `SELECT itunes_id, name, artwork_url, slug, status, has_landing_page FROM podcast_directory
+        `SELECT itunes_id, name, artwork_url, slug, status, has_landing_page, description FROM podcast_directory
          WHERE (name ILIKE $1 OR slug ILIKE $1)
          ORDER BY has_landing_page DESC, name ASC LIMIT 10`,
         [`%${trimmed}%`]
@@ -2910,7 +2910,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
         if (unmatchedIds.length > 0) {
           try {
             const { rows: extraRows } = await pool.query(
-              `SELECT itunes_id, name, artwork_url, slug, status, has_landing_page FROM podcast_directory WHERE itunes_id = ANY($1)`,
+              `SELECT itunes_id, name, artwork_url, slug, status, has_landing_page, description FROM podcast_directory WHERE itunes_id = ANY($1)`,
               [unmatchedIds]
             );
             for (const r of extraRows) {
@@ -2936,6 +2936,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
           onPlatform: true,
           hasLandingPage: !!r.has_landing_page,
           status: r.status || "published",
+          description: r.description || "",
         });
       }
 
@@ -2955,6 +2956,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
             onPlatform: true,
             hasLandingPage: !!existingEntry.has_landing_page,
             status: existingEntry.status || "published",
+            description: existingEntry.description || "",
           });
         } else {
           externalResults.push({
@@ -2968,6 +2970,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
             status: null,
             itunesUrl: it.collectionViewUrl || "",
             genre: it.primaryGenreName || "",
+            description: "",
           });
         }
       }

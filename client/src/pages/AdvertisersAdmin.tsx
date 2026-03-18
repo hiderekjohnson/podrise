@@ -65,6 +65,16 @@ interface EpisodeSearchResult {
   quote_attribution: string | null;
 }
 
+interface PodcastSearchResult {
+  id: string;
+  name: string;
+  artistName: string;
+  artworkUrl: string;
+  slug: string;
+  onPlatform: boolean;
+  description: string;
+}
+
 interface AdAnalyticsRow {
   id: number;
   type: string;
@@ -432,6 +442,10 @@ function FeedAdsSection() {
   const [episodeSearch, setEpisodeSearch] = useState("");
   const [episodeResults, setEpisodeResults] = useState<EpisodeSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [podcastSearch, setPodcastSearch] = useState("");
+  const [podcastResults, setPodcastResults] = useState<PodcastSearchResult[]>([]);
+  const [isPodcastSearching, setIsPodcastSearching] = useState(false);
+  const [selectedPodcastName, setSelectedPodcastName] = useState("");
 
   const { data: feedAds, isLoading } = useQuery<FeedAd[]>({
     queryKey: ["/api/admin/feed-ads"],
@@ -520,6 +534,39 @@ function FeedAdsSection() {
     return () => clearTimeout(timer);
   }, [episodeSearch, adType]);
 
+  useEffect(() => {
+    if (adType !== "podcast" || podcastSearch.length < 2) {
+      setPodcastResults([]);
+      setIsPodcastSearching(false);
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      setIsPodcastSearching(true);
+      try {
+        const res = await fetch(`/api/podcasts/search-itunes?term=${encodeURIComponent(podcastSearch)}`, { credentials: "include" });
+        if (res.ok && !cancelled) {
+          const data = await res.json();
+          setPodcastResults(data.results || []);
+        }
+      } catch {} finally {
+        if (!cancelled) setIsPodcastSearching(false);
+      }
+    }, 300);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [podcastSearch, adType]);
+
+  const selectPodcast = (podcast: PodcastSearchResult) => {
+    setTitle(podcast.name);
+    setImageUrl(podcast.artworkUrl || "");
+    setPodcastSlug(podcast.slug || "");
+    setDescription(podcast.description || "");
+    setPodcastName(podcast.name);
+    setSelectedPodcastName(podcast.name);
+    setPodcastSearch("");
+    setPodcastResults([]);
+  };
+
   const selectEpisode = (ep: EpisodeSearchResult) => {
     setTitle(ep.episode_title);
     setDescription(ep.tldl || "");
@@ -556,6 +603,9 @@ function FeedAdsSection() {
     setIsActive(true);
     setEpisodeSearch("");
     setEpisodeResults([]);
+    setPodcastSearch("");
+    setPodcastResults([]);
+    setSelectedPodcastName("");
   };
 
   const startEdit = (ad: FeedAd) => {
@@ -573,6 +623,7 @@ function FeedAdsSection() {
     setEpisodeQuote(ad.episodeQuote || "");
     setEpisodeQuoteAttribution(ad.episodeQuoteAttribution || "");
     setPodcastName(ad.podcastName || "");
+    setSelectedPodcastName(ad.type === "podcast" ? (ad.podcastName || ad.title) : "");
     setWeight(ad.weight);
     setIsActive(ad.isActive);
     setShowForm(true);
@@ -602,6 +653,9 @@ function FeedAdsSection() {
       imageUrl,
       destinationUrl: adType === "regular" ? destinationUrl : "",
       podcastSlug: (adType === "podcast" || adType === "episode_recap") ? (podcastSlug || null) : null,
+      ...(adType === "podcast" ? {
+        podcastName: podcastName || null,
+      } : {}),
       ...(adType === "episode_recap" ? {
         episodeSlug: episodeSlug || null,
         episodeTitle: episodeTitle || null,
@@ -707,6 +761,58 @@ function FeedAdsSection() {
               Episode Recap
             </button>
           </div>
+
+          {adType === "podcast" && (
+            <div className="relative">
+              <label className="block text-xs font-semibold text-muted-foreground mb-1">Search Podcasts</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={podcastSearch}
+                  onChange={(e) => setPodcastSearch(e.target.value)}
+                  placeholder="Search by podcast name..."
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-black/[0.08] text-sm bg-white dark:bg-black/20 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  data-testid="input-podcast-search"
+                />
+                {isPodcastSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />}
+              </div>
+              {podcastResults.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-900 border border-black/[0.08] rounded-xl shadow-lg max-h-60 overflow-y-auto" data-testid="podcast-search-results">
+                  {podcastResults.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => selectPodcast(p)}
+                      className="w-full px-3 py-2.5 flex items-start gap-3 hover:bg-black/[0.03] dark:hover:bg-white/[0.05] text-left border-b border-black/[0.04] last:border-0"
+                      data-testid={`podcast-result-${p.id}`}
+                    >
+                      {p.artworkUrl && (
+                        <img src={p.artworkUrl} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold text-foreground truncate">{p.name}</div>
+                        {p.artistName && <div className="text-xs text-muted-foreground truncate">{p.artistName}</div>}
+                        {p.onPlatform && <span className="text-[10px] font-bold text-primary">On Platform</span>}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {selectedPodcastName && (
+                <div className="mt-2 p-3 bg-primary/5 rounded-xl" data-testid="selected-podcast-preview">
+                  <div className="text-xs font-bold text-primary mb-0.5">Selected Podcast</div>
+                  <div className="flex items-center gap-3">
+                    {imageUrl && <img src={imageUrl} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />}
+                    <div>
+                      <div className="text-sm font-bold text-foreground">{selectedPodcastName}</div>
+                      {podcastSlug && <div className="text-xs text-muted-foreground">{podcastSlug}</div>}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {adType === "episode_recap" && (
             <div className="relative">
