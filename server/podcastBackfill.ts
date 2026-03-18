@@ -59,7 +59,7 @@ export async function startPodcastMetadataBackfill() {
           SELECT episode_title, show_notes
           FROM landing_page_recaps
           WHERE itunes_id = $1 AND show_notes IS NOT NULL AND show_notes != ''
-          ORDER BY date_published DESC LIMIT 5
+          ORDER BY publish_date DESC LIMIT 5
         `, [podcast.itunes_id]);
 
         const episodeContext = sampleEps.rows.map((e: any) =>
@@ -145,10 +145,113 @@ Return ONLY valid JSON, no markdown.`;
     }
 
     logMsg(`Podcast metadata backfill complete: ${state.fixed} fixed, ${state.errors} errors`);
+
+    if (state.running) {
+      state.phase = "related_slugs";
+      await computeRelatedSlugs();
+    }
   } catch (err: any) {
     logMsg(`Fatal error: ${err.message}`);
   }
 
   state.running = false;
   state.phase = "complete";
+}
+
+async function computeRelatedSlugs() {
+  logMsg("=== Phase 2: Computing Related Podcasts ===");
+
+  const { rows: podcasts } = await pool.query(`
+    SELECT id, slug, name, category, description, hosts, keywords
+    FROM podcast_directory
+    WHERE status = 'published' AND slug IS NOT NULL
+    ORDER BY id
+  `);
+
+  logMsg(`Computing related slugs for ${podcasts.length} podcasts`);
+  state.total += podcasts.length;
+
+  const categoryMap = new Map<string, string[]>();
+  for (const p of podcasts) {
+    if (p.category) {
+      const cats = p.category.split(/[,&\/]/).map((c: string) => c.trim().toLowerCase());
+      for (const cat of cats) {
+        if (!categoryMap.has(cat)) categoryMap.set(cat, []);
+        categoryMap.get(cat)!.push(p.slug);
+      }
+    }
+  }
+
+  const guestOverlap = new Map<string, Map<string, number>>();
+  const { rows: guestData } = await pool.query(`
+    SELECT slug, guests FROM landing_page_recaps
+    WHERE guests IS NOT NULL AND guests != '' AND guests != '[]'
+  `);
+
+  const podcastGuests = new Map<string, Set<string>>();
+  for (const row of guestData) {
+    let guests: any[] = [];
+    try { guests = typeof row.guests === 'string' ? JSON.parse(row.guests) : (row.guests || []); } catch {}
+    const guestNames = guests.map((g: any) => {
+      const name = typeof g === 'string' ? g : g?.name;
+      return name?.toLowerCase()?.trim();
+    }).filter(Boolean);
+
+    if (!podcastGuests.has(row.slug)) podcastGuests.set(row.slug, new Set());
+    for (const g of guestNames) podcastGuests.get(row.slug)!.add(g);
+  }
+
+  for (const podcast of podcasts) {
+    if (!state.running) break;
+
+    try {
+      const scores = new Map<string, number>();
+
+      const cats = (podcast.category || '').split(/[,&\/]/).map((c: string) => c.trim().toLowerCase()).filter(Boolean);
+      for (const cat of cats) {
+        const siblings = categoryMap.get(cat) || [];
+        for (const sib of siblings) {
+          if (sib !== podcast.slug) {
+            scores.set(sib, (scores.get(sib) || 0) + 3);
+          }
+        }
+      }
+
+      const myGuests = podcastGuests.get(podcast.slug) || new Set();
+      if (myGuests.size > 0) {
+        for (const [otherSlug, otherGuests] of podcastGuests) {
+          if (otherSlug === podcast.slug) continue;
+          let overlap = 0;
+          for (const g of myGuests) {
+            if (otherGuests.has(g)) overlap++;
+          }
+          if (overlap > 0) {
+            scores.set(otherSlug, (scores.get(otherSlug) || 0) + overlap * 2);
+          }
+        }
+      }
+
+      const related = Array.from(scores.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6)
+        .map(([slug]) => slug);
+
+      if (related.length > 0) {
+        await pool.query(
+          `UPDATE podcast_directory SET related_slugs = $1, updated_at = NOW() WHERE id = $2`,
+          [related, podcast.id]
+        );
+        state.fixed++;
+      }
+    } catch (err: any) {
+      state.errors++;
+    }
+
+    state.processed++;
+    if (state.processed % 50 === 0) {
+      logMsg(`Related slugs: ${state.processed} processed, ${state.fixed} updated`);
+    }
+  }
+
+  logMsg(`Related slugs phase done`);
 }
