@@ -1134,11 +1134,19 @@ export async function registerRoutes(
         }
       }
 
-      const systemPrompt = `You are PodCap's friendly and knowledgeable AI support assistant. You help users understand how PodCap works and troubleshoot any issues they have. Keep your answers concise, helpful, and conversational.
+      const systemPrompt = `You are PodCap's friendly and knowledgeable AI support assistant. You help users understand how PodCap works and troubleshoot any issues they have. You also accept feature requests from users. Keep your answers concise, helpful, and conversational.
 
 Here is your knowledge base about PodCap:
 ${knowledgeBase}
-If you don't know the answer to something, be honest about it and suggest the user contact hello@podcap.io for further help. Do not make up features that don't exist.`;
+If you don't know the answer to something, be honest about it and suggest the user contact hello@podcap.io for further help. Do not make up features that don't exist.
+
+FEATURE REQUEST HANDLING:
+When a user suggests a feature, requests a new feature, or describes something they wish PodCap could do:
+1. Acknowledge their suggestion warmly and thank them for the feedback.
+2. At the very end of your response, on a new line, include exactly this marker (the user will NOT see this):
+[FEATURE_REQUEST: <a brief summary of the feature request>]
+
+Only include the marker if the user is genuinely requesting or suggesting a feature. Do not include it for normal support questions.`;
 
       const { openai } = await import("./replit_integrations/image/client");
       const recentMessages = validatedMessages.slice(-10);
@@ -1153,7 +1161,44 @@ If you don't know the answer to something, be honest about it and suggest the us
         temperature: 0.7,
       });
 
-      const reply = completion.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response. Please try again.";
+      let reply = completion.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response. Please try again.";
+
+      const featureMatch = reply.match(/\[FEATURE_REQUEST:\s*(.+?)\]/);
+      if (featureMatch) {
+        const featureDescription = featureMatch[1].trim();
+        reply = reply.replace(/\n?\[FEATURE_REQUEST:\s*.+?\]/, "").trim();
+
+        const escHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+        try {
+          const user = await storage.getUserById(userId);
+          const { getUncachableResendClient } = await import("./resendClient");
+          const { client, fromEmail } = await getUncachableResendClient();
+          const userEmail = escHtml(user?.email || "Unknown");
+          const safeSummary = escHtml(featureDescription);
+          const safeOriginal = escHtml(validatedMessages[validatedMessages.length - 1].content);
+          await client.emails.send({
+            from: fromEmail,
+            to: "hiderekjohnson@gmail.com",
+            subject: `PodCap Feature Request from ${user?.email || `User #${userId}`}`,
+            html: `
+              <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #6366F1; margin-bottom: 16px;">New Feature Request</h2>
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr><td style="padding: 10px 0; color: #888; font-size: 13px; vertical-align: top; width: 110px;">User Email</td><td style="padding: 10px 0; font-size: 14px; font-weight: 600; color: #1a1a1a;">${userEmail}</td></tr>
+                  <tr><td style="padding: 10px 0; color: #888; font-size: 13px; vertical-align: top; width: 110px;">User ID</td><td style="padding: 10px 0; font-size: 14px; font-weight: 600; color: #1a1a1a;">${userId}</td></tr>
+                  <tr><td style="padding: 10px 0; color: #888; font-size: 13px; vertical-align: top; width: 110px;">Feature Summary</td><td style="padding: 10px 0; font-size: 14px; font-weight: 600; color: #1a1a1a;">${safeSummary}</td></tr>
+                  <tr><td style="padding: 10px 0; color: #888; font-size: 13px; vertical-align: top; width: 110px;">Original Message</td><td style="padding: 10px 0; font-size: 14px; color: #1a1a1a;">${safeOriginal}</td></tr>
+                </table>
+              </div>
+            `,
+          });
+          console.log(`[HelpChat] Feature request email sent for user ${userId}: ${featureDescription}`);
+        } catch (emailErr: any) {
+          console.error("[HelpChat] Failed to send feature request email:", emailErr?.message || emailErr);
+        }
+      }
+
       res.json({ reply });
     } catch (err: any) {
       console.error("[HelpChat] Failed to generate response:", err?.message || err);

@@ -8,15 +8,6 @@ interface ChatMessage {
   content: string;
 }
 
-const SUGGESTED_QUESTIONS = [
-  "How does PodCap work?",
-  "How do I follow a podcast?",
-  "When do I receive email recaps?",
-  "How do saved episodes work?",
-  "How do I change my email?",
-  "What's the difference between For You and Following?",
-];
-
 export default function HelpPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -73,10 +64,6 @@ export default function HelpPage() {
     <DashboardLayout>
       <div className="min-h-screen bg-[#F9F9FB] dark:bg-[#09090B] flex flex-col" data-testid="help-page">
         <div className="max-w-3xl w-full mx-auto px-4 md:px-8 py-6 pb-24 md:pb-6 flex flex-col flex-1">
-          <div className="mb-6">
-            <h1 className="text-[24px] md:text-[28px] font-bold text-[#09090B] dark:text-white mb-1">Help & Support</h1>
-            <p className="text-[15px] text-[#71717A] dark:text-[#A1A1AA]">Ask me anything about PodCap — I'm here to help.</p>
-          </div>
 
           <div className="flex-1 flex flex-col rounded-2xl bg-white dark:bg-[#111114] border border-[#F0F0F2] dark:border-[#1C1C22] overflow-hidden min-h-[500px]">
             <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4" data-testid="chat-messages">
@@ -88,21 +75,9 @@ export default function HelpPage() {
                   <h2 className="text-[18px] font-bold text-[#09090B] dark:text-white mb-2" data-testid="chat-welcome-title">
                     Hi! I'm PodCap's AI assistant.
                   </h2>
-                  <p className="text-[14px] text-[#71717A] dark:text-[#A1A1AA] max-w-md mb-6">
-                    I can help you with questions about how PodCap works, your account, email recaps, saved episodes, subscriptions, and more.
+                  <p className="text-[14px] text-[#71717A] dark:text-[#A1A1AA] max-w-md">
+                    I can help you with questions about how PodCap works, and even can take feature requests, just ask me.
                   </p>
-                  <div className="flex flex-wrap justify-center gap-2 max-w-lg" data-testid="suggested-questions">
-                    {SUGGESTED_QUESTIONS.map((q) => (
-                      <button
-                        key={q}
-                        onClick={() => sendMessage(q)}
-                        className="px-3 py-1.5 rounded-full text-[13px] font-medium bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#52525B] dark:text-[#A1A1AA] hover:bg-[#E4E4E7] dark:hover:bg-[#27272A] transition-colors border border-[#E4E4E7] dark:border-[#27272A]"
-                        data-testid={`suggested-question-${q.slice(0, 20).replace(/\s+/g, "-").toLowerCase()}`}
-                      >
-                        {q}
-                      </button>
-                    ))}
-                  </div>
                 </div>
               )}
 
@@ -159,7 +134,7 @@ export default function HelpPage() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask a question about PodCap..."
+                placeholder="Ask a question or suggest a feature..."
                 rows={1}
                 className="flex-1 resize-none rounded-xl border border-[#E4E4E7] dark:border-[#27272A] bg-[#FAFAFA] dark:bg-[#18181B] px-4 py-2.5 text-[14px] md:text-[15px] text-[#09090B] dark:text-white placeholder:text-[#A1A1AA] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/30 focus:border-[#6366F1] transition-all"
                 data-testid="input-chat-message"

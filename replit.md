@@ -1,67 +1,42 @@
 # PodCap - Daily Podcast Digest
 
 ## Overview
-PodCap is a full-stack web application providing personalized daily podcast digest subscriptions. It allows users to manage podcast selections, receive AI-generated recaps, and access detailed episode information. The platform aims to simplify podcast discovery, deliver personalized content, and enhance user engagement, aspiring to become a leading platform for personalized podcast consumption in the audio content market.
+PodCap is a full-stack web application designed to provide personalized daily podcast digest subscriptions. It enables users to manage their podcast selections, receive AI-generated recaps, and access detailed episode information. The project aims to simplify podcast discovery, deliver personalized audio content, and enhance user engagement, aspiring to become a leading platform in the personalized podcast consumption market. Key capabilities include AI-powered content summarization, personalized recommendations, and a comprehensive admin suite for content and user management.
 
 ## User Preferences
 - **User Data Safety**: NEVER bulk-delete user accounts. All user accounts are real users. Only delete individual accounts via the admin panel delete button (with confirmation). The 8 core user accounts are: ss@contactsheet.org, johnsonjessicanoel@gmail.com, hiderekjohnson@gmail.com, kpfitz@gmail.com, alexdmitt@gmail.com, brissonemail@gmail.com, badonnelly84@gmail.com, ru1@mac.com
 
 ## System Architecture
-**Frontend**: React, Vite, Tailwind CSS, Shadcn UI, `wouter` for routing, `framer-motion` for animations. UI adheres to WCAG AA accessibility standards, utilizing DM Sans, DM Mono, and DM Serif Display fonts, an indigo/violet brand palette, and an inline SVG wordmark logo.
-**Backend**: Express.js server for API and user sessions.
-**Database**: PostgreSQL with Drizzle ORM and connection pooling.
-**Authentication**: Dual session + JWT token auth supporting email magic link and Google OAuth for web, and JWT Bearer tokens for mobile.
-**Mobile API**: Dedicated endpoints for iOS companion app, including registration, login, token management, and push notifications via APNs.
-**Onboarding Flow**: A single-step onboarding process (podcast search with smart "You might also listen to" suggestions) for new users after email verification. Auto-redirects from verify-email to onboarding on success. Register and verify-email pages use minimal logo-only layout. After onboarding, dashboard defaults to "Following" tab and shows a guided feature walkthrough tour (localStorage-persisted, shown once). Logged-in podcast pages have dedicated layout with follow/unfollow button in hero and no conversion CTAs.
-**Core Features**:
-- **Pages**: Includes marketing landing, 2-step signup, user dashboards, podcast and episode recaps, archives, and entity/category directories (Industries, Interests, Roles) with dedicated `/pulse` AI briefings.
-- **AI Integration**: Utilizes OpenAI (GPT-4o, GPT-4o-mini) for 2-pass recap generation, key takeaways, and episode chat. Curated `topicContexts` ensure consistency in AI-generated insights. AI prompt logic is centralized in `server/recapGenerator.ts` as the single source of truth — `regenerateFullRecaps.ts` and `backgroundRecapGenerator.ts` both import and call shared functions from it.
-- **Email System**: Resend for email delivery, including scheduled daily recaps. Email templates are hardcoded for consistency.
-- **Podcast Lists**: Curated podcast lists by category, managed via admin panel. Public API: `GET /api/lists` (all), `GET /api/lists/:slug` (with full podcast data). DB table: `podcast_lists` with name, slug, description, podcast_slugs array, category, sort_order.
-- **Newsletter Subscriptions**: Users can subscribe to podcasts, industries, interests, and roles. A quick-subscribe endpoint facilitates account creation and subscription management.
-- **Conversion System**: Contextual email CTAs (Exit Intent Popup, Inline Email CTA, Sticky Email Bar) for lead generation, utilizing `PageConversionContext`.
-- **Admin Tools**: Dashboard for user management, episode generation status, podcast expansion, data backfilling, cache management, analytics (User Acquisition, Affiliate Performance, User Growth, Email Marketing), OpenAI API cost tracking, unified shop management (Approval Queue, Approved items), admin user management (`admin_users` table with invite flow), Support Knowledge Base management (`support_articles` table) for the Help chatbot, and CMS for editorial content management.
-- **CMS (Content Management System)**: Top-level admin tab with sub-navigation for Podcasts, Episodes, People, Companies, Mentions. All CMS search inputs use 300ms debounce to prevent lag during typing. Episodes tab shows a flat searchable list of ALL episodes across all podcasts (7,500+) with sort by Most Recent/Most Popular/Title and status filtering — no longer requires navigating through a podcast first. Episode detail has editable recap fields (TLDL, whatHappened, reorderable takeaways), collapsible read-only transcript display, episode quotes CRUD, guest/sponsor/book/tool display, status management, and AI regeneration. Episode detail hosts field falls back to `podcast_hosts` table when empty; Spotify URL falls back to `podcast_directory.spotify_url`. Top Questions editing removed from CMS. Podcast detail has editable fields and auto-computed stats. **Podcast Metadata Enrichment**: "Enrich All Metadata" button in CMS Podcasts tab triggers `POST /api/admin/cms/podcast-enrich` — uses AI (GPT-4o-mini) to batch-lookup missing YouTube, website, Twitter, Instagram, TikTok, Facebook, Spotify URLs, year_started, and avg_episode_length for all active podcasts. Runs asynchronously with live progress via `GET /api/admin/cms/podcast-enrich/status`. All AI-sourced values are validated (URL format, handle format, year/minute ranges) before DB write. Products tab is **unified** — merges `extracted_products` (2,408 items) and `book_enrichments` (1,032 books) into a single view with sub-category filters (Books, Physical Goods, Services & Tools, Experiences) and status filters (Pending, Approved, Rejected). Books use `cover_approved` field mapped to approved/pending/rejected status; products use `status` field. PATCH endpoints: `/api/admin/cms/products/:id` for products, `/api/admin/cms/books/:id` for books. Both `landing_page_recaps` and `podcast_directory` tables have a `status` text column. CMS component: `client/src/pages/AdminCMS.tsx`. API endpoints: `GET/PATCH /api/admin/cms/podcasts`, `GET /api/admin/cms/all-episodes`, `GET/PATCH /api/admin/cms/episodes`, quote CRUD at `/api/admin/cms/episodes/:slug/:slug/quotes` and `/api/admin/cms/quotes/:id`.
-- **Entity Management**: Proper database tables for people (`entity_people`) and companies (`entity_companies`) with full profile fields (bio, photo, social links, category, verified status). Junction table `entity_episode_mentions` links entities to episodes with context snippets. Entity detection runs via text-matching against transcripts (free, no AI) with AI context generation via GPT-4o-mini. **Auto-detection is hooked into both recap generation flows** (`refreshLandingPageRecaps` and `batchExpandEpisodes` in `emailScheduler.ts`) — new recaps automatically get entity mentions, quotes, show notes (fallback to `whatHappened`), and Spotify episode URLs. Manual backfill endpoint also available at `POST /api/admin/cms/entity-backfill`. API: `GET/POST/PATCH /api/admin/cms/people`, `GET/POST/PATCH /api/admin/cms/companies`, `GET /api/admin/cms/entity-mentions/:type/:slug`. CMS People/Companies tabs show clickable entity cards with drill-down detail panels showing editable profiles and episode mention lists.
-- **API Usage Tracking**: Logs all OpenAI API calls to `api_usage_logs` table for cost tracking, capturing model, token counts, and feature category via `server/apiUsageTracker.ts`.
-- **Signup Tracking**: Captures signup source, IP, user-agent, and device type for new registrations and quick-subscribes.
-- **Affiliate Click Tracking**: Logs web-based affiliate/product link clicks via `/api/track/affiliate-click`.
-- **Directory Caching**: 24-hour in-memory cache for heavy directory endpoints.
-- **Trends Page**: Unified `/trends` dashboard for people, companies, and topics, with "Biggest Movers" and data visualizations.
-- **Podcast Features**: Directory with landing pages, AI recaps, host info, enhanced show notes, podcast-level AI Q&A, "Just Dropped" and "Hot Right Now" discovery.
-- **Book Covers & Enrichment**: Multi-source system for book covers with fallback, Google Books and Open Library enrichment. Admin review interface for book covers with MTurk-style workflow (keyboard shortcuts, smart ranking, preloading).
-- **Entity Directories**: Dedicated pages for people and companies with search, tab-based navigation, and data visualizations.
-- **Asset Storage**: All images stored locally.
-- **People Image Pipeline**: Resolves profile photos from local storage, Wikipedia/Wikimedia, or X/Twitter via unavatar.io.
-- **SEO/SSR Pipeline**: Async DB-backed meta tag injection and SSR for all public pages for search engine visibility, using branded OG images.
-- **Logged-In Feed Experience**: Redesigned three-column layout: 64px icon-only sidebar with CSS tooltip labels (DashboardLayout.tsx), magazine-style episode cards with tinted headers/large artwork/podcast meta/platform buttons/serif headlines/takeaways/quote blocks/recaps/expandable mentions footer (FeedPage.tsx), right rail with sticky search/Pod Squad referral card/Who to Follow/Shop section (RightSidebar.tsx). Feed API (`/api/feed`) returns hosts, totalEpisodes, yearStarted, appleUrl, spotifyUrl, and mentions (people/companies/products from entity tables). Uses DM Serif Display for headlines, DM Mono for episode titles. Sidebar suggestions via `/api/sidebar-suggestions`. Right sidebar shows on ALL logged-in pages (no `hideRightSidebar`). Sidebar nav uses "Saved Episodes" (not "Bookmarks") and includes "My Podcasts" link. Search placeholder reads "Search Podcasts".
-- **My Podcasts Page**: `/my-podcasts` page listing all followed podcasts with artwork, name, hosts, category, and unfollow button. Uses `GET /api/feed/followed-podcasts-details` endpoint with slug and iTunes ID fallback resolution.
-- **Unified Shop**: Merged bookstore and product pages into a single `/shop` page with unified filtering and detail pages (`/shop/:slug`) that normalize book and product data. Includes type-specific features like book spines and author links.
-- **Product Image Approval**: Products require `image_status = 'approved'` to be visible publicly; managed via admin panel.
-- **Context Summarization**: Generates polished editorial summaries for products using AI (GPT-4o-mini), preferring these over raw transcript contexts.
-- **Support Knowledge Base**: Admin-editable knowledge base (`support_articles` table) powers the Help & Support AI chatbot. Admins manage articles via the "Support KB" tab.
-- **Feed Ads System**: Inline feed ads (podcast ads + regular ads) interspersed in user feed at configurable frequency. DB tables: `feed_ads` (type, title, description, imageUrl, destinationUrl, podcastSlug, weight, isActive) and `feed_ad_settings` (key-value config). Admin controls in Advertisers tab with ad CRUD, weight/priority sliders, active toggles, and global frequency setting. Public API: `GET /api/feed-ads/batch` (weighted selection), `GET /api/feed-ads/next`. Podcast ads show Follow button; regular ads show destination links. 10 demo ads seeded.
-- **Advertise Page**: Dedicated page detailing advertising opportunities.
-- **Recap Generator Logic**: Processes recent episodes for recap generation, distributing recaps evenly.
-- **Daily Pulse Scheduler**: Generates daily topic pulses for yesterday's episodes, running automatically at ~7:00 AM UTC.
-- **Product Filtering**: Filters out known sponsor products, non-brand items, and affiliate tracking URLs.
-- **Taddy Webhook Product Extraction**: Automatically extracts and filters products from new episodes.
-- **Pod Squad Referral Program**: Morning Brew-style referral system with tiered rewards, tracking, sharing options, and leaderboard. Only email-verified users count toward referral totals. Referrals table uses `referred_user_id` column with unique index and `(referrer_id, status)` composite index.
-- **Pulse Product (Pro)**: Paid subscription for personalized daily topic briefings ($15/mo or $150/yr), with topic selection UI and Stripe integration. Free users can browse topics but see an upgrade modal when trying to subscribe. Backend enforces Pro plan check on subscribe/unsubscribe/bulk-update endpoints.
-- **Error Tracking**: Global middleware intercepts all `/api` responses with 4xx/5xx status codes, logs to `error_logs` table with deduplication by endpoint+method+status+message.
-- **Facebook Ad Landing Pages**: Scalable landing page system at `/lp/:slug` for Facebook ad campaigns. Config-driven (add entries to `client/src/data/landingPageConfig.ts` array). Three variants: time-saver (indigo), podcast-junkie (pink), business-edge (green). Each page has standalone layout (no site nav), email capture form wired to `useRegister` with `signupSource='landing_page'` and slug-based detail tracking. Visit tracking via `POST /api/landing-pages/visit` with UTM params stored in `landing_page_visits` table. Admin "Landing Pages" tab shows per-page analytics (visits, signups, conversions, UTM breakdown, time-series chart).
-- **Feature Flags System**: Scalable feature flag system with global toggles and per-user overrides. DB tables: `feature_flags` (key, description, enabled) and `user_feature_overrides` (userId, flagKey, enabled, unique constraint on user+flag). Default seeded flags: `pulse` (OFF), `upgrade` (OFF). Public API: `GET /api/feature-flags` returns resolved flags for current user. Admin CRUD: `GET/POST/PATCH/DELETE /api/admin/feature-flags`, override management via `GET/POST/DELETE /api/admin/feature-flags/:flagKey/overrides`. Frontend hook: `useFeatureFlags()` from `client/src/hooks/use-feature-flags.ts`. Route gating via `FeatureFlagGuard` component in App.tsx. Navigation items filtered in DashboardLayout.tsx. Settings upgrade CTA and Pulse management gated in SettingsPage.tsx. Stripe checkout blocked server-side when upgrade flag is off. Admin UI: "Feature Flags" sub-tab under Admin > Advanced.
-- **www Redirect**: Server-side 301 redirect from `www.podcap.io` to `podcap.io` for canonical URLs.
-- **Email Verification Gating**: Email scheduler, analytics, and user counts only process/count email-verified users.
+**Frontend**: Built with React, Vite, Tailwind CSS, Shadcn UI, `wouter` for routing, and `framer-motion` for animations. The UI adheres to WCAG AA accessibility standards, featuring DM Sans, DM Mono, and DM Serif Display fonts, an indigo/violet brand palette, and an inline SVG wordmark logo.
+**Backend**: An Express.js server handles API requests and user sessions.
+**Database**: PostgreSQL is used with Drizzle ORM and connection pooling for efficient data management.
+**Authentication**: A dual session and JWT token authentication system supports email magic links and Google OAuth for web, and JWT Bearer tokens for mobile applications.
+**Mobile API**: Dedicated endpoints are provided for an iOS companion app, covering registration, login, token management, and push notifications via Apple Push Notification Service (APNs).
+**Onboarding**: A streamlined single-step onboarding process follows email verification, guiding users through podcast selection with smart suggestions.
+**AI Integration**: Utilizes OpenAI (GPT-4o, GPT-4o-mini) for 2-pass recap generation, key takeaways, episode chat, and entity detection. AI prompt logic is centralized for consistency.
+**Email System**: Resend is used for email delivery, including scheduled daily recaps, with hardcoded templates for consistency.
+**CMS (Content Management System)**: A comprehensive admin panel allows for managing podcasts, episodes, people, companies, mentions, and editorial content. Features include bulk metadata enrichment, unified product management, and a support knowledge base editor.
+**Entity Management**: Robust database tables for people and companies, linked to episodes via mentions detected through text-matching and AI context generation.
+**API Usage Tracking**: All OpenAI API calls are logged for cost monitoring and categorization.
+**Referral Program**: A "Pod Squad" referral system with tiered rewards and tracking for email-verified users.
+**Pulse Product (Pro)**: A paid subscription offering personalized daily topic briefings with Stripe integration for payment processing.
+**Feature Flags**: A scalable system for managing features with global toggles and per-user overrides.
+**SEO/SSR Pipeline**: Asynchronous, DB-backed meta tag injection and Server-Side Rendering (SSR) for all public pages to enhance search engine visibility.
+**Logged-In Feed Experience**: Features a three-column layout with an icon-only sidebar, magazine-style episode cards, and a right rail for search, referrals, and shop.
+**Unified Shop**: Merged bookstore and product pages into a single shop experience with unified filtering and detail pages.
+**Support Knowledge Base**: An admin-editable knowledge base powers the Help & Support AI chatbot.
+**Feed Ads System**: Configurable inline feed ads (podcast and regular) integrated into the user feed, with admin controls for management.
+**Error Tracking**: Global middleware logs all API errors to a dedicated table for monitoring and deduplication.
+**Facebook Ad Landing Pages**: A scalable system for campaign-specific landing pages with visit tracking and analytics.
 
 ## External Dependencies
-- **Stripe**: Payment processing and subscription management for Pulse Pro.
-- **OpenAI**: AI-driven content generation and chat.
-- **Taddy GraphQL API**: Podcast transcription and show notes.
+- **Stripe**: Payment processing and subscription management.
+- **OpenAI**: AI models for content generation and chat.
+- **Taddy GraphQL API**: Podcast transcription and show notes extraction.
 - **iTunes Search API**: Podcast search functionality.
-- **Resend**: Email delivery.
-- **`connect-pg-simple`**: PostgreSQL-backed Express session storage.
-- **`framer-motion`**: Frontend animations.
-- **Recharts**: Data visualization charts.
-- **Logo.dev**: Company logo acquisition.
-- **unavatar.io**: People profile photo acquisition.
+- **Resend**: Email delivery service.
+- **`connect-pg-simple`**: PostgreSQL store for Express sessions.
+- **`framer-motion`**: Frontend animation library.
+- **Recharts**: For data visualization in dashboards.
+- **Logo.dev**: For acquiring company logos.
+- **unavatar.io**: For acquiring people's profile photos.
