@@ -1096,6 +1096,7 @@ function PublicShopPage() {
       </main>
 
       {!user && <Footer />}
+      {user && <div className="h-[80px] md:h-4" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />}
     </div>
   );
 }

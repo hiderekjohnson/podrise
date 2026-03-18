@@ -98,7 +98,7 @@ export function PodcastPageLayout({
     ];
 
     const handleScroll = () => {
-      const offset = 68 + 52 + 40;
+      const offset = (isLoggedIn ? 0 : 68) + 52 + 40;
       let current = sectionIds[0];
       for (const id of sectionIds) {
         const el = document.getElementById(id);
@@ -112,12 +112,12 @@ export function PodcastPageLayout({
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isLoggedIn]);
 
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
     if (!el) return;
-    const headerHeight = 68;
+    const headerHeight = isLoggedIn ? 0 : 68;
     const navHeight = 52;
     const offset = headerHeight + navHeight + 16;
     const top = el.getBoundingClientRect().top + window.scrollY - offset;
@@ -170,7 +170,7 @@ export function PodcastPageLayout({
   ];
 
   return (
-    <div className="min-h-screen flex flex-col overflow-x-clip">
+    <div className={`min-h-screen flex flex-col overflow-x-clip ${isLoggedIn ? "pb-[calc(80px+env(safe-area-inset-bottom,0px))] md:pb-0" : ""}`}>
       {!isLoggedIn && <SiteHeader />}
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">
@@ -309,7 +309,7 @@ export function PodcastPageLayout({
           transition={{ duration: 0.4, delay: 0.1 }}
           className="w-full max-w-7xl"
         >
-          <nav className="sticky top-[68px] z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar mb-8" data-testid="section-tabs">
+          <nav className={`sticky ${isLoggedIn ? "top-0" : "top-[68px]"} z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar mb-8`} data-testid="section-tabs">
             {navItems.map((item) => (
               <button
                 key={item.id}

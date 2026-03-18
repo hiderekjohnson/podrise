@@ -155,7 +155,7 @@ export function EpisodePageLayout({
   }, [stickyEmail, podcastConfig, register, navigate, toast]);
 
   return (
-    <div className={`min-h-screen bg-background ${isLoggedIn ? "pb-[calc(60px+env(safe-area-inset-bottom,0px))] md:pb-0" : ""}`}>
+    <div className={`min-h-screen bg-background ${isLoggedIn ? "pb-[calc(80px+env(safe-area-inset-bottom,0px))] md:pb-0" : ""}`}>
       {!isLoggedIn && <SiteHeader />}
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">

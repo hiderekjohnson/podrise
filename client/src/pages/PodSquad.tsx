@@ -148,7 +148,7 @@ export default function PodSquad() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-[#F9F9FB] dark:bg-[#09090B]" data-testid="pod-squad-page">
+      <div className="min-h-screen bg-[#F9F9FB] dark:bg-[#09090B] pb-24 md:pb-8" data-testid="pod-squad-page">
         {/* Hero Banner with Reward Tiers */}
         <div
           className="relative overflow-hidden"

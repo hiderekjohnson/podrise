@@ -175,10 +175,10 @@ function SharePopover({ episodeTitle, podcastSlug, episodeSlug, itemId, toast }:
       <button
         onClick={() => setOpen(!open)}
         aria-label="Share episode"
-        className="w-8 h-8 rounded-[7px] flex items-center justify-center text-[#A1A1AA] hover:bg-white hover:text-[#6366F1] transition-all"
+        className="w-10 h-10 rounded-[7px] flex items-center justify-center text-[#A1A1AA] hover:bg-white hover:text-[#6366F1] transition-all"
         data-testid={`feed-share-${itemId}`}
       >
-        <Share className="w-[15px] h-[15px]" />
+        <Share className="w-4 h-4" />
       </button>
       <AnimatePresence>
         {open && (
@@ -664,7 +664,7 @@ function FollowMenuDropdown({ onUnfollow, itemId }: { onUnfollow: () => void; it
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="w-9 h-9 rounded-full flex items-center justify-center border border-[#D4D4D8] text-[#71717A] hover:text-[#6366F1] hover:border-[#6366F1]/30 transition-all bg-white"
+        className="w-11 h-11 rounded-full flex items-center justify-center border border-[#D4D4D8] text-[#71717A] hover:text-[#6366F1] hover:border-[#6366F1]/30 transition-all bg-white"
         aria-label="Podcast options"
         data-testid={`feed-follow-menu-${itemId}`}
       >
@@ -710,10 +710,10 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toa
       data-testid={`feed-card-${item.id}`}
     >
       <div className="flex items-start gap-[18px] px-5 md:px-6 pt-5 pb-[18px]" style={{ background: headerTint }}>
-        <div className="w-[120px] h-[120px] rounded-[14px] overflow-hidden flex-shrink-0 shadow-[0_4px_16px_rgba(0,0,0,0.16),0_1px_3px_rgba(0,0,0,0.08)] border border-black/[0.08]">
+        <div className="w-[80px] h-[80px] sm:w-[120px] sm:h-[120px] rounded-[14px] overflow-hidden flex-shrink-0 shadow-[0_4px_16px_rgba(0,0,0,0.16),0_1px_3px_rgba(0,0,0,0.08)] border border-black/[0.08]">
           <img src={hiResArtwork(item.artworkUrl)} alt={item.podcastName} className="w-full h-full object-cover" loading="lazy" />
         </div>
-        <div className="flex-1 min-w-0 flex flex-col justify-center min-h-[120px]">
+        <div className="flex-1 min-w-0 flex flex-col justify-center min-h-[80px] sm:min-h-[120px]">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <Link href={`/podcasts/${item.podcastSlug}`}>
@@ -749,7 +749,7 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toa
               ) : (
                 <button
                   onClick={() => onFollowToggle(item.podcastSlug, true)}
-                  className="inline-flex items-center px-5 py-[7px] rounded-full text-[14px] font-bold transition-all bg-[#6366F1] text-white hover:bg-[#4F46E5]"
+                  className="inline-flex items-center px-5 py-[9px] rounded-full text-[14px] font-bold transition-all bg-[#6366F1] text-white hover:bg-[#4F46E5]"
                   data-testid={`feed-follow-btn-${item.id}`}
                 >
                   Follow
@@ -762,7 +762,7 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toa
 
       <div className="px-5 md:px-6 py-[18px] border-t border-[#F0F0F2] border-b border-b-[#F0F0F2]">
         <div className="flex items-baseline justify-between gap-3 mb-[9px]">
-          <span className="text-[12px] text-[#A1A1AA] overflow-hidden text-ellipsis whitespace-nowrap flex-1 min-w-0" style={{ fontFamily: "var(--font-mono)" }} data-testid={`feed-episode-title-${item.id}`}>
+          <span className="text-[12px] text-[#A1A1AA] overflow-hidden text-ellipsis line-clamp-2 flex-1 min-w-0" style={{ fontFamily: "var(--font-mono)" }} data-testid={`feed-episode-title-${item.id}`}>
             {item.episodeTitle}
           </span>
           <span className="text-[12px] text-[#A1A1AA] whitespace-nowrap flex-shrink-0" style={{ fontFamily: "var(--font-mono)" }} data-testid={`feed-time-${item.id}`}>
@@ -1318,7 +1318,7 @@ export default function FeedPage() {
               </div>
             </>
           )}
-          <div className="h-[60px] md:h-4" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />
+          <div className="h-[80px] md:h-4" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />
         </div>
       </div>
       <FeatureTour enabled={isWelcome} />

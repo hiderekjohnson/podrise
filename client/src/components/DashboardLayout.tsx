@@ -1,8 +1,9 @@
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import {
   Home, Compass, ShoppingBag, HelpCircle, Bookmark,
-  Zap, Users, Settings, Radio
+  Zap, Users, Settings, Radio, Menu, X
 } from "lucide-react";
 import { RightSidebar } from "@/components/RightSidebar";
 
@@ -22,15 +23,31 @@ const ALL_NAV_ITEMS = [
   { key: "settings", path: "/settings", label: "Settings", Icon: Settings },
 ];
 
-function MobileBottomNav({ currentPath }: { currentPath: string }) {
+function MobileBottomNav({ currentPath, navItems }: { currentPath: string; navItems: typeof ALL_NAV_ITEMS }) {
   const [, navigate] = useLocation();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
 
-  const tabs = [
+  useEffect(() => {
+    if (!moreOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [moreOpen]);
+
+  const primaryTabs = [
     { key: "feed", path: "/dashboard", Icon: Home, label: "Home" },
     { key: "discover", path: "/discover", Icon: Compass, label: "Discover" },
     { key: "pod-squad", path: "/pod-squad", label: "Refer", Icon: Users, highlight: true },
-    { key: "settings", path: "/settings", Icon: Settings, label: "You" },
   ];
+
+  const moreItems = navItems.filter(
+    item => !primaryTabs.some(t => t.key === item.key) && item.key !== "pod-squad"
+  );
+
+  const isMoreActive = moreItems.some(item => currentPath === item.path);
 
   return (
     <nav
@@ -38,13 +55,51 @@ function MobileBottomNav({ currentPath }: { currentPath: string }) {
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       data-testid="bottom-nav"
     >
+      {moreOpen && (
+        <div ref={moreRef} className="absolute bottom-full left-0 right-0 bg-white border-t border-[#E4E4E7] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] rounded-t-2xl overflow-hidden" data-testid="bottom-nav-more-menu">
+          <div className="flex items-center justify-between px-5 pt-4 pb-2">
+            <span className="text-[13px] font-bold text-[#09090B] tracking-wide uppercase">More</span>
+            <button onClick={() => setMoreOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#F4F4F5]" aria-label="Close menu" data-testid="bottom-nav-close-more">
+              <X className="w-4 h-4 text-[#71717A]" />
+            </button>
+          </div>
+          <div className="grid grid-cols-4 gap-1 px-3 pb-4">
+            {moreItems.map(({ key, path, label, Icon }) => {
+              const active = currentPath === path;
+              return (
+                <button
+                  key={key}
+                  onClick={() => { navigate(path); setMoreOpen(false); }}
+                  className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl transition-colors active:scale-95 ${
+                    active ? "bg-[#EEF2FF] text-[#6366F1]" : "text-[#71717A] hover:bg-[#F4F4F5]"
+                  }`}
+                  data-testid={`bottom-nav-more-${key}`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="text-[11px] font-medium leading-none">{label}</span>
+                </button>
+              );
+            })}
+            <button
+              onClick={() => { navigate("/help"); setMoreOpen(false); }}
+              className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl transition-colors active:scale-95 ${
+                currentPath === "/help" ? "bg-[#EEF2FF] text-[#6366F1]" : "text-[#71717A] hover:bg-[#F4F4F5]"
+              }`}
+              data-testid="bottom-nav-more-help"
+            >
+              <HelpCircle className="w-5 h-5" />
+              <span className="text-[11px] font-medium leading-none">Help</span>
+            </button>
+          </div>
+        </div>
+      )}
       <div className="flex items-stretch justify-around mx-auto h-[50px]">
-        {tabs.map(({ key, path, Icon, label, highlight }) => {
+        {primaryTabs.map(({ key, path, Icon, label, highlight }) => {
           const isActive = currentPath === path || (path === "/dashboard" && currentPath === "/");
           return (
             <button
               key={key}
-              onClick={() => navigate(path)}
+              onClick={() => { navigate(path); setMoreOpen(false); }}
               className={`flex flex-col items-center justify-center flex-1 gap-[2px] transition-colors active:opacity-70 ${
                 highlight
                   ? "text-[#6366F1]"
@@ -63,6 +118,16 @@ function MobileBottomNav({ currentPath }: { currentPath: string }) {
             </button>
           );
         })}
+        <button
+          onClick={() => setMoreOpen(!moreOpen)}
+          className={`flex flex-col items-center justify-center flex-1 gap-[2px] transition-colors active:opacity-70 ${
+            moreOpen || isMoreActive ? "text-[#09090B]" : "text-[#A1A1AA]"
+          }`}
+          data-testid="bottom-nav-more"
+        >
+          <Menu className="w-6 h-6" />
+          <span className="text-[10px] font-semibold leading-none">More</span>
+        </button>
       </div>
     </nav>
   );
@@ -151,7 +216,7 @@ export function DashboardLayout({ children, hideRightSidebar }: DashboardLayoutP
         </div>
       </div>
 
-      <MobileBottomNav currentPath={location} />
+      <MobileBottomNav currentPath={location} navItems={NAV_ITEMS} />
     </div>
   );
 }
