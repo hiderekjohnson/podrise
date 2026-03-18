@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, X, Plus, Loader2, Podcast, Mic, Send } from "lucide-react";
+import { Search, X, Plus, Loader2, Podcast, Mic } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RequestPodcastDialog } from "./RequestPodcastDialog";
 
 interface PodcastResult {
   id: string;
   name: string;
   artistName: string;
   artworkUrl: string;
+  onPlatform?: boolean;
+  genre?: string;
 }
 
 interface SelectedPodcast {
@@ -26,7 +27,6 @@ export function PodcastSearch({ selectedPodcasts, onAdd }: PodcastSearchProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState<PodcastResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [showRequestDialog, setShowRequestDialog] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const selectedIdSet = new Set(selectedPodcasts.map((p) => p.id));
@@ -44,7 +44,7 @@ export function PodcastSearch({ selectedPodcasts, onAdd }: PodcastSearchProps) {
     setIsSearching(true);
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/podcasts/search?term=${encodeURIComponent(trimmed)}`);
+        const res = await fetch(`/api/podcasts/search-itunes?term=${encodeURIComponent(trimmed)}`);
         const data = await res.json();
         setResults(data.results || []);
       } catch {
@@ -140,9 +140,14 @@ export function PodcastSearch({ selectedPodcasts, onAdd }: PodcastSearchProps) {
                             {podcast.name}
                           </p>
                           <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] truncate mt-0.5">
-                            {podcast.artistName}
+                            {podcast.onPlatform ? (podcast.artistName || "On PodCap") : (podcast.artistName || podcast.genre || "")}
                           </p>
                         </div>
+                        {podcast.onPlatform && (
+                          <span className="text-[10px] font-bold text-[#6366F1] bg-[#EEF2FF] dark:bg-[#1E1B4B] px-2 py-0.5 rounded-full flex-shrink-0 mr-1">
+                            On PodCap
+                          </span>
+                        )}
                         <Plus className="w-5 h-5 text-[#52525B] dark:text-[#A1A1AA] shrink-0 transition-colors group-hover/row:text-primary" />
                       </div>
                     ))}
@@ -150,27 +155,14 @@ export function PodcastSearch({ selectedPodcasts, onAdd }: PodcastSearchProps) {
               ) : (
                 <div className="px-6 py-8 text-center">
                   <Mic className="w-8 h-8 text-[#A1A1AA] mx-auto mb-2" />
-                  <p className="text-base font-semibold text-foreground mb-1" data-testid="text-no-results-dashboard">We don't track this podcast yet</p>
-                  <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] mb-4">But we could! Let us know why it's worth adding.</p>
-                  <button
-                    onClick={() => setShowRequestDialog(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-[14px] font-semibold bg-[#6366F1] text-white hover:bg-[#6366F1]/90 transition-all active:scale-[0.98]"
-                    data-testid="button-request-podcast"
-                  >
-                    <Send className="w-3.5 h-3.5" />
-                    Request this podcast
-                  </button>
+                  <p className="text-base font-semibold text-foreground mb-1" data-testid="text-no-results-dashboard">No podcasts found</p>
+                  <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA]">Try a different search term.</p>
                 </div>
               )}
             </motion.div>
           )}
         </AnimatePresence>
       </div>
-      <RequestPodcastDialog
-        open={showRequestDialog}
-        onClose={() => setShowRequestDialog(false)}
-        searchQuery={searchQuery}
-      />
     </div>
   );
 }

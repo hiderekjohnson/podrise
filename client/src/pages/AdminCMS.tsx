@@ -272,6 +272,7 @@ interface EditingQuote {
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
     published: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+    requested: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
     needs_review: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
     hidden: "bg-gray-100 text-gray-500 dark:bg-gray-800/50 dark:text-gray-400",
   };
@@ -291,6 +292,7 @@ function StatusSelect({ value, onChange }: { value: string; onChange: (v: string
       data-testid="select-status"
     >
       <option value="published">Published</option>
+      <option value="requested">Requested</option>
       <option value="needs_review">Needs Review</option>
       <option value="hidden">Hidden</option>
     </select>
@@ -459,6 +461,7 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
           >
             <option value="all">All Status</option>
             <option value="published">Published</option>
+            <option value="requested">Requested</option>
             <option value="needs_review">Needs Review</option>
             <option value="hidden">Hidden</option>
           </select>
@@ -488,13 +491,22 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
                   Episodes {sortField === "episodes" && (sortOrder === "asc" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
                 </span>
               </th>
+              <th
+                className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3 cursor-pointer hover:text-foreground"
+                onClick={() => toggleSort("followers")}
+                data-testid="sort-podcast-followers"
+              >
+                <span className="flex items-center gap-1">
+                  Followers {sortField === "followers" && (sortOrder === "asc" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
+                </span>
+              </th>
               <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {(!podcasts || podcasts.length === 0) ? (
               <tr>
-                <td colSpan={4} className="px-4 py-12 text-center text-sm text-muted-foreground">
+                <td colSpan={5} className="px-4 py-12 text-center text-sm text-muted-foreground">
                   {search ? "No matching podcasts found." : "No podcasts in directory yet."}
                 </td>
               </tr>
@@ -521,6 +533,9 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
                   </td>
                   <td className="px-4 py-3">
                     <span className="text-sm font-medium text-foreground" data-testid={`text-episode-count-${p.id}`}>{p.episode_count || 0}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="text-sm font-medium text-foreground" data-testid={`text-follower-count-${p.id}`}>{(p as any).follower_count || 0}</span>
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={p.status || "published"} />

@@ -2616,6 +2616,123 @@ If you don't know the answer to something, be honest about it and suggest the us
     }
   });
 
+  const itunesSearchCache = new Map<string, { results: any[]; expiry: number }>();
+  const ITUNES_CACHE_TTL = 5 * 60 * 1000;
+
+  app.get("/api/podcasts/search-itunes", async (req, res) => {
+    const term = req.query.term as string;
+    if (!term || term.trim().length < 2) {
+      return res.json({ results: [] });
+    }
+    const trimmed = term.trim();
+    const cacheKey = trimmed.toLowerCase();
+
+    try {
+      const { rows: localRows } = await pool.query(
+        `SELECT itunes_id, name, artwork_url, slug, status, has_landing_page FROM podcast_directory
+         WHERE (name ILIKE $1 OR slug ILIKE $1)
+         ORDER BY has_landing_page DESC, name ASC LIMIT 10`,
+        [`%${trimmed}%`]
+      );
+
+      const localMap = new Map<string, any>();
+      for (const r of localRows) {
+        localMap.set(String(r.itunes_id), r);
+      }
+
+      let itunesResults: any[] = [];
+      const cached = itunesSearchCache.get(cacheKey);
+      if (cached && cached.expiry > Date.now()) {
+        itunesResults = cached.results;
+      } else {
+        try {
+          const itunesRes = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(trimmed)}&media=podcast&limit=15`);
+          if (itunesRes.ok) {
+            const itunesData = await itunesRes.json();
+            itunesResults = itunesData.results || [];
+            itunesSearchCache.set(cacheKey, { results: itunesResults, expiry: Date.now() + ITUNES_CACHE_TTL });
+          }
+        } catch (e) {
+          console.warn("[iTunes Search] Error:", e);
+        }
+      }
+
+      const itunesIds = itunesResults.map((it: any) => String(it.collectionId || it.trackId)).filter(Boolean);
+      const extraLocalMap = new Map<string, any>();
+      if (itunesIds.length > 0) {
+        const unmatchedIds = itunesIds.filter((id: string) => !localMap.has(id));
+        if (unmatchedIds.length > 0) {
+          try {
+            const { rows: extraRows } = await pool.query(
+              `SELECT itunes_id, name, artwork_url, slug, status, has_landing_page FROM podcast_directory WHERE itunes_id = ANY($1)`,
+              [unmatchedIds]
+            );
+            for (const r of extraRows) {
+              extraLocalMap.set(String(r.itunes_id), r);
+            }
+          } catch {}
+        }
+      }
+
+      const platformResults: any[] = [];
+      const externalResults: any[] = [];
+      const seenIds = new Set<string>();
+
+      for (const r of localRows) {
+        const id = String(r.itunes_id);
+        seenIds.add(id);
+        platformResults.push({
+          id,
+          name: r.name,
+          artistName: "",
+          artworkUrl: r.artwork_url || "",
+          slug: r.slug || "",
+          onPlatform: true,
+          hasLandingPage: !!r.has_landing_page,
+          status: r.status || "published",
+        });
+      }
+
+      for (const it of itunesResults) {
+        const id = String(it.collectionId || it.trackId);
+        if (seenIds.has(id)) continue;
+        seenIds.add(id);
+
+        const existingEntry = extraLocalMap.get(id);
+        if (existingEntry) {
+          platformResults.push({
+            id,
+            name: existingEntry.name,
+            artistName: it.artistName || "",
+            artworkUrl: existingEntry.artwork_url || (it.artworkUrl600 || it.artworkUrl100 || "").replace(/\d+x\d+bb/, "200x200bb"),
+            slug: existingEntry.slug || "",
+            onPlatform: true,
+            hasLandingPage: !!existingEntry.has_landing_page,
+            status: existingEntry.status || "published",
+          });
+        } else {
+          externalResults.push({
+            id,
+            name: it.collectionName || it.trackName || "",
+            artistName: it.artistName || "",
+            artworkUrl: (it.artworkUrl600 || it.artworkUrl100 || "").replace(/\d+x\d+bb/, "200x200bb"),
+            slug: "",
+            onPlatform: false,
+            hasLandingPage: false,
+            status: null,
+            itunesUrl: it.collectionViewUrl || "",
+            genre: it.primaryGenreName || "",
+          });
+        }
+      }
+
+      res.json({ results: [...platformResults, ...externalResults].slice(0, 15) });
+    } catch (err) {
+      console.warn("[iTunes Search] Error:", err);
+      res.json({ results: [] });
+    }
+  });
+
   app.get("/api/podcasts/search", async (req, res) => {
     const term = req.query.term as string;
     if (!term || term.trim().length < 2) {
@@ -6922,25 +7039,94 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   app.post("/api/feed/follow", async (req, res) => {
     const followUserId = getAuthUserId(req);
     if (!followUserId) return res.status(401).json({ message: "Not authenticated" });
-    const { podcastSlug } = req.body;
-    if (!podcastSlug) return res.status(400).json({ message: "Missing podcastSlug" });
+    const { podcastSlug, itunesId, podcastName, artworkUrl: reqArtworkUrl } = req.body;
+    if (!podcastSlug && !itunesId) return res.status(400).json({ message: "Missing podcastSlug or itunesId" });
 
     try {
       const user = await storage.getUserById(followUserId);
       if (!user) return res.status(404).json({ message: "User not found" });
 
-      const pdResult = await pool.query(
-        `SELECT itunes_id, name, slug FROM podcast_directory WHERE slug = $1`,
-        [podcastSlug]
-      );
-      if (pdResult.rows.length === 0) return res.status(404).json({ message: "Podcast not found" });
+      let slug = podcastSlug;
+      let pd: any = null;
 
-      const pd = pdResult.rows[0];
+      if (slug) {
+        const pdResult = await pool.query(
+          `SELECT itunes_id, name, slug, artwork_url FROM podcast_directory WHERE slug = $1`,
+          [slug]
+        );
+        pd = pdResult.rows[0] || null;
+      }
+
+      if (!pd && itunesId) {
+        const pdResult = await pool.query(
+          `SELECT itunes_id, name, slug, artwork_url FROM podcast_directory WHERE itunes_id = $1`,
+          [String(itunesId)]
+        );
+        pd = pdResult.rows[0] || null;
+      }
+
+      if (!pd && itunesId && podcastName) {
+        slug = podcastName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        const existingSlug = await pool.query(`SELECT slug FROM podcast_directory WHERE slug = $1`, [slug]);
+        if (existingSlug.rows.length > 0) {
+          slug = `${slug}-${itunesId}`;
+        }
+
+        const artUrl = (reqArtworkUrl || "").replace(/\d+x\d+bb/, "600x600bb");
+
+        await pool.query(
+          `INSERT INTO podcast_directory (itunes_id, name, slug, artwork_url, status, has_landing_page, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, 'requested', false, NOW(), NOW())
+           ON CONFLICT (itunes_id) DO NOTHING`,
+          [String(itunesId), podcastName, slug, artUrl]
+        );
+
+        const insertedResult = await pool.query(
+          `SELECT itunes_id, name, slug, artwork_url FROM podcast_directory WHERE itunes_id = $1`,
+          [String(itunesId)]
+        );
+        pd = insertedResult.rows[0] || null;
+        if (pd) slug = pd.slug;
+
+        if (pd) {
+          (async () => {
+            try {
+              const lookupRes = await fetch(`https://itunes.apple.com/lookup?id=${itunesId}&media=podcast`);
+              const lookupJson = await lookupRes.json();
+              const itunesData = lookupJson.results?.[0];
+              if (itunesData) {
+                const description = itunesData.description || "";
+                const category = itunesData.primaryGenreName || "";
+                const appleUrl = itunesData.collectionViewUrl || "";
+                const highResArt = (itunesData.artworkUrl600 || itunesData.artworkUrl100 || "").replace(/\d+x\d+bb/, "600x600bb");
+                const trackCount = itunesData.trackCount || null;
+
+                await pool.query(
+                  `UPDATE podcast_directory SET
+                    description = COALESCE(NULLIF(description, ''), $1),
+                    category = COALESCE(NULLIF(category, ''), $2),
+                    apple_url = COALESCE(NULLIF(apple_url, ''), $3),
+                    artwork_url = COALESCE(NULLIF(artwork_url, ''), $4),
+                    total_episodes = COALESCE(total_episodes, $5),
+                    updated_at = NOW()
+                  WHERE itunes_id = $6`,
+                  [description, category, appleUrl, highResArt, trackCount, String(itunesId)]
+                );
+              }
+            } catch (enrichErr) {
+              console.warn("[Follow] iTunes enrichment error for", itunesId, enrichErr);
+            }
+          })();
+        }
+      }
+
+      if (!pd) return res.status(404).json({ message: "Podcast not found and could not be created" });
+
       const artworkResult = await pool.query(
         `SELECT artwork_url FROM landing_page_recaps WHERE slug = $1 LIMIT 1`,
-        [podcastSlug]
+        [pd.slug]
       );
-      const artworkUrl = artworkResult.rows[0]?.artwork_url || "";
+      const finalArtworkUrl = artworkResult.rows[0]?.artwork_url || pd.artwork_url || "";
 
       const currentPodcasts = user.podcasts || [];
       const existingIds = currentPodcasts.map((p: string) => {
@@ -6954,7 +7140,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const newEntry = JSON.stringify({
         id: pd.itunes_id.toString(),
         name: pd.name,
-        artworkUrl: artworkUrl,
+        artworkUrl: finalArtworkUrl,
       });
 
       await pool.query(
@@ -6962,7 +7148,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         [newEntry, followUserId]
       );
 
-      res.json({ success: true });
+      res.json({ success: true, slug: pd.slug });
     } catch (err) {
       console.error("Follow error:", err);
       res.status(500).json({ message: "Failed to follow" });
@@ -9343,6 +9529,22 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {
       const { search, sort, order, status } = req.query;
+
+      const { rows: allUsers } = await pool.query(`SELECT podcasts FROM users WHERE podcasts IS NOT NULL AND array_length(podcasts, 1) > 0`);
+      const followerMap = new Map<string, number>();
+      for (const u of allUsers) {
+        const podcasts = u.podcasts || [];
+        for (const p of podcasts) {
+          try {
+            const parsed = JSON.parse(p);
+            const pid = parsed.id || parsed.itunesId || "";
+            if (pid) {
+              followerMap.set(String(pid), (followerMap.get(String(pid)) || 0) + 1);
+            }
+          } catch {}
+        }
+      }
+
       let query = `SELECT pd.*, (SELECT COUNT(*) FROM landing_page_recaps lpr WHERE lpr.slug = pd.slug) as episode_count FROM podcast_directory pd WHERE 1=1`;
       const params: any[] = [];
       if (search) {
@@ -9353,11 +9555,23 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         params.push(status);
         query += ` AND pd.status = $${params.length}`;
       }
-      const sortCol = sort === "name" ? "pd.name" : sort === "episodes" ? "episode_count" : "pd.name";
+      const sortCol = sort === "name" ? "pd.name" : sort === "episodes" ? "episode_count" : sort === "followers" ? "pd.name" : "pd.name";
       const sortOrder = order === "desc" ? "DESC" : "ASC";
       query += ` ORDER BY ${sortCol} ${sortOrder}`;
       const { rows } = await pool.query(query, params);
-      res.json(rows);
+
+      const enrichedRows = rows.map((r: any) => ({
+        ...r,
+        follower_count: followerMap.get(String(r.itunes_id)) || 0,
+      }));
+
+      if (sort === "followers") {
+        enrichedRows.sort((a: any, b: any) => {
+          return order === "desc" ? b.follower_count - a.follower_count : a.follower_count - b.follower_count;
+        });
+      }
+
+      res.json(enrichedRows);
     } catch (err: any) {
       console.error("[CMS] Get podcasts error:", err);
       res.status(500).json({ message: err?.message || "Failed to fetch podcasts" });

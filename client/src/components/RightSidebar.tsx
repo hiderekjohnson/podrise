@@ -51,6 +51,7 @@ function SidebarSearch() {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const { toast } = useToast();
+  const { data: user } = useAuth();
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(query), 250);
@@ -68,11 +69,46 @@ function SidebarSearch() {
     refetchOnWindowFocus: false,
   });
 
+  const { data: itunesData } = useQuery<{ results: any[] }>({
+    queryKey: ["/api/podcasts/search-itunes", debouncedQuery],
+    queryFn: async () => {
+      const res = await fetch(`/api/podcasts/search-itunes?term=${encodeURIComponent(debouncedQuery)}`);
+      return res.json();
+    },
+    enabled: debouncedQuery.trim().length >= 2,
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const platformSlugs = new Set(searchData?.podcasts?.map(p => p.slug) || []);
+  const itunesExternalResults = (itunesData?.results || []).filter(
+    (r: any) => !r.onPlatform && !platformSlugs.has(r.slug)
+  ).slice(0, 5);
+
+  const handleFollowExternal = async (result: any) => {
+    if (!user) {
+      toast({ title: "Sign in required", description: "Log in to follow podcasts", variant: "destructive" });
+      return;
+    }
+    try {
+      await apiRequest("POST", "/api/feed/follow", {
+        itunesId: result.id,
+        podcastName: result.name,
+        artworkUrl: result.artworkUrl,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/feed/followed-slugs"] });
+      toast({ title: "Following!", description: `Now following ${result.name}` });
+    } catch {
+      toast({ title: "Error", description: "Failed to follow", variant: "destructive" });
+    }
+  };
+
   const showResults = query.trim().length >= 2;
   const totalResults = searchData
     ? searchData.podcasts.length + searchData.episodes.length + searchData.people.length + searchData.companies.length
     : 0;
-  const noResults = showResults && !searchLoading && totalResults === 0;
+  const noResults = showResults && !searchLoading && totalResults === 0 && itunesExternalResults.length === 0;
 
   return (
     <div className="sticky top-0 z-10 px-4 py-3 bg-[#F7F7FC] border-b border-[#F0F0F2]">
@@ -216,23 +252,46 @@ function SidebarSearch() {
                 </div>
               )}
             </>
-          ) : noResults ? (
+          ) : null}
+          {itunesExternalResults.length > 0 && (
+            <div>
+              <div className="px-3 py-1.5 text-[10px] font-bold text-[#A1A1AA] uppercase tracking-wider bg-[#FAFAFA]">Discover on iTunes</div>
+              {itunesExternalResults.map((result: any) => (
+                <div
+                  key={result.id}
+                  className="flex items-center gap-2.5 px-3 py-2 hover:bg-[#F7F7FC] transition-colors border-b border-[#F0F0F2] last:border-b-0"
+                  data-testid={`sidebar-itunes-${result.id}`}
+                >
+                  <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-[#F0F0F2]">
+                    {result.artworkUrl ? (
+                      <img src={result.artworkUrl.replace(/\/\d+x\d+bb\./, "/100x100bb.")} alt={result.name} className="w-full h-full object-cover" loading="lazy" />
+                    ) : (
+                      <div className="w-full h-full bg-[#E4E4E7] flex items-center justify-center"><Mic className="w-3 h-3 text-[#A1A1AA]" /></div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[13px] font-semibold text-[#09090B] truncate">{result.name}</div>
+                    <div className="text-[10px] text-[#A1A1AA] truncate">{result.artistName || result.genre || ""}</div>
+                  </div>
+                  <button
+                    onClick={() => handleFollowExternal(result)}
+                    className="text-[11px] font-bold text-[#6366F1] bg-[#EEF2FF] hover:bg-[#E0E7FF] rounded-full px-2.5 py-1 transition-colors flex-shrink-0"
+                    data-testid={`sidebar-follow-itunes-${result.id}`}
+                  >
+                    Follow
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          {noResults ? (
             <div className="px-4 py-4" data-testid="sidebar-search-no-results">
               <div className="text-[14px] font-medium text-[#52525B] mb-1">
                 No results found
               </div>
-              <p className="text-[12px] text-[#A1A1AA] leading-relaxed mb-3">
+              <p className="text-[12px] text-[#A1A1AA] leading-relaxed">
                 We couldn't find any podcasts, episodes, people, or companies matching your search.
               </p>
-              <button
-                className="w-full text-[13px] font-semibold text-[#6366F1] bg-[#EEF2FF] hover:bg-[#E0E7FF] rounded-lg py-2 px-3 transition-colors"
-                onClick={() => {
-                  toast({ title: "Request noted!", description: `We'll look into adding "${query}" to PodCap.` });
-                }}
-                data-testid="sidebar-search-request-btn"
-              >
-                Request this content
-              </button>
             </div>
           ) : null}
         </div>

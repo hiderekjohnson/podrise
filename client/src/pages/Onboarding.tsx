@@ -14,6 +14,9 @@ interface SearchResult {
   artistName: string;
   artworkUrl: string;
   slug: string;
+  onPlatform?: boolean;
+  hasLandingPage?: boolean;
+  genre?: string;
 }
 
 interface RelatedPodcast {
@@ -99,7 +102,7 @@ export default function Onboarding() {
     }
     setIsSearching(true);
     try {
-      const res = await fetch(`/api/podcasts/search?term=${encodeURIComponent(term)}`);
+      const res = await fetch(`/api/podcasts/search-itunes?term=${encodeURIComponent(term)}`);
       if (res.ok) {
         const data = await res.json();
         setSearchResults(data.results || []);
@@ -131,6 +134,19 @@ export default function Onboarding() {
     setSearchQuery("");
     setSearchResults([]);
   }, [fetchRelatedPodcasts]);
+
+  const followExternalPodcast = useCallback(async (result: SearchResult) => {
+    if (!result.onPlatform && result.id) {
+      try {
+        await apiRequest("POST", "/api/feed/follow", {
+          itunesId: result.id,
+          podcastName: result.name,
+          artworkUrl: result.artworkUrl,
+        });
+      } catch {}
+    }
+  }, []);
+
 
   const addRelatedPodcast = useCallback((podcast: RelatedPodcast) => {
     setSelectedPodcasts(prev => {
@@ -218,7 +234,7 @@ export default function Onboarding() {
 
             {searchQuery.length >= 2 && !isSearching && searchResults.length === 0 && (
               <div className="text-center py-8">
-                <p className="text-[15px] text-[#A1A1AA]">We couldn't find that podcast or don't support it yet. Try another search!</p>
+                <p className="text-[15px] text-[#A1A1AA]">No podcasts found. Try another search!</p>
               </div>
             )}
 
@@ -232,6 +248,7 @@ export default function Onboarding() {
                       key={result.id}
                       onClick={() => {
                         toggleSelected(resultSlug, result.name, result.artworkUrl);
+                        followExternalPodcast(result);
                       }}
                       className="w-full flex items-center gap-3 px-4 py-3.5 min-h-[44px] text-left hover:bg-[#FAFAFE] dark:hover:bg-[#111114] transition-colors"
                       data-testid={`onboarding-search-result-${result.id}`}
@@ -247,8 +264,15 @@ export default function Onboarding() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-[15px] md:text-[16px] text-[#09090B] dark:text-white truncate">{result.name}</p>
-                        {result.artistName && <p className="text-[13px] text-[#A1A1AA] truncate">{result.artistName}</p>}
+                        <p className="text-[13px] text-[#A1A1AA] truncate">
+                          {result.onPlatform ? (result.artistName || "On PodCap") : (result.artistName || result.genre || "")}
+                        </p>
                       </div>
+                      {result.onPlatform && (
+                        <span className="text-[10px] font-bold text-[#6366F1] bg-[#EEF2FF] dark:bg-[#1E1B4B] px-2 py-0.5 rounded-full flex-shrink-0 mr-1" data-testid={`badge-on-platform-${result.id}`}>
+                          On PodCap
+                        </span>
+                      )}
                       <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
                         isSelected ? "bg-[#6366F1] text-white" : "border-2 border-[#D4D4D8] dark:border-[#3F3F46] text-transparent"
                       }`}>

@@ -392,6 +392,54 @@ export default function DiscoverPage() {
     toast({ title: "Following all", description: `Following ${slugs.length} new podcasts` });
   };
 
+  const [itunesSearchResults, setItunesSearchResults] = useState<any[]>([]);
+  const [isItunesSearching, setIsItunesSearching] = useState(false);
+
+  useEffect(() => {
+    if (searchQuery.trim().length < 2) {
+      setItunesSearchResults([]);
+      setIsItunesSearching(false);
+      return;
+    }
+    setIsItunesSearching(true);
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/podcasts/search-itunes?term=${encodeURIComponent(searchQuery.trim())}`);
+        if (res.ok) {
+          const data = await res.json();
+          setItunesSearchResults(data.results || []);
+        }
+      } catch {
+        setItunesSearchResults([]);
+      }
+      setIsItunesSearching(false);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handleFollowExternal = async (result: any) => {
+    if (!user) {
+      toast({ title: "Sign in required", description: "Log in to follow podcasts", variant: "destructive" });
+      return;
+    }
+    if (result.onPlatform && result.slug) {
+      followMutation.mutate(result.slug);
+    } else {
+      try {
+        await apiRequest("POST", "/api/feed/follow", {
+          itunesId: result.id,
+          podcastName: result.name,
+          artworkUrl: result.artworkUrl,
+        });
+        queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/feed/followed-slugs"] });
+        toast({ title: "Following!", description: `Now following ${result.name}` });
+      } catch {
+        toast({ title: "Error", description: "Failed to follow podcast", variant: "destructive" });
+      }
+    }
+  };
+
   const filteredPodcasts = searchQuery.length >= 2
     ? (directoryData || []).filter((p) =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -503,7 +551,63 @@ export default function DiscoverPage() {
                 </div>
               )}
 
-              {searchedLists.length === 0 && filteredPodcasts.length === 0 && (
+              {itunesSearchResults.length > 0 && (
+                <div className="mt-2">
+                  <h3 className="text-[13px] font-bold text-[#A1A1AA] uppercase tracking-wide mb-2">
+                    {filteredPodcasts.length > 0 ? "More from iTunes" : "Podcasts"}
+                  </h3>
+                  <div className="divide-y divide-[#F4F4F5] dark:divide-[#1C1C22]">
+                    {itunesSearchResults
+                      .filter((r: any) => !filteredPodcasts.some(fp => fp.slug === r.slug))
+                      .slice(0, 10)
+                      .map((result: any) => (
+                      <div key={result.id} className="flex items-center gap-3 py-3" data-testid={`itunes-result-${result.id}`}>
+                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#F4F4F5] dark:bg-[#1C1C22] flex-shrink-0 ring-[0.5px] ring-black/5">
+                          {result.artworkUrl ? (
+                            <img src={result.artworkUrl} alt={result.name} className="w-full h-full object-cover" loading="lazy" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-[#E4E4E7]">
+                              <Search className="w-4 h-4 text-[#A1A1AA]" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          {result.onPlatform && result.slug ? (
+                            <Link href={`/podcasts/${result.slug}`}>
+                              <p className="text-[15px] md:text-[16px] font-semibold text-[#09090B] dark:text-white truncate hover:text-[#6366F1] transition-colors">{result.name}</p>
+                            </Link>
+                          ) : (
+                            <p className="text-[15px] md:text-[16px] font-semibold text-[#09090B] dark:text-white truncate">{result.name}</p>
+                          )}
+                          <p className="text-[12px] text-[#A1A1AA] mt-0.5 truncate">
+                            {result.onPlatform ? "On PodCap" : (result.artistName || result.genre || "")}
+                          </p>
+                        </div>
+                        {result.onPlatform && (
+                          <span className="text-[10px] font-bold text-[#6366F1] bg-[#EEF2FF] dark:bg-[#1E1B4B] px-2 py-0.5 rounded-full flex-shrink-0" data-testid={`badge-platform-${result.id}`}>
+                            On PodCap
+                          </span>
+                        )}
+                        <button
+                          onClick={() => handleFollowExternal(result)}
+                          className="flex-shrink-0 px-4 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95 bg-[#09090B] dark:bg-white text-white dark:text-[#09090B]"
+                          data-testid={`follow-itunes-${result.id}`}
+                        >
+                          Follow
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {isItunesSearching && itunesSearchResults.length === 0 && filteredPodcasts.length === 0 && searchedLists.length === 0 && (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="w-5 h-5 animate-spin text-[#6366F1]" />
+                </div>
+              )}
+
+              {!isItunesSearching && searchedLists.length === 0 && filteredPodcasts.length === 0 && itunesSearchResults.length === 0 && (
                 <div className="text-center py-12">
                   <p className="text-[15px] text-[#71717A] dark:text-[#A1A1AA]">No results for "{searchQuery}"</p>
                 </div>
