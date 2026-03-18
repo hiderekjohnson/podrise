@@ -7633,6 +7633,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     const bcrypt = await import("bcryptjs");
 
     let isValid = false;
+    let adminEmail: string | null = null;
     try {
       const dbPw = await db.select().from(adminSettings).where(eq(adminSettings.key, "admin_password_hash")).limit(1);
       if (dbPw.length > 0) {
@@ -7645,6 +7646,21 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
 
     if (!isValid) {
+      try {
+        const { rows: adminUserRows } = await pool.query(
+          `SELECT id, email, password_hash FROM admin_users WHERE password_hash IS NOT NULL AND status = 'active'`
+        );
+        for (const au of adminUserRows) {
+          if (await bcrypt.compare(parsed.data.password, au.password_hash)) {
+            isValid = true;
+            adminEmail = au.email;
+            break;
+          }
+        }
+      } catch {}
+    }
+
+    if (!isValid) {
       const entry = adminLoginAttempts.get(ip)!;
       entry.count++;
       return res.status(401).json({ message: "Invalid admin password" });
@@ -7652,7 +7668,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
     adminLoginAttempts.delete(ip);
     req.session.isAdmin = true;
-    res.json({ message: "Admin authenticated" });
+    res.json({ message: "Admin authenticated", email: adminEmail });
   });
 
   app.post("/api/admin/change-password", async (req, res) => {
@@ -7921,6 +7937,58 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (isNaN(userId)) return res.status(400).json({ message: "Invalid user ID" });
     await storage.deleteUserFeatureOverride(userId, req.params.flagKey);
     res.json({ message: "Override removed" });
+  });
+
+  app.post("/api/admin/admin-users/:id/reset-password", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+    const { db, pool } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    const { adminUsers } = await import("@shared/schema");
+    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, id));
+    if (!user) return res.status(404).json({ message: "Admin user not found" });
+
+    const crypto = await import("crypto");
+    const token = crypto.randomBytes(32).toString("hex");
+    await pool.query(
+      `UPDATE admin_users SET invite_token = $1, invite_sent_at = NOW(), status = 'invited' WHERE id = $2`,
+      [token, id]
+    );
+
+    const baseUrl = process.env.REPLIT_DEPLOYMENT === "1"
+      ? "https://podrise.com"
+      : process.env.REPLIT_DEV_DOMAIN
+        ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+        : "https://podrise.com";
+    const resetUrl = `${baseUrl}/admin/setup?token=${token}`;
+
+    try {
+      const { getUncachableResendClient } = await import("./resendClient");
+      const { client, fromEmail } = await getUncachableResendClient();
+      await client.emails.send({
+        from: `PodRise <${fromEmail}>`,
+        to: user.email,
+        subject: "Reset Your PodRise Admin Password",
+        html: `
+          <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:480px;margin:0 auto;padding:40px 20px;">
+            <div style="text-align:center;margin-bottom:32px;">
+              <h1 style="font-size:24px;font-weight:700;color:#18181B;margin:0;">Reset Your Admin Password</h1>
+            </div>
+            <p style="color:#52525B;font-size:15px;line-height:1.6;margin:0 0 16px;">Hi${user.name ? ` ${user.name}` : ''},</p>
+            <p style="color:#52525B;font-size:15px;line-height:1.6;margin:0 0 24px;">A password reset was requested for your PodRise admin account. Click the button below to set a new password.</p>
+            <div style="text-align:center;margin:32px 0;">
+              <a href="${resetUrl}" style="display:inline-block;padding:14px 32px;background:#6366F1;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:10px;">Reset Password</a>
+            </div>
+            <p style="color:#A1A1AA;font-size:13px;line-height:1.5;margin:24px 0 0;">This link expires in 7 days. If you didn't request this, you can ignore this email.</p>
+          </div>
+        `,
+      });
+      res.json({ message: `Password reset email sent to ${user.email}` });
+    } catch (err: any) {
+      console.error("[AdminReset] Failed to send reset email:", err.message);
+      res.json({ message: `Reset link created but email failed to send. Share this link manually: ${resetUrl}` });
+    }
   });
 
   app.get("/api/admin/setup/verify", async (req, res) => {

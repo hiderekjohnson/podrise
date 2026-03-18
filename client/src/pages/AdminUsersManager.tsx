@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Pencil, Trash2, Shield, Crown, X, UserPlus, Send, Check } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Shield, Crown, X, UserPlus, Send, Check, KeyRound } from "lucide-react";
 
 interface AdminUserRow {
   id: number;
@@ -80,6 +80,18 @@ export default function AdminUsersManager() {
     },
     onError: (err: any) => {
       toast({ title: "Failed", description: err.message || "Could not send invite.", variant: "destructive" });
+    },
+  });
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("POST", `/api/admin/admin-users/${id}/reset-password`),
+    onSuccess: async (res) => {
+      const data = await res.json();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/admin-users"] });
+      toast({ title: "Reset email sent", description: data.message });
+    },
+    onError: (err: any) => {
+      toast({ title: "Failed", description: err.message || "Could not send reset email.", variant: "destructive" });
     },
   });
 
@@ -326,9 +338,25 @@ export default function AdminUsersManager() {
                     </button>
                   )}
                   {user.status === "active" && (
-                    <span className="flex items-center gap-1 px-2 py-1 text-xs text-green-600">
-                      <Check className="w-3.5 h-3.5" />
-                    </span>
+                    <>
+                      <button
+                        onClick={() => resetPasswordMutation.mutate(user.id)}
+                        disabled={resetPasswordMutation.isPending}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-amber-600 hover:bg-amber-50 transition-all"
+                        data-testid={`button-reset-password-admin-${user.id}`}
+                        title="Send password reset email"
+                      >
+                        {resetPasswordMutation.isPending ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <KeyRound className="w-3.5 h-3.5" />
+                        )}
+                        Reset
+                      </button>
+                      <span className="flex items-center gap-1 px-2 py-1 text-xs text-green-600">
+                        <Check className="w-3.5 h-3.5" />
+                      </span>
+                    </>
                   )}
                   <button
                     onClick={() => startEditing(user)}
