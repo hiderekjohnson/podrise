@@ -360,10 +360,20 @@ function CardBottomAccordion({ item, isBookmarked, onBookmarkToggle, onFollowTog
   toast: ReturnType<typeof useToast>["toast"];
 }) {
   const [openSection, setOpenSection] = useState<"recap" | "mentions" | "listen" | null>(null);
+  const scrollCorrectionRef = useRef<{ frame: number; timer: ReturnType<typeof setTimeout> } | null>(null);
   const [activeTab, setActiveTab] = useState<"people" | "companies" | "products">("people");
   const [showAllPeople, setShowAllPeople] = useState(false);
   const [showAllCompanies, setShowAllCompanies] = useState(false);
   const [showAllProducts, setShowAllProducts] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (scrollCorrectionRef.current) {
+        cancelAnimationFrame(scrollCorrectionRef.current.frame);
+        clearTimeout(scrollCorrectionRef.current.timer);
+      }
+    };
+  }, []);
 
   const { people, companies, products } = item.mentions;
   const totalMentions = people.length + companies.length + products.length;
@@ -375,8 +385,47 @@ function CardBottomAccordion({ item, isBookmarked, onBookmarkToggle, onFollowTog
   const youtubeId = parseYouTubeVideoId(item.youtubeUrl);
   const hasListen = !!spotifyId || !!youtubeId || !!item.spotifyEpisodeUrl || !!item.spotifyUrl || (!!item.youtubeUrl && item.youtubeUrl !== '');
 
-  const toggleSection = (section: "recap" | "mentions" | "listen") => {
-    setOpenSection(prev => prev === section ? null : section);
+  const toggleSection = (section: "recap" | "mentions" | "listen", headerEl?: HTMLElement) => {
+    const isSwitching = openSection !== null && openSection !== section;
+    const willOpen = openSection !== section;
+
+    if (scrollCorrectionRef.current) {
+      cancelAnimationFrame(scrollCorrectionRef.current.frame);
+      clearTimeout(scrollCorrectionRef.current.timer);
+      scrollCorrectionRef.current = null;
+    }
+
+    if (isSwitching && willOpen && headerEl) {
+      const offsetBefore = headerEl.getBoundingClientRect().top;
+      setOpenSection(section);
+      const correctScroll = () => {
+        if (!headerEl.isConnected) return;
+        const offsetAfter = headerEl.getBoundingClientRect().top;
+        const drift = offsetAfter - offsetBefore;
+        if (Math.abs(drift) > 1) {
+          window.scrollBy(0, drift);
+        }
+      };
+      const start = performance.now();
+      const poll = () => {
+        correctScroll();
+        if (performance.now() - start < 250) {
+          const frame = requestAnimationFrame(poll);
+          if (scrollCorrectionRef.current) scrollCorrectionRef.current.frame = frame;
+        }
+      };
+      const frame = requestAnimationFrame(poll);
+      const timer = setTimeout(() => {
+        if (scrollCorrectionRef.current) {
+          cancelAnimationFrame(scrollCorrectionRef.current.frame);
+        }
+        correctScroll();
+        scrollCorrectionRef.current = null;
+      }, 260);
+      scrollCorrectionRef.current = { frame, timer };
+    } else {
+      setOpenSection(willOpen ? section : null);
+    }
   };
 
   const stackItems = [...people.slice(0, 3), ...companies.slice(0, 2)];
@@ -468,7 +517,7 @@ function CardBottomAccordion({ item, isBookmarked, onBookmarkToggle, onFollowTog
         <div className="border-t border-[#E4E4E7]" data-testid={`feed-recap-section-${item.id}`}>
           <div
             className={`flex items-center gap-3 px-4 md:px-5 py-[13px] cursor-pointer transition-colors ${openSection === "recap" ? "bg-[#F7F7FC]" : "hover:bg-[#FAFAFB]"}`}
-            onClick={() => toggleSection("recap")}
+            onClick={(e) => toggleSection("recap", e.currentTarget)}
             data-testid={`feed-recap-toggle-${item.id}`}
           >
             <div className="flex items-center flex-shrink-0">
@@ -505,7 +554,7 @@ function CardBottomAccordion({ item, isBookmarked, onBookmarkToggle, onFollowTog
         <div className="border-t border-[#E4E4E7]" data-testid={`feed-mentions-${item.id}`}>
           <div
             className={`flex items-center gap-3 px-4 md:px-5 py-[13px] cursor-pointer transition-colors ${openSection === "mentions" ? "bg-[#F7F7FC]" : "hover:bg-[#FAFAFB]"}`}
-            onClick={() => toggleSection("mentions")}
+            onClick={(e) => toggleSection("mentions", e.currentTarget)}
             data-testid={`feed-mentions-toggle-${item.id}`}
           >
             <div className="flex items-center flex-shrink-0">
@@ -591,7 +640,7 @@ function CardBottomAccordion({ item, isBookmarked, onBookmarkToggle, onFollowTog
         <div className="border-t border-[#E4E4E7]" data-testid={`feed-listen-section-${item.id}`}>
           <div
             className={`flex items-center gap-3 px-4 md:px-5 py-[13px] cursor-pointer transition-colors ${openSection === "listen" ? "bg-[#F7F7FC]" : "hover:bg-[#FAFAFB]"}`}
-            onClick={() => toggleSection("listen")}
+            onClick={(e) => toggleSection("listen", e.currentTarget)}
             data-testid={`feed-listen-toggle-${item.id}`}
           >
             <div className="flex items-center flex-shrink-0">
