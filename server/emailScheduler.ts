@@ -1229,6 +1229,18 @@ export async function refreshLandingPageRecaps(force: boolean = false, dateRange
         newRecaps++;
         landingRecapProgress.recapsCreated = newRecaps;
         console.log(`[LandingRecaps] Generated recap for ${podcast.name} - "${epTitle}"`);
+
+        if (savedRecap?.id) {
+          try {
+            const { validateAndEnrichRecap } = await import("./recapValidator");
+            await validateAndEnrichRecap(
+              savedRecap.id, podcast.slug, epSlug, podcast.name,
+              recap.episodeTitle, podcast.itunesId, transcriptText, podcast.hosts || null
+            );
+          } catch (valErr) {
+            console.warn(`[LandingRecaps] Validation failed for "${epTitle}":`, valErr);
+          }
+        }
       }
     } catch (err) {
       console.error(`[LandingRecaps] Error processing ${podcast.name}:`, err);
