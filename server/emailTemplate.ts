@@ -509,7 +509,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
   const leadHeadline = emailCopy?.leadHeadline || "";
   const supportingDetail = emailCopy?.supportingDetail || "";
   const coverlines = emailCopy?.coverlines || "";
-  const logoUrl = "https://podrise.com/favicon.png";
+  const logoUrl = "https://podrise.com/logo-square-transparent.png";
 
   const episodePillsHtml = parsed.episodes.map((ep, idx) => {
     const accentColor = getAccentColor(idx);

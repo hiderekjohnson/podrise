@@ -56,10 +56,29 @@ Every new page, component, and email template must reference this file before an
 
 ## Logo Usage
 
-- Always use the SVG logo. Never stretch, recolor, or alter the logo.
+- Always use the official brand logo files. Never stretch, recolor, or alter the logo.
 - Minimum size: 28px height. Clear space: minimum 8px on all sides.
 - On dark backgrounds: use white wordmark with indigo gradient icon.
 - On light backgrounds: use dark (#09090B) wordmark with indigo gradient icon.
+
+## Logo Assets
+
+All official brand logo files live in `client/public/`:
+
+| File | Format | Variant | Use When |
+|------|--------|---------|----------|
+| `logo-transparent.svg` | SVG rectangle | Transparent background | Header wordmark, footer, anywhere the full brand name is needed on light or dark backgrounds |
+| `logo-white.svg` | SVG rectangle | White background | Social sharing, email headers, contexts where a white card background is preferred |
+| `logo-square-transparent.png` | PNG square | Transparent background | Sidebar icon, app icon, small square placements, og:image fallback, email template logo |
+| `logo-square-white.png` | PNG square | White background | Social avatars, partner listings, contexts requiring a solid white background |
+| `favicon.png` | PNG (full-res) | Transparent | Primary favicon (high-res) |
+| `favicon-32.png` | PNG 32×32 | Transparent | Browser tab favicon |
+| `apple-touch-icon.png` | PNG 180×180 | Transparent | iOS home screen icon |
+| `favicon.ico` | ICO 32×32 | Transparent | Legacy browser favicon |
+| `podrise-logo.png` | PNG square | Transparent | Served at `/podrise-logo.png` for external references |
+| `podrise-logo.svg` | SVG rectangle | Transparent | Served at `/podrise-logo.svg` for external references |
+
+In React components, import the square PNG via `import logoTransparent from "@assets/Transparent-square_1773866360595.png"` for the `PodRiseIcon` component. The `PodRiseWordmark` component combines the square icon with the "Pod" + "Rise" text.
 
 ## Enforcement
 

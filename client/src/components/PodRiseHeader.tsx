@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import logoTransparent from "@assets/Transparent-square_1773866360595.png";
 
 interface PodRiseHeaderProps {
   rightContent?: React.ReactNode;
@@ -6,24 +7,15 @@ interface PodRiseHeaderProps {
 
 function PodRiseIcon({ size = 36 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <rect width="56" height="56" rx="16" fill="url(#headerGrad)" />
-      <g transform="translate(28, 28)" fill="white">
-        <rect x="-20" y="-6" width="4" height="12" rx="2" opacity="0.5" />
-        <rect x="-13" y="-12" width="4" height="24" rx="2" opacity="0.7" />
-        <rect x="-6" y="-16" width="4" height="32" rx="2" opacity="1" />
-        <rect x="1" y="-11" width="4" height="22" rx="2" opacity="0.9" />
-        <rect x="8" y="-14" width="4" height="28" rx="2" opacity="1" />
-        <rect x="15" y="-8" width="4" height="16" rx="2" opacity="0.6" />
-      </g>
-      <circle cx="46" cy="10" r="4" fill="white" opacity="0.9" />
-      <defs>
-        <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#6366F1" />
-          <stop offset="100%" stopColor="#8B5CF6" />
-        </linearGradient>
-      </defs>
-    </svg>
+    <img
+      src={logoTransparent}
+      alt=""
+      width={size}
+      height={size}
+      className="rounded-[10px] object-contain"
+      aria-hidden="true"
+      data-testid="img-podrise-icon"
+    />
   );
 }
 

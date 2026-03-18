@@ -6,6 +6,7 @@ import {
   Zap, Users, Settings, Radio, Menu, X
 } from "lucide-react";
 import { RightSidebar } from "@/components/RightSidebar";
+import logoTransparent from "@assets/Transparent-square_1773866360595.png";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -154,19 +155,13 @@ export function DashboardLayout({ children, hideRightSidebar }: DashboardLayoutP
         data-testid="sidebar"
       >
         <Link href="/dashboard" data-testid="sidebar-logo">
-          <div
-            className="w-9 h-9 rounded-[10px] flex items-center justify-center mb-6"
-            style={{ background: "linear-gradient(145deg, #6366F1, #8B5CF6)" }}
-          >
-            <svg viewBox="0 0 28 28" width="20" height="20" fill="none">
-              <rect x="1" y="11" width="3.5" height="6" rx="1.75" fill="white" opacity="0.5"/>
-              <rect x="6.5" y="7" width="3.5" height="14" rx="1.75" fill="white" opacity="0.75"/>
-              <rect x="12" y="4" width="3.5" height="20" rx="1.75" fill="white"/>
-              <rect x="17.5" y="8" width="3.5" height="12" rx="1.75" fill="white" opacity="0.85"/>
-              <rect x="23" y="5" width="3.5" height="18" rx="1.75" fill="white" opacity="0.6"/>
-              <circle cx="25.5" cy="3" r="2.5" fill="white"/>
-            </svg>
-          </div>
+          <img
+            src={logoTransparent}
+            alt="PodRise"
+            width={36}
+            height={36}
+            className="w-9 h-9 rounded-[10px] object-contain mb-6"
+          />
         </Link>
 
         <nav className="flex flex-col items-center gap-[2px] flex-1 w-full px-[10px]" data-testid="sidebar-nav">

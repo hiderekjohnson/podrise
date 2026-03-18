@@ -927,11 +927,11 @@ export async function registerRoutes(
   });
 
   app.get("/podrise-logo.png", (_req, res) => {
-    res.sendFile("PodRise_Favicon_1773834313134.png", { root: "attached_assets", maxAge: "30d" });
+    res.sendFile("logo-square-transparent.png", { root: "client/public", maxAge: "30d" });
   });
 
   app.get("/podrise-logo.svg", (_req, res) => {
-    res.sendFile("podrise-logo.svg", { root: "client/public", maxAge: "30d" });
+    res.sendFile("logo-transparent.svg", { root: "client/public", maxAge: "30d" });
   });
 
   app.get("/sitemap.xml", async (_req, res) => {
