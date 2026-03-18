@@ -155,10 +155,10 @@ async function backfillAIFields() {
        OR (r.top_questions IS NULL OR r.top_questions = '' OR r.top_questions = '[]')
        OR (r.topic_contexts IS NULL OR r.topic_contexts = '')
     ORDER BY r.id DESC
-    LIMIT 500
+    LIMIT 2000
   `);
 
-  logMsg(`Found ${rows.length} episodes missing AI fields (processing batch of up to 500)`);
+  logMsg(`Found ${rows.length} episodes missing AI fields (processing batch of up to 2000)`);
   backfillState.total += rows.length;
 
   for (const row of rows) {
@@ -173,6 +173,7 @@ async function backfillAIFields() {
 
       if (!transcriptRows[0]?.transcript) {
         backfillState.processed++;
+        await new Promise(r => setTimeout(r, 50));
         continue;
       }
 
@@ -232,7 +233,7 @@ async function backfillAIFields() {
     }
 
     backfillState.processed++;
-    await new Promise(r => setTimeout(r, 1500));
+    await new Promise(r => setTimeout(r, 500));
   }
 
   logMsg(`AI fields done: ${backfillState.fixed} total fixed`);
@@ -247,10 +248,10 @@ async function backfillQuotes() {
     LEFT JOIN episode_quotes eq ON eq.podcast_slug = r.slug AND eq.episode_slug = r.episode_slug
     WHERE eq.id IS NULL
     ORDER BY r.id DESC
-    LIMIT 500
+    LIMIT 2000
   `);
 
-  logMsg(`Found ${rows.length} episodes missing quotes (processing batch of up to 500)`);
+  logMsg(`Found ${rows.length} episodes missing quotes (processing batch of up to 2000)`);
   backfillState.total += rows.length;
 
   for (const row of rows) {
@@ -265,6 +266,7 @@ async function backfillQuotes() {
 
       if (!transcriptRows[0]?.transcript) {
         backfillState.processed++;
+        await new Promise(r => setTimeout(r, 50));
         continue;
       }
 
@@ -296,7 +298,7 @@ async function backfillQuotes() {
     }
 
     backfillState.processed++;
-    await new Promise(r => setTimeout(r, 1500));
+    await new Promise(r => setTimeout(r, 500));
   }
 
   logMsg(`Quotes done: ${backfillState.fixed} total fixed`);
