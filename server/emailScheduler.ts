@@ -966,7 +966,7 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
     }
     landingRecapProgress.currentPodcast = podcast.name;
     try {
-      const lookupUrl = `https://itunes.apple.com/lookup?id=${podcast.itunesId}&media=podcast&entity=podcastEpisode&limit=10&sort=recent`;
+      const lookupUrl = `https://itunes.apple.com/lookup?id=${podcast.itunesId}&media=podcast&entity=podcastEpisode&limit=25&sort=recent`;
       const lookupRes = await fetch(lookupUrl);
       const lookupJson = await lookupRes.json();
       const episodes = (lookupJson.results || []).filter((r: any) => r.wrapperType === "podcastEpisode");
@@ -1016,7 +1016,7 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
               if (!podcast.taddyUuid) {
                 storage.updatePodcastTaddyUuid(podcast.itunesId, taddyPodcast.uuid).catch(() => {});
               }
-              const taddyEpisodes = await getRecentEpisodesWithTranscripts(taddyPodcast.uuid, 10);
+              const taddyEpisodes = await getRecentEpisodesWithTranscripts(taddyPodcast.uuid, 25);
               const itunesNorm = normalizeTitleForMatch(epTitle);
               const taddyMatch = taddyEpisodes.find((te: any) => {
                 if (!te.name) return false;
@@ -1697,7 +1697,7 @@ export async function refreshNewTranscripts() {
         const seriesRes = await fetch("https://api.taddy.org", {
           method: "POST",
           headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
-          body: JSON.stringify({ query: `{ getPodcastSeries(uuid: "${podcast.taddyUuid}") { uuid episodes(sortOrder: LATEST, limitPerPage: 5) { uuid name description datePublished duration audioUrl imageUrl seasonNumber episodeNumber episodeType subtitle } } }` }),
+          body: JSON.stringify({ query: `{ getPodcastSeries(uuid: "${podcast.taddyUuid}") { uuid episodes(sortOrder: LATEST, limitPerPage: 10) { uuid name description datePublished duration audioUrl imageUrl seasonNumber episodeNumber episodeType subtitle } } }` }),
           signal: AbortSignal.timeout(20000),
         });
         if (seriesRes.status === 429) {
