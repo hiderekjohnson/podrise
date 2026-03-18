@@ -140,7 +140,6 @@ export async function validateAndEnrichRecap(
 
     if (isEmpty(recap.tldl)) result.missing.push("tldl");
     if (isEmpty(recap.quote)) result.missing.push("quote");
-    if (isEmpty(recap.show_notes)) result.missing.push("show_notes");
     if (isEmpty(recap.apple_episode_url)) result.missing.push("apple_url");
     if (isEmpty(recap.spotify_episode_url)) result.missing.push("spotify_url");
     if (isEmpty(recap.audio_url)) result.missing.push("audio_url");
