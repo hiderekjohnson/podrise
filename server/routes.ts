@@ -16484,7 +16484,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
         return res.status(200).json({ success: true });
       }
 
-      if (taddyType === "podcastepisode" && action === "created") {
+      if (taddyType === "podcastepisode" && (action === "created" || action === "updated")) {
         const epData = data;
         const seriesItunesId = String(epData.podcastSeries?.itunesId || "");
         const seriesUuid = epData.podcastSeries?.uuid || "";
