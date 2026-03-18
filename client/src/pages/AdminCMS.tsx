@@ -429,6 +429,106 @@ function PodcastEnrichButton() {
   );
 }
 
+function ItunesFixButton() {
+  const { toast } = useToast();
+  const [fixStatus, setFixStatus] = useState<any>(null);
+  const [polling, setPolling] = useState(false);
+
+  const startFix = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/admin/cms/podcast-fix-itunes", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) });
+      if (res.status === 409) {
+        setPolling(true);
+        toast({ title: "iTunes fix already running", description: "Monitoring progress..." });
+        return;
+      }
+      if (!res.ok) throw new Error("Failed to start");
+      toast({ title: "iTunes fix started" });
+      setPolling(true);
+    },
+    onError: (err: Error) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+  });
+
+  useQuery({
+    queryKey: ["/api/admin/cms/podcast-fix-itunes/status"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/cms/podcast-fix-itunes/status", { credentials: "include" });
+      if (!res.ok) return null;
+      const data = await res.json();
+      setFixStatus(data);
+      if (data.running && !polling) {
+        setPolling(true);
+      }
+      if (!data.running && polling) {
+        setPolling(false);
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/podcasts"] });
+      }
+      return data;
+    },
+    refetchInterval: polling ? 3000 : 30000,
+  });
+
+  const pct = fixStatus && fixStatus.total > 0 ? Math.round((fixStatus.done / fixStatus.total) * 100) : 0;
+  const isComplete = fixStatus && !fixStatus.running && fixStatus.done > 0 && fixStatus.done === fixStatus.total;
+
+  return (
+    <div className="mt-2 space-y-2" data-testid="itunes-fix-panel">
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => startFix.mutate()}
+          disabled={startFix.isPending || polling}
+          className="flex items-center gap-1.5 px-3 py-2 bg-orange-600 text-white rounded-xl text-xs font-semibold hover:bg-orange-500 disabled:opacity-50 transition-colors"
+          data-testid="button-fix-itunes"
+        >
+          {polling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+          {polling ? "Fixing..." : "Fix Names & Artwork (iTunes)"}
+        </button>
+        {fixStatus && fixStatus.total > 0 && (
+          <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-semibold ${
+            isComplete ? "bg-green-100 text-green-700" : polling ? "bg-blue-100 text-blue-700" : "bg-muted text-muted-foreground"
+          }`}>
+            {isComplete ? "✓ Complete" : polling ? `Running ${pct}%` : `Last run: ${pct}%`}
+          </span>
+        )}
+      </div>
+      {fixStatus && fixStatus.total > 0 && (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${isComplete ? "bg-green-500" : "bg-orange-500"}`}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <span className="text-xs text-muted-foreground whitespace-nowrap w-20 text-right">
+              {fixStatus.done}/{fixStatus.total}
+            </span>
+          </div>
+          <div className="flex gap-3 text-xs text-muted-foreground">
+            <span>{fixStatus.updated} updated</span>
+            <span>{fixStatus.skipped} skipped</span>
+            {fixStatus.errors > 0 && <span className="text-red-500">{fixStatus.errors} errors</span>}
+          </div>
+          {fixStatus.log && fixStatus.log.length > 0 && (
+            <details className="mt-1">
+              <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
+                View log ({fixStatus.log.length} entries)
+              </summary>
+              <div className="mt-1 max-h-40 overflow-y-auto bg-muted/50 rounded-lg p-2 text-xs font-mono space-y-0.5">
+                {fixStatus.log.slice(-20).map((line: string, i: number) => (
+                  <div key={i} className={line.startsWith("✓") ? "text-green-600" : line.startsWith("✗") ? "text-red-500" : "text-muted-foreground"}>
+                    {line}
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search);
@@ -474,6 +574,7 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
           <h3 className="text-lg font-bold text-foreground">Podcasts</h3>
           <p className="text-sm text-muted-foreground">{podcasts?.length || 0} podcasts</p>
           <PodcastEnrichButton />
+          <ItunesFixButton />
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-56">

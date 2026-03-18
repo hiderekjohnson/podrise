@@ -10535,6 +10535,118 @@ Rules:
     res.json({ running: podcastEnrichState.running, ...podcastEnrichState.progress });
   });
 
+  const itunesFixState = { running: false, progress: { total: 0, done: 0, updated: 0, skipped: 0, errors: 0, log: [] as string[] } };
+
+  app.post("/api/admin/cms/podcast-fix-itunes", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    if (itunesFixState.running) return res.status(409).json({ message: "iTunes fix already running", progress: itunesFixState.progress });
+
+    itunesFixState.running = true;
+    itunesFixState.progress = { total: 0, done: 0, updated: 0, skipped: 0, errors: 0, log: [] };
+
+    res.json({ message: "iTunes fix started" });
+
+    (async () => {
+      try {
+        const isSlugLike = (name: string, slug: string) => {
+          if (!name) return true;
+          if (name === slug) return true;
+          if (/^[a-z0-9]+(-[a-z0-9]+)+$/.test(name)) return true;
+          return false;
+        };
+
+        const { rows: podcasts } = await pool.query(
+          `SELECT id, slug, name, itunes_id, artwork_url FROM podcast_directory WHERE itunes_id IS NOT NULL ORDER BY name`
+        );
+
+        const needsFix = podcasts.filter((p: any) =>
+          isSlugLike(p.name, p.slug) || !p.artwork_url || p.artwork_url === ""
+        );
+
+        itunesFixState.progress.total = needsFix.length;
+        console.log(`[iTunesFix] Found ${needsFix.length} podcasts needing name/artwork fix out of ${podcasts.length} total`);
+
+        for (let i = 0; i < needsFix.length; i++) {
+          const p = needsFix[i];
+
+          try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 10000);
+            const lookupRes = await fetch(`https://itunes.apple.com/lookup?id=${p.itunes_id}&media=podcast`, { signal: controller.signal });
+            clearTimeout(timeout);
+
+            if (!lookupRes.ok) {
+              itunesFixState.progress.errors++;
+              itunesFixState.progress.log.push(`✗ ${p.slug}: iTunes API returned HTTP ${lookupRes.status}`);
+              itunesFixState.progress.done = i + 1;
+              continue;
+            }
+
+            const lookupData = await lookupRes.json();
+            const info = lookupData.results?.[0];
+
+            if (!info) {
+              itunesFixState.progress.skipped++;
+              itunesFixState.progress.log.push(`— ${p.slug}: no iTunes result for id ${p.itunes_id}`);
+              itunesFixState.progress.done = i + 1;
+              continue;
+            }
+
+            const sets: string[] = [];
+            const params: any[] = [];
+
+            if (isSlugLike(p.name, p.slug) && info.collectionName) {
+              params.push(info.collectionName);
+              sets.push(`name = $${params.length}`);
+            }
+
+            if ((!p.artwork_url || p.artwork_url === "") && (info.artworkUrl600 || info.artworkUrl100)) {
+              const artUrl = (info.artworkUrl600 || info.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb");
+              if (artUrl) {
+                params.push(artUrl);
+                sets.push(`artwork_url = $${params.length}`);
+              }
+            }
+
+            if (sets.length > 0) {
+              params.push(p.id);
+              sets.push(`updated_at = NOW()`);
+              await pool.query(`UPDATE podcast_directory SET ${sets.join(", ")} WHERE id = $${params.length}`, params);
+              itunesFixState.progress.updated++;
+              const updatedFields = sets.filter(s => !s.startsWith("updated_at")).map(s => s.split(" = ")[0]).join(", ");
+              itunesFixState.progress.log.push(`✓ ${p.slug}: updated ${updatedFields}`);
+            } else {
+              itunesFixState.progress.skipped++;
+              itunesFixState.progress.log.push(`— ${p.slug}: no changes needed from iTunes`);
+            }
+          } catch (err: any) {
+            itunesFixState.progress.errors++;
+            itunesFixState.progress.log.push(`✗ ${p.slug}: ${err.message?.slice(0, 80)}`);
+          }
+
+          itunesFixState.progress.done = i + 1;
+
+          if (i % 5 === 0 && i > 0) {
+            await new Promise(r => setTimeout(r, 500));
+          }
+        }
+
+        itunesFixState.progress.done = needsFix.length;
+        console.log(`[iTunesFix] Complete: ${itunesFixState.progress.updated} updated, ${itunesFixState.progress.skipped} skipped, ${itunesFixState.progress.errors} errors`);
+      } catch (err: any) {
+        console.error("[iTunesFix] Fatal error:", err);
+        itunesFixState.progress.log.push(`FATAL: ${err.message}`);
+      } finally {
+        itunesFixState.running = false;
+      }
+    })();
+  });
+
+  app.get("/api/admin/cms/podcast-fix-itunes/status", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    res.json({ running: itunesFixState.running, ...itunesFixState.progress });
+  });
+
   app.get("/api/admin/cms/podcasts/:slug/episodes", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {
