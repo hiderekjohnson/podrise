@@ -246,6 +246,17 @@ export const ITUNES_ID_TO_SLUG: Record<string, string> = {
   "285260960": "mckinsey-podcast",
   "1178735208": "goal-digger",
   "1449762756": "daily-beans",
+  "1148183612": "almost30",
+  "1199977889": "marieforleo",
+  "1087926635": "earnyourhappy",
+  "1564530700": "wecandohardthings",
+  "1435217865": "womenofimpact",
+  "1494350511": "unlockingus",
+  "1708895338": "areallygoodcry",
+  "1795483480": "goodhang",
+  "1678559416": "wiserthanme",
+  "1561694805": "deargabby",
+  "1352546554": "gooppodcast",
 };
 
 export const SLUG_TO_ITUNES_ID: Record<string, string> = Object.fromEntries(

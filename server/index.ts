@@ -352,6 +352,46 @@ process.on("uncaughtException", (err) => {
         }
 
         try {
+          const newPodcasts = [
+            { itunesId: "1148183612", slug: "almost30", name: "Almost 30", hosts: "Krista Williams & Lindsey Simcik", description: "conversations about personal growth, spirituality, wellness, and navigating your late twenties and beyond", appleUrl: "https://podcasts.apple.com/us/podcast/almost-30/id1148183612", spotifyUrl: "https://open.spotify.com/show/0kBU7FWmLaLf3si3KZ9XQx" },
+            { itunesId: "1199977889", slug: "marieforleo", name: "The Marie Forleo Podcast", hosts: "Marie Forleo", description: "actionable strategies for business, personal development, and creating a life you love", appleUrl: "https://podcasts.apple.com/us/podcast/the-marie-forleo-podcast/id1199977889", spotifyUrl: "https://open.spotify.com/show/2BTDPFDY7V3jrtT6JzQ0fX" },
+            { itunesId: "1087926635", slug: "earnyourhappy", name: "Earn Your Happy", hosts: "Lori Harder", description: "inspiration and strategies for building confidence, growing a business, and designing your dream life", appleUrl: "https://podcasts.apple.com/us/podcast/earn-your-happy/id1087926635", spotifyUrl: "https://open.spotify.com/show/00emcUxuXsXWIuNKuhvIRR" },
+            { itunesId: "1564530700", slug: "wecandohardthings", name: "We Can Do Hard Things", hosts: "Glennon Doyle", description: "honest conversations about the hard things in life including relationships, parenting, identity, and resilience", appleUrl: "https://podcasts.apple.com/us/podcast/we-can-do-hard-things/id1564530700", spotifyUrl: "https://open.spotify.com/show/0eFL5HJejQHZrdgAFdPnOm" },
+            { itunesId: "1435217865", slug: "womenofimpact", name: "Women of Impact", hosts: "Lisa Bilyeu", description: "empowering conversations with trailblazing women about mindset, entrepreneurship, and overcoming adversity", appleUrl: "https://podcasts.apple.com/us/podcast/women-of-impact/id1435217865", spotifyUrl: "https://open.spotify.com/show/2Pv6X6iCwFmwGwxfrwHdfW" },
+            { itunesId: "1494350511", slug: "unlockingus", name: "Unlocking Us with Brené Brown", hosts: "Brené Brown", description: "conversations about vulnerability, courage, shame, and what it means to be human", appleUrl: "https://podcasts.apple.com/us/podcast/unlocking-us-with-brene-brown/id1494350511", spotifyUrl: "https://open.spotify.com/show/4P86ZzHf7EOlRG7do9LkKZ" },
+            { itunesId: "1708895338", slug: "areallygoodcry", name: "A Really Good Cry", hosts: "Radhi Devlukia-Shetty", description: "emotional wellness conversations exploring feelings, healing, and living with intention", appleUrl: "https://podcasts.apple.com/us/podcast/a-really-good-cry/id1708895338", spotifyUrl: "https://open.spotify.com/show/6FR9Pjd4y2kXO54Wzs5uye" },
+            { itunesId: "1795483480", slug: "goodhang", name: "Good Hang with Amy Poehler", hosts: "Amy Poehler", description: "candid and hilarious conversations with interesting people about life, creativity, and friendship", appleUrl: "https://podcasts.apple.com/us/podcast/good-hang-with-amy-poehler/id1795483480", spotifyUrl: "https://open.spotify.com/show/1z20EiwuKoDiftKxMVLde1" },
+            { itunesId: "1678559416", slug: "wiserthanme", name: "Wiser Than Me with Julia Louis-Dreyfus", hosts: "Julia Louis-Dreyfus", description: "conversations with older women who share hard-earned wisdom about life, aging, and everything in between", appleUrl: "https://podcasts.apple.com/us/podcast/wiser-than-me-with-julia-louis-dreyfus/id1678559416", spotifyUrl: "https://open.spotify.com/show/3zaHNdVeLiqOSXwxdoWcij" },
+            { itunesId: "1561694805", slug: "deargabby", name: "Dear Gabby", hosts: "Gabby Bernstein", description: "coaching and spiritual guidance on manifesting, relationships, anxiety, and personal transformation", appleUrl: "https://podcasts.apple.com/us/podcast/dear-gabby/id1561694805", spotifyUrl: "https://open.spotify.com/show/24ayLlNtpav44vsHPdeNi1" },
+            { itunesId: "1352546554", slug: "gooppodcast", name: "The goop Podcast", hosts: "Gwyneth Paltrow", description: "wellness, health, beauty, and lifestyle conversations with leading experts and cultural voices", appleUrl: "https://podcasts.apple.com/us/podcast/the-goop-podcast/id1352546554", spotifyUrl: "https://open.spotify.com/show/1PyphXayU14C9VmJfdIt9M" },
+          ];
+          let seeded = 0, failed = 0;
+          for (const p of newPodcasts) {
+            try {
+              await pool.query(
+                `INSERT INTO podcast_directory (itunes_id, slug, name, hosts, description, apple_url, spotify_url, status, has_landing_page, created_at, updated_at)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, 'published', false, NOW(), NOW())
+                 ON CONFLICT (itunes_id) DO UPDATE SET
+                   slug = COALESCE(NULLIF(podcast_directory.slug, ''), EXCLUDED.slug),
+                   hosts = COALESCE(NULLIF(podcast_directory.hosts, ''), EXCLUDED.hosts),
+                   description = COALESCE(NULLIF(podcast_directory.description, ''), EXCLUDED.description),
+                   apple_url = COALESCE(NULLIF(podcast_directory.apple_url, ''), EXCLUDED.apple_url),
+                   spotify_url = COALESCE(NULLIF(podcast_directory.spotify_url, ''), EXCLUDED.spotify_url),
+                   updated_at = NOW()`,
+                [p.itunesId, p.slug, p.name, p.hosts, p.description, p.appleUrl, p.spotifyUrl]
+              );
+              seeded++;
+            } catch (err: any) {
+              failed++;
+              console.warn(`[Migration] Failed to seed podcast "${p.slug}" (iTunes ${p.itunesId}):`, err.message);
+            }
+          }
+          console.log(`[Migration] Podcast directory seed: ${seeded} succeeded, ${failed} failed out of ${newPodcasts.length}`);
+        } catch (err) {
+          console.warn("New podcasts seed skipped:", err);
+        }
+
+        try {
           const existingHosts = await pool.query(`SELECT COUNT(*) FROM podcast_hosts WHERE podcast_slug = 'myfirstmillion'`);
           if (parseInt(existingHosts.rows[0].count) === 0) {
             await pool.query(`
