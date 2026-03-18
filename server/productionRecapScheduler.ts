@@ -7,7 +7,9 @@ import { isLikelySponsorProduct } from "./productFilter";
 const INTERVAL_MS = 5 * 60 * 1000;
 const BATCH_SIZE = 3;
 const PER_PODCAST = 3;
+const BATCH_TIMEOUT_MS = 10 * 60 * 1000;
 let batchRunning = false;
+let batchStartedAt = 0;
 
 async function getPodcastInfo(itunesId: string) {
   const { rows } = await pool.query(
@@ -163,10 +165,17 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
 
 async function runBatch() {
   if (batchRunning) {
-    console.log("[ProdRecap] Previous batch still running, skipping this cycle");
-    return;
+    const elapsed = Date.now() - batchStartedAt;
+    if (elapsed > BATCH_TIMEOUT_MS) {
+      console.warn(`[ProdRecap] Batch stuck for ${Math.round(elapsed / 60000)}min — forcing reset`);
+      batchRunning = false;
+    } else {
+      console.log(`[ProdRecap] Previous batch still running (${Math.round(elapsed / 1000)}s), skipping`);
+      return;
+    }
   }
   batchRunning = true;
+  batchStartedAt = Date.now();
   try {
     const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
     const cutoffTimestamp = Math.floor(fourteenDaysAgo.getTime() / 1000);
@@ -218,7 +227,14 @@ async function runBatch() {
 
       console.log(`[ProdRecap] Processing: "${ep.episode_title?.slice(0, 60)}" (${podcastName})`);
 
-      const success = await processEpisode(ep, podcastSlug, podcastName, ep.podcast_id, hosts, artwork);
+      const episodeTimeout = new Promise<boolean>((resolve) => setTimeout(() => {
+        console.warn(`[ProdRecap] Episode timed out after 4min: "${ep.episode_title?.slice(0, 60)}"`);
+        resolve(false);
+      }, 4 * 60 * 1000));
+      const success = await Promise.race([
+        processEpisode(ep, podcastSlug, podcastName, ep.podcast_id, hosts, artwork),
+        episodeTimeout
+      ]);
       if (success) generated++;
       else failed++;
 
