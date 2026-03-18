@@ -7397,7 +7397,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           yearStarted: r.pd_year_started || null,
           appleUrl: r.pd_apple_url || null,
           spotifyUrl: r.pd_spotify_url || null,
-          youtubeUrl: r.pd_youtube_url || null,
+          youtubeUrl: r.youtube_url || r.pd_youtube_url || null,
           spotifyEpisodeUrl: r.spotify_episode_url || null,
           appleEpisodeUrl: r.apple_episode_url || null,
           youtubeEpisodeUrl: r.youtube_url || null,
