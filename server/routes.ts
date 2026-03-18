@@ -2923,7 +2923,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       const cached = directoryCache.podcastsDirectory.get();
       if (cached) return res.json(cached);
       const result = await pool.query(
-        `SELECT slug, name, artwork_url, category FROM podcast_directory WHERE slug IS NOT NULL ORDER BY COALESCE(followers_count, 0) DESC, name ASC`
+        `SELECT slug, name, artwork_url, category FROM podcast_directory WHERE slug IS NOT NULL ORDER BY name ASC`
       );
       directoryCache.podcastsDirectory.set(result.rows);
       res.json(result.rows);
