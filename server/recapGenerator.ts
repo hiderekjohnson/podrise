@@ -3,6 +3,7 @@ import { openai } from "./replit_integrations/image/client";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 import { pool } from "./db";
 import { TOPICS } from "../client/src/data/topicData";
+import { searchSpotifyEpisode } from "./spotifyClient";
 
 const CURATED_TOPIC_SLUGS = TOPICS.map(t => t.slug);
 
@@ -122,10 +123,6 @@ interface RecapResult {
 
 type RecapMode = "yesterday" | "latest";
 
-function buildSpotifySearchUrl(podcastName: string, episodeTitle: string): string {
-  const query = encodeURIComponent(`${podcastName} ${episodeTitle}`);
-  return `https://open.spotify.com/search/${query}`;
-}
 
 function selectEpisodes(allResults: any[], mode: RecapMode, yesterdayStart?: Date, yesterdayEnd?: Date): any[] {
   const podcastEpisodes = allResults.filter((r: any) => r.wrapperType === "podcastEpisode");
@@ -196,9 +193,9 @@ export async function generateRecap(
           episodeMetadata.set(metaKey, { duration: durationStr, date: releaseDate, podcastId: podcast.id });
 
           const appleUrl = ep.trackViewUrl || ep.collectionViewUrl || "";
-          const spotifySearchUrl = buildSpotifySearchUrl(podcast.name, ep.trackName || "");
+          const spotifyEpisodeUrl = await searchSpotifyEpisode(podcast.name, ep.trackName || "");
           if (appleUrl) episodeLinks.set(metaKey, appleUrl);
-          if (spotifySearchUrl) episodeSpotifyLinks.set(metaKey, spotifySearchUrl);
+          if (spotifyEpisodeUrl) episodeSpotifyLinks.set(metaKey, spotifyEpisodeUrl);
         }
         hasAnyEpisodes = true;
         podcastNamesWithEpisodes.push(podcast.name);

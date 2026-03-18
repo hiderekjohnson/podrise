@@ -1099,7 +1099,8 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
           showNotes = recap.whatHappened;
         }
 
-        const spotifyEpisodeUrl = `https://open.spotify.com/search/${encodeURIComponent(podcast.name + " " + recap.episodeTitle)}`;
+        const { searchSpotifyEpisode } = await import("./spotifyClient");
+        const spotifyEpisodeUrl = await searchSpotifyEpisode(podcast.name, recap.episodeTitle) || "";
         const savedRecap = await storage.upsertLandingPageRecap({
           slug: podcast.slug,
           itunesId: podcast.itunesId,
@@ -2190,7 +2191,8 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
               showNotes = recap.whatHappened;
             }
 
-            const batchSpotifyUrl = `https://open.spotify.com/search/${encodeURIComponent(podcast.name + " " + recap.episodeTitle)}`;
+            const { searchSpotifyEpisode: searchSpotifyEp } = await import("./spotifyClient");
+            const batchSpotifyUrl = await searchSpotifyEp(podcast.name, recap.episodeTitle) || "";
             const batchSavedRecap = await storage.upsertLandingPageRecap({
               slug: podcast.slug,
               itunesId: podcast.itunesId,
@@ -2624,7 +2626,7 @@ export async function backfillSpotifyEpisodeUrls() {
   const client = await dbPool.connect();
   try {
     const { rows: recaps } = await client.query(
-      `SELECT id, podcast_name, episode_title FROM landing_page_recaps WHERE (spotify_episode_url IS NULL OR spotify_episode_url = '') ORDER BY id`
+      `SELECT id, podcast_name, episode_title FROM landing_page_recaps WHERE (spotify_episode_url IS NULL OR spotify_episode_url = '' OR spotify_episode_url LIKE '%/search/%') ORDER BY id`
     );
     console.log(`[BackfillSpotifyUrls] Found ${recaps.length} recaps missing Spotify episode URLs`);
 
@@ -2635,13 +2637,11 @@ export async function backfillSpotifyEpisodeUrls() {
       const recap = recaps[i];
       try {
         const url = await searchSpotifyEpisode(recap.podcast_name, recap.episode_title);
-        if (url) {
-          await client.query(
-            `UPDATE landing_page_recaps SET spotify_episode_url = $1 WHERE id = $2`,
-            [url, recap.id]
-          );
-          updated++;
-        }
+        await client.query(
+          `UPDATE landing_page_recaps SET spotify_episode_url = $1 WHERE id = $2`,
+          [url || "", recap.id]
+        );
+        updated++;
       } catch (err) {
         errors++;
       }

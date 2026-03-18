@@ -10299,8 +10299,7 @@ Rules:
 
       const isEmptyVal = (v: any) => !v || typeof v !== 'string' || !v.trim() || v.trim() === '[]' || v.trim() === 'null';
       const hostsValue = isEmptyVal(episode.hosts) ? podcastHosts.map((h: any) => h.name).join(", ") : episode.hosts;
-      const fallbackSpotifySearch = `https://open.spotify.com/search/${encodeURIComponent((episode.podcast_name || "") + " " + (episode.episode_title || ""))}`;
-      const spotifyValue = !isEmptyVal(episode.spotify_episode_url) ? episode.spotify_episode_url : (!isEmptyVal(podcastSpotifyUrl) ? podcastSpotifyUrl : fallbackSpotifySearch);
+      const spotifyValue = !isEmptyVal(episode.spotify_episode_url) ? episode.spotify_episode_url : (!isEmptyVal(podcastSpotifyUrl) ? podcastSpotifyUrl : "");
 
       res.json({ ...episode, hosts: hostsValue, spotify_episode_url: spotifyValue, quotes: quoteRows, transcript, extractedProducts, podcastHosts });
     } catch (err: any) {
@@ -11432,7 +11431,8 @@ Rules:
                   ? new Date(ep.releaseDate).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })
                   : "";
                 const appleUrl = ep.trackViewUrl || ep.collectionViewUrl || "";
-                const spotifyUrl = `https://open.spotify.com/search/${encodeURIComponent(pName + " " + epTitle)}`;
+                const { searchSpotifyEpisode } = await import("./spotifyClient");
+                const spotifyUrl = await searchSpotifyEpisode(pName, epTitle) || "";
                 matchedEpisodes.push({ title: epTitle, durationMin, durationStr, releaseDate, appleUrl, spotifyUrl });
               }
             }
@@ -13739,7 +13739,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
           : `${durationMin} minutes`;
 
-        const spotifyEpisodeUrl = `https://open.spotify.com/search/${encodeURIComponent(podcastName + " " + epTitle)}`;
+        const { searchSpotifyEpisode } = await import("./spotifyClient");
+        const spotifyEpisodeUrl = await searchSpotifyEpisode(podcastName, epTitle) || "";
         const upsertedRecap = await storage.upsertLandingPageRecap({
           slug: podcastSlug,
           itunesId,
@@ -14048,7 +14049,11 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     try {
       for (const r of recaps) {
         try {
-          const bulkSpotifyUrl = r.spotify_episode_url || `https://open.spotify.com/search/${encodeURIComponent((r.podcast_name || "") + " " + (r.episode_title || ""))}`;
+          let bulkSpotifyUrl = r.spotify_episode_url || "";
+          if (!bulkSpotifyUrl || bulkSpotifyUrl.includes('/search/')) {
+            const { searchSpotifyEpisode } = await import("./spotifyClient");
+            bulkSpotifyUrl = await searchSpotifyEpisode(r.podcast_name || "", r.episode_title || "") || "";
+          }
           await storage.upsertLandingPageRecap({
             slug: r.slug,
             itunesId: r.itunes_id,
@@ -16574,7 +16579,8 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
               ? new Date(epData.datePublished * 1000).toISOString().split("T")[0]
               : new Date().toISOString().split("T")[0];
 
-            const webhookSpotifyUrl = `https://open.spotify.com/search/${encodeURIComponent(podcast.name + " " + epTitle)}`;
+            const { searchSpotifyEpisode } = await import("./spotifyClient");
+            const webhookSpotifyUrl = await searchSpotifyEpisode(podcast.name, epTitle) || "";
             const webhookUpserted = await storage.upsertLandingPageRecap({
               slug: podcast.slug,
               itunesId: podcast.itunes_id,

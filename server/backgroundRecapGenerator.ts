@@ -3,6 +3,7 @@ import { storage } from "./storage";
 import { generateRecapFromFullTranscript, ExtractedProduct } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 import { isLikelySponsorProduct } from "./productFilter";
+import { searchSpotifyEpisode } from "./spotifyClient";
 
 const CONCURRENCY = 2;
 const BATCH_SIZE = 50;
@@ -95,7 +96,7 @@ async function processEpisode(
       }
 
       const appleEpisodeUrl = await lookupAppleEpisodeUrl(itunesId, epTitle, podcastName);
-      const spotifyEpisodeUrl = `https://open.spotify.com/search/${encodeURIComponent(podcastName + " " + epTitle)}`;
+      const spotifyEpisodeUrl = await searchSpotifyEpisode(podcastName, epTitle) || "";
       const showNotes = ep.description || null;
 
       const upsertedRecap = await storage.upsertLandingPageRecap({
