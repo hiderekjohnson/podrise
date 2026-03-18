@@ -918,7 +918,7 @@ export function getLandingRecapProgress() {
   return { ...landingRecapProgress };
 }
 
-export async function refreshLandingPageRecaps(force: boolean = false) {
+export async function refreshLandingPageRecaps(force: boolean = false, dateRange?: { from: string; to: string }) {
   const todayKey = new Date().toISOString().split("T")[0];
   if (!force && landingPageRefreshRanToday === todayKey) return;
 
@@ -1085,6 +1085,11 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
         const releaseDate = ep.releaseDate
           ? new Date(ep.releaseDate).toISOString().split("T")[0]
           : todayKey;
+
+        if (dateRange && (releaseDate < dateRange.from || releaseDate > dateRange.to)) {
+          skipped++;
+          continue;
+        }
 
         const appleEpisodeUrl = ep.trackViewUrl
           ? ep.trackViewUrl.replace(/&uo=\d+/, "")

@@ -8577,8 +8577,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       if (current.status === "running") {
         return res.status(409).json({ message: "Landing recap refresh already running", progress: current });
       }
-      refreshLandingPageRecaps(true);
-      res.json({ message: "Landing recap refresh started" });
+      const dateRange = req.body.dateRange || undefined;
+      refreshLandingPageRecaps(true, dateRange);
+      res.json({ message: "Landing recap refresh started", dateRange: dateRange || "all" });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to start" });
     }
