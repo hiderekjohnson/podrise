@@ -1185,7 +1185,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
           const safeSummary = escHtml(featureDescription);
           const safeOriginal = escHtml(validatedMessages[validatedMessages.length - 1].content);
           await client.emails.send({
-            from: fromEmail,
+            from: `PodRise <${fromEmail}>`,
             to: "hiderekjohnson@gmail.com",
             subject: `PodRise Feature Request from ${user?.email || `User #${userId}`}`,
             html: `

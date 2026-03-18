@@ -27,13 +27,13 @@ async function getCredentials() {
   if (!connectionSettings || (!connectionSettings.settings.api_key)) {
     throw new Error('Resend not connected');
   }
-  return { apiKey: connectionSettings.settings.api_key, fromEmail: connectionSettings.settings.from_email };
+  return { apiKey: connectionSettings.settings.api_key };
 }
 
 export async function getUncachableResendClient() {
-  const { apiKey, fromEmail } = await getCredentials();
+  const { apiKey } = await getCredentials();
   return {
     client: new Resend(apiKey),
-    fromEmail: fromEmail || 'digest@podrise.com',
+    fromEmail: 'noreply@podrise.com',
   };
 }
