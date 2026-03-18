@@ -352,6 +352,52 @@ process.on("uncaughtException", (err) => {
         }
 
         try {
+          await pool.query(`CREATE TABLE IF NOT EXISTS feature_flags (
+            id SERIAL PRIMARY KEY,
+            key TEXT NOT NULL UNIQUE,
+            description TEXT,
+            enabled BOOLEAN NOT NULL DEFAULT false,
+            created_at TIMESTAMP DEFAULT NOW()
+          )`);
+          await pool.query(`CREATE TABLE IF NOT EXISTS user_feature_overrides (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL,
+            flag_key TEXT NOT NULL,
+            enabled BOOLEAN NOT NULL,
+            created_at TIMESTAMP DEFAULT NOW(),
+            UNIQUE(user_id, flag_key)
+          )`);
+          await pool.query(`
+            INSERT INTO feature_flags (key, description, enabled)
+            VALUES ('pulse', 'Pulse Pro briefings feature', false),
+                   ('upgrade', 'Upgrade/pricing features', false)
+            ON CONFLICT (key) DO NOTHING
+          `);
+          console.log("feature_flags tables ready");
+        } catch (err) {
+          console.warn("feature_flags migration skipped:", err);
+        }
+
+        try {
+          await pool.query(`CREATE TABLE IF NOT EXISTS ad_events (
+            id SERIAL PRIMARY KEY,
+            ad_id INTEGER NOT NULL,
+            event_type TEXT NOT NULL,
+            session_id TEXT,
+            user_id INTEGER,
+            ip_address TEXT,
+            user_agent TEXT,
+            referrer TEXT,
+            created_at TIMESTAMP DEFAULT NOW()
+          )`);
+          await pool.query(`CREATE INDEX IF NOT EXISTS idx_ad_events_ad_id ON ad_events(ad_id)`).catch(() => {});
+          await pool.query(`CREATE INDEX IF NOT EXISTS idx_ad_events_created_at ON ad_events(created_at)`).catch(() => {});
+          console.log("ad_events table ready");
+        } catch (err) {
+          console.warn("ad_events migration skipped:", err);
+        }
+
+        try {
           const newPodcasts = [
             { itunesId: "1148183612", slug: "almost30", name: "Almost 30", hosts: "Krista Williams & Lindsey Simcik", description: "conversations about personal growth, spirituality, wellness, and navigating your late twenties and beyond", appleUrl: "https://podcasts.apple.com/us/podcast/almost-30/id1148183612", spotifyUrl: "https://open.spotify.com/show/0kBU7FWmLaLf3si3KZ9XQx" },
             { itunesId: "1199977889", slug: "marieforleo", name: "The Marie Forleo Podcast", hosts: "Marie Forleo", description: "actionable strategies for business, personal development, and creating a life you love", appleUrl: "https://podcasts.apple.com/us/podcast/the-marie-forleo-podcast/id1199977889", spotifyUrl: "https://open.spotify.com/show/2BTDPFDY7V3jrtT6JzQ0fX" },
