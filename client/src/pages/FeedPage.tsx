@@ -813,43 +813,88 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toa
 
 interface FeedAdData {
   id: number;
-  type: "podcast" | "regular";
+  type: "podcast" | "regular" | "episode_recap";
   title: string;
   description: string;
   imageUrl: string;
   destinationUrl: string;
   podcastSlug: string | null;
+  episodeSlug: string | null;
+  episodeTitle: string | null;
+  episodeTldl: string | null;
+  episodeKeyInsights: string[] | null;
+  episodeQuote: string | null;
+  episodeQuoteAttribution: string | null;
+  podcastName: string | null;
   weight: number;
   isActive: boolean;
 }
 
-function PodcastAdCard({ ad, onFollow }: { ad: FeedAdData; onFollow: (slug: string) => void }) {
+function trackAdEvent(adId: number, eventType: "view" | "click" | "follow") {
+  fetch("/api/ad-events", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ adId, eventType }),
+  }).catch(() => {});
+}
+
+function useAdViewTracking(adId: number) {
+  const ref = useRef<HTMLDivElement>(null);
+  const tracked = useRef(false);
+  useEffect(() => {
+    if (!ref.current || tracked.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !tracked.current) {
+          tracked.current = true;
+          trackAdEvent(adId, "view");
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.5 }
+    );
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [adId]);
+  return ref;
+}
+
+function PodcastAdCard({ ad, onFollow }: { ad: FeedAdData; onFollow: (slug: string, adId?: number) => void }) {
+  const viewRef = useAdViewTracking(ad.id);
   return (
     <div
+      ref={viewRef}
       className="rounded-2xl overflow-hidden mb-4"
       style={{ background: "#FDF8F3" }}
       data-testid={`feed-podcast-ad-${ad.id}`}
     >
       <div className="p-5 flex items-start gap-4">
-        <img
-          src={ad.imageUrl}
-          alt={ad.title}
-          className="w-[72px] h-[72px] rounded-xl object-cover shrink-0"
-          onError={(e) => { (e.target as HTMLImageElement).style.background = "#ddd"; }}
-        />
-        <div className="flex-1 min-w-0">
-          <div className="font-bold text-[17px] text-[#09090B] mb-1" data-testid={`text-podcast-ad-title-${ad.id}`}>
-            {ad.title}
+        <Link
+          href={ad.podcastSlug ? `/podcasts/${ad.podcastSlug}` : (ad.destinationUrl || "#")}
+          onClick={() => trackAdEvent(ad.id, "click")}
+          className="flex items-start gap-4 flex-1 min-w-0 no-underline"
+          data-testid={`feed-podcast-ad-link-${ad.id}`}
+        >
+          <img
+            src={ad.imageUrl}
+            alt={ad.title}
+            className="w-[72px] h-[72px] rounded-xl object-cover shrink-0"
+            onError={(e) => { (e.target as HTMLImageElement).style.background = "#ddd"; }}
+          />
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-[17px] text-[#09090B] mb-1" data-testid={`text-podcast-ad-title-${ad.id}`}>
+              {ad.title}
+            </div>
+            <div className="text-[14px] text-[#52525B] leading-[1.6]" data-testid={`text-podcast-ad-desc-${ad.id}`}>
+              {ad.description}
+            </div>
           </div>
-          <div className="text-[14px] text-[#52525B] leading-[1.6]" data-testid={`text-podcast-ad-desc-${ad.id}`}>
-            {ad.description}
-          </div>
-        </div>
+        </Link>
         <div className="flex flex-col items-end gap-2 shrink-0">
           <span className="text-[12px] text-[#A1A1AA] font-medium" data-testid={`label-ad-${ad.id}`}>Ad</span>
           {ad.podcastSlug && (
             <button
-              onClick={() => onFollow(ad.podcastSlug!)}
+              onClick={() => onFollow(ad.podcastSlug!, ad.id)}
               className="inline-flex items-center px-5 py-[7px] rounded-full text-[14px] font-bold transition-all bg-[#6366F1] text-white hover:bg-[#4F46E5]"
               data-testid={`feed-ad-follow-btn-${ad.id}`}
             >
@@ -863,8 +908,10 @@ function PodcastAdCard({ ad, onFollow }: { ad: FeedAdData; onFollow: (slug: stri
 }
 
 function RegularAdCard({ ad }: { ad: FeedAdData }) {
+  const viewRef = useAdViewTracking(ad.id);
   return (
     <div
+      ref={viewRef}
       className="rounded-2xl overflow-hidden mb-4"
       style={{ background: "#FDF8F3" }}
       data-testid={`feed-regular-ad-${ad.id}`}
@@ -894,6 +941,7 @@ function RegularAdCard({ ad }: { ad: FeedAdData }) {
                       rel="noopener noreferrer"
                       className="text-[#6366F1] underline hover:text-[#4F46E5]"
                       data-testid={`link-regular-ad-${ad.id}`}
+                      onClick={() => trackAdEvent(ad.id, "click")}
                     >
                       {hostname}
                     </a>
@@ -905,6 +953,99 @@ function RegularAdCard({ ad }: { ad: FeedAdData }) {
         </div>
         <div className="shrink-0">
           <span className="text-[12px] text-[#A1A1AA] font-medium" data-testid={`label-ad-${ad.id}`}>Ad</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EpisodeRecapAdCard({ ad, onFollow }: { ad: FeedAdData; onFollow: (slug: string, adId?: number) => void }) {
+  const viewRef = useAdViewTracking(ad.id);
+  const insights = ad.episodeKeyInsights || [];
+  return (
+    <div
+      ref={viewRef}
+      className="rounded-2xl overflow-hidden mb-4"
+      style={{ background: "#FDF8F3" }}
+      data-testid={`feed-episode-recap-ad-${ad.id}`}
+    >
+      <div className="p-5">
+        <div className="flex items-start gap-4 mb-3">
+          <img
+            src={ad.imageUrl}
+            alt={ad.podcastName || ad.title}
+            className="w-[72px] h-[72px] rounded-xl object-cover shrink-0"
+            onError={(e) => { (e.target as HTMLImageElement).style.background = "#ddd"; }}
+          />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-[12px] text-[#A1A1AA] font-medium mb-0.5" data-testid={`text-recap-ad-podcast-${ad.id}`}>
+                  {ad.podcastName || ad.title}
+                </div>
+                <div className="font-bold text-[16px] text-[#09090B] leading-tight" data-testid={`text-recap-ad-episode-${ad.id}`}>
+                  {ad.episodeTitle || ad.title}
+                </div>
+              </div>
+              <span className="text-[12px] text-[#A1A1AA] font-medium shrink-0 ml-2" data-testid={`label-ad-${ad.id}`}>Ad</span>
+            </div>
+          </div>
+        </div>
+
+        {ad.episodeTldl && (
+          <div className="mb-3">
+            <div className="text-[11px] font-bold text-[#6366F1] uppercase tracking-wide mb-1">TL;DL</div>
+            <div className="text-[14px] text-[#52525B] leading-[1.6]" data-testid={`text-recap-ad-tldl-${ad.id}`}>
+              {ad.episodeTldl}
+            </div>
+          </div>
+        )}
+
+        {insights.length > 0 && (
+          <div className="mb-3">
+            <div className="text-[11px] font-bold text-[#6366F1] uppercase tracking-wide mb-1">Key Insights</div>
+            <ul className="space-y-1">
+              {insights.slice(0, 3).map((insight, i) => (
+                <li key={i} className="text-[13px] text-[#52525B] leading-[1.5] flex items-start gap-2">
+                  <span className="text-[#6366F1] mt-0.5 shrink-0">•</span>
+                  <span>{insight}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {ad.episodeQuote && (
+          <div className="mb-3 pl-3 border-l-2 border-[#6366F1]/30">
+            <div className="text-[13px] text-[#52525B] italic leading-[1.5]" data-testid={`text-recap-ad-quote-${ad.id}`}>
+              "{ad.episodeQuote}"
+            </div>
+            {ad.episodeQuoteAttribution && (
+              <div className="text-[12px] text-[#A1A1AA] mt-1">— {ad.episodeQuoteAttribution}</div>
+            )}
+          </div>
+        )}
+
+        <div className="flex items-center justify-between pt-2 border-t border-black/[0.06]">
+          {ad.podcastSlug && ad.episodeSlug ? (
+            <Link
+              href={`/podcasts/${ad.podcastSlug}/${ad.episodeSlug}`}
+              className="text-[13px] font-bold text-[#6366F1] hover:text-[#4F46E5]"
+              onClick={() => trackAdEvent(ad.id, "click")}
+              data-testid={`link-recap-ad-${ad.id}`}
+            >
+              Read Full Recap →
+            </Link>
+          ) : <div />}
+          {ad.podcastSlug && (
+            <button
+              onClick={() => onFollow(ad.podcastSlug!, ad.id)}
+              className="inline-flex items-center px-5 py-[7px] rounded-full text-[14px] font-bold transition-all bg-[#6366F1] text-white hover:bg-[#4F46E5]"
+              data-testid={`feed-ad-follow-btn-${ad.id}`}
+            >
+              Follow
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -1018,7 +1159,7 @@ export default function FeedPage() {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const followMutation = useMutation({
-    mutationFn: async ({ podcastSlug, follow }: { podcastSlug: string; follow: boolean }) => {
+    mutationFn: async ({ podcastSlug, follow }: { podcastSlug: string; follow: boolean; adId?: number }) => {
       const endpoint = follow ? "/api/feed/follow" : "/api/feed/unfollow";
       const res = await apiRequest("POST", endpoint, { podcastSlug });
       return res.json();
@@ -1027,6 +1168,9 @@ export default function FeedPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/feed"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       queryClient.invalidateQueries({ queryKey: ["/api/sidebar-suggestions"] });
+      if (variables.adId && variables.follow) {
+        trackAdEvent(variables.adId, "follow");
+      }
       toast({
         title: variables.follow ? "Following" : "Unfollowed",
         description: variables.follow ? "Added to your feed and daily email recap" : "Removed from your feed and daily email",
@@ -1035,9 +1179,9 @@ export default function FeedPage() {
     onError: () => { toast({ title: "Error", description: "Failed to update subscription", variant: "destructive" }); },
   });
 
-  const handleFollowToggle = useCallback((slug: string, follow: boolean) => {
+  const handleFollowToggle = useCallback((slug: string, follow: boolean, adId?: number) => {
     if (!user) { toast({ title: "Sign in required", description: "Log in to follow podcasts", variant: "destructive" }); return; }
-    followMutation.mutate({ podcastSlug: slug, follow });
+    followMutation.mutate({ podcastSlug: slug, follow, adId });
   }, [user, followMutation, toast]);
 
   const allItems: FeedItem[] = data?.pages?.flatMap((p: any) => p.items) || [];
@@ -1127,7 +1271,15 @@ export default function FeedPage() {
                         <PodcastAdCard
                           key={`ad-${ad.id}-${index}`}
                           ad={ad}
-                          onFollow={(slug) => handleFollowToggle(slug, true)}
+                          onFollow={(slug, adId) => handleFollowToggle(slug, true, adId)}
+                        />
+                      );
+                    } else if (ad.type === "episode_recap") {
+                      elements.push(
+                        <EpisodeRecapAdCard
+                          key={`ad-${ad.id}-${index}`}
+                          ad={ad}
+                          onFollow={(slug, adId) => handleFollowToggle(slug, true, adId)}
                         />
                       );
                     } else {

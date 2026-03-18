@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Pencil, Trash2, ExternalLink, Bold, Italic, Link as LinkIcon, Radio, Megaphone, Settings } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, ExternalLink, Bold, Italic, Link as LinkIcon, Radio, Megaphone, Settings, Search, BarChart3, BookOpen, Eye, MousePointer, UserPlus, Calendar } from "lucide-react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
@@ -16,26 +16,67 @@ interface Advertiser {
 
 interface FeedAd {
   id: number;
-  type: "podcast" | "regular";
+  type: "podcast" | "regular" | "episode_recap";
   title: string;
   description: string;
   imageUrl: string;
   destinationUrl: string;
   podcastSlug: string | null;
+  episodeSlug: string | null;
+  episodeTitle: string | null;
+  episodeTldl: string | null;
+  episodeKeyInsights: string[] | null;
+  episodeQuote: string | null;
+  episodeQuoteAttribution: string | null;
+  podcastName: string | null;
   weight: number;
   isActive: boolean;
   createdAt: string | null;
 }
 
 interface FeedAdPayload {
-  type: "podcast" | "regular";
+  type: "podcast" | "regular" | "episode_recap";
   title: string;
   description: string;
   imageUrl: string;
   destinationUrl: string;
   podcastSlug: string | null;
+  episodeSlug?: string | null;
+  episodeTitle?: string | null;
+  episodeTldl?: string | null;
+  episodeKeyInsights?: string[] | null;
+  episodeQuote?: string | null;
+  episodeQuoteAttribution?: string | null;
+  podcastName?: string | null;
   weight: number;
   isActive: boolean;
+}
+
+interface EpisodeSearchResult {
+  id: number;
+  slug: string;
+  podcast_name: string;
+  episode_title: string;
+  episode_slug: string;
+  artwork_url: string | null;
+  tldl: string | null;
+  key_insights: string[] | null;
+  quote: string | null;
+  quote_attribution: string | null;
+}
+
+interface AdAnalyticsRow {
+  id: number;
+  type: string;
+  title: string;
+  imageUrl: string;
+  isActive: boolean;
+  podcastSlug: string | null;
+  podcastName: string | null;
+  views: number;
+  clicks: number;
+  follows: number;
+  ctr: string;
 }
 
 function stripHtml(html: string): string {
@@ -373,14 +414,24 @@ function FeedAdsSection() {
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [adType, setAdType] = useState<"podcast" | "regular">("podcast");
+  const [adType, setAdType] = useState<"podcast" | "regular" | "episode_recap">("podcast");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [destinationUrl, setDestinationUrl] = useState("");
   const [podcastSlug, setPodcastSlug] = useState("");
+  const [episodeSlug, setEpisodeSlug] = useState("");
+  const [episodeTitle, setEpisodeTitle] = useState("");
+  const [episodeTldl, setEpisodeTldl] = useState("");
+  const [episodeKeyInsights, setEpisodeKeyInsights] = useState<string[]>([]);
+  const [episodeQuote, setEpisodeQuote] = useState("");
+  const [episodeQuoteAttribution, setEpisodeQuoteAttribution] = useState("");
+  const [podcastName, setPodcastName] = useState("");
   const [weight, setWeight] = useState(1);
   const [isActive, setIsActive] = useState(true);
+  const [episodeSearch, setEpisodeSearch] = useState("");
+  const [episodeResults, setEpisodeResults] = useState<EpisodeSearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const { data: feedAds, isLoading } = useQuery<FeedAd[]>({
     queryKey: ["/api/admin/feed-ads"],
@@ -449,6 +500,42 @@ function FeedAdsSection() {
     },
   });
 
+  useEffect(() => {
+    if (adType !== "episode_recap" || episodeSearch.length < 2) {
+      setEpisodeResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const res = await fetch(`/api/admin/episode-search?q=${encodeURIComponent(episodeSearch)}`, { credentials: "include" });
+        if (res.ok) {
+          const data = await res.json();
+          setEpisodeResults(data);
+        }
+      } catch {} finally {
+        setIsSearching(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [episodeSearch, adType]);
+
+  const selectEpisode = (ep: EpisodeSearchResult) => {
+    setTitle(ep.episode_title);
+    setDescription(ep.tldl || "");
+    setImageUrl(ep.artwork_url || "");
+    setPodcastSlug(ep.slug);
+    setEpisodeSlug(ep.episode_slug);
+    setEpisodeTitle(ep.episode_title);
+    setEpisodeTldl(ep.tldl || "");
+    setEpisodeKeyInsights(ep.key_insights || []);
+    setEpisodeQuote(ep.quote || "");
+    setEpisodeQuoteAttribution(ep.quote_attribution || "");
+    setPodcastName(ep.podcast_name);
+    setEpisodeSearch("");
+    setEpisodeResults([]);
+  };
+
   const resetForm = () => {
     setShowForm(false);
     setEditingId(null);
@@ -458,8 +545,17 @@ function FeedAdsSection() {
     setImageUrl("");
     setDestinationUrl("");
     setPodcastSlug("");
+    setEpisodeSlug("");
+    setEpisodeTitle("");
+    setEpisodeTldl("");
+    setEpisodeKeyInsights([]);
+    setEpisodeQuote("");
+    setEpisodeQuoteAttribution("");
+    setPodcastName("");
     setWeight(1);
     setIsActive(true);
+    setEpisodeSearch("");
+    setEpisodeResults([]);
   };
 
   const startEdit = (ad: FeedAd) => {
@@ -470,6 +566,13 @@ function FeedAdsSection() {
     setImageUrl(ad.imageUrl);
     setDestinationUrl(ad.destinationUrl || "");
     setPodcastSlug(ad.podcastSlug || "");
+    setEpisodeSlug(ad.episodeSlug || "");
+    setEpisodeTitle(ad.episodeTitle || "");
+    setEpisodeTldl(ad.episodeTldl || "");
+    setEpisodeKeyInsights(ad.episodeKeyInsights || []);
+    setEpisodeQuote(ad.episodeQuote || "");
+    setEpisodeQuoteAttribution(ad.episodeQuoteAttribution || "");
+    setPodcastName(ad.podcastName || "");
     setWeight(ad.weight);
     setIsActive(ad.isActive);
     setShowForm(true);
@@ -488,13 +591,26 @@ function FeedAdsSection() {
       toast({ title: "Validation", description: "Destination URL is required for regular ads.", variant: "destructive" });
       return;
     }
+    if (adType === "episode_recap" && (!podcastSlug.trim() || !episodeSlug.trim())) {
+      toast({ title: "Validation", description: "Please select an episode for episode recap ads.", variant: "destructive" });
+      return;
+    }
     const payload: FeedAdPayload = {
       type: adType,
       title,
       description,
       imageUrl,
       destinationUrl: adType === "regular" ? destinationUrl : "",
-      podcastSlug: adType === "podcast" ? (podcastSlug || null) : null,
+      podcastSlug: (adType === "podcast" || adType === "episode_recap") ? (podcastSlug || null) : null,
+      ...(adType === "episode_recap" ? {
+        episodeSlug: episodeSlug || null,
+        episodeTitle: episodeTitle || null,
+        episodeTldl: episodeTldl || null,
+        episodeKeyInsights: episodeKeyInsights.length > 0 ? episodeKeyInsights : null,
+        episodeQuote: episodeQuote || null,
+        episodeQuoteAttribution: episodeQuoteAttribution || null,
+        podcastName: podcastName || null,
+      } : {}),
       weight,
       isActive,
     };
@@ -556,7 +672,7 @@ function FeedAdsSection() {
             {editingId ? "Edit Feed Ad" : "New Feed Ad"}
           </h3>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button
               type="button"
               onClick={() => setAdType("podcast")}
@@ -579,12 +695,69 @@ function FeedAdsSection() {
               <Megaphone className="w-3.5 h-3.5" />
               Regular Ad
             </button>
+            <button
+              type="button"
+              onClick={() => setAdType("episode_recap")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                adType === "episode_recap" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-black/[0.04]"
+              }`}
+              data-testid="button-type-episode-recap"
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              Episode Recap
+            </button>
           </div>
+
+          {adType === "episode_recap" && (
+            <div className="relative">
+              <label className="block text-xs font-semibold text-muted-foreground mb-1">Search Episodes</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={episodeSearch}
+                  onChange={(e) => setEpisodeSearch(e.target.value)}
+                  placeholder="Search by episode or podcast name..."
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-black/[0.08] text-sm bg-white dark:bg-black/20 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  data-testid="input-episode-search"
+                />
+                {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />}
+              </div>
+              {episodeResults.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-900 border border-black/[0.08] rounded-xl shadow-lg max-h-60 overflow-y-auto" data-testid="episode-search-results">
+                  {episodeResults.map((ep) => (
+                    <button
+                      key={ep.id}
+                      type="button"
+                      onClick={() => selectEpisode(ep)}
+                      className="w-full px-3 py-2.5 flex items-start gap-3 hover:bg-black/[0.03] dark:hover:bg-white/[0.05] text-left border-b border-black/[0.04] last:border-0"
+                      data-testid={`episode-result-${ep.id}`}
+                    >
+                      {ep.artwork_url && (
+                        <img src={ep.artwork_url} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold text-foreground truncate">{ep.episode_title}</div>
+                        <div className="text-xs text-muted-foreground truncate">{ep.podcast_name}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {episodeTitle && (
+                <div className="mt-2 p-3 bg-primary/5 rounded-xl" data-testid="selected-episode-preview">
+                  <div className="text-xs font-bold text-primary mb-0.5">Selected Episode</div>
+                  <div className="text-sm font-bold text-foreground">{episodeTitle}</div>
+                  <div className="text-xs text-muted-foreground">{podcastName}</div>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-muted-foreground mb-1">
-                {adType === "podcast" ? "Podcast Name" : "Brand Name"}
+                {adType === "podcast" ? "Podcast Name" : adType === "episode_recap" ? "Episode Title" : "Brand Name"}
               </label>
               <input
                 type="text"
@@ -725,9 +898,9 @@ function FeedAdsSection() {
                 <div className="flex items-center gap-2 mb-0.5">
                   <span className="text-sm font-bold text-foreground" data-testid={`text-feed-ad-title-${ad.id}`}>{ad.title}</span>
                   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
-                    ad.type === "podcast" ? "bg-purple-100 text-purple-700" : "bg-amber-100 text-amber-700"
+                    ad.type === "podcast" ? "bg-purple-100 text-purple-700" : ad.type === "episode_recap" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"
                   }`}>
-                    {ad.type === "podcast" ? "Podcast" : "Regular"}
+                    {ad.type === "podcast" ? "Podcast" : ad.type === "episode_recap" ? "Recap" : "Regular"}
                   </span>
                   <span className="text-[10px] font-medium text-muted-foreground">W:{ad.weight}</span>
                 </div>
@@ -778,6 +951,205 @@ function FeedAdsSection() {
   );
 }
 
+function AdAnalyticsSection() {
+  const { toast } = useToast();
+  const [dateRange, setDateRange] = useState<string>("all");
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
+
+  const getDateParams = () => {
+    const now = new Date();
+    let startDate: string | undefined;
+    let endDate: string | undefined;
+    if (dateRange === "today") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+      endDate = now.toISOString();
+    } else if (dateRange === "7days") {
+      const d = new Date(now);
+      d.setDate(d.getDate() - 7);
+      startDate = d.toISOString();
+      endDate = now.toISOString();
+    } else if (dateRange === "30days") {
+      const d = new Date(now);
+      d.setDate(d.getDate() - 30);
+      startDate = d.toISOString();
+      endDate = now.toISOString();
+    } else if (dateRange === "month") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      endDate = now.toISOString();
+    } else if (dateRange === "custom" && customStart) {
+      startDate = new Date(customStart).toISOString();
+      endDate = customEnd ? new Date(customEnd).toISOString() : now.toISOString();
+    }
+    const params = new URLSearchParams();
+    if (startDate) params.set("startDate", startDate);
+    if (endDate) params.set("endDate", endDate);
+    return params.toString() ? `?${params.toString()}` : "";
+  };
+
+  const { data: analytics, isLoading } = useQuery<AdAnalyticsRow[]>({
+    queryKey: ["/api/admin/ad-analytics", dateRange, customStart, customEnd],
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/ad-analytics${getDateParams()}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+  });
+
+  const seedMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/seed-episode-recap-ads"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/feed-ads"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/ad-analytics"] });
+      toast({ title: "Seeded", description: "Episode recap ads have been created." });
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err?.message || "Failed to seed ads.", variant: "destructive" });
+    },
+  });
+
+  const totalViews = analytics?.reduce((s, a) => s + a.views, 0) || 0;
+  const totalClicks = analytics?.reduce((s, a) => s + a.clicks, 0) || 0;
+  const totalFollows = analytics?.reduce((s, a) => s + a.follows, 0) || 0;
+  const overallCtr = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(2) : "0.00";
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-bold text-foreground" data-testid="text-analytics-title">
+            <BarChart3 className="w-4 h-4 inline-block mr-1.5 -mt-0.5" />
+            Ad Analytics
+          </h3>
+          <p className="text-xs text-muted-foreground">Per-ad performance metrics across all ad types.</p>
+        </div>
+        <button
+          onClick={() => { if (confirm("Seed 3 random episode recap ads from existing episodes?")) seedMutation.mutate(); }}
+          disabled={seedMutation.isPending}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
+          data-testid="button-seed-recap-ads"
+        >
+          {seedMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <BookOpen className="w-3.5 h-3.5" />}
+          Seed Recap Ads
+        </button>
+      </div>
+
+      <div className="glass-panel rounded-2xl p-4 flex flex-wrap items-center gap-2" data-testid="section-analytics-filters">
+        <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
+        {["all", "today", "7days", "30days", "month", "custom"].map((range) => (
+          <button
+            key={range}
+            onClick={() => setDateRange(range)}
+            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${
+              dateRange === range ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-black/[0.04]"
+            }`}
+            data-testid={`button-range-${range}`}
+          >
+            {range === "all" ? "All Time" : range === "today" ? "Today" : range === "7days" ? "7 Days" : range === "30days" ? "30 Days" : range === "month" ? "This Month" : "Custom"}
+          </button>
+        ))}
+        {dateRange === "custom" && (
+          <div className="flex items-center gap-2 ml-2">
+            <input
+              type="date"
+              value={customStart}
+              onChange={(e) => setCustomStart(e.target.value)}
+              className="px-2 py-1 rounded-lg border border-black/[0.08] text-xs bg-white dark:bg-black/20"
+              data-testid="input-custom-start"
+            />
+            <span className="text-xs text-muted-foreground">to</span>
+            <input
+              type="date"
+              value={customEnd}
+              onChange={(e) => setCustomEnd(e.target.value)}
+              className="px-2 py-1 rounded-lg border border-black/[0.08] text-xs bg-white dark:bg-black/20"
+              data-testid="input-custom-end"
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-4 gap-3" data-testid="section-analytics-summary">
+        <div className="glass-panel rounded-xl p-3 text-center">
+          <Eye className="w-4 h-4 text-muted-foreground mx-auto mb-1" />
+          <div className="text-lg font-bold text-foreground" data-testid="text-total-views">{totalViews.toLocaleString()}</div>
+          <div className="text-[10px] text-muted-foreground">Views</div>
+        </div>
+        <div className="glass-panel rounded-xl p-3 text-center">
+          <MousePointer className="w-4 h-4 text-muted-foreground mx-auto mb-1" />
+          <div className="text-lg font-bold text-foreground" data-testid="text-total-clicks">{totalClicks.toLocaleString()}</div>
+          <div className="text-[10px] text-muted-foreground">Clicks</div>
+        </div>
+        <div className="glass-panel rounded-xl p-3 text-center">
+          <UserPlus className="w-4 h-4 text-muted-foreground mx-auto mb-1" />
+          <div className="text-lg font-bold text-foreground" data-testid="text-total-follows">{totalFollows.toLocaleString()}</div>
+          <div className="text-[10px] text-muted-foreground">Follows</div>
+        </div>
+        <div className="glass-panel rounded-xl p-3 text-center">
+          <BarChart3 className="w-4 h-4 text-muted-foreground mx-auto mb-1" />
+          <div className="text-lg font-bold text-foreground" data-testid="text-overall-ctr">{overallCtr}%</div>
+          <div className="text-[10px] text-muted-foreground">CTR</div>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="w-5 h-5 animate-spin text-primary" />
+        </div>
+      ) : !analytics || analytics.length === 0 ? (
+        <div className="glass-panel rounded-2xl p-6 text-center">
+          <p className="text-sm text-muted-foreground" data-testid="text-no-analytics">No ad data yet.</p>
+        </div>
+      ) : (
+        <div className="glass-panel rounded-2xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm" data-testid="table-ad-analytics">
+              <thead>
+                <tr className="border-b border-black/[0.06]">
+                  <th className="text-left p-3 text-xs font-bold text-muted-foreground">Ad</th>
+                  <th className="text-left p-3 text-xs font-bold text-muted-foreground">Type</th>
+                  <th className="text-right p-3 text-xs font-bold text-muted-foreground">Views</th>
+                  <th className="text-right p-3 text-xs font-bold text-muted-foreground">Clicks</th>
+                  <th className="text-right p-3 text-xs font-bold text-muted-foreground">Follows</th>
+                  <th className="text-right p-3 text-xs font-bold text-muted-foreground">CTR</th>
+                </tr>
+              </thead>
+              <tbody>
+                {analytics.map((row) => (
+                  <tr key={row.id} className="border-b border-black/[0.04] last:border-0 hover:bg-black/[0.02]" data-testid={`row-analytics-${row.id}`}>
+                    <td className="p-3">
+                      <div className="flex items-center gap-2">
+                        {row.imageUrl && (
+                          <img src={row.imageUrl} alt="" className="w-8 h-8 rounded-md object-cover shrink-0" />
+                        )}
+                        <div className="min-w-0">
+                          <div className="font-bold text-foreground truncate max-w-[200px]">{row.title}</div>
+                          {!row.isActive && <span className="text-[10px] text-red-500">Inactive</span>}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                        row.type === "podcast" ? "bg-purple-100 text-purple-700" : row.type === "episode_recap" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"
+                      }`}>
+                        {row.type === "podcast" ? "Podcast" : row.type === "episode_recap" ? "Recap" : "Regular"}
+                      </span>
+                    </td>
+                    <td className="p-3 text-right font-medium" data-testid={`text-views-${row.id}`}>{row.views.toLocaleString()}</td>
+                    <td className="p-3 text-right font-medium" data-testid={`text-clicks-${row.id}`}>{row.clicks.toLocaleString()}</td>
+                    <td className="p-3 text-right font-medium" data-testid={`text-follows-${row.id}`}>{row.follows.toLocaleString()}</td>
+                    <td className="p-3 text-right font-medium" data-testid={`text-ctr-${row.id}`}>{row.ctr}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdvertisersAdmin() {
   return (
     <div className="space-y-8">
@@ -790,6 +1162,10 @@ export default function AdvertisersAdmin() {
 
       <div className="border-t border-black/[0.06] pt-6">
         <FeedAdsSection />
+      </div>
+
+      <div className="border-t border-black/[0.06] pt-6">
+        <AdAnalyticsSection />
       </div>
     </div>
   );

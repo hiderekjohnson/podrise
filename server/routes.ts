@@ -16884,6 +16884,160 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     }
   });
 
+  app.get("/api/admin/episode-search", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const q = (req.query.q as string || "").trim();
+      if (!q || q.length < 2) return res.json([]);
+      const { rows } = await pool.query(
+        `SELECT id, slug, podcast_name, episode_title, episode_slug, artwork_url, tldl, key_insights, quote, quote_attribution
+         FROM landing_page_recaps
+         WHERE (episode_title ILIKE $1 OR podcast_name ILIKE $1)
+         AND published = true
+         ORDER BY created_at DESC
+         LIMIT 20`,
+        [`%${q}%`]
+      );
+      res.json(rows);
+    } catch (err) {
+      console.error("[EpisodeSearch] Error:", err);
+      res.status(500).json({ error: "Failed to search episodes" });
+    }
+  });
+
+  app.post("/api/ad-events", async (req, res) => {
+    try {
+      const { adId, eventType } = req.body;
+      if (!adId || !eventType || !["view", "click", "follow"].includes(eventType)) {
+        return res.status(400).json({ error: "Invalid ad event data" });
+      }
+      const ad = await storage.getFeedAdById(Number(adId));
+      if (!ad) return res.status(404).json({ error: "Ad not found" });
+      await storage.createAdEvent({ adId: Number(adId), eventType });
+      res.json({ success: true });
+    } catch (err) {
+      console.error("[AdEvents] Create error:", err);
+      res.status(500).json({ error: "Failed to record ad event" });
+    }
+  });
+
+  app.post("/api/ad-events/batch", async (req, res) => {
+    try {
+      const { events } = req.body;
+      if (!Array.isArray(events) || events.length > 50) return res.status(400).json({ error: "Invalid events array (max 50)" });
+      for (const evt of events) {
+        if (evt.adId && ["view", "click", "follow"].includes(evt.eventType)) {
+          const ad = await storage.getFeedAdById(Number(evt.adId));
+          if (ad) {
+            await storage.createAdEvent({ adId: Number(evt.adId), eventType: evt.eventType });
+          }
+        }
+      }
+      res.json({ success: true });
+    } catch (err) {
+      console.error("[AdEvents] Batch error:", err);
+      res.status(500).json({ error: "Failed to record ad events" });
+    }
+  });
+
+  app.get("/api/admin/ad-analytics", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const startDate = req.query.startDate ? new Date(req.query.startDate as string) : null;
+      const endDate = req.query.endDate ? new Date(req.query.endDate as string) : null;
+
+      let dateFilter = "";
+      const params: any[] = [];
+      if (startDate) {
+        params.push(startDate);
+        dateFilter += ` AND ae.created_at >= $${params.length}`;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        params.push(end);
+        dateFilter += ` AND ae.created_at <= $${params.length}`;
+      }
+
+      const { rows } = await pool.query(
+        `SELECT
+          fa.id,
+          fa.type,
+          fa.title,
+          fa.image_url,
+          fa.is_active,
+          fa.podcast_slug,
+          fa.podcast_name,
+          COALESCE(SUM(CASE WHEN ae.event_type = 'view' THEN 1 ELSE 0 END), 0)::int AS views,
+          COALESCE(SUM(CASE WHEN ae.event_type = 'click' THEN 1 ELSE 0 END), 0)::int AS clicks,
+          COALESCE(SUM(CASE WHEN ae.event_type = 'follow' THEN 1 ELSE 0 END), 0)::int AS follows
+        FROM feed_ads fa
+        LEFT JOIN ad_events ae ON fa.id = ae.ad_id ${dateFilter || ''}
+        GROUP BY fa.id, fa.type, fa.title, fa.image_url, fa.is_active, fa.podcast_slug, fa.podcast_name
+        ORDER BY views DESC, fa.id DESC`,
+        params
+      );
+
+      const analytics = rows.map(r => ({
+        id: r.id,
+        type: r.type,
+        title: r.title,
+        imageUrl: r.image_url,
+        isActive: r.is_active,
+        podcastSlug: r.podcast_slug,
+        podcastName: r.podcast_name,
+        views: r.views,
+        clicks: r.clicks,
+        follows: r.follows,
+        ctr: r.views > 0 ? ((r.clicks / r.views) * 100).toFixed(2) : "0.00",
+      }));
+
+      res.json(analytics);
+    } catch (err) {
+      console.error("[AdAnalytics] Error:", err);
+      res.status(500).json({ error: "Failed to fetch ad analytics" });
+    }
+  });
+
+  app.post("/api/admin/seed-episode-recap-ads", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { rows } = await pool.query(
+        `SELECT slug, podcast_name, episode_title, episode_slug, artwork_url, tldl, key_insights, quote, quote_attribution
+         FROM landing_page_recaps
+         WHERE published = true AND tldl IS NOT NULL AND tldl != ''
+         ORDER BY RANDOM()
+         LIMIT 3`
+      );
+      if (rows.length === 0) return res.status(404).json({ error: "No episodes found to seed" });
+
+      const created = [];
+      for (const ep of rows) {
+        const ad = await storage.createFeedAd({
+          type: "episode_recap",
+          title: ep.episode_title || "Episode Recap",
+          description: ep.tldl || "",
+          imageUrl: ep.artwork_url || "",
+          podcastSlug: ep.slug,
+          episodeSlug: ep.episode_slug,
+          episodeTitle: ep.episode_title,
+          episodeTldl: ep.tldl,
+          episodeKeyInsights: ep.key_insights || [],
+          episodeQuote: ep.quote || null,
+          episodeQuoteAttribution: ep.quote_attribution || null,
+          podcastName: ep.podcast_name,
+          weight: 1,
+          isActive: true,
+        });
+        created.push(ad);
+      }
+      res.json({ success: true, count: created.length, ads: created });
+    } catch (err) {
+      console.error("[SeedEpisodeRecapAds] Error:", err);
+      res.status(500).json({ error: "Failed to seed episode recap ads" });
+    }
+  });
+
   app.get("/api/admin/support-articles", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     try {
@@ -17129,6 +17283,21 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
           key TEXT NOT NULL UNIQUE,
           value TEXT NOT NULL
         );
+        ALTER TABLE feed_ads ADD COLUMN IF NOT EXISTS episode_slug TEXT;
+        ALTER TABLE feed_ads ADD COLUMN IF NOT EXISTS episode_title TEXT;
+        ALTER TABLE feed_ads ADD COLUMN IF NOT EXISTS episode_tldl TEXT;
+        ALTER TABLE feed_ads ADD COLUMN IF NOT EXISTS episode_key_insights TEXT[];
+        ALTER TABLE feed_ads ADD COLUMN IF NOT EXISTS episode_quote TEXT;
+        ALTER TABLE feed_ads ADD COLUMN IF NOT EXISTS episode_quote_attribution TEXT;
+        ALTER TABLE feed_ads ADD COLUMN IF NOT EXISTS podcast_name TEXT;
+        CREATE TABLE IF NOT EXISTS ad_events (
+          id SERIAL PRIMARY KEY,
+          ad_id INTEGER NOT NULL,
+          event_type TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW()
+        );
+        CREATE INDEX IF NOT EXISTS idx_ad_events_ad_id ON ad_events(ad_id);
+        CREATE INDEX IF NOT EXISTS idx_ad_events_created_at ON ad_events(created_at);
       `);
       const { rows: feedAdCount } = await pool.query("SELECT COUNT(*)::int AS count FROM feed_ads");
       if (feedAdCount[0].count === 0) {
@@ -17155,6 +17324,28 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
         console.log(`[FeedAdSeed] Seeded ${demoAds.length} demo feed ads`);
       } else {
         console.log(`[FeedAdSeed] ${feedAdCount[0].count} feed ads already exist, skipping`);
+      }
+
+      const { rows: recapAdCount } = await pool.query("SELECT COUNT(*)::int AS count FROM feed_ads WHERE type = 'episode_recap'");
+      if (recapAdCount[0].count === 0) {
+        console.log("[FeedAdSeed] No episode recap ads found — seeding 3 from landing page recaps...");
+        const { rows: episodes } = await pool.query(
+          `SELECT slug, podcast_name, episode_title, episode_slug, artwork_url, tldl, key_insights, quote, quote_attribution
+           FROM landing_page_recaps
+           WHERE published = true AND tldl IS NOT NULL AND tldl != ''
+           ORDER BY RANDOM()
+           LIMIT 3`
+        );
+        for (const ep of episodes) {
+          await pool.query(
+            `INSERT INTO feed_ads (type, title, description, image_url, podcast_slug, episode_slug, episode_title, episode_tldl, episode_key_insights, episode_quote, episode_quote_attribution, podcast_name, weight, is_active)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, true)`,
+            ['episode_recap', ep.episode_title || 'Episode Recap', ep.tldl || '', ep.artwork_url || '', ep.slug, ep.episode_slug, ep.episode_title, ep.tldl, ep.key_insights || [], ep.quote || null, ep.quote_attribution || null, ep.podcast_name, 2]
+          );
+        }
+        console.log(`[FeedAdSeed] Seeded ${episodes.length} episode recap ads`);
+      } else {
+        console.log(`[FeedAdSeed] ${recapAdCount[0].count} episode recap ads already exist, skipping`);
       }
     } catch (err) {
       console.error("[FeedAdSeed] Failed to seed feed ads:", err);

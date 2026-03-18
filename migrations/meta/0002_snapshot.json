@@ -1,9 +1,47 @@
 {
-  "id": "170666f8-a454-436a-9104-aa3b10417899",
-  "prevId": "dff4206e-f573-4949-b3fa-2ff752be9f96",
+  "id": "7ca793e7-c949-4f1e-896d-d43896cb0097",
+  "prevId": "170666f8-a454-436a-9104-aa3b10417899",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.ad_events": {
+      "name": "ad_events",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "ad_id": {
+          "name": "ad_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_type": {
+          "name": "event_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.admin_settings": {
       "name": "admin_settings",
       "schema": "",
@@ -1476,6 +1514,48 @@
         },
         "podcast_slug": {
           "name": "podcast_slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "episode_slug": {
+          "name": "episode_slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "episode_title": {
+          "name": "episode_title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "episode_tldl": {
+          "name": "episode_tldl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "episode_key_insights": {
+          "name": "episode_key_insights",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "episode_quote": {
+          "name": "episode_quote",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "episode_quote_attribution": {
+          "name": "episode_quote_attribution",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "podcast_name": {
+          "name": "podcast_name",
           "type": "text",
           "primaryKey": false,
           "notNull": false

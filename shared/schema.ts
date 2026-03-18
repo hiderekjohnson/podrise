@@ -812,6 +812,13 @@ export const feedAds = pgTable("feed_ads", {
   imageUrl: text("image_url").notNull(),
   destinationUrl: text("destination_url").default(""),
   podcastSlug: text("podcast_slug"),
+  episodeSlug: text("episode_slug"),
+  episodeTitle: text("episode_title"),
+  episodeTldl: text("episode_tldl"),
+  episodeKeyInsights: text("episode_key_insights").array(),
+  episodeQuote: text("episode_quote"),
+  episodeQuoteAttribution: text("episode_quote_attribution"),
+  podcastName: text("podcast_name"),
   weight: integer("weight").notNull().default(1),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -821,12 +828,19 @@ export const insertFeedAdSchema = createInsertSchema(feedAds).omit({
   id: true,
   createdAt: true,
 }).extend({
-  type: z.enum(["podcast", "regular"]),
+  type: z.enum(["podcast", "regular", "episode_recap"]),
   title: z.string().min(1, "Title is required").max(200),
   description: z.string().min(1, "Description is required").max(1000),
   imageUrl: z.string().min(1, "Image URL is required"),
   destinationUrl: z.string().refine((val) => !val || /^https?:\/\//.test(val), { message: "URL must start with http:// or https://" }).optional().default(""),
   podcastSlug: z.string().nullable().optional(),
+  episodeSlug: z.string().nullable().optional(),
+  episodeTitle: z.string().nullable().optional(),
+  episodeTldl: z.string().nullable().optional(),
+  episodeKeyInsights: z.array(z.string()).nullable().optional(),
+  episodeQuote: z.string().nullable().optional(),
+  episodeQuoteAttribution: z.string().nullable().optional(),
+  podcastName: z.string().nullable().optional(),
   weight: z.number().int().min(1).max(10).default(1),
   isActive: z.boolean().default(true),
 }).refine((data) => {
@@ -835,7 +849,13 @@ export const insertFeedAdSchema = createInsertSchema(feedAds).omit({
 }, { message: "Podcast slug is required for podcast ads", path: ["podcastSlug"] }).refine((data) => {
   if (data.type === "regular" && (!data.destinationUrl || data.destinationUrl.trim() === "")) return false;
   return true;
-}, { message: "Destination URL is required for regular ads", path: ["destinationUrl"] });
+}, { message: "Destination URL is required for regular ads", path: ["destinationUrl"] }).refine((data) => {
+  if (data.type === "episode_recap" && (!data.podcastSlug || data.podcastSlug.trim() === "")) return false;
+  return true;
+}, { message: "Podcast slug is required for episode recap ads", path: ["podcastSlug"] }).refine((data) => {
+  if (data.type === "episode_recap" && (!data.episodeSlug || data.episodeSlug.trim() === "")) return false;
+  return true;
+}, { message: "Episode slug is required for episode recap ads", path: ["episodeSlug"] });
 
 export type FeedAd = typeof feedAds.$inferSelect;
 export type InsertFeedAd = z.infer<typeof insertFeedAdSchema>;
@@ -905,4 +925,14 @@ export const insertUserFeatureOverrideSchema = createInsertSchema(userFeatureOve
 
 export type UserFeatureOverride = typeof userFeatureOverrides.$inferSelect;
 export type InsertUserFeatureOverride = z.infer<typeof insertUserFeatureOverrideSchema>;
+
+export const adEvents = pgTable("ad_events", {
+  id: serial("id").primaryKey(),
+  adId: integer("ad_id").notNull(),
+  eventType: text("event_type").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type AdEvent = typeof adEvents.$inferSelect;
+export type InsertAdEvent = typeof adEvents.$inferInsert;
 
