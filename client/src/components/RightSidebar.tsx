@@ -8,9 +8,13 @@ import { useToast } from "@/hooks/use-toast";
 
 
 interface ReferralStats {
-  referralCount: number;
-  currentTier: { name: string; threshold: number };
+  referralCode: string;
+  referralLink: string;
+  count: number;
+  pendingCount: number;
+  currentTier: { name: string; threshold: number } | null;
   nextTier: { name: string; threshold: number } | null;
+  tiers: { name: string; threshold: number }[];
 }
 
 interface RecommendedItem {
@@ -338,17 +342,14 @@ function SidebarSearch() {
 
 function PodSquadCard() {
   const [, navigate] = useLocation();
-  const [dismissed, setDismissed] = useState(false);
 
   const { data: stats } = useQuery<ReferralStats>({
-    queryKey: ["/api/referral/stats"],
+    queryKey: ["/api/referrals/my-stats"],
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
-  if (dismissed) return null;
-
-  const referralCount = stats?.referralCount || 0;
+  const referralCount = stats?.count || 0;
   const nextThreshold = stats?.nextTier?.threshold || 3;
   const progressPercent = Math.min((referralCount / nextThreshold) * 100, 100);
 
@@ -358,14 +359,6 @@ function PodSquadCard() {
       style={{ background: "linear-gradient(145deg, #6366F1, #8B5CF6)" }}
       data-testid="rail-pod-squad"
     >
-      <button
-        onClick={() => setDismissed(true)}
-        className="absolute top-3 right-3 w-[26px] h-[26px] rounded-full flex items-center justify-center transition-all"
-        style={{ background: "rgba(255,255,255,0.15)" }}
-        data-testid="rail-squad-close"
-      >
-        <X className="w-3 h-3 text-white/70 hover:text-white" />
-      </button>
       <div className="text-[11px] font-bold tracking-[0.1em] uppercase text-white/65 mb-[6px]">
         🏆 The Pod Squad
       </div>
