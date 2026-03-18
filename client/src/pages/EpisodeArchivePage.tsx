@@ -6,6 +6,7 @@ import { getPodcastBySlug } from "../data/podcastLandingData";
 import { getPodcastCategoryInfo, TOPIC_TO_TOPICS_PAGE_MAP } from "@/data/podcastCategoryData";
 import { TOPICS, getTopicBySlug, getCategoryPath } from "@/data/topicData";
 import { EpisodeCard } from "@/components/EpisodeCard";
+import { FeedEpisodeCard } from "@/components/FeedEpisodeCard";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/hooks/use-auth";
@@ -787,16 +788,34 @@ export default function EpisodeArchivePage() {
             <>
               <div className="flex flex-col gap-5" data-testid="section-episodes">
                 {visibleEpisodes.map((ep: any) => (
-                  <EpisodeCard
-                    key={ep.episodeSlug}
-                    episodeSlug={ep.episodeSlug}
-                    podcastSlug={slug}
-                    publishDate={ep.publishDate}
-                    episodeTitle={ep.episodeTitle}
-                    tldl={ep.tldl}
-                    duration={ep.duration}
-                    artworkUrl={config.artworkUrl}
-                  />
+                  isLoggedIn ? (
+                    <FeedEpisodeCard
+                      key={ep.episodeSlug}
+                      episodeSlug={ep.episodeSlug}
+                      podcastSlug={slug}
+                      podcastName={config.name}
+                      publishDate={ep.publishDate}
+                      episodeTitle={ep.episodeTitle}
+                      tldl={ep.tldl}
+                      keyInsights={ep.keyInsights}
+                      quote={ep.quote}
+                      quoteAttribution={ep.quoteAttribution}
+                      duration={ep.duration}
+                      artworkUrl={config.artworkUrl}
+                      testIdPrefix="archive-episode"
+                    />
+                  ) : (
+                    <EpisodeCard
+                      key={ep.episodeSlug}
+                      episodeSlug={ep.episodeSlug}
+                      podcastSlug={slug}
+                      publishDate={ep.publishDate}
+                      episodeTitle={ep.episodeTitle}
+                      tldl={ep.tldl}
+                      duration={ep.duration}
+                      artworkUrl={config.artworkUrl}
+                    />
+                  )
                 ))}
               </div>
 

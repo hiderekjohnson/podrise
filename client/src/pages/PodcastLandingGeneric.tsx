@@ -17,6 +17,7 @@ import { getTopicBySlug, getCategoryPath } from "@/data/topicData";
 import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import { EpisodeCard } from "@/components/EpisodeCard";
+import { FeedEpisodeCard } from "@/components/FeedEpisodeCard";
 
 
 function extractAsin(url: string): string | null {
@@ -608,16 +609,34 @@ export default function PodcastLandingGeneric() {
               </p>
               <div className="flex flex-col gap-5">
                 {episodeRecaps.slice(0, 10).map((ep: any) => (
-                  <EpisodeCard
-                    key={ep.episodeSlug}
-                    episodeSlug={ep.episodeSlug}
-                    podcastSlug={slug}
-                    publishDate={ep.publishDate}
-                    episodeTitle={ep.episodeTitle}
-                    tldl={ep.tldl}
-                    duration={ep.duration}
-                    artworkUrl={artworkUrl}
-                  />
+                  user ? (
+                    <FeedEpisodeCard
+                      key={ep.episodeSlug}
+                      episodeSlug={ep.episodeSlug}
+                      podcastSlug={slug}
+                      podcastName={name}
+                      publishDate={ep.publishDate}
+                      episodeTitle={ep.episodeTitle}
+                      tldl={ep.tldl}
+                      keyInsights={ep.keyInsights}
+                      quote={ep.quote}
+                      quoteAttribution={ep.quoteAttribution}
+                      duration={ep.duration}
+                      artworkUrl={artworkUrl}
+                      testIdPrefix="podcast-episode"
+                    />
+                  ) : (
+                    <EpisodeCard
+                      key={ep.episodeSlug}
+                      episodeSlug={ep.episodeSlug}
+                      podcastSlug={slug}
+                      publishDate={ep.publishDate}
+                      episodeTitle={ep.episodeTitle}
+                      tldl={ep.tldl}
+                      duration={ep.duration}
+                      artworkUrl={artworkUrl}
+                    />
+                  )
                 ))}
               </div>
               <div className="flex justify-center mt-8">

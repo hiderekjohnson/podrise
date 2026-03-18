@@ -8,6 +8,7 @@ import { Loader2, MessageCircle, Bookmark, BookmarkCheck, Share, ChevronDown, Co
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { FeatureTour } from "@/components/FeatureTour";
+import { FeedEpisodeCard } from "@/components/FeedEpisodeCard";
 import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "@/data/entityDirectoryData";
 
 const PEOPLE_IMAGE_MAP = new Map<string, string>();
@@ -701,116 +702,48 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toa
   toast: ReturnType<typeof useToast>["toast"];
 }) {
   const isBookmarked = bookmarkedKeys.has(`${item.podcastSlug}::${item.episodeSlug}`);
-  const headerTint = getHeaderTint(item.artworkUrl || item.podcastSlug);
-  const allInsights = item.keyInsights || [];
+
+  const followAction = item.isFollowing ? (
+    <FollowMenuDropdown onUnfollow={() => onFollowToggle(item.podcastSlug, false)} itemId={item.id} />
+  ) : (
+    <button
+      onClick={() => onFollowToggle(item.podcastSlug, true)}
+      className="inline-flex items-center px-5 py-[9px] rounded-full text-[14px] font-bold transition-all bg-[#6366F1] text-white hover:bg-[#4F46E5]"
+      data-testid={`feed-follow-btn-${item.id}`}
+    >
+      Follow
+    </button>
+  );
 
   return (
-    <article
-      className="bg-white border border-[#E4E4E7] rounded-2xl overflow-hidden mb-5 shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
-      data-testid={`feed-card-${item.id}`}
-    >
-      <div className="flex items-start gap-[18px] px-5 md:px-6 pt-5 pb-[18px]" style={{ background: headerTint }}>
-        <div className="w-[80px] h-[80px] sm:w-[120px] sm:h-[120px] rounded-[14px] overflow-hidden flex-shrink-0 shadow-[0_4px_16px_rgba(0,0,0,0.16),0_1px_3px_rgba(0,0,0,0.08)] border border-black/[0.08]">
-          <img src={hiResArtwork(item.artworkUrl)} alt={item.podcastName} className="w-full h-full object-cover" loading="lazy" />
-        </div>
-        <div className="flex-1 min-w-0 flex flex-col justify-center min-h-[80px] sm:min-h-[120px]">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <Link href={`/podcasts/${item.podcastSlug}`}>
-                <span className="text-[18px] font-extrabold text-[#09090B] tracking-[-0.02em] leading-[1.1] mb-2 block hover:text-[#6366F1] transition-colors overflow-hidden text-ellipsis" data-testid={`feed-podcast-name-${item.id}`}>
-                  {item.podcastName}
-                </span>
-              </Link>
-              <div className="flex items-center gap-[14px] flex-wrap">
-                {item.hosts && (
-                  <div className="flex items-center gap-[5px] text-[14px] text-[#71717A] whitespace-nowrap">
-                    <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" className="opacity-40 flex-shrink-0"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/></svg>
-                    {item.hosts}
-                  </div>
-                )}
-                {item.totalEpisodes && (
-                  <div className="flex items-center gap-[5px] text-[14px] text-[#71717A] whitespace-nowrap">
-                    <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" className="opacity-40 flex-shrink-0"><path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd"/></svg>
-                    {item.totalEpisodes}+ episodes
-                  </div>
-                )}
-                {item.yearStarted && (
-                  <div className="flex items-center gap-[5px] text-[14px] text-[#71717A] whitespace-nowrap">
-                    <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" className="opacity-40 flex-shrink-0"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/></svg>
-                    Since {item.yearStarted}
-                  </div>
-                )}
-              </div>
-              <div className="w-[30px] h-[3px] rounded-full bg-[#6366F1]/40 mt-3" />
-            </div>
-            <div className="flex-shrink-0 pt-0.5">
-              {item.isFollowing ? (
-                <FollowMenuDropdown onUnfollow={() => onFollowToggle(item.podcastSlug, false)} itemId={item.id} />
-              ) : (
-                <button
-                  onClick={() => onFollowToggle(item.podcastSlug, true)}
-                  className="inline-flex items-center px-5 py-[9px] rounded-full text-[14px] font-bold transition-all bg-[#6366F1] text-white hover:bg-[#4F46E5]"
-                  data-testid={`feed-follow-btn-${item.id}`}
-                >
-                  Follow
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-5 md:px-6 py-[18px] border-t border-[#F0F0F2] border-b border-b-[#F0F0F2]">
-        <div className="flex items-baseline justify-between gap-3 mb-[9px]">
-          <span className="text-[12px] text-[#A1A1AA] overflow-hidden text-ellipsis line-clamp-2 flex-1 min-w-0" style={{ fontFamily: "var(--font-mono)" }} data-testid={`feed-episode-title-${item.id}`}>
-            {item.episodeTitle}
-          </span>
-          <span className="text-[12px] text-[#A1A1AA] whitespace-nowrap flex-shrink-0" style={{ fontFamily: "var(--font-mono)" }} data-testid={`feed-time-${item.id}`}>
-            {relativeTime(item.publishDate)}
-          </span>
-        </div>
-        {item.tabloidSubHeadline && (
-          <h3 className="text-[26px] font-normal text-[#09090B] leading-[1.2] tracking-[-0.01em]" style={{ fontFamily: "var(--font-serif)" }} data-testid={`feed-headline-${item.id}`}>
-            {item.tabloidSubHeadline}
-          </h3>
-        )}
-      </div>
-
-      <div className="px-5 md:px-6 py-[22px]">
-        {allInsights.length > 0 && (
-          <div className="mb-5">
-            <div className="text-[11px] font-medium tracking-[0.1em] uppercase text-[#A1A1AA] mb-3" style={{ fontFamily: "var(--font-mono)" }}>Key Takeaways</div>
-            <ul className="list-none p-0">
-              {allInsights.map((insight, i) => (
-                <li key={i} className="flex items-start gap-3 py-[10px] border-b border-[#F0F0F2] text-[16px] text-[#52525B] leading-[1.6] first:pt-0 last:border-b-0 last:pb-0">
-                  <div className="w-[7px] h-[7px] rounded-full bg-[#6366F1] flex-shrink-0 mt-[8px]" />
-                  <div>{insight}</div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {item.quote && (
-          <div className="border-l-[3px] border-[#8B5CF6] rounded-r-[10px] px-[18px] py-[14px] bg-[#F7F7FC]">
-            <div className="text-[18px] italic text-[#52525B] leading-[1.65] mb-2" style={{ fontFamily: "var(--font-serif)" }} data-testid={`feed-quote-${item.id}`}>
-              "{item.quote}"
-            </div>
-            {item.quoteAttribution && (
-              <div className="text-[12px] text-[#A1A1AA]" style={{ fontFamily: "var(--font-mono)" }}>— {item.quoteAttribution}</div>
-            )}
-          </div>
-        )}
-      </div>
-
-      <CardBottomAccordion
-        item={item}
-        isBookmarked={isBookmarked}
-        onBookmarkToggle={onBookmarkToggle}
-        onFollowToggle={onFollowToggle}
-        toast={toast}
+    <div className="mb-5" data-testid={`feed-card-${item.id}`}>
+      <FeedEpisodeCard
+        podcastSlug={item.podcastSlug}
+        episodeSlug={item.episodeSlug}
+        podcastName={item.podcastName}
+        episodeTitle={item.episodeTitle}
+        publishDate={item.publishDate}
+        artworkUrl={item.artworkUrl}
+        tldl={item.tabloidSubHeadline || item.tldl}
+        keyInsights={item.keyInsights}
+        quote={item.quote}
+        quoteAttribution={item.quoteAttribution}
+        hosts={item.hosts || undefined}
+        totalEpisodes={item.totalEpisodes || undefined}
+        yearStarted={item.yearStarted || undefined}
+        testIdPrefix="feed-card"
+        headerAction={followAction}
+        bottomActions={
+          <CardBottomAccordion
+            item={item}
+            isBookmarked={isBookmarked}
+            onBookmarkToggle={onBookmarkToggle}
+            onFollowToggle={onFollowToggle}
+            toast={toast}
+          />
+        }
       />
-    </article>
+    </div>
   );
 }
 
@@ -1167,6 +1100,25 @@ export default function FeedPage() {
       const res = await apiRequest("POST", endpoint, { podcastSlug });
       return res.json();
     },
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/feed", activeTab, podcastFilter] });
+      const previousFeed = queryClient.getQueryData(["/api/feed", activeTab, podcastFilter]);
+      queryClient.setQueryData(["/api/feed", activeTab, podcastFilter], (old: any) => {
+        if (!old?.pages) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page: any) => ({
+            ...page,
+            items: page.items.map((item: any) =>
+              item.podcastSlug === variables.podcastSlug
+                ? { ...item, isFollowing: variables.follow }
+                : item
+            ),
+          })),
+        };
+      });
+      return { previousFeed };
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/feed"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
@@ -1179,7 +1131,12 @@ export default function FeedPage() {
         description: variables.follow ? "Added to your feed and daily email recap" : "Removed from your feed and daily email",
       });
     },
-    onError: () => { toast({ title: "Error", description: "Failed to update subscription", variant: "destructive" }); },
+    onError: (_err, _vars, context) => {
+      if (context?.previousFeed) {
+        queryClient.setQueryData(["/api/feed", activeTab, podcastFilter], context.previousFeed);
+      }
+      toast({ title: "Error", description: "Failed to update subscription", variant: "destructive" });
+    },
   });
 
   const handleFollowToggle = useCallback((slug: string, follow: boolean, adId?: number) => {

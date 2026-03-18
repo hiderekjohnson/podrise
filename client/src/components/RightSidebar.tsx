@@ -137,12 +137,12 @@ function SidebarSearch() {
             <div className="flex items-center justify-center py-6" data-testid="sidebar-search-loading">
               <Loader2 className="w-5 h-5 text-[#A1A1AA] animate-spin" />
             </div>
-          ) : totalResults > 0 ? (
+          ) : (totalResults > 0 || itunesExternalResults.length > 0) ? (
             <>
-              {searchData!.podcasts.length > 0 && (
+              {((searchData?.podcasts?.length ?? 0) > 0 || itunesExternalResults.length > 0) && (
                 <div>
                   <div className="px-3 py-1.5 text-[10px] font-bold text-[#A1A1AA] uppercase tracking-wider bg-[#FAFAFA]">Podcasts</div>
-                  {searchData!.podcasts.map((result) => 
+                  {(searchData?.podcasts || []).map((result) => 
                     result.hasLandingPage ? (
                       <Link
                         key={result.slug}
@@ -199,6 +199,41 @@ function SidebarSearch() {
                       </div>
                     )
                   )}
+                  {itunesExternalResults.map((result: any) => (
+                    <div
+                      key={result.id}
+                      className="flex items-center gap-2.5 px-3 py-2 hover:bg-[#F7F7FC] transition-colors border-b border-[#F0F0F2] last:border-b-0"
+                      data-testid={`sidebar-itunes-${result.id}`}
+                    >
+                      <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-[#F0F0F2]">
+                        {result.artworkUrl ? (
+                          <img src={result.artworkUrl.replace(/\/\d+x\d+bb\./, "/100x100bb.")} alt={result.name} className="w-full h-full object-cover" loading="lazy" />
+                        ) : (
+                          <div className="w-full h-full bg-[#E4E4E7] flex items-center justify-center"><Mic className="w-3 h-3 text-[#A1A1AA]" /></div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[13px] font-semibold text-[#09090B] truncate">{result.name}</div>
+                        <div className="text-[10px] text-[#A1A1AA] truncate">{result.artistName || result.genre || ""}</div>
+                      </div>
+                      {recentlyFollowed.has(String(result.id)) ? (
+                        <span
+                          className="text-[11px] font-bold text-[#A1A1AA] bg-[#F0F0F2] rounded-full px-2.5 py-1 flex-shrink-0"
+                          data-testid={`sidebar-following-itunes-${result.id}`}
+                        >
+                          Following
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleFollowExternal(result)}
+                          className="text-[11px] font-bold text-[#6366F1] bg-[#EEF2FF] hover:bg-[#E0E7FF] rounded-full px-2.5 py-1 transition-colors flex-shrink-0"
+                          data-testid={`sidebar-follow-itunes-${result.id}`}
+                        >
+                          Follow
+                        </button>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
               {searchData!.episodes.length > 0 && (
@@ -285,46 +320,6 @@ function SidebarSearch() {
               )}
             </>
           ) : null}
-          {itunesExternalResults.length > 0 && (
-            <div>
-              <div className="px-3 py-1.5 text-[10px] font-bold text-[#A1A1AA] uppercase tracking-wider bg-[#FAFAFA]">Discover on iTunes</div>
-              {itunesExternalResults.map((result: any) => (
-                <div
-                  key={result.id}
-                  className="flex items-center gap-2.5 px-3 py-2 hover:bg-[#F7F7FC] transition-colors border-b border-[#F0F0F2] last:border-b-0"
-                  data-testid={`sidebar-itunes-${result.id}`}
-                >
-                  <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-[#F0F0F2]">
-                    {result.artworkUrl ? (
-                      <img src={result.artworkUrl.replace(/\/\d+x\d+bb\./, "/100x100bb.")} alt={result.name} className="w-full h-full object-cover" loading="lazy" />
-                    ) : (
-                      <div className="w-full h-full bg-[#E4E4E7] flex items-center justify-center"><Mic className="w-3 h-3 text-[#A1A1AA]" /></div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[13px] font-semibold text-[#09090B] truncate">{result.name}</div>
-                    <div className="text-[10px] text-[#A1A1AA] truncate">{result.artistName || result.genre || ""}</div>
-                  </div>
-                  {recentlyFollowed.has(String(result.id)) ? (
-                    <span
-                      className="text-[11px] font-bold text-[#A1A1AA] bg-[#F0F0F2] rounded-full px-2.5 py-1 flex-shrink-0"
-                      data-testid={`sidebar-following-itunes-${result.id}`}
-                    >
-                      Following
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => handleFollowExternal(result)}
-                      className="text-[11px] font-bold text-[#6366F1] bg-[#EEF2FF] hover:bg-[#E0E7FF] rounded-full px-2.5 py-1 transition-colors flex-shrink-0"
-                      data-testid={`sidebar-follow-itunes-${result.id}`}
-                    >
-                      Follow
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
           {noResults ? (
             <div className="px-4 py-4" data-testid="sidebar-search-no-results">
               <div className="text-[14px] font-medium text-[#52525B] mb-1">
@@ -394,7 +389,7 @@ function PodSquadCard() {
         style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)" }}
         data-testid="rail-squad-join"
       >
-        Join the Pod Squad →
+        {referralCount >= 1 ? "Share Your Link →" : "Join the Pod Squad →"}
       </button>
     </div>
   );
@@ -414,6 +409,7 @@ function ShopSection() {
     <div className="bg-white border border-[#F0F0F2] rounded-[14px] overflow-hidden mb-[14px]" data-testid="rail-shop">
       <div className="px-4 pt-[15px] pb-[13px] border-b border-[#F0F0F2]">
         <div className="text-[15px] font-bold text-[#09090B]">Podcast Recommended</div>
+        <div className="text-[12px] text-[#A1A1AA] mt-0.5">Shop what podcasts are talking about</div>
       </div>
       {items.slice(0, 6).map((item, i) => (
         <Link key={i} href={item.link || "/shop"}>

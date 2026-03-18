@@ -62,19 +62,21 @@ function AllPodcastsGrid({
       <h2 className="text-[16px] md:text-[18px] font-bold text-[#09090B] dark:text-white mb-3">All Podcasts</h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
         {visible.map((p) => (
-          <div key={p.slug} className="bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.06] rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#6366F1]/20 transition-all duration-200" data-testid={`discover-podcast-${p.slug}`}>
+          <div key={p.slug} className="bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.06] rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#6366F1]/20 transition-all duration-200 flex flex-col" data-testid={`discover-podcast-${p.slug}`}>
             <Link href={`/podcasts/${p.slug}`} className="block">
               <div className="aspect-square overflow-hidden bg-[#F4F4F5] dark:bg-[#1C1C22]">
                 <img src={p.artworkUrl} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
               </div>
             </Link>
-            <div className="p-3">
-              <Link href={`/podcasts/${p.slug}`}>
-                <h3 className="text-[14px] font-bold text-[#09090B] dark:text-white leading-snug line-clamp-2 hover:text-[#6366F1] transition-colors" data-testid={`discover-podcast-name-${p.slug}`}>
-                  {p.name}
-                </h3>
-              </Link>
-              {p.category && <p className="text-[12px] text-[#A1A1AA] mt-0.5 line-clamp-1">{p.category}</p>}
+            <div className="p-3 flex flex-col flex-1">
+              <div className="flex-1">
+                <Link href={`/podcasts/${p.slug}`}>
+                  <h3 className="text-[14px] font-bold text-[#09090B] dark:text-white leading-snug line-clamp-2 hover:text-[#6366F1] transition-colors" data-testid={`discover-podcast-name-${p.slug}`}>
+                    {p.name}
+                  </h3>
+                </Link>
+                {p.category && <p className="text-[12px] text-[#A1A1AA] mt-0.5 line-clamp-1">{p.category}</p>}
+              </div>
               <div className="mt-2">
                 <FollowButton
                   slug={p.slug}
@@ -151,19 +153,21 @@ function TopicPodcastsGrid({
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3" data-testid="topic-podcasts-grid">
       {podcasts.map((p) => (
-        <div key={p.slug} className="bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.06] rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#6366F1]/20 transition-all duration-200" data-testid={`topic-podcast-${p.slug}`}>
+        <div key={p.slug} className="bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.06] rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#6366F1]/20 transition-all duration-200 flex flex-col" data-testid={`topic-podcast-${p.slug}`}>
           <Link href={`/podcasts/${p.slug}`} className="block">
             <div className="aspect-square overflow-hidden bg-[#F4F4F5] dark:bg-[#1C1C22]">
               <img src={p.artworkUrl} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
             </div>
           </Link>
-          <div className="p-3">
-            <Link href={`/podcasts/${p.slug}`}>
-              <h3 className="text-[14px] font-bold text-[#09090B] dark:text-white leading-snug line-clamp-2 hover:text-[#6366F1] transition-colors" data-testid={`topic-podcast-name-${p.slug}`}>
-                {p.name}
-              </h3>
-            </Link>
-            {p.category && <p className="text-[12px] text-[#A1A1AA] mt-0.5 line-clamp-1">{p.category}</p>}
+          <div className="p-3 flex flex-col flex-1">
+            <div className="flex-1">
+              <Link href={`/podcasts/${p.slug}`}>
+                <h3 className="text-[14px] font-bold text-[#09090B] dark:text-white leading-snug line-clamp-2 hover:text-[#6366F1] transition-colors" data-testid={`topic-podcast-name-${p.slug}`}>
+                  {p.name}
+                </h3>
+              </Link>
+              {p.category && <p className="text-[12px] text-[#A1A1AA] mt-0.5 line-clamp-1">{p.category}</p>}
+            </div>
             <div className="mt-2">
               <FollowButton
                 slug={p.slug}

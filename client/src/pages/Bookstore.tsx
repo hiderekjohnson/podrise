@@ -635,7 +635,7 @@ function ShelfRow({ books, keyPrefix }: { books: ShopBook[]; keyPrefix: string }
         {books.slice(0, 10).map((book, i) => {
           const inner = (
             <div className="w-[160px] shrink-0 group/shelf">
-              <div className="mb-2.5">
+              <div className="w-[160px] h-[216px] sm:h-[264px] rounded-xl mb-2.5 overflow-hidden flex items-center justify-center bg-[#FAFAFA] dark:bg-white/[0.02] p-3">
                 <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} size="xl" />
               </div>
               <p className="text-[15px] font-semibold text-[#09090B] dark:text-white leading-snug line-clamp-2 group-hover/shelf:text-[#6366F1] transition-colors">
