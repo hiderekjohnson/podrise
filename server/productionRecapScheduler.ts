@@ -38,7 +38,9 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
 
     const publishDate = ep.date_published
       ? new Date(ep.date_published * 1000).toISOString().slice(0, 10)
-      : null;
+      : ep.fetched_at
+        ? new Date(ep.fetched_at).toISOString().slice(0, 10)
+        : new Date().toISOString().slice(0, 10);
 
     let tabloidHeadline: string | null = null;
     let tabloidSubHeadline: string | null = null;
@@ -61,7 +63,7 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
       podcastName,
       episodeTitle: epTitle,
       episodeSlug: epSlug,
-      publishDate: publishDate || new Date().toISOString().slice(0, 10),
+      publishDate,
       duration: ep.duration ? String(ep.duration) : null,
       artworkUrl: artwork,
       hosts: hosts || "",
@@ -165,13 +167,16 @@ async function runBatch() {
   }
   batchRunning = true;
   try {
+    const cutoffTimestamp = 1773619200;
+    const cutoffFetchedAt = '2026-03-16T00:00:00Z';
     const { rows: episodes } = await pool.query(
       `WITH ranked AS (
          SELECT et.id, et.podcast_id, et.episode_title, et.transcript, et.description,
-                et.date_published, et.duration, et.audio_url, et.image_url,
-                ROW_NUMBER() OVER (PARTITION BY et.podcast_id ORDER BY et.date_published DESC NULLS LAST) AS rn
+                et.date_published, et.duration, et.audio_url, et.image_url, et.fetched_at,
+                ROW_NUMBER() OVER (PARTITION BY et.podcast_id ORDER BY COALESCE(et.date_published, EXTRACT(EPOCH FROM et.fetched_at)::int) DESC) AS rn
          FROM episode_transcripts et
          WHERE et.transcript IS NOT NULL AND et.transcript != ''
+           AND (et.date_published >= $3 OR (et.date_published IS NULL AND et.fetched_at >= $4))
            AND NOT EXISTS (
              SELECT 1 FROM landing_page_recaps lpr
              WHERE lpr.itunes_id = et.podcast_id
@@ -180,12 +185,12 @@ async function runBatch() {
            )
        )
        SELECT id, podcast_id, episode_title, transcript, description,
-              date_published, duration, audio_url, image_url
+              date_published, duration, audio_url, image_url, fetched_at
        FROM ranked
        WHERE rn <= $1
-       ORDER BY date_published DESC NULLS LAST
+       ORDER BY COALESCE(date_published, EXTRACT(EPOCH FROM fetched_at)::int) DESC NULLS LAST
        LIMIT $2`,
-      [PER_PODCAST, BATCH_SIZE]
+      [PER_PODCAST, BATCH_SIZE, cutoffTimestamp, cutoffFetchedAt]
     );
 
     if (episodes.length === 0) {
