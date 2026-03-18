@@ -76,6 +76,7 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
       guests: JSON.stringify(recap.guests || []),
       tabloidHeadline,
       tabloidSubHeadline,
+      showNotes: ep.description || null,
       published: true,
     });
     const canonicalSlug = upsertedRecap.episodeSlug;
@@ -167,8 +168,9 @@ async function runBatch() {
   }
   batchRunning = true;
   try {
-    const cutoffTimestamp = 1773619200;
-    const cutoffFetchedAt = '2026-03-16T00:00:00Z';
+    const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+    const cutoffTimestamp = Math.floor(fourteenDaysAgo.getTime() / 1000);
+    const cutoffFetchedAt = fourteenDaysAgo.toISOString();
     const { rows: episodes } = await pool.query(
       `WITH ranked AS (
          SELECT et.id, et.podcast_id, et.episode_title, et.transcript, et.description,

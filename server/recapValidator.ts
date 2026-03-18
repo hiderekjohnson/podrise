@@ -150,7 +150,7 @@ export async function validateAndEnrichRecap(
       `SELECT COUNT(*) as cnt FROM episode_quotes WHERE podcast_slug = $1 AND episode_slug = $2`,
       [podcastSlug, episodeSlug]
     );
-    if (parseInt(quoteRows[0]?.cnt || "0") === 0) result.missing.push("quotes_db");
+    // quotes_db is optional - quote extraction has been removed from the pipeline
 
     if (result.missing.length === 0) {
       return result;
