@@ -2210,12 +2210,13 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
       const podcastSlugs = bookmarksList.map(b => b.podcastSlug);
       const episodeSlugs = bookmarksList.map(b => b.episodeSlug);
-      const [{ rows: recaps }, { rows: quotes }, { rows: mentions }] = await Promise.all([
+      const [{ rows: recaps }, { rows: quotes }, { rows: mentions }, { rows: podcastDirs }, { rows: products }] = await Promise.all([
         pool.query(
           `SELECT lpr.slug, lpr.episode_slug, lpr.podcast_name, lpr.episode_title,
                   lpr.publish_date, lpr.artwork_url, lpr.tldl, lpr.key_insights,
                   lpr.what_happened, lpr.quote, lpr.quote_attribution,
-                  lpr.guests, lpr.resources, lpr.hosts, lpr.sponsors, lpr.key_topics
+                  lpr.guests, lpr.resources, lpr.hosts, lpr.sponsors, lpr.key_topics,
+                  lpr.spotify_episode_url, lpr.youtube_url, lpr.id as recap_id
            FROM landing_page_recaps lpr
            INNER JOIN unnest($1::text[], $2::text[]) AS bm(p_slug, e_slug)
              ON lpr.slug = bm.p_slug AND lpr.episode_slug = bm.e_slug`,
@@ -2231,11 +2232,27 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
           [podcastSlugs, episodeSlugs]
         ),
         pool.query(
-          `SELECT eem.podcast_slug, eem.episode_slug, eem.entity_type, eem.entity_slug, eem.context
+          `SELECT eem.podcast_slug, eem.episode_slug, eem.entity_type, eem.entity_slug, eem.context, eem.recap_id,
+                  CASE WHEN eem.entity_type = 'person' THEN ep.name ELSE ec.name END as entity_name,
+                  CASE WHEN eem.entity_type = 'person' THEN ep.title ELSE ec.industry END as entity_role,
+                  CASE WHEN eem.entity_type = 'person' THEN ep.company ELSE NULL END as entity_company
            FROM entity_episode_mentions eem
+           LEFT JOIN entity_people ep ON eem.entity_type = 'person' AND eem.entity_slug = ep.slug
+           LEFT JOIN entity_companies ec ON eem.entity_type = 'company' AND eem.entity_slug = ec.slug
            INNER JOIN unnest($1::text[], $2::text[]) AS bm(p_slug, e_slug)
              ON eem.podcast_slug = bm.p_slug AND eem.episode_slug = bm.e_slug`,
           [podcastSlugs, episodeSlugs]
+        ),
+        pool.query(
+          `SELECT slug, spotify_url, youtube_url FROM podcast_directory WHERE slug = ANY($1)`,
+          [[...new Set(podcastSlugs)]]
+        ),
+        pool.query(
+          `SELECT podcast_slug, episode_slug, name, company, description, image_url, category, purchase_url
+           FROM extracted_products
+           WHERE status = 'approved'
+             AND episode_slug = ANY($1) AND podcast_slug = ANY($2)`,
+          [[...new Set(episodeSlugs)], [...new Set(podcastSlugs)]]
         ),
       ]);
 
@@ -2259,15 +2276,36 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
         });
       }
 
-      const mentionsMap = new Map<string, { peopleSlugs: string[]; companySlugs: string[]; entityContexts: Record<string, string> }>();
+      const podcastDirMap = new Map<string, any>();
+      for (const pd of podcastDirs) {
+        podcastDirMap.set(pd.slug, pd);
+      }
+
+      const productsMap = new Map<string, any[]>();
+      for (const p of products) {
+        const key = `${p.podcast_slug}::${p.episode_slug}`;
+        if (!productsMap.has(key)) productsMap.set(key, []);
+        productsMap.get(key)!.push({
+          name: p.name, company: p.company, description: p.description,
+          imageUrl: p.image_url, category: p.category, purchaseUrl: p.purchase_url,
+        });
+      }
+
+      const mentionsMap = new Map<string, { people: any[]; companies: any[]; peopleSlugs: string[]; companySlugs: string[]; entityContexts: Record<string, string> }>();
       for (const m of mentions) {
         const key = `${m.podcast_slug}::${m.episode_slug}`;
-        if (!mentionsMap.has(key)) mentionsMap.set(key, { peopleSlugs: [], companySlugs: [], entityContexts: {} });
+        if (!mentionsMap.has(key)) mentionsMap.set(key, { people: [], companies: [], peopleSlugs: [], companySlugs: [], entityContexts: {} });
         const entry = mentionsMap.get(key)!;
         if (m.entity_type === "person") {
           entry.peopleSlugs.push(m.entity_slug);
+          if (m.entity_name) {
+            entry.people.push({ slug: m.entity_slug, name: m.entity_name, role: m.entity_role, company: m.entity_company, context: m.context });
+          }
         } else if (m.entity_type === "company") {
           entry.companySlugs.push(m.entity_slug);
+          if (m.entity_name) {
+            entry.companies.push({ slug: m.entity_slug, name: m.entity_name, role: m.entity_role, company: m.entity_company, context: m.context });
+          }
         }
         if (m.context) {
           entry.entityContexts[m.entity_slug] = m.context;
@@ -2288,6 +2326,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       const enriched = bookmarksList.map(bm => {
         const recap = recapMap.get(`${bm.podcastSlug}::${bm.episodeSlug}`);
         const key = `${bm.podcastSlug}::${bm.episodeSlug}`;
+        const pd = podcastDirMap.get(bm.podcastSlug);
 
         const guests = safeParseJsonArray(recap?.guests);
         const resources = safeParseJsonArray(recap?.resources);
@@ -2318,6 +2357,14 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
           matchedCompanySlugs: mentionData?.companySlugs || [],
           entityContexts: mentionData?.entityContexts || {},
           episodeQuotes: quotesMap.get(key) || [],
+          spotifyEpisodeUrl: recap?.spotify_episode_url || null,
+          spotifyUrl: pd?.spotify_url || null,
+          youtubeUrl: recap?.youtube_url || pd?.youtube_url || null,
+          mentions: {
+            people: mentionData?.people || [],
+            companies: mentionData?.companies || [],
+            products: productsMap.get(key) || [],
+          },
         };
       });
 
@@ -4337,12 +4384,77 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     try {
       const limit = Math.min(parseInt(req.query.limit as string) || 10, 100);
       const offset = Math.max(0, parseInt(req.query.offset as string) || 0);
+      const enrichMentions = req.query.mentions === "true";
       const recaps = await storage.getLandingPageRecaps(req.params.slug, limit, offset);
-      if (req.query.offset !== undefined || req.query.count === "true") {
-        const total = await storage.getLandingPageRecapCount(req.params.slug);
-        res.json({ recaps, total, limit, offset });
+
+      if (enrichMentions && recaps.length > 0) {
+        const recapIds = recaps.map(r => r.id);
+        const recapEpisodeSlugs = recaps.map(r => r.episodeSlug).filter(Boolean);
+        const [mentionsResult, pdResult, productsResult] = await Promise.all([
+          pool.query(
+            `SELECT eem.recap_id, eem.entity_type, eem.entity_slug, eem.context,
+                    CASE WHEN eem.entity_type = 'person' THEN ep.name ELSE ec.name END as entity_name,
+                    CASE WHEN eem.entity_type = 'person' THEN ep.title ELSE ec.industry END as entity_role,
+                    CASE WHEN eem.entity_type = 'person' THEN ep.company ELSE NULL END as entity_company
+             FROM entity_episode_mentions eem
+             LEFT JOIN entity_people ep ON eem.entity_type = 'person' AND eem.entity_slug = ep.slug
+             LEFT JOIN entity_companies ec ON eem.entity_type = 'company' AND eem.entity_slug = ec.slug
+             WHERE eem.recap_id = ANY($1)`,
+            [recapIds]
+          ),
+          pool.query(
+            `SELECT spotify_url, youtube_url FROM podcast_directory WHERE slug = $1 LIMIT 1`,
+            [req.params.slug]
+          ),
+          pool.query(
+            `SELECT episode_slug, name, company, description, image_url, category, purchase_url
+             FROM extracted_products
+             WHERE status = 'approved'
+               AND podcast_slug = $1
+               AND episode_slug = ANY($2)`,
+            [req.params.slug, recapEpisodeSlugs]
+          ),
+        ]);
+        const recapProductsMap: Record<string, any[]> = {};
+        for (const p of productsResult.rows) {
+          if (!recapProductsMap[p.episode_slug]) recapProductsMap[p.episode_slug] = [];
+          recapProductsMap[p.episode_slug].push({
+            name: p.name, company: p.company, description: p.description,
+            imageUrl: p.image_url, category: p.category, purchaseUrl: p.purchase_url,
+          });
+        }
+        const mentionsMap: Record<number, { people: any[]; companies: any[] }> = {};
+        for (const m of mentionsResult.rows) {
+          if (!m.entity_name) continue;
+          if (!mentionsMap[m.recap_id]) mentionsMap[m.recap_id] = { people: [], companies: [] };
+          const entry = { slug: m.entity_slug, name: m.entity_name, role: m.entity_role, company: m.entity_company, context: m.context };
+          if (m.entity_type === 'person') mentionsMap[m.recap_id].people.push(entry);
+          else mentionsMap[m.recap_id].companies.push(entry);
+        }
+        const pd = pdResult.rows[0] || {};
+        const enriched = recaps.map(r => ({
+          ...r,
+          pdSpotifyUrl: pd.spotify_url || null,
+          pdYoutubeUrl: pd.youtube_url || null,
+          mentions: {
+            people: mentionsMap[r.id]?.people || [],
+            companies: mentionsMap[r.id]?.companies || [],
+            products: (r.episodeSlug ? recapProductsMap[r.episodeSlug] : undefined) || [],
+          },
+        }));
+        if (req.query.offset !== undefined || req.query.count === "true") {
+          const total = await storage.getLandingPageRecapCount(req.params.slug);
+          res.json({ recaps: enriched, total, limit, offset });
+        } else {
+          res.json(enriched);
+        }
       } else {
-        res.json(recaps);
+        if (req.query.offset !== undefined || req.query.count === "true") {
+          const total = await storage.getLandingPageRecapCount(req.params.slug);
+          res.json({ recaps, total, limit, offset });
+        } else {
+          res.json(recaps);
+        }
       }
     } catch {
       res.status(500).json({ error: "Failed to fetch recaps" });

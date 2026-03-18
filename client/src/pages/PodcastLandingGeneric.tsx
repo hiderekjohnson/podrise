@@ -18,6 +18,7 @@ import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import { FeedEpisodeCard } from "@/components/FeedEpisodeCard";
+import { CardBottomAccordion } from "@/components/CardBottomAccordion";
 
 
 function extractAsin(url: string): string | null {
@@ -549,9 +550,10 @@ export default function PodcastLandingGeneric() {
     .slice(0, 3);
 
   const { data: episodeRecaps = [] } = useQuery<any[]>({
-    queryKey: ["/api/podcasts", slug, "recaps"],
+    queryKey: ["/api/podcasts", slug, "recaps", user ? "enriched" : "basic"],
     queryFn: async () => {
-      const res = await fetch(`/api/podcasts/${slug}/recaps?limit=10`);
+      const mentionsParam = user ? "&mentions=true" : "";
+      const res = await fetch(`/api/podcasts/${slug}/recaps?limit=10${mentionsParam}`);
       if (!res.ok) return [];
       return res.json();
     },
@@ -624,6 +626,22 @@ export default function PodcastLandingGeneric() {
                       duration={ep.duration}
                       artworkUrl={artworkUrl}
                       testIdPrefix="podcast-episode"
+                      bottomActions={
+                        <CardBottomAccordion
+                          item={{
+                            id: ep.id,
+                            episodeSlug: ep.episodeSlug,
+                            podcastSlug: slug,
+                            episodeTitle: ep.episodeTitle,
+                            whatHappened: ep.whatHappened || null,
+                            spotifyEpisodeUrl: ep.spotifyEpisodeUrl || null,
+                            spotifyUrl: ep.pdSpotifyUrl || spotifyUrl || null,
+                            youtubeUrl: ep.youtubeUrl || ep.pdYoutubeUrl || null,
+                            mentions: ep.mentions || { people: [], companies: [], products: [] },
+                          }}
+                          bottomBar={null}
+                        />
+                      }
                     />
                   ) : (
                     <EpisodeCard
