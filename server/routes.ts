@@ -7203,7 +7203,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
                  lr.publish_date, lr.artwork_url, lr.tldl, lr.key_insights,
                  lr.quote, lr.quote_attribution, lr.duration,
                  lr.what_happened, lr.guests, lr.key_topics,
-                 lr.spotify_episode_url, lr.apple_episode_url,
+                 lr.spotify_episode_url, lr.apple_episode_url, lr.youtube_url,
                  lr.tabloid_sub_headline,
                  pd.slug as pd_slug, pd.hosts as pd_hosts,
                  pd.total_episodes as pd_total_episodes,
@@ -7229,7 +7229,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
                  lr.publish_date, lr.artwork_url, lr.tldl, lr.key_insights,
                  lr.quote, lr.quote_attribution, lr.duration,
                  lr.what_happened, lr.guests, lr.key_topics,
-                 lr.spotify_episode_url, lr.apple_episode_url,
+                 lr.spotify_episode_url, lr.apple_episode_url, lr.youtube_url,
                  lr.tabloid_sub_headline,
                  pd.slug as pd_slug, pd.hosts as pd_hosts,
                  pd.total_episodes as pd_total_episodes,
@@ -7335,6 +7335,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           youtubeUrl: r.pd_youtube_url || null,
           spotifyEpisodeUrl: r.spotify_episode_url || null,
           appleEpisodeUrl: r.apple_episode_url || null,
+          youtubeEpisodeUrl: r.youtube_url || null,
           tabloidSubHeadline: r.tabloid_sub_headline || null,
           mentions: {
             people: mentions.people,
@@ -10792,7 +10793,7 @@ Rules:
         showNotes: "show_notes", status: "status", topQuestions: "top_questions",
         entityContextsCache: "entity_contexts_cache",
         spotifyEpisodeUrl: "spotify_episode_url", appleEpisodeUrl: "apple_episode_url",
-        audioUrl: "audio_url",
+        audioUrl: "audio_url", youtubeUrl: "youtube_url",
         tabloidHeadline: "tabloid_headline", tabloidSubHeadline: "tabloid_sub_headline",
       };
       const sets: string[] = [];

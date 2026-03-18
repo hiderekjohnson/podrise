@@ -221,6 +221,7 @@ interface CMSEpisodeDetail {
   spotify_episode_url: string;
   apple_episode_url: string;
   audio_url: string;
+  youtube_url: string;
   show_notes: string;
   topic_contexts: string;
   top_questions: string;
@@ -291,6 +292,7 @@ interface EpisodeForm {
   spotifyEpisodeUrl: string;
   appleEpisodeUrl: string;
   audioUrl: string;
+  youtubeUrl: string;
   showNotes: string;
   tabloidHeadline: string;
   tabloidSubHeadline: string;
@@ -1376,6 +1378,7 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
         spotifyEpisodeUrl: episode.spotify_episode_url || "",
         appleEpisodeUrl: episode.apple_episode_url || "",
         audioUrl: episode.audio_url || "",
+        youtubeUrl: episode.youtube_url || "",
         showNotes: episode.show_notes || "",
         tabloidHeadline: episode.tabloid_headline || "",
         tabloidSubHeadline: episode.tabloid_sub_headline || "",
@@ -2042,6 +2045,20 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
               />
               {form.audioUrl && (
                 <a href={form.audioUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline mt-1 inline-block" data-testid="link-audio">Listen to audio</a>
+              )}
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">YouTube URL</label>
+              <input
+                data-testid="input-cms-youtube-url"
+                type="text"
+                value={form.youtubeUrl}
+                onChange={(e) => setForm({ ...form, youtubeUrl: e.target.value })}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm"
+                placeholder="https://www.youtube.com/watch?v=..."
+              />
+              {form.youtubeUrl && (
+                <a href={form.youtubeUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline mt-1 inline-block" data-testid="link-youtube-episode">Watch on YouTube</a>
               )}
             </div>
           </div>
