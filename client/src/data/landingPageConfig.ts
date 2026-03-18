@@ -64,6 +64,23 @@ export const LANDING_PAGES: LandingPageConfig[] = [
       { icon: "briefcase", title: "Actionable Takeaways", description: "Every summary focuses on insights you can act on — strategies, frameworks, and real-world tactics." },
     ],
   },
+  {
+    slug: "newsletter-1",
+    name: "Newsletter Signup",
+    headline: "Keep up with your favorite conversations — without pressing play",
+    subheadline: "Get free daily AI recaps of the podcasts you love, delivered straight to your inbox.",
+    ctaText: "Get your free daily recap",
+    heroAccent: "#6366F1",
+    heroGradientFrom: "#6366F1",
+    heroGradientTo: "#8B5CF6",
+    targetAudience: "Newsletter subscribers",
+    socialProof: "Free forever. No credit card required.",
+    features: [
+      { icon: "mail", title: "Daily Email Recaps", description: "AI-powered summaries of every new episode from the shows you follow, delivered to your inbox." },
+      { icon: "headphones", title: "Pick Your Podcasts", description: "Choose from hundreds of top shows — we recap every new episode so you never miss a beat." },
+      { icon: "zap", title: "5-Minute Read", description: "Key takeaways, quotes, and insights distilled into a quick daily briefing you can read over coffee." },
+    ],
+  },
 ];
 
 export function getLandingPageBySlug(slug: string): LandingPageConfig | undefined {
