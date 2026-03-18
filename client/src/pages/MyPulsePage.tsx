@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -15,6 +15,20 @@ export default function MyPulsePage() {
   const { toast } = useToast();
   const isPro = user?.plan === "pro";
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<"industries" | "interests" | "roles">("industries");
+
+  const industriesRef = useRef<HTMLDivElement>(null);
+  const interestsRef = useRef<HTMLDivElement>(null);
+  const rolesRef = useRef<HTMLDivElement>(null);
+
+  const scrollToSection = useCallback((tab: "industries" | "interests" | "roles") => {
+    setActiveTab(tab);
+    const refMap = { industries: industriesRef, interests: interestsRef, roles: rolesRef };
+    const el = refMap[tab].current;
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, []);
 
   const { data: subsData, isLoading } = useQuery<{ subscriptions: { topicSlug: string }[] }>({
     queryKey: ["/api/pulse/subscriptions"],
@@ -49,7 +63,7 @@ export default function MyPulsePage() {
   };
 
   return (
-    <DashboardLayout hideRightSidebar>
+    <DashboardLayout>
       <div className="min-h-screen bg-[#F9F9FB] dark:bg-[#09090B]" data-testid="my-pulse-page">
         <div className="bg-white dark:bg-[#111114] border-b border-[#F0F0F2] dark:border-[#1C1C22]">
           <div className="max-w-4xl mx-auto px-4 md:px-8 py-6">
@@ -72,6 +86,27 @@ export default function MyPulsePage() {
           </div>
         </div>
 
+        <div className="sticky top-0 z-30 bg-white/90 dark:bg-[#111114]/90 backdrop-blur-md border-b border-[#F0F0F2] dark:border-[#1C1C22]">
+          <div className="max-w-4xl mx-auto px-4 md:px-8">
+            <div className="flex items-center gap-1 py-2 overflow-x-auto hide-scrollbar">
+              {(["industries", "interests", "roles"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => scrollToSection(tab)}
+                  className={`px-4 py-2.5 text-[15px] font-semibold rounded-lg whitespace-nowrap transition-colors ${
+                    activeTab === tab
+                      ? "bg-[#6366F1]/[0.12] text-[#6366F1]"
+                      : "text-[#A1A1AA] hover:bg-[#F4F4F5] dark:hover:bg-[#1C1C22] hover:text-[#52525B]"
+                  }`}
+                  data-testid={`pulse-tab-${tab}`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <div className="max-w-4xl mx-auto px-4 md:px-8 py-5 space-y-8 pb-24 md:pb-8">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
@@ -79,30 +114,36 @@ export default function MyPulsePage() {
             </div>
           ) : (
             <>
-              <TopicSection
-                title="Industries"
-                topics={PULSE_INDUSTRIES}
-                subscribedSlugs={subscribedSlugs}
-                onToggle={handleToggle}
-                isPro={isPro}
-                isToggling={toggleMutation.isPending}
-              />
-              <TopicSection
-                title="Interests"
-                topics={PULSE_INTERESTS}
-                subscribedSlugs={subscribedSlugs}
-                onToggle={handleToggle}
-                isPro={isPro}
-                isToggling={toggleMutation.isPending}
-              />
-              <TopicSection
-                title="Roles"
-                topics={PULSE_ROLES}
-                subscribedSlugs={subscribedSlugs}
-                onToggle={handleToggle}
-                isPro={isPro}
-                isToggling={toggleMutation.isPending}
-              />
+              <div ref={industriesRef} className="scroll-mt-28">
+                <TopicSection
+                  title="Industries"
+                  topics={PULSE_INDUSTRIES}
+                  subscribedSlugs={subscribedSlugs}
+                  onToggle={handleToggle}
+                  isPro={isPro}
+                  isToggling={toggleMutation.isPending}
+                />
+              </div>
+              <div ref={interestsRef} className="scroll-mt-28">
+                <TopicSection
+                  title="Interests"
+                  topics={PULSE_INTERESTS}
+                  subscribedSlugs={subscribedSlugs}
+                  onToggle={handleToggle}
+                  isPro={isPro}
+                  isToggling={toggleMutation.isPending}
+                />
+              </div>
+              <div ref={rolesRef} className="scroll-mt-28">
+                <TopicSection
+                  title="Roles"
+                  topics={PULSE_ROLES}
+                  subscribedSlugs={subscribedSlugs}
+                  onToggle={handleToggle}
+                  isPro={isPro}
+                  isToggling={toggleMutation.isPending}
+                />
+              </div>
             </>
           )}
         </div>

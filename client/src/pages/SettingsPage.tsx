@@ -72,7 +72,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <DashboardLayout hideRightSidebar>
+    <DashboardLayout>
       <div className="min-h-screen bg-[#F9F9FB] dark:bg-[#09090B]" data-testid="settings-page">
         <div className="bg-white dark:bg-[#111114] border-b border-[#F0F0F2] dark:border-[#1C1C22]">
           <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 flex items-center gap-4">

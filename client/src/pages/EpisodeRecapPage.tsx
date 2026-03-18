@@ -882,15 +882,17 @@ export default function EpisodeRecapPage() {
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="space-y-8"
       >
-        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[16px] text-muted-foreground overflow-hidden" data-testid="breadcrumb-nav">
-          <Link href="/" className="hover:text-foreground transition-colors shrink-0 hidden sm:inline">Home</Link>
-          <ChevronRight className="w-3 h-3 shrink-0 hidden sm:inline" />
-          <Link href="/podcasts" className="hover:text-foreground transition-colors shrink-0 hidden sm:inline">Podcasts</Link>
-          <ChevronRight className="w-3 h-3 shrink-0 hidden sm:inline" />
-          <Link href={`/podcasts/${podcastSlug}`} className="hover:text-foreground transition-colors shrink-0 truncate max-w-[140px] sm:max-w-none">{episode.podcastName}</Link>
-          <ChevronRight className="w-3 h-3 shrink-0" />
-          <span className="text-foreground font-medium truncate min-w-0">{episode.episodeTitle}</span>
-        </nav>
+        {!authUser && (
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[16px] text-muted-foreground overflow-hidden" data-testid="breadcrumb-nav">
+            <Link href="/" className="hover:text-foreground transition-colors shrink-0 hidden sm:inline">Home</Link>
+            <ChevronRight className="w-3 h-3 shrink-0 hidden sm:inline" />
+            <Link href="/podcasts" className="hover:text-foreground transition-colors shrink-0 hidden sm:inline">Podcasts</Link>
+            <ChevronRight className="w-3 h-3 shrink-0 hidden sm:inline" />
+            <Link href={`/podcasts/${podcastSlug}`} className="hover:text-foreground transition-colors shrink-0 truncate max-w-[140px] sm:max-w-none">{episode.podcastName}</Link>
+            <ChevronRight className="w-3 h-3 shrink-0" />
+            <span className="text-foreground font-medium truncate min-w-0">{episode.episodeTitle}</span>
+          </nav>
+        )}
 
         <nav className={`sticky z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar ${authUser ? "top-0" : "top-[68px]"}`} data-testid="nav-in-page">
           {episode.keyInsights?.length > 0 && (
@@ -947,14 +949,16 @@ export default function EpisodeRecapPage() {
               Quotes
             </button>
           )}
-          <button
-            onClick={() => setShowUpdatesModal(true)}
-            className="px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors flex items-center gap-1.5 text-primary/70 hover:text-primary hover:bg-primary/[0.06]"
-            data-testid="nav-get-updates"
-          >
-            <Mail className="w-4 h-4" />
-            Get Updates
-          </button>
+          {!authUser && (
+            <button
+              onClick={() => setShowUpdatesModal(true)}
+              className="px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors flex items-center gap-1.5 text-primary/70 hover:text-primary hover:bg-primary/[0.06]"
+              data-testid="nav-get-updates"
+            >
+              <Mail className="w-4 h-4" />
+              Get Updates
+            </button>
+          )}
           {authUser && (
             <button
               onClick={() => followMutation.mutate({ follow: !isFollowing })}
@@ -1022,16 +1026,19 @@ export default function EpisodeRecapPage() {
           </section>
         )}
 
-        <section id="section-what-happened" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-what-happened">
-          <div className="px-4 sm:px-6 py-4 bg-primary/[0.04] border-b border-primary/[0.08]">
-            <div className="flex items-center gap-2.5">
+        <section id="section-what-happened" className="bg-white dark:bg-white/[0.03] border border-[#E4E4E7] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.05)]" data-testid="section-what-happened">
+          <div className="px-5 sm:px-6 pt-5 pb-[18px] border-b border-[#F0F0F2] dark:border-white/[0.06]">
+            <div className="flex items-center gap-2.5 mb-[9px]">
               <BookOpen className="w-4 h-4 text-primary shrink-0" />
-              <span className="text-base font-bold text-primary uppercase tracking-wider">{`Episode Recap: ${seoSubject}`}</span>
+              <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-[#A1A1AA]" style={{ fontFamily: "var(--font-mono)" }}>Episode Recap</span>
             </div>
+            <h3 className="text-[26px] font-normal text-[#09090B] dark:text-white leading-[1.2] tracking-[-0.01em]" style={{ fontFamily: "var(--font-serif)" }}>
+              {episode.tldl || seoSubject}
+            </h3>
           </div>
-          <div className="px-4 sm:px-6 py-5 space-y-5">
+          <div className="px-5 sm:px-6 py-[22px] space-y-5">
             {whatHappenedParagraphs.map((paragraph: string, i: number) => (
-              <p key={i} className="text-[17px] leading-[1.85] text-muted-foreground">
+              <p key={i} className="text-[16px] leading-[1.6] text-[#52525B] dark:text-[#A1A1AA]">
                 {paragraph}
               </p>
             ))}

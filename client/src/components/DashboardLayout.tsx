@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Home, Compass, ShoppingBag, HelpCircle, Bookmark,
-  Zap, Users, Settings
+  Zap, Users, Settings, Radio
 } from "lucide-react";
 import { RightSidebar } from "@/components/RightSidebar";
 
@@ -16,7 +16,8 @@ const NAV_ITEMS = [
   { key: "discover", path: "/discover", label: "Discover", Icon: Compass },
   { key: "pulse", path: "/pulse", label: "My Pulse", Icon: Zap },
   { key: "shop", path: "/shop", label: "Shop", Icon: ShoppingBag },
-  { key: "bookmarks", path: "/bookmarks", label: "Bookmarks", Icon: Bookmark },
+  { key: "bookmarks", path: "/bookmarks", label: "Saved Episodes", Icon: Bookmark },
+  { key: "my-podcasts", path: "/my-podcasts", label: "My Podcasts", Icon: Radio },
   { key: "pod-squad", path: "/pod-squad", label: "Pod Squad", Icon: Users },
   { key: "settings", path: "/settings", label: "Settings", Icon: Settings },
 ];

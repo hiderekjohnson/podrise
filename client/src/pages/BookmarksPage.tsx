@@ -188,7 +188,7 @@ function BookmarkCard({ item, onRemove, toast }: {
           <button
             onClick={() => onRemove(item.podcastSlug, item.episodeSlug)}
             className="w-8 h-8 rounded-[7px] flex items-center justify-center text-[#A1A1AA] hover:bg-white dark:hover:bg-[#1C1C22] hover:text-red-500 transition-all"
-            aria-label="Remove bookmark"
+            aria-label="Remove saved episode"
             data-testid={`bookmark-remove-${item.id}`}
           >
             <BookmarkX className="w-[15px] h-[15px]" />
@@ -220,7 +220,7 @@ export default function BookmarksPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/bookmarks/enriched"] });
       queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] });
-      toast({ title: "Bookmark removed" });
+      toast({ title: "Episode removed" });
     },
   });
 
@@ -229,8 +229,8 @@ export default function BookmarksPage() {
       <div className="min-h-screen bg-[#F9F9FB] dark:bg-[#09090B]" data-testid="bookmarks-page">
         <div className="max-w-3xl mx-auto px-4 md:px-8 py-8 pb-24 md:pb-8">
           <div className="mb-6">
-            <h1 className="text-[24px] md:text-[28px] font-bold text-[#09090B] dark:text-white mb-1" data-testid="bookmarks-title">Bookmarks</h1>
-            <p className="text-[15px] text-[#71717A] dark:text-[#A1A1AA]">Your saved episodes</p>
+            <h1 className="text-[24px] md:text-[28px] font-bold text-[#09090B] dark:text-white mb-1" data-testid="bookmarks-title">Saved Episodes</h1>
+            <p className="text-[15px] text-[#71717A] dark:text-[#A1A1AA]">Episodes you've saved for later</p>
           </div>
 
           {isLoading ? (
@@ -242,9 +242,9 @@ export default function BookmarksPage() {
               <div className="w-16 h-16 rounded-full bg-[#F4F4F5] dark:bg-[#1C1C22] flex items-center justify-center mx-auto mb-4">
                 <Bookmark className="w-7 h-7 text-[#A1A1AA]" />
               </div>
-              <p className="text-[17px] font-bold text-[#09090B] dark:text-white mb-1" data-testid="bookmarks-empty">No bookmarks yet</p>
+              <p className="text-[17px] font-bold text-[#09090B] dark:text-white mb-1" data-testid="bookmarks-empty">No saved episodes yet</p>
               <p className="text-[14px] text-[#71717A] dark:text-[#A1A1AA] leading-relaxed max-w-sm mx-auto">
-                Save episodes from your feed by clicking the bookmark icon. They'll appear here for easy access.
+                Save episodes from your feed by clicking the save icon. They'll appear here for easy access.
               </p>
             </div>
           ) : (

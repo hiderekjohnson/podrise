@@ -7036,6 +7036,52 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/feed/followed-podcasts-details", async (req, res) => {
+    const fpUserId = getAuthUserId(req);
+    if (!fpUserId) return res.json([]);
+    try {
+      const user = await storage.getUserById(fpUserId);
+      if (!user) return res.json([]);
+      const rawPodcasts = user.podcasts || [];
+      const itunesIds: string[] = [];
+      const slugFallbacks: string[] = [];
+      for (const p of rawPodcasts) {
+        try {
+          const parsed = JSON.parse(p);
+          if (parsed.id) itunesIds.push(String(parsed.id));
+          else slugFallbacks.push(p);
+        } catch {
+          slugFallbacks.push(p);
+        }
+      }
+      if (itunesIds.length === 0 && slugFallbacks.length === 0) return res.json([]);
+      const conditions: string[] = [];
+      const params: any[] = [];
+      if (itunesIds.length > 0) {
+        params.push(itunesIds);
+        conditions.push(`itunes_id::text = ANY($${params.length})`);
+      }
+      if (slugFallbacks.length > 0) {
+        params.push(slugFallbacks);
+        conditions.push(`slug = ANY($${params.length})`);
+      }
+      const result = await pool.query(
+        `SELECT slug, name, artwork_url AS "artworkUrl", category, hosts FROM podcast_directory WHERE ${conditions.join(' OR ')} ORDER BY name ASC`,
+        params
+      );
+      res.json(result.rows.map((r: any) => ({
+        slug: r.slug,
+        name: r.name,
+        artworkUrl: r.artworkUrl,
+        category: r.category || null,
+        hosts: r.hosts || null,
+      })));
+    } catch (err) {
+      console.error("Followed podcasts details error:", err);
+      res.json([]);
+    }
+  });
+
   app.post("/api/feed/follow", async (req, res) => {
     const followUserId = getAuthUserId(req);
     if (!followUserId) return res.status(401).json({ message: "Not authenticated" });

@@ -4,7 +4,7 @@ import { useQuery, useMutation, useInfiniteQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MessageCircle, Bookmark, BookmarkCheck, Share, ChevronDown, Copy, ExternalLink, Search, Gift, ChevronRight, MoreHorizontal, Users, Building2 } from "lucide-react";
+import { Loader2, MessageCircle, Bookmark, BookmarkCheck, Share, ChevronDown, Copy, ExternalLink, Gift, ChevronRight, MoreHorizontal, Users, Building2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { FeatureTour } from "@/components/FeatureTour";
@@ -951,11 +951,11 @@ export default function FeedPage() {
       });
       return { previous };
     },
-    onSuccess: () => { toast({ title: "Bookmarked", description: "Episode saved to your bookmarks" }); },
+    onSuccess: () => { toast({ title: "Saved", description: "Episode saved" }); },
     onSettled: () => { queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] }); },
     onError: (_err, _vars, context) => {
       if (context?.previous) queryClient.setQueryData<BookmarkRecord[]>(["/api/bookmarks"], context.previous);
-      toast({ title: "Error", description: "Failed to bookmark episode", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to save episode", variant: "destructive" });
     },
   });
 
@@ -971,16 +971,16 @@ export default function FeedPage() {
       );
       return { previous };
     },
-    onSuccess: () => { toast({ title: "Removed", description: "Episode removed from bookmarks" }); },
+    onSuccess: () => { toast({ title: "Removed", description: "Episode removed from saved" }); },
     onSettled: () => { queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] }); },
     onError: (_err, _vars, context) => {
       if (context?.previous) queryClient.setQueryData<BookmarkRecord[]>(["/api/bookmarks"], context.previous);
-      toast({ title: "Error", description: "Failed to remove bookmark", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to remove episode", variant: "destructive" });
     },
   });
 
   const handleBookmarkToggle = useCallback((episodeSlug: string, podcastSlug: string) => {
-    if (!user) { toast({ title: "Sign in required", description: "Log in to bookmark episodes", variant: "destructive" }); return; }
+    if (!user) { toast({ title: "Sign in required", description: "Log in to save episodes", variant: "destructive" }); return; }
     const key = `${podcastSlug}::${episodeSlug}`;
     if (bookmarkedKeys.has(key)) removeBookmark.mutate({ podcastSlug, episodeSlug });
     else addBookmark.mutate({ episodeSlug, podcastSlug });
@@ -1075,13 +1075,6 @@ export default function FeedPage() {
               </button>
             ))}
           </div>
-          <button
-            onClick={() => navigate("/discover")}
-            className="w-9 h-9 rounded-lg flex items-center justify-center self-center text-[#A1A1AA] hover:bg-[#F7F7FC] hover:text-[#6366F1] transition-all"
-            data-testid="feed-search-btn"
-          >
-            <Search className="w-5 h-5" />
-          </button>
         </div>
 
         {podcastFilter && (

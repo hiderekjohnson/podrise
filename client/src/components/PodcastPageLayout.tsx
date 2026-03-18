@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useLocation } from "wouter";
-import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, Compass, Headphones, Mail, X, Sparkles, ExternalLink, ChevronRight, BookOpen, ShoppingBag, Shield, Heart, Rss } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, Compass, Headphones, Mail, X, Sparkles, ExternalLink, ChevronRight, BookOpen, ShoppingBag, Shield, Heart } from "lucide-react";
 import { SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
@@ -258,14 +258,6 @@ export function PodcastPageLayout({
                         </>
                       )}
                     </button>
-                    <Link
-                      href={`/dashboard?tab=following&podcast=${encodeURIComponent(config.slug)}`}
-                      className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#52525B] hover:text-foreground transition-colors min-h-[44px] whitespace-nowrap shrink-0"
-                      data-testid="hero-link-feed"
-                    >
-                      <Rss className="w-4 h-4" />
-                      View in feed
-                    </Link>
                   </>
                 )}
                 <a

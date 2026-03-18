@@ -12,7 +12,7 @@ const SUGGESTED_QUESTIONS = [
   "How does PodCap work?",
   "How do I follow a podcast?",
   "When do I receive email recaps?",
-  "How do bookmarks work?",
+  "How do saved episodes work?",
   "How do I change my email?",
   "What's the difference between For You and Following?",
 ];
@@ -70,7 +70,7 @@ export default function HelpPage() {
   };
 
   return (
-    <DashboardLayout hideRightSidebar>
+    <DashboardLayout>
       <div className="min-h-screen bg-[#F9F9FB] dark:bg-[#09090B] flex flex-col" data-testid="help-page">
         <div className="max-w-3xl w-full mx-auto px-4 md:px-8 py-6 pb-24 md:pb-6 flex flex-col flex-1">
           <div className="mb-6">
@@ -89,7 +89,7 @@ export default function HelpPage() {
                     Hi! I'm PodCap's AI assistant.
                   </h2>
                   <p className="text-[14px] text-[#71717A] dark:text-[#A1A1AA] max-w-md mb-6">
-                    I can help you with questions about how PodCap works, your account, email recaps, bookmarks, subscriptions, and more.
+                    I can help you with questions about how PodCap works, your account, email recaps, saved episodes, subscriptions, and more.
                   </p>
                   <div className="flex flex-wrap justify-center gap-2 max-w-lg" data-testid="suggested-questions">
                     {SUGGESTED_QUESTIONS.map((q) => (

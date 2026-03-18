@@ -147,7 +147,7 @@ export default function PodSquad() {
   }
 
   return (
-    <DashboardLayout hideRightSidebar>
+    <DashboardLayout>
       <div className="min-h-screen bg-[#F9F9FB] dark:bg-[#09090B]" data-testid="pod-squad-page">
         {/* Hero Banner with Reward Tiers */}
         <div

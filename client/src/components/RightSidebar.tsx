@@ -117,7 +117,7 @@ function SidebarSearch() {
           <Search className="w-4 h-4 text-[#A1A1AA] flex-shrink-0" />
           <input
             type="text"
-            placeholder="Search podcasts, episodes, people..."
+            placeholder="Search Podcasts"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="flex-1 border-none bg-transparent outline-none text-[14px] text-[#09090B] placeholder-[#A1A1AA] min-h-0 p-0"
