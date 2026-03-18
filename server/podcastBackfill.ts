@@ -191,7 +191,10 @@ async function computeRelatedSlugs() {
   const podcastGuests = new Map<string, Set<string>>();
   for (const row of guestData) {
     let guests: any[] = [];
-    try { guests = typeof row.guests === 'string' ? JSON.parse(row.guests) : (row.guests || []); } catch {}
+    try {
+      const parsed = typeof row.guests === 'string' ? JSON.parse(row.guests) : (row.guests || []);
+      guests = Array.isArray(parsed) ? parsed : [];
+    } catch {}
     const guestNames = guests.map((g: any) => {
       const name = typeof g === 'string' ? g : g?.name;
       return name?.toLowerCase()?.trim();
@@ -238,7 +241,7 @@ async function computeRelatedSlugs() {
 
       if (related.length > 0) {
         await pool.query(
-          `UPDATE podcast_directory SET related_slugs = $1, updated_at = NOW() WHERE id = $2`,
+          `UPDATE podcast_directory SET related_slugs = $1::text[], updated_at = NOW() WHERE id = $2`,
           [related, podcast.id]
         );
         state.fixed++;
