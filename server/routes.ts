@@ -6602,9 +6602,6 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
   app.get("/api/sidebar-data", async (_req, res) => {
     try {
-      const cached = directoryCache.sidebarData.get();
-      if (cached) return res.json(cached);
-
       const client = await pool.connect();
       try {
         const topicsData = directoryCache.topics.get() || await computeTopicsData();
@@ -6648,25 +6645,67 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           `SELECT ep.name, ep.company, ep.image_url, ep.category, ep.podcast_slug, ep.episode_slug
            FROM extracted_products ep
            WHERE ep.status = 'approved' AND ep.image_status = 'approved' AND ep.image_url IS NOT NULL
-           ORDER BY ep.extracted_at DESC
-           LIMIT 30`
+           ORDER BY RANDOM()
+           LIMIT 20`
         );
         const seenProducts = new Set<string>();
-        const popularShop = shopRows.filter((p: any) => {
+        const productItems = shopRows.filter((p: any) => {
           const key = (p.name || "").toLowerCase().trim();
           if (seenProducts.has(key)) return false;
           seenProducts.add(key);
           return true;
-        }).slice(0, 3).map((p: any) => ({
+        }).map((p: any) => ({
           name: p.name,
-          company: p.company,
+          subtitle: p.company || null,
           imageUrl: p.image_url,
-          category: p.category,
-          slug: generateItemSlug(p.name || "", p.company || null),
+          type: "product" as const,
+          link: `/shop/${generateItemSlug(p.name || "", p.company || null)}`,
         }));
 
-        const result = { trendingTopics, notableQuotes, trendingPeople, popularShop };
-        directoryCache.sidebarData.set(result);
+        const { rows: bookRows } = await client.query(
+          `SELECT be.book_title, be.author, be.slug
+           FROM book_enrichments be
+           WHERE be.has_cover = true AND be.cover_approved = true AND be.slug IS NOT NULL
+           ORDER BY RANDOM()
+           LIMIT 20`
+        );
+        const bookItems = bookRows.map((b: any) => ({
+          name: b.book_title,
+          subtitle: b.author || null,
+          imageUrl: `/books/${b.slug}.jpg`,
+          type: "book" as const,
+          link: `/bookstore/${b.slug}`,
+        }));
+
+        const TARGET = 6;
+        const recommended: typeof productItems = [];
+        const shuffled = (arr: typeof productItems) => {
+          const a = [...arr];
+          for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+          }
+          return a;
+        };
+        const shuffledProducts = shuffled(productItems);
+        const shuffledBooks = shuffled(bookItems);
+        const hasProducts = shuffledProducts.length > 0;
+        const hasBooks = shuffledBooks.length > 0;
+        if (hasProducts && hasBooks) {
+          const productSlots = Math.max(2, Math.min(4, Math.floor(Math.random() * 3) + 2));
+          const bookSlots = TARGET - productSlots;
+          recommended.push(...shuffledProducts.slice(0, productSlots));
+          recommended.push(...shuffledBooks.slice(0, bookSlots));
+        } else {
+          recommended.push(...shuffledProducts.slice(0, TARGET));
+          recommended.push(...shuffledBooks.slice(0, TARGET));
+        }
+        for (let i = recommended.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [recommended[i], recommended[j]] = [recommended[j], recommended[i]];
+        }
+
+        const result = { trendingTopics, notableQuotes, trendingPeople, recommended };
         res.json(result);
       } finally {
         client.release();

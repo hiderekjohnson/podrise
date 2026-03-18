@@ -1,5 +1,4 @@
 import { Link, useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import {
   Home, Compass, ShoppingBag, HelpCircle, Bookmark,
@@ -70,7 +69,6 @@ function MobileBottomNav({ currentPath }: { currentPath: string }) {
 }
 
 export function DashboardLayout({ children, hideRightSidebar }: DashboardLayoutProps) {
-  const { data: user } = useAuth();
   const { isEnabled } = useFeatureFlags();
   const [location] = useLocation();
 
@@ -83,10 +81,6 @@ export function DashboardLayout({ children, hideRightSidebar }: DashboardLayoutP
     location === path || (path === "/dashboard" && location === "/");
 
   const showRightSidebar = !hideRightSidebar;
-
-  const initials = user?.displayName
-    ? user.displayName.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()
-    : "?";
 
   return (
     <div className="dashboard-shell min-h-screen bg-[#F7F7FC]" data-testid="dashboard-layout">
@@ -139,14 +133,6 @@ export function DashboardLayout({ children, hideRightSidebar }: DashboardLayoutP
               data-testid="sidebar-nav-help"
             >
               <HelpCircle className="w-5 h-5" />
-            </div>
-          </Link>
-          <Link href="/settings">
-            <div
-              className="w-[34px] h-[34px] rounded-full bg-[#EEF2FF] text-[#6366F1] text-[12px] font-bold flex items-center justify-center cursor-pointer border-2 border-[#A5B4FC]"
-              data-testid="sidebar-avatar"
-            >
-              {initials}
             </div>
           </Link>
         </div>
