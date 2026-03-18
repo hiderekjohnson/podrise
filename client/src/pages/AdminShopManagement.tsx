@@ -173,13 +173,38 @@ function RejectionModal({ onReject, onCancel, isPending }: {
 function TranscriptContextPanel({ item }: { item: ShopItem }) {
   const [expanded, setExpanded] = useState(true);
 
-  if (!item.context && !item.context_summary) return null;
+  const hasEpisodeInfo = item.episode_slug && item.podcast_slug;
 
-  const contextText = item.context || item.context_summary || "";
-  const words = contextText.split(/\s+/);
-  const displayText = words.slice(0, 600).join(" ") + (words.length > 600 ? "..." : "");
+  const { data: transcriptData, isLoading: transcriptLoading, isError: transcriptError } = useQuery<{
+    transcript: string | null;
+    found: boolean;
+  }>({
+    queryKey: ["/api/admin/shop/transcript-excerpt", item.episode_slug, item.podcast_slug, item.name],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        episode_slug: item.episode_slug || "",
+        podcast_slug: item.podcast_slug || "",
+        product_name: item.name || "",
+      });
+      const res = await fetch(`/api/admin/shop/transcript-excerpt?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch transcript");
+      return res.json();
+    },
+    enabled: !!hasEpisodeInfo,
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+  });
 
-  const episodeUrl = item.episode_slug && item.podcast_slug
+  const hasRawTranscript = transcriptData?.transcript;
+  const hasFallbackContext = item.context || item.context_summary;
+
+  if (!hasRawTranscript && !hasFallbackContext && !transcriptLoading) return null;
+
+  const fallbackText = item.context || item.context_summary || "";
+  const fallbackWords = fallbackText.split(/\s+/);
+  const fallbackDisplay = fallbackWords.slice(0, 600).join(" ") + (fallbackWords.length > 600 ? "..." : "");
+
+  const episodeUrl = hasEpisodeInfo
     ? `/${item.podcast_slug}/${item.episode_slug}`
     : null;
 
@@ -221,9 +246,56 @@ function TranscriptContextPanel({ item }: { item: ShopItem }) {
               )}
             </div>
           )}
-          <div className="text-sm text-foreground/80 leading-relaxed max-h-[300px] overflow-y-auto bg-black/[0.02] rounded-lg p-3">
-            {highlightText(displayText, item.name)}
-          </div>
+
+          {transcriptLoading && hasEpisodeInfo && (
+            <div className="text-xs text-muted-foreground italic py-2" data-testid="text-transcript-loading">
+              Loading raw transcript...
+            </div>
+          )}
+
+          {transcriptError && hasEpisodeInfo && !transcriptLoading && (
+            <div className="text-xs text-red-500/70 italic py-2" data-testid="text-transcript-error">
+              Failed to load raw transcript.
+            </div>
+          )}
+
+          {hasRawTranscript && (
+            <div>
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-primary/70" data-testid="label-raw-transcript">Raw Transcript</span>
+                {transcriptData?.found && (
+                  <span className="text-[10px] text-emerald-600 font-medium">• mention found</span>
+                )}
+              </div>
+              <div className="text-sm text-foreground/80 leading-relaxed max-h-[300px] overflow-y-auto bg-black/[0.02] rounded-lg p-3" data-testid="text-raw-transcript">
+                {highlightText(transcriptData!.transcript!, item.name)}
+              </div>
+            </div>
+          )}
+
+          {hasFallbackContext && (
+            <div>
+              {hasRawTranscript && (
+                <div className="flex items-center gap-2 mb-1.5 mt-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground" data-testid="label-ai-summary">AI Summary</span>
+                </div>
+              )}
+              {!hasRawTranscript && !transcriptLoading && (
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground" data-testid="label-ai-summary">AI Summary</span>
+                </div>
+              )}
+              <div className="text-sm text-foreground/80 leading-relaxed max-h-[300px] overflow-y-auto bg-black/[0.02] rounded-lg p-3" data-testid="text-ai-summary">
+                {highlightText(fallbackDisplay, item.name)}
+              </div>
+            </div>
+          )}
+
+          {!hasRawTranscript && !hasFallbackContext && !transcriptLoading && (
+            <div className="text-xs text-muted-foreground italic py-2" data-testid="text-no-transcript">
+              No transcript or context available for this item.
+            </div>
+          )}
         </div>
       )}
     </div>

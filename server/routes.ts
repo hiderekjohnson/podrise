@@ -16367,6 +16367,86 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
     }
   });
 
+  app.get("/api/admin/shop/transcript-excerpt", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const episodeSlug = (req.query.episode_slug as string || "").trim();
+      const podcastSlug = (req.query.podcast_slug as string || "").trim();
+      const productName = (req.query.product_name as string || "").trim();
+
+      if (!episodeSlug || !podcastSlug) {
+        return res.status(400).json({ message: "episode_slug and podcast_slug are required" });
+      }
+
+      const { rows: segments }: { rows: { text: string }[] } = await pool.query(
+        `SELECT text
+         FROM transcript_segments
+         WHERE episode_slug = $1 AND podcast_slug = $2
+         ORDER BY sequence_index ASC`,
+        [episodeSlug, podcastSlug]
+      );
+
+      if (!segments.length) {
+        return res.json({ transcript: null, found: false });
+      }
+
+      const fullText = segments.map((s) => s.text).join(" ");
+      const TARGET_WORDS = 600;
+
+      let excerpt: string;
+      let mentionFound = false;
+
+      if (productName) {
+        const lowerFull = fullText.toLowerCase();
+        const lowerProduct = productName.toLowerCase();
+        const mentionIndex = lowerFull.indexOf(lowerProduct);
+
+        if (mentionIndex !== -1) {
+          mentionFound = true;
+          const words = fullText.split(/\s+/);
+          let charCount = 0;
+          let mentionWordIndex = 0;
+          for (let i = 0; i < words.length; i++) {
+            if (charCount >= mentionIndex) {
+              mentionWordIndex = i;
+              break;
+            }
+            charCount += words[i].length + 1;
+          }
+
+          const halfWindow = Math.floor(TARGET_WORDS / 2);
+          let start = Math.max(0, mentionWordIndex - halfWindow);
+          let end = Math.min(words.length, start + TARGET_WORDS);
+          if (end === words.length) {
+            start = Math.max(0, end - TARGET_WORDS);
+          }
+
+          excerpt = words.slice(start, end).join(" ");
+          if (start > 0) excerpt = "..." + excerpt;
+          if (end < words.length) excerpt = excerpt + "...";
+        } else {
+          const words = fullText.split(/\s+/);
+          const mid = Math.floor(words.length / 2);
+          const halfWindow = Math.floor(TARGET_WORDS / 2);
+          const start = Math.max(0, mid - halfWindow);
+          const end = Math.min(words.length, start + TARGET_WORDS);
+          excerpt = words.slice(start, end).join(" ");
+          if (start > 0) excerpt = "..." + excerpt;
+          if (end < words.length) excerpt = excerpt + "...";
+        }
+      } else {
+        const words = fullText.split(/\s+/);
+        excerpt = words.slice(0, TARGET_WORDS).join(" ");
+        if (words.length > TARGET_WORDS) excerpt += "...";
+      }
+
+      res.json({ transcript: excerpt, found: mentionFound });
+    } catch (err: any) {
+      console.error("[TranscriptExcerpt] Error:", err);
+      res.status(500).json({ message: err?.message || "Failed to fetch transcript" });
+    }
+  });
+
   app.get("/api/admin/shop/approved", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
     try {
