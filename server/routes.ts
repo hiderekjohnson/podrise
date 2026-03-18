@@ -8685,6 +8685,53 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     res.json(getBackfillProgress());
   });
 
+  app.get("/api/admin/processing-health", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { getProcessingHealth } = await import("./recapValidator");
+      const health = getProcessingHealth();
+
+      const { rows: unresolvedFailures } = await pool.query(
+        `SELECT id, recap_id, podcast_slug, episode_title, podcast_name, failure_type, details, created_at
+         FROM recap_processing_failures WHERE resolved = false ORDER BY created_at DESC LIMIT 50`
+      );
+
+      const { rows: failureStats } = await pool.query(
+        `SELECT failure_type, COUNT(*) as cnt FROM recap_processing_failures
+         WHERE resolved = false GROUP BY failure_type`
+      );
+
+      res.json({
+        ...health,
+        persistedFailures: {
+          unresolved: unresolvedFailures.length,
+          byType: failureStats,
+          recent: unresolvedFailures.slice(0, 20),
+        }
+      });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.post("/api/admin/processing-failures/resolve", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    const { ids, resolveAll } = req.body;
+    try {
+      if (resolveAll) {
+        const result = await pool.query(`UPDATE recap_processing_failures SET resolved = true WHERE resolved = false`);
+        return res.json({ resolved: result.rowCount });
+      }
+      if (ids && Array.isArray(ids)) {
+        const result = await pool.query(`UPDATE recap_processing_failures SET resolved = true WHERE id = ANY($1)`, [ids]);
+        return res.json({ resolved: result.rowCount });
+      }
+      res.status(400).json({ message: "Provide 'ids' array or 'resolveAll: true'" });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   app.post("/api/admin/backfill-episodes/stop", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     const { stopEpisodeBackfill } = await import("./episodeBackfill");

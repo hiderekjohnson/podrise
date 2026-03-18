@@ -240,6 +240,13 @@ async function processEpisode(
         continue;
       }
       console.error(`[BgRecap] FAIL after ${maxAttempts} attempts for "${epTitle.slice(0, 50)}":`, err.message);
+      try {
+        await pool.query(
+          `INSERT INTO recap_processing_failures (recap_id, podcast_slug, episode_slug, episode_title, podcast_name, source, failure_type, details)
+           VALUES (NULL, $1, $2, $3, $4, 'background_generator', 'generation_failed', $5)`,
+          [podcastSlug, epSlug, epTitle, podcastName, err.message?.slice(0, 500)]
+        );
+      } catch {}
       return "failed";
     }
   }

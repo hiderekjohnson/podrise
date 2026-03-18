@@ -7,6 +7,7 @@ import { isLikelySponsorProduct } from "./productFilter";
 const INTERVAL_MS = 3 * 60 * 1000;
 const BATCH_SIZE = 15;
 const PER_PODCAST = 5;
+let batchRunning = false;
 
 async function getPodcastInfo(itunesId: string) {
   const { rows } = await pool.query(
@@ -146,11 +147,23 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
     return true;
   } catch (err: any) {
     console.error(`[ProdRecap] Error processing "${epTitle?.slice(0, 50)}": ${err.message}`);
+    try {
+      await pool.query(
+        `INSERT INTO recap_processing_failures (recap_id, podcast_slug, episode_slug, episode_title, podcast_name, source, failure_type, details)
+         VALUES (NULL, $1, $2, $3, $4, 'production_scheduler', 'generation_failed', $5)`,
+        [podcastSlug, epSlug, epTitle, podcastName, err.message?.slice(0, 500)]
+      );
+    } catch {}
     return false;
   }
 }
 
 async function runBatch() {
+  if (batchRunning) {
+    console.log("[ProdRecap] Previous batch still running, skipping this cycle");
+    return;
+  }
+  batchRunning = true;
   try {
     const { rows: episodes } = await pool.query(
       `WITH ranked AS (
@@ -208,6 +221,8 @@ async function runBatch() {
     }
   } catch (err: any) {
     console.error("[ProdRecap] Batch error:", err.message);
+  } finally {
+    batchRunning = false;
   }
 }
 
