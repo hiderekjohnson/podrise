@@ -62,4 +62,4 @@ DEV_DATABASE_URL = "postgresql://postgres:password@helium/heliumdb?sslmode=disab
 
 [postMerge]
 path = "scripts/post-merge.sh"
-timeoutMs = 20000
+timeoutMs = 60000
