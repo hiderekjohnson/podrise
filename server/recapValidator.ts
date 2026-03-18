@@ -145,23 +145,12 @@ export async function validateAndEnrichRecap(
     if (isEmpty(recap.spotify_episode_url)) result.missing.push("spotify_url");
     if (isEmpty(recap.audio_url)) result.missing.push("audio_url");
     if (isEmpty(recap.tabloid_headline)) result.missing.push("tabloid");
-    if (isEmpty(recap.topic_contexts)) result.missing.push("topic_contexts");
-    if (isEmpty(recap.top_questions)) result.missing.push("top_questions");
-    if (isEmpty(recap.resources)) result.missing.push("resources");
-    if (isEmpty(recap.guests)) result.missing.push("guests");
-    if (isEmpty(recap.sponsors)) result.missing.push("sponsors");
 
     const { rows: quoteRows } = await client.query(
       `SELECT COUNT(*) as cnt FROM episode_quotes WHERE podcast_slug = $1 AND episode_slug = $2`,
       [podcastSlug, episodeSlug]
     );
     if (parseInt(quoteRows[0]?.cnt || "0") === 0) result.missing.push("quotes_db");
-
-    const { rows: productRows } = await client.query(
-      `SELECT COUNT(*) as cnt FROM extracted_products WHERE podcast_slug = $1 AND episode_slug = $2`,
-      [podcastSlug, episodeSlug]
-    );
-    if (parseInt(productRows[0]?.cnt || "0") === 0) result.missing.push("products");
 
     if (result.missing.length === 0) {
       return result;
@@ -205,32 +194,6 @@ export async function validateAndEnrichRecap(
         }
       } catch (err: any) {
         result.errors.push(`spotify: ${err.message?.slice(0, 80)}`);
-      }
-    }
-
-    if (result.missing.includes("quotes_db") && transcript) {
-      try {
-        const { extractQuotesFromTranscript } = await import("./recapGenerator");
-        const guestsStr = !isEmpty(recap.guests) ? recap.guests : null;
-        const extractedQuotes = await extractQuotesFromTranscript(
-          transcript, podcastName, episodeTitle, hosts, guestsStr
-        );
-        if (extractedQuotes.length > 0) {
-          const { storage } = await import("./storage");
-          const quotesToSave = extractedQuotes.map((q: any) => ({
-            podcastSlug,
-            episodeSlug,
-            speakerName: q.speakerName,
-            speakerRole: q.speakerRole || null,
-            quoteText: q.quoteText,
-            context: q.context,
-            quoteType: q.quoteType,
-          }));
-          await storage.saveEpisodeQuotes(quotesToSave);
-          result.fixed.push(`quotes_db(${extractedQuotes.length})`);
-        }
-      } catch (err: any) {
-        result.errors.push(`quotes_db: ${err.message?.slice(0, 80)}`);
       }
     }
 

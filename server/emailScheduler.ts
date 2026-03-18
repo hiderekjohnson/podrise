@@ -1265,9 +1265,9 @@ export async function backfillTopicsAndQuestions() {
   const client = await dbPool.connect();
   try {
     const { rows: recaps } = await client.query(
-      `SELECT id, slug, episode_slug, podcast_name, episode_title FROM landing_page_recaps WHERE key_topics IS NULL OR top_questions IS NULL ORDER BY id`
+      `SELECT id, slug, episode_slug, podcast_name, episode_title FROM landing_page_recaps WHERE key_topics IS NULL ORDER BY id`
     );
-    console.log(`[BackfillTopics] Found ${recaps.length} recaps missing key topics/questions`);
+    console.log(`[BackfillTopics] Found ${recaps.length} recaps missing key topics`);
 
     let updated = 0;
     let errors = 0;
@@ -1285,8 +1285,8 @@ export async function backfillTopicsAndQuestions() {
         }
 
         await client.query(
-          `UPDATE landing_page_recaps SET key_topics = $1, top_questions = $2 WHERE id = $3`,
-          [result.keyTopics, result.topQuestions ? JSON.stringify(result.topQuestions) : null, recap.id]
+          `UPDATE landing_page_recaps SET key_topics = $1 WHERE id = $2`,
+          [result.keyTopics, recap.id]
         );
         updated++;
         console.log(`[BackfillTopics] Updated ${recap.podcast_name} - "${recap.episode_title}" (${updated}/${recaps.length})`);

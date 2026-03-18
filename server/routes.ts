@@ -8983,7 +8983,6 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           SUM(CASE WHEN sponsors IS NULL OR sponsors = '' OR sponsors = '[]' THEN 1 ELSE 0 END)::int as missing_sponsors,
           SUM(CASE WHEN guests IS NULL OR guests = '' OR guests = '[]' THEN 1 ELSE 0 END)::int as missing_guests,
           SUM(CASE WHEN resources IS NULL OR resources = '' OR resources = '[]' THEN 1 ELSE 0 END)::int as missing_resources,
-          SUM(CASE WHEN top_questions IS NULL OR top_questions = '' OR top_questions = '[]' THEN 1 ELSE 0 END)::int as missing_questions,
           SUM(CASE WHEN topic_contexts IS NULL OR topic_contexts = '' THEN 1 ELSE 0 END)::int as missing_topic_ctx
         FROM landing_page_recaps
       `);

@@ -172,7 +172,7 @@ async function backfillSpotifyUrls() {
 }
 
 async function backfillAIFields() {
-  logMsg("=== Phase 3: AI-Generated Fields (sponsors, guests, resources, questions) ===");
+  logMsg("=== Phase 3: AI-Generated Fields (sponsors, guests, resources) ===");
   
   const dateFilter = activeDateRange ? ` AND r.publish_date >= '${activeDateRange.from}' AND r.publish_date <= '${activeDateRange.to}'` : '';
   const { rows } = await pool.query(`
@@ -180,13 +180,11 @@ async function backfillAIFields() {
       CASE WHEN (r.sponsors IS NULL OR r.sponsors = '' OR r.sponsors = '[]') THEN 1 ELSE 0 END as missing_sponsors,
       CASE WHEN (r.guests IS NULL OR r.guests = '' OR r.guests = '[]') THEN 1 ELSE 0 END as missing_guests,
       CASE WHEN (r.resources IS NULL OR r.resources = '' OR r.resources = '[]') THEN 1 ELSE 0 END as missing_resources,
-      CASE WHEN (r.top_questions IS NULL OR r.top_questions = '' OR r.top_questions = '[]') THEN 1 ELSE 0 END as missing_questions,
       CASE WHEN (r.topic_contexts IS NULL OR r.topic_contexts = '') THEN 1 ELSE 0 END as missing_topic_ctx
     FROM landing_page_recaps r
     WHERE ((r.sponsors IS NULL OR r.sponsors = '' OR r.sponsors = '[]')
        OR (r.guests IS NULL OR r.guests = '' OR r.guests = '[]')
        OR (r.resources IS NULL OR r.resources = '' OR r.resources = '[]')
-       OR (r.top_questions IS NULL OR r.top_questions = '' OR r.top_questions = '[]')
        OR (r.topic_contexts IS NULL OR r.topic_contexts = ''))${dateFilter}
     ORDER BY r.id DESC
     LIMIT 2000
@@ -239,11 +237,6 @@ async function backfillAIFields() {
         if (row.missing_resources === 1 && recap.resources && recap.resources.length > 0) {
           updates.push(`resources = $${paramIdx}`);
           params.push(JSON.stringify(recap.resources));
-          paramIdx++;
-        }
-        if (row.missing_questions === 1 && recap.topQuestions && recap.topQuestions.length > 0) {
-          updates.push(`top_questions = $${paramIdx}`);
-          params.push(JSON.stringify(recap.topQuestions));
           paramIdx++;
         }
         if (row.missing_topic_ctx === 1 && recap.topicContexts) {
