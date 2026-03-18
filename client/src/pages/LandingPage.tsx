@@ -6,23 +6,9 @@ import { useToast } from "@/hooks/use-toast";
 import { PodRiseWordmark } from "@/components/PodRiseHeader";
 import { LANDING_PAGES, getLandingPageBySlug, type LandingPageConfig } from "@/data/landingPageConfig";
 import { apiRequest } from "@/lib/queryClient";
+import { trackLandingPageVisit } from "@/lib/landingAnalytics";
 import NotFound from "./not-found";
-
-function trackVisit(slug: string) {
-  const params = new URLSearchParams(window.location.search);
-  const sessionId = sessionStorage.getItem("lp_session") || crypto.randomUUID();
-  sessionStorage.setItem("lp_session", sessionId);
-
-  apiRequest("POST", "/api/landing-pages/visit", {
-    pageSlug: slug,
-    sessionId,
-    utmSource: params.get("utm_source") || undefined,
-    utmMedium: params.get("utm_medium") || undefined,
-    utmCampaign: params.get("utm_campaign") || undefined,
-    utmContent: params.get("utm_content") || undefined,
-    utmTerm: params.get("utm_term") || undefined,
-  }).catch(() => {});
-}
+import NewsletterLandingPage from "./NewsletterLandingPage";
 
 function LandingPageContent({ config }: { config: LandingPageConfig }) {
   const [, navigate] = useLocation();
@@ -32,7 +18,7 @@ function LandingPageContent({ config }: { config: LandingPageConfig }) {
   const [email, setEmail] = useState("");
 
   useEffect(() => {
-    trackVisit(config.slug);
+    trackLandingPageVisit(config.slug);
     document.title = `${config.headline} | PodRise`;
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`);
@@ -211,6 +197,11 @@ function LandingPageContent({ config }: { config: LandingPageConfig }) {
 
 export default function LandingPage() {
   const params = useParams<{ slug: string }>();
+
+  if (params.slug === "newsletter-1") {
+    return <NewsletterLandingPage />;
+  }
+
   const config = getLandingPageBySlug(params.slug);
 
   if (!config) {
