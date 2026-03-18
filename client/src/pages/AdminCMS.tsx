@@ -7,7 +7,8 @@ import {
   Podcast, FileText, Users, Building2, ShoppingBag,
   Save, RefreshCw, Plus, Trash2, GripVertical, ExternalLink,
   Image, Clock, Calendar, Hash, Eye, EyeOff, AlertCircle, Pencil,
-  Globe, Star, Zap, CheckCircle, XCircle, Play, Copy, Check, Sparkles
+  Globe, Star, Zap, CheckCircle, XCircle, Play, Copy, Check, Sparkles,
+  CircleDot, Link, Music, Headphones, MessageSquareQuote, BookOpen, Tag, HelpCircle, Brain, Newspaper
 } from "lucide-react";
 
 function useDebouncedValue(value: string, delay = 300) {
@@ -190,6 +191,7 @@ interface CMSEpisodeDetail {
   audio_url: string;
   show_notes: string;
   topic_contexts: string;
+  top_questions: string;
   tabloid_headline: string;
   tabloid_sub_headline: string;
 }
@@ -1411,6 +1413,60 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
           </button>
         </div>
       </div>
+
+      {(() => {
+        const hasVal = (v: any) => v && typeof v === 'string' && v.trim() !== '' && v.trim() !== '[]' && v.trim() !== 'null';
+        const hasArr = (v: any) => {
+          if (!v) return false;
+          if (Array.isArray(v)) return v.length > 0;
+          if (typeof v === 'string') { try { const p = JSON.parse(v); return Array.isArray(p) && p.length > 0; } catch { return false; } }
+          return false;
+        };
+        const checks = [
+          { label: "Transcript", icon: FileText, ok: !!episode.transcript },
+          { label: "TL;DL", icon: Zap, ok: hasVal(episode.tldl) },
+          { label: "Quote", icon: MessageSquareQuote, ok: hasVal(episode.quote) },
+          { label: "Key Insights", icon: Star, ok: Array.isArray(episode.key_insights) ? episode.key_insights.length > 0 : hasArr(episode.key_insights as any) },
+          { label: "Guests", icon: Users, ok: hasArr(episode.guests) },
+          { label: "Sponsors", icon: Building2, ok: hasArr(episode.sponsors) },
+          { label: "Resources", icon: BookOpen, ok: hasArr(episode.resources) },
+          { label: "Questions", icon: HelpCircle, ok: hasArr(episode.top_questions) },
+          { label: "Topic Context", icon: Brain, ok: hasVal(episode.topic_contexts) },
+          { label: "Quotes DB", icon: MessageSquareQuote, ok: episode.quotes && episode.quotes.length > 0 },
+          { label: "Show Notes", icon: FileText, ok: hasVal(episode.show_notes) },
+          { label: "Apple URL", icon: Link, ok: hasVal(episode.apple_episode_url) },
+          { label: "Spotify URL", icon: Music, ok: hasVal(episode.spotify_episode_url) },
+          { label: "Audio", icon: Headphones, ok: hasVal(episode.audio_url) },
+          { label: "Tabloid", icon: Newspaper, ok: hasVal(episode.tabloid_headline) },
+          { label: "Products", icon: ShoppingBag, ok: episode.extractedProducts && episode.extractedProducts.length > 0 },
+        ];
+        const done = checks.filter(c => c.ok).length;
+        const pct = Math.round((done / checks.length) * 100);
+        return (
+          <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4" data-testid="episode-enrichment-status">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-bold text-foreground">Enrichment Status</span>
+              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${pct === 100 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : pct >= 70 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'}`}>
+                {done}/{checks.length} ({pct}%)
+              </span>
+            </div>
+            <div className="w-full bg-muted/40 rounded-full h-1.5 mb-3">
+              <div className={`h-1.5 rounded-full transition-all ${pct === 100 ? 'bg-green-500' : pct >= 70 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${pct}%` }} />
+            </div>
+            <div className="grid grid-cols-4 gap-x-4 gap-y-1.5">
+              {checks.map(c => (
+                <div key={c.label} className="flex items-center gap-1.5 text-xs">
+                  {c.ok
+                    ? <CheckCircle className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                    : <XCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />}
+                  <c.icon className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                  <span className={c.ok ? "text-muted-foreground" : "text-foreground font-medium"}>{c.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {episode.transcript && (
         <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl overflow-hidden">
