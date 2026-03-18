@@ -8647,8 +8647,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       if (current.status === "running") {
         return res.status(409).json({ message: "Tabloid headline backfill already running", progress: current });
       }
-      backfillTabloidHeadlines();
-      res.json({ message: "Tabloid headline backfill started" });
+      const sinceDate = req.body.sinceDate || undefined;
+      backfillTabloidHeadlines(sinceDate);
+      res.json({ message: "Tabloid headline backfill started", sinceDate: sinceDate || "all" });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to start tabloid headline backfill" });
     }

@@ -1128,6 +1128,26 @@ export async function refreshLandingPageRecaps(force: boolean = false) {
           showNotes,
         });
 
+        try {
+          const tabloidResult = await generateTabloidHeadline(
+            recap.episodeTitle, podcast.name, recap.tldl, recap.whatHappened, recap.keyInsights || []
+          );
+          if (tabloidResult && savedRecap?.id) {
+            const { pool: dbPool2 } = await import("./db");
+            const client2 = await dbPool2.connect();
+            try {
+              await client2.query(
+                `UPDATE landing_page_recaps SET tabloid_headline = $1, tabloid_sub_headline = $2 WHERE id = $3`,
+                [tabloidResult.tabloidHeadline, tabloidResult.tabloidSubHeadline, savedRecap.id]
+              );
+            } finally {
+              client2.release();
+            }
+          }
+        } catch (tabloidErr) {
+          console.warn(`[LandingRecaps] Tabloid generation failed for ${podcast.name} - "${epTitle}":`, tabloidErr);
+        }
+
         if (podcastNewRecaps === 0) {
           await storage.upsertExampleRecap({
             slug: podcast.slug,
@@ -1414,7 +1434,7 @@ export function getTabloidBackfillProgress() {
   return tabloidBackfillProgress;
 }
 
-export async function backfillTabloidHeadlines() {
+export async function backfillTabloidHeadlines(sinceDate?: string) {
   if (tabloidBackfillRunning) {
     console.log("[TabloidBackfill] Already running, skipping");
     return;
@@ -1425,10 +1445,11 @@ export async function backfillTabloidHeadlines() {
   const { pool: dbPool } = await import("./db");
   const client = await dbPool.connect();
   try {
+    const dateFilter = sinceDate ? ` AND publish_date >= '${sinceDate}'` : '';
     const { rows: recapsWithout } = await client.query(
       `SELECT id, episode_title, podcast_name, tldl, what_happened, key_insights
        FROM landing_page_recaps
-       WHERE tabloid_headline IS NULL OR tabloid_headline = ''
+       WHERE (tabloid_headline IS NULL OR tabloid_headline = '')${dateFilter}
        ORDER BY created_at DESC`
     );
 
