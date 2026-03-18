@@ -323,17 +323,17 @@ function ListenSection({ item }: { item: FeedItem }) {
         </a>
       )}
       {hasYoutubeEmbed && (
-        <iframe
-          src={`https://www.youtube.com/embed/${youtubeId}`}
-          width="100%"
-          height="200"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          loading="lazy"
-          className="rounded-xl"
-          data-testid={`listen-youtube-embed-${item.id}`}
-        />
+        <div className="relative w-full rounded-xl overflow-hidden" style={{ paddingBottom: '56.25%' }}>
+          <iframe
+            src={`https://www.youtube.com/embed/${youtubeId}`}
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            loading="lazy"
+            className="absolute inset-0 w-full h-full"
+            data-testid={`listen-youtube-embed-${item.id}`}
+          />
+        </div>
       )}
       {!hasYoutubeEmbed && hasYoutubeLink && (
         <a
