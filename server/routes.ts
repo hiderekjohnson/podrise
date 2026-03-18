@@ -2742,11 +2742,24 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     }
   });
 
+  app.get("/api/conversion-events", async (_req, res) => {
+    try {
+      const settings = await storage.getSiteSetting("pixels");
+      const { pixelSettingsSchema } = await import("@shared/schema");
+      const parsed = pixelSettingsSchema.safeParse(settings || {});
+      const events = parsed.success ? parsed.data.conversionEvents : [];
+      res.json(events);
+    } catch (err) {
+      console.error("[ConversionEvents] Error fetching:", err);
+      res.json([]);
+    }
+  });
+
   app.get("/api/admin/site-settings/pixels", async (req, res) => {
     if (!req.session?.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {
       const settings = await storage.getSiteSetting("pixels");
-      res.json(settings || { verificationTags: "", pixels: {} });
+      res.json(settings || { verificationTags: "", pixels: {}, conversionEvents: [] });
     } catch (err) {
       console.error("[SiteSettings] Error fetching pixels:", err);
       res.status(500).json({ message: "Failed to load pixel settings" });
@@ -2789,6 +2802,10 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
             sanitizePixelSnippet(String(value || "")),
           ])
         ),
+        conversionEvents: (parsed.conversionEvents || []).map((e) => ({
+          pagePath: e.pagePath.trim(),
+          eventName: e.eventName.trim(),
+        })).filter((e) => e.pagePath && e.eventName),
       };
 
       await storage.setSiteSetting("pixels", sanitized);

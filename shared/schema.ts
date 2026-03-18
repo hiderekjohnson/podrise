@@ -946,6 +946,13 @@ export const siteSettings = pgTable("site_settings", {
 
 export type SiteSetting = typeof siteSettings.$inferSelect;
 
+export const conversionEventSchema = z.object({
+  pagePath: z.string().min(1),
+  eventName: z.string().min(1),
+});
+
+export type ConversionEvent = z.infer<typeof conversionEventSchema>;
+
 export const pixelSettingsSchema = z.object({
   verificationTags: z.string().optional().default(""),
   pixels: z.object({
@@ -958,6 +965,7 @@ export const pixelSettingsSchema = z.object({
     snapchat: z.string().optional().default(""),
     custom: z.string().optional().default(""),
   }).optional().default({}),
+  conversionEvents: z.array(conversionEventSchema).optional().default([]),
 });
 
 export type PixelSettings = z.infer<typeof pixelSettingsSchema>;

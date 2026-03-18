@@ -12,6 +12,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthAwareLayout } from "@/components/AuthAwareLayout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
+import { useMetaPixelEvents } from "@/hooks/use-meta-pixel-events";
 
 const Login = lazy(() => import("./pages/Login"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -91,9 +92,15 @@ function UpgradeGatedPage() {
   return <FeatureFlagGuard flag="upgrade"><Upgrade /></FeatureFlagGuard>;
 }
 
+function MetaPixelEvents() {
+  useMetaPixelEvents();
+  return null;
+}
+
 function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
+      <MetaPixelEvents />
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/login" component={Login} />

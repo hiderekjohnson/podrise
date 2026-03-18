@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { PodRiseHeader, PodRiseWordmark } from "@/components/PodRiseHeader";
+import { firePixelEvent } from "@/hooks/use-meta-pixel-events";
 
 export default function VerifyEmail() {
   const [, navigate] = useLocation();
@@ -23,6 +24,10 @@ export default function VerifyEmail() {
   useEffect(() => {
     document.title = token ? "Verifying Email | PodRise" : "Check Your Inbox | PodRise";
   }, [token]);
+
+  useEffect(() => {
+    firePixelEvent("Lead", "/verify-email");
+  }, []);
 
   useEffect(() => {
     if (!token) return;

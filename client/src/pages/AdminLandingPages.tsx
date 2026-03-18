@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Loader2, Copy, Check, ExternalLink, ChevronDown, ChevronUp, Save } from "lucide-react";
+import { Loader2, Copy, Check, ExternalLink, ChevronDown, ChevronUp, Save, Plus, Trash2, Pencil } from "lucide-react";
 import { LANDING_PAGES } from "@/data/landingPageConfig";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import type { ConversionEvent } from "@shared/schema";
 
 interface LandingPageAnalytics {
   visitsBySlug: Record<string, { totalVisits: number; uniqueVisits: number }>;
@@ -24,6 +25,7 @@ interface PixelSettings {
     snapchat: string;
     custom: string;
   };
+  conversionEvents: ConversionEvent[];
 }
 
 const PIXEL_PLATFORMS = [
@@ -100,6 +102,7 @@ function AdPixelsPanel() {
       const response = await apiRequest("PUT", "/api/admin/site-settings/pixels", {
         verificationTags,
         pixels,
+        conversionEvents: data?.conversionEvents || [],
       });
       return response.json() as Promise<{ ok: boolean; settings: PixelSettings }>;
     },
@@ -201,6 +204,291 @@ function AdPixelsPanel() {
             ))}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+const SUGGESTED_EVENTS = [
+  "Lead",
+  "Purchase",
+  "CompleteRegistration",
+  "AddToCart",
+  "InitiateCheckout",
+  "Subscribe",
+  "ViewContent",
+  "Contact",
+  "StartTrial",
+];
+
+const SUGGESTED_PAGES = [
+  "/verify-email",
+  "/register",
+  "/login",
+  "/onboarding",
+  "/checkout",
+  "/upgrade",
+];
+
+function ConversionEventsPanel() {
+  const { toast } = useToast();
+  const [events, setEvents] = useState<ConversionEvent[]>([]);
+  const [initialized, setInitialized] = useState(false);
+  const [newPagePath, setNewPagePath] = useState("");
+  const [newEventName, setNewEventName] = useState("");
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editPagePath, setEditPagePath] = useState("");
+  const [editEventName, setEditEventName] = useState("");
+
+  const { data, isLoading } = useQuery<PixelSettings>({
+    queryKey: ["/api/admin/site-settings/pixels"],
+  });
+
+  useEffect(() => {
+    if (data && !initialized) {
+      setEvents(data.conversionEvents || []);
+      setInitialized(true);
+    }
+  }, [data, initialized]);
+
+  const saveMutation = useMutation({
+    mutationFn: async (updatedEvents: ConversionEvent[]) => {
+      const current = data || { verificationTags: "", pixels: {}, conversionEvents: [] };
+      const response = await apiRequest("PUT", "/api/admin/site-settings/pixels", {
+        ...current,
+        conversionEvents: updatedEvents,
+      });
+      return response.json() as Promise<{ ok: boolean; settings: PixelSettings }>;
+    },
+    onSuccess: async (result) => {
+      if (result?.settings) {
+        setEvents(result.settings.conversionEvents || []);
+        queryClient.setQueryData(["/api/admin/site-settings/pixels"], result.settings);
+      } else {
+        await queryClient.invalidateQueries({ queryKey: ["/api/admin/site-settings/pixels"] });
+      }
+      await queryClient.invalidateQueries({ queryKey: ["/api/conversion-events"] });
+      toast({ title: "Saved", description: "Conversion events updated successfully." });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const handleAdd = () => {
+    const path = newPagePath.trim();
+    const event = newEventName.trim();
+    if (!path || !event) {
+      toast({ title: "Missing fields", description: "Both page path and event name are required.", variant: "destructive" });
+      return;
+    }
+    const duplicate = events.some((e) => e.pagePath === path && e.eventName === event);
+    if (duplicate) {
+      toast({ title: "Duplicate", description: "This page-event mapping already exists.", variant: "destructive" });
+      return;
+    }
+    const updated = [...events, { pagePath: path, eventName: event }];
+    setEvents(updated);
+    setNewPagePath("");
+    setNewEventName("");
+    saveMutation.mutate(updated);
+  };
+
+  const handleRemove = (index: number) => {
+    const updated = events.filter((_, i) => i !== index);
+    setEvents(updated);
+    saveMutation.mutate(updated);
+  };
+
+  const handleEditStart = (index: number) => {
+    setEditingIndex(index);
+    setEditPagePath(events[index].pagePath);
+    setEditEventName(events[index].eventName);
+  };
+
+  const handleEditSave = () => {
+    if (editingIndex === null) return;
+    const path = editPagePath.trim();
+    const event = editEventName.trim();
+    if (!path || !event) {
+      toast({ title: "Missing fields", description: "Both page path and event name are required.", variant: "destructive" });
+      return;
+    }
+    const duplicate = events.some((e, i) => i !== editingIndex && e.pagePath === path && e.eventName === event);
+    if (duplicate) {
+      toast({ title: "Duplicate", description: "This page-event mapping already exists.", variant: "destructive" });
+      return;
+    }
+    const updated = events.map((e, i) => i === editingIndex ? { pagePath: path, eventName: event } : e);
+    setEvents(updated);
+    setEditingIndex(null);
+    saveMutation.mutate(updated);
+  };
+
+  const handleEditCancel = () => {
+    setEditingIndex(null);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-10">
+        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="glass-panel rounded-2xl p-6 space-y-4" data-testid="panel-conversion-events">
+      <div>
+        <h3 className="text-base font-bold text-foreground" data-testid="heading-conversion-events">Conversion Events</h3>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Map page paths to Facebook pixel events. Events fire once per page load via <code className="font-mono">fbq('track', ...)</code>.
+        </p>
+      </div>
+
+      {events.length > 0 && (
+        <div className="border border-black/[0.06] rounded-xl overflow-hidden">
+          <table className="w-full" data-testid="table-conversion-events">
+            <thead>
+              <tr className="border-b border-black/[0.06] bg-black/[0.02]">
+                <th className="text-left px-4 py-2.5 text-xs font-bold text-muted-foreground uppercase tracking-wider">Page Path</th>
+                <th className="text-left px-4 py-2.5 text-xs font-bold text-muted-foreground uppercase tracking-wider">Event Name</th>
+                <th className="text-center px-4 py-2.5 text-xs font-bold text-muted-foreground uppercase tracking-wider w-24">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {events.map((event, index) => (
+                <tr key={`${event.pagePath}-${event.eventName}-${index}`} className="border-b border-black/[0.03]" data-testid={`row-conversion-event-${index}`}>
+                  {editingIndex === index ? (
+                    <>
+                      <td className="px-4 py-2">
+                        <input
+                          type="text"
+                          value={editPagePath}
+                          onChange={(e) => setEditPagePath(e.target.value)}
+                          className="w-full px-2 py-1 text-xs font-mono rounded border border-black/[0.08] bg-black/[0.02] focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          data-testid={`input-edit-page-path-${index}`}
+                        />
+                      </td>
+                      <td className="px-4 py-2">
+                        <input
+                          type="text"
+                          value={editEventName}
+                          onChange={(e) => setEditEventName(e.target.value)}
+                          className="w-full px-2 py-1 text-sm rounded border border-black/[0.08] bg-black/[0.02] focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          data-testid={`input-edit-event-name-${index}`}
+                        />
+                      </td>
+                      <td className="px-4 py-2 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            onClick={handleEditSave}
+                            disabled={saveMutation.isPending}
+                            className="p-1.5 rounded-lg hover:bg-green-50 text-green-600 transition-colors disabled:opacity-50"
+                            data-testid={`button-save-edit-${index}`}
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={handleEditCancel}
+                            className="p-1.5 rounded-lg hover:bg-black/[0.05] text-muted-foreground transition-colors"
+                            data-testid={`button-cancel-edit-${index}`}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="px-4 py-2.5">
+                        <code className="text-xs font-mono text-foreground bg-black/[0.04] px-2 py-0.5 rounded">{event.pagePath}</code>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <span className="text-sm font-semibold text-foreground">{event.eventName}</span>
+                      </td>
+                      <td className="px-4 py-2.5 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            onClick={() => handleEditStart(index)}
+                            disabled={saveMutation.isPending}
+                            className="p-1.5 rounded-lg hover:bg-black/[0.05] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                            data-testid={`button-edit-event-${index}`}
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleRemove(index)}
+                            disabled={saveMutation.isPending}
+                            className="p-1.5 rounded-lg hover:bg-red-50 text-muted-foreground hover:text-red-600 transition-colors disabled:opacity-50"
+                            data-testid={`button-remove-event-${index}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <div className="border border-black/[0.06] rounded-xl p-4 space-y-3">
+        <p className="text-xs font-semibold text-foreground">Add New Mapping</p>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex-1">
+            <label className="block text-xs text-muted-foreground mb-1">Page Path</label>
+            <input
+              type="text"
+              list="suggested-pages"
+              value={newPagePath}
+              onChange={(e) => setNewPagePath(e.target.value)}
+              placeholder="/verify-email"
+              className="w-full px-3 py-2 text-sm rounded-lg border border-black/[0.08] bg-black/[0.02] focus:outline-none focus:ring-2 focus:ring-primary/20"
+              data-testid="input-new-page-path"
+            />
+            <datalist id="suggested-pages">
+              {SUGGESTED_PAGES.map((p) => (
+                <option key={p} value={p} />
+              ))}
+            </datalist>
+          </div>
+          <div className="flex-1">
+            <label className="block text-xs text-muted-foreground mb-1">Event Name</label>
+            <input
+              type="text"
+              list="suggested-events"
+              value={newEventName}
+              onChange={(e) => setNewEventName(e.target.value)}
+              placeholder="Lead"
+              className="w-full px-3 py-2 text-sm rounded-lg border border-black/[0.08] bg-black/[0.02] focus:outline-none focus:ring-2 focus:ring-primary/20"
+              data-testid="input-new-event-name"
+            />
+            <datalist id="suggested-events">
+              {SUGGESTED_EVENTS.map((e) => (
+                <option key={e} value={e} />
+              ))}
+            </datalist>
+          </div>
+          <div className="flex items-end">
+            <button
+              onClick={handleAdd}
+              disabled={saveMutation.isPending || !newPagePath.trim() || !newEventName.trim()}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
+              data-testid="button-add-event"
+            >
+              {saveMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Plus className="w-4 h-4" />
+              )}
+              Add
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -394,6 +682,8 @@ export default function AdminLandingPages() {
       </div>
 
       <AdPixelsPanel />
+
+      <ConversionEventsPanel />
     </div>
   );
 }
