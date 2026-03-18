@@ -580,14 +580,9 @@ export default function DiscoverPage() {
                             <p className="text-[15px] md:text-[16px] font-semibold text-[#09090B] dark:text-white truncate">{result.name}</p>
                           )}
                           <p className="text-[12px] text-[#A1A1AA] mt-0.5 truncate">
-                            {result.onPlatform ? "On PodRise" : (result.artistName || result.genre || "")}
+                            {result.artistName || result.genre || ""}
                           </p>
                         </div>
-                        {result.onPlatform && (
-                          <span className="text-[10px] font-bold text-[#6366F1] bg-[#EEF2FF] dark:bg-[#1E1B4B] px-2 py-0.5 rounded-full flex-shrink-0" data-testid={`badge-platform-${result.id}`}>
-                            On PodRise
-                          </span>
-                        )}
                         <button
                           onClick={() => handleFollowExternal(result)}
                           className="flex-shrink-0 px-4 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95 bg-[#09090B] dark:bg-white text-white dark:text-[#09090B]"

@@ -4,7 +4,7 @@ import { Loader2, XCircle, Mail } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { PodRiseWordmark } from "@/components/PodRiseHeader";
+import { PodRiseHeader, PodRiseWordmark } from "@/components/PodRiseHeader";
 
 export default function VerifyEmail() {
   const [, navigate] = useLocation();
@@ -64,48 +64,37 @@ export default function VerifyEmail() {
 
   if (status === "check-inbox") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background px-5 sm:px-6">
-        <div className="flex justify-center mb-8">
-          <Link href="/" data-testid="link-home-logo">
-            <PodRiseWordmark />
-          </Link>
-        </div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-[440px]"
-        >
-          <div className="bg-white dark:bg-zinc-900 border border-black/[0.08] dark:border-white/[0.08] rounded-2xl shadow-xl shadow-black/[0.04] p-6 sm:p-10 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-primary/[0.08] flex items-center justify-center mx-auto mb-6">
-              <Mail className="w-8 h-8 text-primary" />
-            </div>
+      <div className="min-h-screen flex flex-col bg-background">
+        <PodRiseHeader />
+        <div className="flex-1 flex items-center justify-center px-5 sm:px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="w-full max-w-[440px]"
+          >
+            <div className="bg-white dark:bg-zinc-900 border border-black/[0.08] dark:border-white/[0.08] rounded-2xl shadow-xl shadow-black/[0.04] p-6 sm:p-10 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-primary/[0.08] flex items-center justify-center mx-auto mb-6">
+                <Mail className="w-8 h-8 text-primary" />
+              </div>
 
-            <h1 className="text-[1.5rem] sm:text-[1.75rem] font-display font-extrabold text-foreground leading-tight tracking-[-0.025em] mb-3" data-testid="heading-check-inbox">
-              Check your inbox
-            </h1>
+              <h1 className="text-[1.5rem] sm:text-[1.75rem] font-display font-extrabold text-foreground leading-tight tracking-[-0.025em] mb-3" data-testid="heading-check-inbox">
+                Email Confirmation
+              </h1>
 
-            <p className="text-[15px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed mb-2">
-              We sent a confirmation link to
-            </p>
-            {user?.email && (
-              <p className="text-[16px] font-bold text-foreground mb-6" data-testid="text-email-sent">
-                {user.email}
+              <p className="text-[15px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed mb-8">
+                We sent a confirmation link to {user?.email ? <span className="font-bold text-foreground" data-testid="text-email-sent">{user.email}</span> : "your email"}. Open it to finish signing up.
               </p>
-            )}
-            <p className="text-[14px] text-[#71717A] dark:text-[#A1A1AA]/70 leading-relaxed mb-8">
-              Click the link in the email to verify your account. The link expires in 24 hours.
-            </p>
 
-            <div className="space-y-3">
               <button
+                type="button"
                 data-testid="button-resend-verification"
                 onClick={handleResend}
                 disabled={resending || resent}
-                className="w-full h-[48px] min-h-[44px] flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[15px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 transition-all active:scale-[0.98]"
+                className="text-[13px] underline underline-offset-2 transition-colors bg-transparent border-none p-0 disabled:opacity-40 text-[#A1A1AA] hover:text-[#71717A] dark:hover:text-[#D4D4D8] cursor-pointer disabled:cursor-default"
               >
                 {resending ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span className="inline-flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> Sending…</span>
                 ) : resent ? (
                   "Email sent!"
                 ) : (
@@ -113,12 +102,8 @@ export default function VerifyEmail() {
                 )}
               </button>
             </div>
-
-            <p className="text-[14px] text-[#A1A1AA] mt-6">
-              Don't see the email? Check your spam folder.
-            </p>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
     );
   }

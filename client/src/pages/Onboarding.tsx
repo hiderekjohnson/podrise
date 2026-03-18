@@ -265,14 +265,9 @@ export default function Onboarding() {
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-[15px] md:text-[16px] text-[#09090B] dark:text-white truncate">{result.name}</p>
                         <p className="text-[13px] text-[#A1A1AA] truncate">
-                          {result.onPlatform ? (result.artistName || "On PodRise") : (result.artistName || result.genre || "")}
+                          {result.artistName || result.genre || ""}
                         </p>
                       </div>
-                      {result.onPlatform && (
-                        <span className="text-[10px] font-bold text-[#6366F1] bg-[#EEF2FF] dark:bg-[#1E1B4B] px-2 py-0.5 rounded-full flex-shrink-0 mr-1" data-testid={`badge-on-platform-${result.id}`}>
-                          On PodRise
-                        </span>
-                      )}
                       <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
                         isSelected ? "bg-[#6366F1] text-white" : "border-2 border-[#D4D4D8] dark:border-[#3F3F46] text-transparent"
                       }`}>
