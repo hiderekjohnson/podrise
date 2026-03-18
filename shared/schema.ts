@@ -868,3 +868,41 @@ export const insertLandingPageVisitSchema = createInsertSchema(landingPageVisits
 export type InsertLandingPageVisit = z.infer<typeof insertLandingPageVisitSchema>;
 export type LandingPageVisit = typeof landingPageVisits.$inferSelect;
 
+export const featureFlags = pgTable("feature_flags", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  description: text("description"),
+  enabled: boolean("enabled").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertFeatureFlagSchema = createInsertSchema(featureFlags).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  key: z.string().min(1, "Key is required").max(100).regex(/^[a-z0-9_-]+$/, "Key must be lowercase alphanumeric with dashes/underscores"),
+  description: z.string().max(500).optional(),
+  enabled: z.boolean().default(false),
+});
+
+export type FeatureFlag = typeof featureFlags.$inferSelect;
+export type InsertFeatureFlag = z.infer<typeof insertFeatureFlagSchema>;
+
+export const userFeatureOverrides = pgTable("user_feature_overrides", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  flagKey: text("flag_key").notNull(),
+  enabled: boolean("enabled").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  userFlagUnique: unique("user_feature_overrides_user_flag_unique").on(table.userId, table.flagKey),
+}));
+
+export const insertUserFeatureOverrideSchema = createInsertSchema(userFeatureOverrides).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type UserFeatureOverride = typeof userFeatureOverrides.$inferSelect;
+export type InsertUserFeatureOverride = z.infer<typeof insertUserFeatureOverrideSchema>;
+

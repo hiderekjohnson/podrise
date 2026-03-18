@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -11,6 +11,7 @@ import { PageConversionProvider } from "@/contexts/PageConversionContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthAwareLayout } from "@/components/AuthAwareLayout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { useFeatureFlags } from "@/hooks/use-feature-flags";
 
 const Login = lazy(() => import("./pages/Login"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -71,6 +72,25 @@ function PageLoader() {
   );
 }
 
+function FeatureFlagGuard({ flag, children }: { flag: string; children: React.ReactNode }) {
+  const { isEnabled, isLoading } = useFeatureFlags();
+  if (isLoading) return <PageLoader />;
+  if (!isEnabled(flag)) return <Redirect to="/dashboard" />;
+  return <>{children}</>;
+}
+
+function PulseGatedTopicPulsePage() {
+  return <FeatureFlagGuard flag="pulse"><TopicPulsePage /></FeatureFlagGuard>;
+}
+
+function PulseGatedMyPulsePage() {
+  return <FeatureFlagGuard flag="pulse"><MyPulsePage /></FeatureFlagGuard>;
+}
+
+function UpgradeGatedPage() {
+  return <FeatureFlagGuard flag="upgrade"><Upgrade /></FeatureFlagGuard>;
+}
+
 function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
@@ -117,28 +137,28 @@ function Router() {
         <Route path="/refer">{() => { window.location.replace("/pod-squad"); return null; }}</Route>
         <Route path="/enterprise" component={Enterprise} />
         <Route path="/trends">{() => { window.location.replace("/industries"); return null; }}</Route>
-        <Route path="/industries/:slug/pulse/:date" component={TopicPulsePage} />
-        <Route path="/industries/:slug/pulse" component={TopicPulsePage} />
+        <Route path="/industries/:slug/pulse/:date" component={PulseGatedTopicPulsePage} />
+        <Route path="/industries/:slug/pulse" component={PulseGatedTopicPulsePage} />
         <Route path="/industries/:slug" component={TopicDetailPage} />
         <Route path="/industries" component={CategoryDirectory} />
-        <Route path="/interests/:slug/pulse/:date" component={TopicPulsePage} />
-        <Route path="/interests/:slug/pulse" component={TopicPulsePage} />
+        <Route path="/interests/:slug/pulse/:date" component={PulseGatedTopicPulsePage} />
+        <Route path="/interests/:slug/pulse" component={PulseGatedTopicPulsePage} />
         <Route path="/interests/:slug" component={TopicDetailPage} />
         <Route path="/interests" component={CategoryDirectory} />
-        <Route path="/roles/:slug/pulse/:date" component={TopicPulsePage} />
-        <Route path="/roles/:slug/pulse" component={TopicPulsePage} />
+        <Route path="/roles/:slug/pulse/:date" component={PulseGatedTopicPulsePage} />
+        <Route path="/roles/:slug/pulse" component={PulseGatedTopicPulsePage} />
         <Route path="/roles/:slug" component={TopicDetailPage} />
         <Route path="/roles" component={CategoryDirectory} />
-        <Route path="/insights/:slug/pulse/:date" component={TopicPulsePage} />
-        <Route path="/insights/:slug/pulse" component={TopicPulsePage} />
+        <Route path="/insights/:slug/pulse/:date" component={PulseGatedTopicPulsePage} />
+        <Route path="/insights/:slug/pulse" component={PulseGatedTopicPulsePage} />
         <Route path="/insights/:slug" component={TopicDetailPage} />
         <Route path="/insights" component={TopicsDirectory} />
-        <Route path="/topics/:slug/pulse/:date" component={TopicPulsePage} />
-        <Route path="/topics/:slug/pulse" component={TopicPulsePage} />
+        <Route path="/topics/:slug/pulse/:date" component={PulseGatedTopicPulsePage} />
+        <Route path="/topics/:slug/pulse" component={PulseGatedTopicPulsePage} />
         <Route path="/topics/:slug" component={TopicDetailPage} />
         <Route path="/topics" component={TopicsDirectory} />
-        <Route path="/upgrade" component={Upgrade} />
-        <Route path="/pulse" component={MyPulsePage} />
+        <Route path="/upgrade" component={UpgradeGatedPage} />
+        <Route path="/pulse" component={PulseGatedMyPulsePage} />
         <Route path="/podcaster/claim" component={PodcasterClaim} />
         <Route path="/podcaster/verify" component={PodcasterDashboard} />
         <Route path="/podcaster/dashboard/:slug" component={PodcasterDashboard} />

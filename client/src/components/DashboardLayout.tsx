@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import {
   Home, Compass, ShoppingBag, HelpCircle, Bookmark,
   Zap, Users, Settings, Radio
@@ -11,10 +12,10 @@ interface DashboardLayoutProps {
   hideRightSidebar?: boolean;
 }
 
-const NAV_ITEMS = [
+const ALL_NAV_ITEMS = [
   { key: "feed", path: "/dashboard", label: "Home", Icon: Home },
   { key: "discover", path: "/discover", label: "Discover", Icon: Compass },
-  { key: "pulse", path: "/pulse", label: "My Pulse", Icon: Zap },
+  { key: "pulse", path: "/pulse", label: "My Pulse", Icon: Zap, featureFlag: "pulse" as const },
   { key: "shop", path: "/shop", label: "Shop", Icon: ShoppingBag },
   { key: "bookmarks", path: "/bookmarks", label: "Saved Episodes", Icon: Bookmark },
   { key: "my-podcasts", path: "/my-podcasts", label: "My Podcasts", Icon: Radio },
@@ -70,7 +71,13 @@ function MobileBottomNav({ currentPath }: { currentPath: string }) {
 
 export function DashboardLayout({ children, hideRightSidebar }: DashboardLayoutProps) {
   const { data: user } = useAuth();
+  const { isEnabled } = useFeatureFlags();
   const [location] = useLocation();
+
+  const NAV_ITEMS = ALL_NAV_ITEMS.filter(item => {
+    if (item.featureFlag && !isEnabled(item.featureFlag)) return false;
+    return true;
+  });
 
   const isActive = (path: string) =>
     location === path || (path === "/dashboard" && location === "/");

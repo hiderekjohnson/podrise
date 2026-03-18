@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -13,7 +14,9 @@ export default function MyPulsePage() {
   const { data: user } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { isEnabled } = useFeatureFlags();
   const isPro = user?.plan === "pro";
+  const upgradeEnabled = isEnabled("upgrade");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [activeTab, setActiveTab] = useState<"industries" | "interests" | "roles">("industries");
 
@@ -150,7 +153,7 @@ export default function MyPulsePage() {
       </div>
 
       <AnimatePresence>
-        {showUpgradeModal && (
+        {showUpgradeModal && upgradeEnabled && (
           <PulseUpgradeModal
             onClose={() => setShowUpgradeModal(false)}
             onUpgrade={() => navigate("/upgrade")}

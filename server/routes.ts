@@ -7740,6 +7740,92 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/feature-flags", async (req, res) => {
+    const userId = getAuthUserId(req) || (req.session.userId ?? null);
+    if (!userId) {
+      const flags = await storage.getFeatureFlags();
+      const resolved: Record<string, boolean> = {};
+      for (const f of flags) resolved[f.key] = f.enabled;
+      return res.json({ flags: resolved });
+    }
+    const resolved = await storage.getResolvedFlagsForUser(userId);
+    res.json({ flags: resolved });
+  });
+
+  app.get("/api/admin/feature-flags", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    const flags = await storage.getFeatureFlags();
+    res.json(flags);
+  });
+
+  app.post("/api/admin/feature-flags", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { key, description, enabled } = req.body;
+      if (!key) return res.status(400).json({ message: "Key is required" });
+      const existing = await storage.getFeatureFlagByKey(key);
+      if (existing) return res.status(409).json({ message: "Flag with this key already exists" });
+      const flag = await storage.createFeatureFlag({ key, description, enabled: enabled ?? false });
+      res.json(flag);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message || "Failed to create feature flag" });
+    }
+  });
+
+  app.patch("/api/admin/feature-flags/:id", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+    try {
+      const updates: any = {};
+      if (req.body.description !== undefined) updates.description = req.body.description;
+      if (req.body.enabled !== undefined) updates.enabled = req.body.enabled;
+      const flag = await storage.updateFeatureFlag(id, updates);
+      res.json(flag);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message || "Failed to update feature flag" });
+    }
+  });
+
+  app.delete("/api/admin/feature-flags/:id", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+    await storage.deleteFeatureFlag(id);
+    res.json({ message: "Flag deleted" });
+  });
+
+  app.get("/api/admin/feature-flags/:flagKey/overrides", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    const overrides = await storage.getUserFeatureOverrides(req.params.flagKey);
+    const enriched = await Promise.all(overrides.map(async (o) => {
+      const user = await storage.getUserById(o.userId);
+      return { ...o, userEmail: user?.email || "Unknown" };
+    }));
+    res.json(enriched);
+  });
+
+  app.post("/api/admin/feature-flags/:flagKey/overrides", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    const { email, enabled } = req.body;
+    if (!email) return res.status(400).json({ message: "Email is required" });
+    if (typeof enabled !== "boolean") return res.status(400).json({ message: "Enabled must be a boolean" });
+    const flag = await storage.getFeatureFlagByKey(req.params.flagKey);
+    if (!flag) return res.status(404).json({ message: "Feature flag not found" });
+    const user = await storage.getUserByEmail(email);
+    if (!user) return res.status(404).json({ message: "User not found with that email" });
+    const override = await storage.setUserFeatureOverride(user.id, req.params.flagKey, enabled);
+    res.json({ ...override, userEmail: user.email });
+  });
+
+  app.delete("/api/admin/feature-flags/:flagKey/overrides/:userId", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    const userId = parseInt(req.params.userId);
+    if (isNaN(userId)) return res.status(400).json({ message: "Invalid user ID" });
+    await storage.deleteUserFeatureOverride(userId, req.params.flagKey);
+    res.json({ message: "Override removed" });
+  });
+
   app.get("/api/admin/setup/verify", async (req, res) => {
     const { token } = req.query;
     if (!token || typeof token !== "string") return res.status(400).json({ message: "Token required" });
@@ -12586,6 +12672,11 @@ Rules:
       return res.status(404).json({ message: "User not found" });
     }
 
+    const resolvedFlags = await storage.getResolvedFlagsForUser(checkoutUserId);
+    if (resolvedFlags.upgrade !== true) {
+      return res.status(403).json({ message: "Upgrade is not available at this time" });
+    }
+
     const billingCycle = req.body?.billingCycle;
     if (billingCycle && billingCycle !== "monthly" && billingCycle !== "annual") {
       return res.status(400).json({ message: "billingCycle must be 'monthly' or 'annual'" });
@@ -17106,6 +17197,13 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       startDailyPulseScheduler();
     } catch (err) {
       console.error("[DailyPulse] Scheduler start failed:", err);
+    }
+
+    try {
+      await storage.seedDefaultFeatureFlags();
+      console.log("[FeatureFlags] Default flags seeded");
+    } catch (err) {
+      console.error("[FeatureFlags] Seed failed:", err);
     }
   }, 5000);
 

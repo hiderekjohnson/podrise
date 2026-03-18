@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, FileText, Inbox, Rss, Key, Database, Settings, ShoppingBag, MousePointerClick, DollarSign, Megaphone, Wrench, List, AlertTriangle, Gift, BookOpen } from "lucide-react";
+import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, FileText, Inbox, Rss, Key, Database, Settings, ShoppingBag, MousePointerClick, DollarSign, Megaphone, Wrench, List, AlertTriangle, Gift, BookOpen, ToggleLeft, Plus, X } from "lucide-react";
 import { motion } from "framer-motion";
 const PendingEmails = lazy(() => import("./PendingEmails"));
 const RssFeedsManager = lazy(() => import("./RssFeedsManager"));
@@ -21,6 +21,7 @@ const AdminReferrals = lazy(() => import("./AdminReferrals"));
 const AdminSupportKB = lazy(() => import("./AdminSupportKB"));
 const AdminCMS = lazy(() => import("./AdminCMS"));
 const AdminLandingPages = lazy(() => import("./AdminLandingPages"));
+const AdminFeatureFlags = lazy(() => import("./AdminFeatureFlags"));
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -329,7 +330,7 @@ export default function Admin() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"users" | "analytics" | "pending" | "directory" | "shop" | "advertisers" | "admin-users" | "lists" | "advanced" | "errors" | "referrals" | "support-kb" | "cms" | "landing-pages">("advanced");
   const [analyticsSubTab, setAnalyticsSubTab] = useState<"acquisition" | "affiliates" | "growth" | "email">("acquisition");
-  const [advancedSubTab, setAdvancedSubTab] = useState<"backfill" | "rss" | "hosts" | "api-costs">("backfill");
+  const [advancedSubTab, setAdvancedSubTab] = useState<"backfill" | "rss" | "hosts" | "api-costs" | "feature-flags">("backfill");
   const [backfillSubTab, setBackfillSubTab] = useState<"transcripts" | "pages" | "tools">("transcripts");
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
@@ -1011,6 +1012,18 @@ export default function Admin() {
                     <DollarSign className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
                     API Costs
                   </button>
+                  <button
+                    data-testid="advanced-subtab-feature-flags"
+                    onClick={() => setAdvancedSubTab("feature-flags")}
+                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                      advancedSubTab === "feature-flags"
+                        ? "bg-white text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <ToggleLeft className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
+                    Feature Flags
+                  </button>
                 </div>
 
                 {advancedSubTab === "backfill" && (
@@ -1281,6 +1294,11 @@ export default function Admin() {
                 {advancedSubTab === "api-costs" && (
                   <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}>
                     <ApiUsageDashboard />
+                  </Suspense>
+                )}
+                {advancedSubTab === "feature-flags" && (
+                  <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}>
+                    <AdminFeatureFlags />
                   </Suspense>
                 )}
               </div>

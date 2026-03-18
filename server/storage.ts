@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, advertisers, bookmarks, deviceTokens, refreshTokens, errorLogs, referrals, referralTiers, pulseSubscriptions, supportArticles, feedAds, feedAdSettings, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog, type Referral, type ReferralTier, type InsertReferralTier, type PulseSubscription, type SupportArticle, type InsertSupportArticle, type FeedAd, type InsertFeedAd, type FeedAdSetting } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, advertisers, bookmarks, deviceTokens, refreshTokens, errorLogs, referrals, referralTiers, pulseSubscriptions, supportArticles, feedAds, feedAdSettings, featureFlags, userFeatureOverrides, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog, type Referral, type ReferralTier, type InsertReferralTier, type PulseSubscription, type SupportArticle, type InsertSupportArticle, type FeedAd, type InsertFeedAd, type FeedAdSetting, type FeatureFlag, type InsertFeatureFlag, type UserFeatureOverride } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull, asc, inArray } from "drizzle-orm";
 
 export interface IStorage {
@@ -118,6 +118,17 @@ export interface IStorage {
   createSupportArticle(data: InsertSupportArticle): Promise<SupportArticle>;
   updateSupportArticle(id: number, data: Partial<InsertSupportArticle>): Promise<SupportArticle>;
   deleteSupportArticle(id: number): Promise<void>;
+  getFeatureFlags(): Promise<FeatureFlag[]>;
+  getFeatureFlagByKey(key: string): Promise<FeatureFlag | undefined>;
+  createFeatureFlag(data: InsertFeatureFlag): Promise<FeatureFlag>;
+  updateFeatureFlag(id: number, data: Partial<InsertFeatureFlag>): Promise<FeatureFlag>;
+  deleteFeatureFlag(id: number): Promise<void>;
+  getUserFeatureOverrides(flagKey: string): Promise<UserFeatureOverride[]>;
+  getUserFeatureOverridesByUserId(userId: number): Promise<UserFeatureOverride[]>;
+  setUserFeatureOverride(userId: number, flagKey: string, enabled: boolean): Promise<UserFeatureOverride>;
+  deleteUserFeatureOverride(userId: number, flagKey: string): Promise<void>;
+  getResolvedFlagsForUser(userId: number): Promise<Record<string, boolean>>;
+  seedDefaultFeatureFlags(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1063,6 +1074,83 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSupportArticle(id: number): Promise<void> {
     await db.delete(supportArticles).where(eq(supportArticles.id, id));
+  }
+
+  async getFeatureFlags(): Promise<FeatureFlag[]> {
+    return db.select().from(featureFlags).orderBy(asc(featureFlags.key));
+  }
+
+  async getFeatureFlagByKey(key: string): Promise<FeatureFlag | undefined> {
+    const [flag] = await db.select().from(featureFlags).where(eq(featureFlags.key, key));
+    return flag ?? undefined;
+  }
+
+  async createFeatureFlag(data: InsertFeatureFlag): Promise<FeatureFlag> {
+    const [created] = await db.insert(featureFlags).values(data).returning();
+    return created;
+  }
+
+  async updateFeatureFlag(id: number, data: Partial<InsertFeatureFlag>): Promise<FeatureFlag> {
+    const [updated] = await db.update(featureFlags).set(data).where(eq(featureFlags.id, id)).returning();
+    return updated;
+  }
+
+  async deleteFeatureFlag(id: number): Promise<void> {
+    const [flag] = await db.select().from(featureFlags).where(eq(featureFlags.id, id));
+    if (flag) {
+      await db.delete(userFeatureOverrides).where(eq(userFeatureOverrides.flagKey, flag.key));
+    }
+    await db.delete(featureFlags).where(eq(featureFlags.id, id));
+  }
+
+  async getUserFeatureOverrides(flagKey: string): Promise<UserFeatureOverride[]> {
+    return db.select().from(userFeatureOverrides).where(eq(userFeatureOverrides.flagKey, flagKey));
+  }
+
+  async getUserFeatureOverridesByUserId(userId: number): Promise<UserFeatureOverride[]> {
+    return db.select().from(userFeatureOverrides).where(eq(userFeatureOverrides.userId, userId));
+  }
+
+  async setUserFeatureOverride(userId: number, flagKey: string, enabled: boolean): Promise<UserFeatureOverride> {
+    const [result] = await db.insert(userFeatureOverrides)
+      .values({ userId, flagKey, enabled })
+      .onConflictDoUpdate({
+        target: [userFeatureOverrides.userId, userFeatureOverrides.flagKey],
+        set: { enabled },
+      })
+      .returning();
+    return result;
+  }
+
+  async deleteUserFeatureOverride(userId: number, flagKey: string): Promise<void> {
+    await db.delete(userFeatureOverrides).where(
+      and(eq(userFeatureOverrides.userId, userId), eq(userFeatureOverrides.flagKey, flagKey))
+    );
+  }
+
+  async getResolvedFlagsForUser(userId: number): Promise<Record<string, boolean>> {
+    const flags = await this.getFeatureFlags();
+    const overrides = await this.getUserFeatureOverridesByUserId(userId);
+    const overrideMap = new Map(overrides.map(o => [o.flagKey, o.enabled]));
+
+    const resolved: Record<string, boolean> = {};
+    for (const flag of flags) {
+      resolved[flag.key] = overrideMap.has(flag.key) ? overrideMap.get(flag.key)! : flag.enabled;
+    }
+    return resolved;
+  }
+
+  async seedDefaultFeatureFlags(): Promise<void> {
+    const defaults = [
+      { key: "pulse", description: "Controls visibility of Pulse features (My Pulse page, topic pulse routes, sidebar nav)", enabled: false },
+      { key: "upgrade", description: "Controls visibility of upgrade/pricing flow and Stripe checkout", enabled: false },
+    ];
+    for (const flag of defaults) {
+      const existing = await this.getFeatureFlagByKey(flag.key);
+      if (!existing) {
+        await this.createFeatureFlag(flag);
+      }
+    }
   }
 }
 

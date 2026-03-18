@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth, useUpdateUser, useLogout } from "@/hooks/use-auth";
+import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { useToast } from "@/hooks/use-toast";
 import { TimezoneSelect, getDetectedTimezone } from "@/components/TimezoneSelect";
 import { TimePicker } from "@/components/TimePicker";
@@ -388,6 +389,7 @@ interface SubscriptionData {
 
 function SubscriptionSection({ user, navigate }: { user: { plan?: string; stripeCustomerId?: string | null } | undefined; navigate: (path: string) => void }) {
   const { toast } = useToast();
+  const { isEnabled } = useFeatureFlags();
   const [loadingPortal, setLoadingPortal] = useState(false);
 
   const { data: subData } = useQuery<SubscriptionData>({
@@ -446,7 +448,7 @@ function SubscriptionSection({ user, navigate }: { user: { plan?: string; stripe
                 )}
               </div>
             </div>
-            {!isPro && (
+            {!isPro && isEnabled("upgrade") && (
               <button
                 data-testid="button-upgrade-settings"
                 onClick={() => navigate("/upgrade")}
@@ -461,17 +463,19 @@ function SubscriptionSection({ user, navigate }: { user: { plan?: string; stripe
 
         {isPro && (
           <>
-            <div className="px-4 py-3.5">
-              <button
-                data-testid="button-my-pulse-settings"
-                onClick={() => navigate("/pulse")}
-                className="w-full flex items-center gap-3 text-left hover:bg-[#FAFAFA] dark:hover:bg-[#18181B] transition-colors rounded-lg -mx-1 px-1"
-              >
-                <Zap className="w-[18px] h-[18px] text-[#6366F1]" />
-                <span className="text-[14px] font-semibold text-foreground flex-1">Manage Pulse Topics</span>
-                <ChevronRight className="w-4 h-4 text-[#D4D4D8] dark:text-[#3F3F46]" />
-              </button>
-            </div>
+            {isEnabled("pulse") && (
+              <div className="px-4 py-3.5">
+                <button
+                  data-testid="button-my-pulse-settings"
+                  onClick={() => navigate("/pulse")}
+                  className="w-full flex items-center gap-3 text-left hover:bg-[#FAFAFA] dark:hover:bg-[#18181B] transition-colors rounded-lg -mx-1 px-1"
+                >
+                  <Zap className="w-[18px] h-[18px] text-[#6366F1]" />
+                  <span className="text-[14px] font-semibold text-foreground flex-1">Manage Pulse Topics</span>
+                  <ChevronRight className="w-4 h-4 text-[#D4D4D8] dark:text-[#3F3F46]" />
+                </button>
+              </div>
+            )}
             <div className="px-4 py-3.5">
               <button
                 data-testid="button-manage-billing"

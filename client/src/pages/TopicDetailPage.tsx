@@ -1,6 +1,7 @@
 import { useMemo, useEffect } from "react";
 import { Link, useParams } from "wouter";
 import { ArrowRight, Brain, Rocket, Lightbulb, TrendingUp, TrendingDown, Minus, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork, Mic, MessageSquare, Users, Building2, Quote, Activity, ArrowUpRight, Tag, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, Radio, Podcast, ChevronRight, Clock, BookOpen, Package, Mail } from "lucide-react";
+import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { BookCoverFill } from "@/components/BookCover";
 import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { motion } from "framer-motion";
@@ -137,6 +138,8 @@ function TrendBadge({ trend, changePercent }: { trend: string; changePercent: nu
 
 export default function TopicDetailPage() {
   const params = useParams<{ slug: string }>();
+  const { isEnabled: isFlagEnabled } = useFeatureFlags();
+  const pulseEnabled = isFlagEnabled("pulse");
 
   const topic = TOPICS.find(t => t.slug === params.slug);
   const isDynamic = !topic;
@@ -432,7 +435,7 @@ export default function TopicDetailPage() {
           </div>
         </motion.div>
 
-        {topic && (
+        {topic && pulseEnabled && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -491,7 +494,7 @@ export default function TopicDetailPage() {
                   </div>
                 )}
 
-                {latestPulses && latestPulses.length > 0 && (
+                {pulseEnabled && latestPulses && latestPulses.length > 0 && (
                   <div className="rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-card p-5 sm:p-6 flex flex-col" data-testid="snapshot-pulse">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
