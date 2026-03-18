@@ -15,7 +15,7 @@ import { generateRecap } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 import { pool } from "./db";
 import { activeEpGenItunesIds } from "./epGenState";
-import { readFileSync, writeFileSync, mkdirSync, copyFileSync, unlinkSync } from "fs";
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync, unlinkSync, existsSync } from "fs";
 import multer from "multer";
 import path from "path";
 import { authenticateRequest, getAuthUserId } from "./jwt";
@@ -780,10 +780,13 @@ export async function registerRoutes(
     const { pool: seedPool } = await import("./db");
     const { rows: existingPeople } = await seedPool.query(`SELECT count(*)::int as cnt FROM entity_people`);
     if (existingPeople[0].cnt === 0) {
+      const peopleImgDir = path.join(process.cwd(), "client", "public", "people");
       for (const p of ENTITY_PEOPLE) {
+        const imgPath = path.join(peopleImgDir, `${p.slug}.png`);
+        const photoUrl = existsSync(imgPath) ? `/people/${p.slug}.png` : null;
         await seedPool.query(
-          `INSERT INTO entity_people (slug, name, search_terms, hosted_slugs) VALUES ($1, $2, $3, $4) ON CONFLICT (slug) DO NOTHING`,
-          [p.slug, p.name, p.searchTerms, p.hostedSlugs || []]
+          `INSERT INTO entity_people (slug, name, search_terms, hosted_slugs, photo_url) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (slug) DO NOTHING`,
+          [p.slug, p.name, p.searchTerms, p.hostedSlugs || [], photoUrl]
         );
       }
       console.log(`[startup] Seeded ${ENTITY_PEOPLE.length} entity people`);
@@ -10695,15 +10698,42 @@ Rules:
     try {
       const { slug, name, bio, photoUrl, title, company, twitterHandle, linkedinUrl, websiteUrl, category, searchTerms } = req.body;
       if (!slug || !name) return res.status(400).json({ message: "slug and name are required" });
+      let resolvedPhotoUrl = photoUrl || null;
+      if (!resolvedPhotoUrl && slug) {
+        const imgPath = path.join(process.cwd(), "client", "public", "people", `${slug}.png`);
+        if (existsSync(imgPath)) {
+          resolvedPhotoUrl = `/people/${slug}.png`;
+        }
+      }
       const { rows: [created] } = await pool.query(`
         INSERT INTO entity_people (slug, name, bio, photo_url, title, company, twitter_handle, linkedin_url, website_url, category, search_terms)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         ON CONFLICT (slug) DO NOTHING RETURNING *
-      `, [slug, name, bio || null, photoUrl || null, title || null, company || null, twitterHandle || null, linkedinUrl || null, websiteUrl || null, category || null, searchTerms || [name]]);
+      `, [slug, name, bio || null, resolvedPhotoUrl, title || null, company || null, twitterHandle || null, linkedinUrl || null, websiteUrl || null, category || null, searchTerms || [name]]);
       if (!created) return res.status(409).json({ message: "Person with this slug already exists" });
       res.json(created);
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to create person" });
+    }
+  });
+
+  app.post("/api/admin/cms/people/backfill-photos", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const peopleDir = path.join(process.cwd(), "client", "public", "people");
+      const { rows } = await pool.query(`SELECT id, slug, photo_url FROM entity_people WHERE photo_url IS NULL OR photo_url = ''`);
+      let updated = 0;
+      for (const row of rows) {
+        const imgPath = path.join(peopleDir, `${row.slug}.png`);
+        if (existsSync(imgPath)) {
+          await pool.query(`UPDATE entity_people SET photo_url = $1, updated_at = NOW() WHERE id = $2`, [`/people/${row.slug}.png`, row.id]);
+          updated++;
+        }
+      }
+      console.log(`[CMS] Backfilled photo_url for ${updated}/${rows.length} people`);
+      res.json({ message: `Backfilled photos for ${updated} people`, total: rows.length, updated });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to backfill photos" });
     }
   });
 

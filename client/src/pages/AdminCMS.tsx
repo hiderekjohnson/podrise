@@ -2332,11 +2332,23 @@ function PersonDetailPanel({ slug, onClose }: { slug: string; onClose: () => voi
       <CopyableId label="Person" value={data.id} context={data.name} />
       <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
         <div className="flex items-start gap-4">
-          {data.photoUrl ? (
-            <img src={data.photoUrl} alt={data.name} className="w-16 h-16 rounded-full object-cover" />
-          ) : (
-            <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-700 dark:text-blue-400 text-xl font-bold">{data.name.charAt(0)}</div>
-          )}
+          <div className="flex flex-col items-center gap-1">
+            {data.photoUrl ? (
+              <>
+                <img src={data.photoUrl} alt={data.name} className="w-16 h-16 rounded-full object-cover" data-testid="img-person-photo" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; const fallback = (e.target as HTMLImageElement).parentElement?.querySelector('[data-fallback]'); if (fallback) (fallback as HTMLElement).classList.remove('hidden'); }} />
+                <div data-fallback className="hidden w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-700 dark:text-blue-400 text-xl font-bold">{data.name.charAt(0)}</div>
+              </>
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-700 dark:text-blue-400 text-xl font-bold">{data.name.charAt(0)}</div>
+            )}
+            {data.photoUrl ? (
+              <span className="text-[10px] text-muted-foreground max-w-[100px] text-center truncate" title={data.photoUrl} data-testid="text-photo-source">
+                {data.photoUrl.startsWith("/people/") ? `Local file: ${data.photoUrl}` : data.photoUrl}
+              </span>
+            ) : (
+              <span className="text-[10px] text-muted-foreground italic" data-testid="text-no-photo">No photo</span>
+            )}
+          </div>
           <div className="flex-1">
             {editing ? (
               <div className="space-y-3">
@@ -2346,7 +2358,13 @@ function PersonDetailPanel({ slug, onClose }: { slug: string; onClose: () => voi
                   <div><label className="text-xs text-muted-foreground">Title</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.title || ""} onChange={e => setForm({...form, title: e.target.value})} data-testid="input-person-title" /></div>
                   <div><label className="text-xs text-muted-foreground">Company</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.company || ""} onChange={e => setForm({...form, company: e.target.value})} data-testid="input-person-company" /></div>
                   <div><label className="text-xs text-muted-foreground">Category</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.category || ""} onChange={e => setForm({...form, category: e.target.value})} placeholder="entrepreneur, investor, host..." data-testid="input-person-category" /></div>
-                  <div><label className="text-xs text-muted-foreground">Photo URL</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.photoUrl || ""} onChange={e => setForm({...form, photoUrl: e.target.value})} data-testid="input-person-photo" /></div>
+                  <div>
+                    <label className="text-xs text-muted-foreground">Photo URL</label>
+                    <div className="flex items-center gap-2">
+                      <input className="w-full border rounded px-2 py-1 text-sm" value={form.photoUrl || ""} onChange={e => setForm({...form, photoUrl: e.target.value})} data-testid="input-person-photo" />
+                      {form.photoUrl && <img key={form.photoUrl} src={form.photoUrl} alt="preview" className="w-8 h-8 rounded-full object-cover shrink-0" data-testid="img-photo-preview" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
+                    </div>
+                  </div>
                   <div><label className="text-xs text-muted-foreground">Twitter</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.twitterHandle || ""} onChange={e => setForm({...form, twitterHandle: e.target.value})} data-testid="input-person-twitter" /></div>
                   <div><label className="text-xs text-muted-foreground">LinkedIn URL</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.linkedinUrl || ""} onChange={e => setForm({...form, linkedinUrl: e.target.value})} data-testid="input-person-linkedin" /></div>
                   <div><label className="text-xs text-muted-foreground">Website URL</label><input className="w-full border rounded px-2 py-1 text-sm" value={form.websiteUrl || ""} onChange={e => setForm({...form, websiteUrl: e.target.value})} data-testid="input-person-website" /></div>
@@ -2454,6 +2472,15 @@ function PeopleTab() {
     onSuccess: () => toast({ title: "People enrichment started in background" }),
     onError: (err: Error) => toast({ title: "Failed", description: err.message, variant: "destructive" }),
   });
+  const backfillPhotosMut = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/cms/people/backfill-photos"),
+    onSuccess: async (res: Response) => {
+      const data = await res.json();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/people"] });
+      toast({ title: "Photos backfilled", description: `Updated ${data.updated} of ${data.total} people` });
+    },
+    onError: (err: Error) => toast({ title: "Failed", description: err.message, variant: "destructive" }),
+  });
 
   if (selectedSlug) {
     return <PersonDetailPanel slug={selectedSlug} onClose={() => setSelectedSlug(null)} />;
@@ -2467,6 +2494,15 @@ function PeopleTab() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input type="text" placeholder="Search people..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-9 pr-3 py-2 border border-border rounded-xl text-sm" data-testid="input-search-people" />
         </div>
+        <button
+          onClick={() => backfillPhotosMut.mutate()}
+          disabled={backfillPhotosMut.isPending}
+          className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-xl text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors disabled:opacity-50 whitespace-nowrap"
+          data-testid="button-backfill-photos"
+        >
+          {backfillPhotosMut.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Image className="w-3.5 h-3.5" />}
+          Backfill Photos
+        </button>
         <button
           onClick={() => enrichAllMut.mutate()}
           disabled={enrichAllMut.isPending}
@@ -2494,9 +2530,13 @@ function PeopleTab() {
             <div key={person.slug} onClick={() => setSelectedSlug(person.slug)} className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4 space-y-2 cursor-pointer hover:border-primary/50 transition-colors" data-testid={`person-card-${person.slug}`}>
               <div className="flex items-center gap-3">
                 {person.photoUrl ? (
-                  <img src={person.photoUrl} alt={person.name} className="w-10 h-10 rounded-full object-cover" />
-                ) : (
+                  <img src={person.photoUrl} alt={person.name} className="w-10 h-10 rounded-full object-cover" data-testid={`img-person-${person.slug}`} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; if ((e.target as HTMLImageElement).nextElementSibling) (e.target as HTMLImageElement).nextElementSibling!.classList.remove('hidden'); }} />
+                ) : null}
+                {!person.photoUrl && (
                   <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-700 dark:text-blue-400 text-sm font-bold">{person.name.charAt(0)}</div>
+                )}
+                {person.photoUrl && (
+                  <div className="hidden w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-700 dark:text-blue-400 text-sm font-bold">{person.name.charAt(0)}</div>
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">

@@ -1,4 +1,6 @@
 import { pool } from "./db";
+import { existsSync } from "fs";
+import path from "path";
 
 let state = {
   running: false,
@@ -135,6 +137,13 @@ Return ONLY valid JSON, no markdown.`;
       if ((!person.category || person.category === '') && parsed.category) {
         updates.push(`category = $${idx++}`);
         params.push(parsed.category);
+      }
+      if (!person.photo_url) {
+        const imgPath = path.join(process.cwd(), "client", "public", "people", `${person.slug}.png`);
+        if (existsSync(imgPath)) {
+          updates.push(`photo_url = $${idx++}`);
+          params.push(`/people/${person.slug}.png`);
+        }
       }
 
       if (updates.length > 0) {
