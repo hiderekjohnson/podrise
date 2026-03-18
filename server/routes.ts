@@ -8739,6 +8739,26 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     res.json({ message: "Stop requested" });
   });
 
+  app.post("/api/admin/sql", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { query } = req.body;
+      if (!query || typeof query !== "string") return res.status(400).json({ message: "query is required" });
+      const trimmed = query.trim().toLowerCase();
+      if (!trimmed.startsWith("select") && !trimmed.startsWith("with")) {
+        return res.status(400).json({ message: "Only SELECT/WITH queries are allowed" });
+      }
+      const forbidden = ["insert ", "update ", "delete ", "drop ", "alter ", "truncate ", "create ", "grant ", "revoke "];
+      for (const f of forbidden) {
+        if (trimmed.includes(f)) return res.status(400).json({ message: `Forbidden keyword: ${f.trim()}` });
+      }
+      const { rows } = await pool.query(query);
+      res.json({ rows, count: rows.length });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   app.post("/api/admin/validate-recaps", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     const { dateRange, limit: batchLimit, dryRun } = req.body;
