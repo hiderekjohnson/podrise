@@ -4,9 +4,9 @@ import { generateRecapFromFullTranscript } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 import { isLikelySponsorProduct } from "./productFilter";
 
-const INTERVAL_MS = 10 * 60 * 1000;
-const BATCH_SIZE = 5;
-const PER_PODCAST = 3;
+const INTERVAL_MS = 3 * 60 * 1000;
+const BATCH_SIZE = 15;
+const PER_PODCAST = 5;
 
 async function getPodcastInfo(itunesId: string) {
   const { rows } = await pool.query(
