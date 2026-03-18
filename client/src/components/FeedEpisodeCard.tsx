@@ -109,6 +109,7 @@ export interface FeedEpisodeCardProps {
   testIdPrefix?: string;
   bottomActions?: React.ReactNode;
   headerAction?: React.ReactNode;
+  additionalContent?: React.ReactNode;
   hosts?: string;
   totalEpisodes?: number;
   yearStarted?: number;
@@ -129,6 +130,7 @@ export function FeedEpisodeCard({
   testIdPrefix = "feed-episode",
   bottomActions,
   headerAction,
+  additionalContent,
   hosts,
   totalEpisodes,
   yearStarted,
@@ -230,6 +232,8 @@ export function FeedEpisodeCard({
           </div>
         )}
       </div>
+
+      {additionalContent}
 
       {bottomActions}
     </article>

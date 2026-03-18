@@ -2209,23 +2209,91 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
       const podcastSlugs = bookmarksList.map(b => b.podcastSlug);
       const episodeSlugs = bookmarksList.map(b => b.episodeSlug);
-      const { rows: recaps } = await pool.query(
-        `SELECT lpr.slug, lpr.episode_slug, lpr.podcast_name, lpr.episode_title,
-                lpr.publish_date, lpr.artwork_url, lpr.tldl, lpr.key_insights,
-                lpr.what_happened, lpr.quote, lpr.quote_attribution
-         FROM landing_page_recaps lpr
-         INNER JOIN unnest($1::text[], $2::text[]) AS bm(p_slug, e_slug)
-           ON lpr.slug = bm.p_slug AND lpr.episode_slug = bm.e_slug`,
-        [podcastSlugs, episodeSlugs]
-      );
+      const [{ rows: recaps }, { rows: quotes }, { rows: mentions }] = await Promise.all([
+        pool.query(
+          `SELECT lpr.slug, lpr.episode_slug, lpr.podcast_name, lpr.episode_title,
+                  lpr.publish_date, lpr.artwork_url, lpr.tldl, lpr.key_insights,
+                  lpr.what_happened, lpr.quote, lpr.quote_attribution,
+                  lpr.guests, lpr.resources, lpr.hosts, lpr.sponsors, lpr.key_topics
+           FROM landing_page_recaps lpr
+           INNER JOIN unnest($1::text[], $2::text[]) AS bm(p_slug, e_slug)
+             ON lpr.slug = bm.p_slug AND lpr.episode_slug = bm.e_slug`,
+          [podcastSlugs, episodeSlugs]
+        ),
+        pool.query(
+          `SELECT eq.podcast_slug, eq.episode_slug, eq.id, eq.speaker_name, eq.speaker_role,
+                  eq.quote_text, eq.context, eq.quote_type, eq.sort_order
+           FROM episode_quotes eq
+           INNER JOIN unnest($1::text[], $2::text[]) AS bm(p_slug, e_slug)
+             ON eq.podcast_slug = bm.p_slug AND eq.episode_slug = bm.e_slug
+           ORDER BY eq.podcast_slug, eq.episode_slug, eq.sort_order`,
+          [podcastSlugs, episodeSlugs]
+        ),
+        pool.query(
+          `SELECT eem.podcast_slug, eem.episode_slug, eem.entity_type, eem.entity_slug, eem.context
+           FROM entity_episode_mentions eem
+           INNER JOIN unnest($1::text[], $2::text[]) AS bm(p_slug, e_slug)
+             ON eem.podcast_slug = bm.p_slug AND eem.episode_slug = bm.e_slug`,
+          [podcastSlugs, episodeSlugs]
+        ),
+      ]);
 
       const recapMap = new Map<string, any>();
       for (const r of recaps) {
         recapMap.set(`${r.slug}::${r.episode_slug}`, r);
       }
 
+      const quotesMap = new Map<string, any[]>();
+      for (const q of quotes) {
+        const key = `${q.podcast_slug}::${q.episode_slug}`;
+        if (!quotesMap.has(key)) quotesMap.set(key, []);
+        quotesMap.get(key)!.push({
+          id: q.id,
+          speakerName: q.speaker_name,
+          speakerRole: q.speaker_role,
+          quoteText: q.quote_text,
+          context: q.context,
+          quoteType: q.quote_type,
+          sortOrder: q.sort_order,
+        });
+      }
+
+      const mentionsMap = new Map<string, { peopleSlugs: string[]; companySlugs: string[]; entityContexts: Record<string, string> }>();
+      for (const m of mentions) {
+        const key = `${m.podcast_slug}::${m.episode_slug}`;
+        if (!mentionsMap.has(key)) mentionsMap.set(key, { peopleSlugs: [], companySlugs: [], entityContexts: {} });
+        const entry = mentionsMap.get(key)!;
+        if (m.entity_type === "person") {
+          entry.peopleSlugs.push(m.entity_slug);
+        } else if (m.entity_type === "company") {
+          entry.companySlugs.push(m.entity_slug);
+        }
+        if (m.context) {
+          entry.entityContexts[m.entity_slug] = m.context;
+        }
+      }
+
+      function safeParseJsonArray(raw: any): any[] {
+        if (!raw) return [];
+        try {
+          const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          console.warn("[Bookmarks] Failed to parse JSON field:", e);
+          return [];
+        }
+      }
+
       const enriched = bookmarksList.map(bm => {
         const recap = recapMap.get(`${bm.podcastSlug}::${bm.episodeSlug}`);
+        const key = `${bm.podcastSlug}::${bm.episodeSlug}`;
+
+        const guests = safeParseJsonArray(recap?.guests);
+        const resources = safeParseJsonArray(recap?.resources);
+        const sponsors = safeParseJsonArray(recap?.sponsors).filter((s: any) => s.name);
+
+        const mentionData = mentionsMap.get(key);
+
         return {
           id: bm.id,
           podcastSlug: bm.podcastSlug,
@@ -2240,6 +2308,15 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
           whatHappened: recap?.what_happened || null,
           quote: recap?.quote || null,
           quoteAttribution: recap?.quote_attribution || null,
+          hosts: recap?.hosts || null,
+          keyTopics: recap?.key_topics || null,
+          guests,
+          resources,
+          sponsors,
+          matchedPeopleSlugs: mentionData?.peopleSlugs || [],
+          matchedCompanySlugs: mentionData?.companySlugs || [],
+          entityContexts: mentionData?.entityContexts || {},
+          episodeQuotes: quotesMap.get(key) || [],
         };
       });
 
