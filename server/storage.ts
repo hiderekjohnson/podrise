@@ -233,6 +233,35 @@ export class DatabaseStorage implements IStorage {
       updateSet.transcript = data.transcript;
       updateSet.completeRecord = isComplete;
     }
+
+    const dateCondition = data.datePublished
+      ? eq(episodeTranscripts.datePublished, data.datePublished)
+      : isNull(episodeTranscripts.datePublished);
+    const existingByContent = await db
+      .select()
+      .from(episodeTranscripts)
+      .where(and(
+        eq(episodeTranscripts.podcastId, data.podcastId),
+        eq(episodeTranscripts.episodeTitle, data.episodeTitle),
+        dateCondition
+      ))
+      .orderBy(desc(episodeTranscripts.completeRecord), asc(episodeTranscripts.id))
+      .limit(1);
+
+    if (existingByContent.length > 0 && existingByContent[0].episodeGuid !== data.episodeGuid) {
+      const oldGuid = existingByContent[0].episodeGuid;
+      const [updated] = await db
+        .update(episodeTranscripts)
+        .set({ ...updateSet, episodeGuid: data.episodeGuid })
+        .where(eq(episodeTranscripts.id, existingByContent[0].id))
+        .returning();
+      await db
+        .update(transcriptSegments)
+        .set({ episodeGuid: data.episodeGuid })
+        .where(eq(transcriptSegments.episodeGuid, oldGuid));
+      return updated;
+    }
+
     const [created] = await db
       .insert(episodeTranscripts)
       .values({ ...data, completeRecord: isComplete })
@@ -559,34 +588,87 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertLandingPageRecap(data: InsertLandingPageRecap): Promise<LandingPageRecap> {
+    const updateFields = {
+      podcastName: data.podcastName,
+      episodeTitle: data.episodeTitle,
+      publishDate: data.publishDate,
+      duration: data.duration,
+      artworkUrl: data.artworkUrl,
+      hosts: data.hosts,
+      tldl: data.tldl,
+      whatHappened: data.whatHappened,
+      keyInsights: data.keyInsights,
+      quote: data.quote,
+      quoteAttribution: data.quoteAttribution,
+      appleEpisodeUrl: data.appleEpisodeUrl,
+      spotifyEpisodeUrl: data.spotifyEpisodeUrl,
+      audioUrl: data.audioUrl,
+      keyTopics: data.keyTopics,
+      topQuestions: data.topQuestions,
+      showNotes: data.showNotes,
+      guests: data.guests,
+      sponsors: data.sponsors,
+      resources: data.resources,
+      published: data.published,
+      topicContexts: data.topicContexts,
+      tabloidHeadline: data.tabloidHeadline,
+      tabloidSubHeadline: data.tabloidSubHeadline,
+    };
+
+    const contentConditions = data.itunesId
+      ? and(
+          eq(landingPageRecaps.itunesId, data.itunesId),
+          eq(landingPageRecaps.episodeTitle, data.episodeTitle),
+          eq(landingPageRecaps.publishDate, data.publishDate)
+        )
+      : and(
+          eq(landingPageRecaps.slug, data.slug),
+          eq(landingPageRecaps.episodeTitle, data.episodeTitle),
+          eq(landingPageRecaps.publishDate, data.publishDate)
+        );
+    const existingByContent = await db
+      .select()
+      .from(landingPageRecaps)
+      .where(contentConditions)
+      .orderBy(asc(landingPageRecaps.id))
+      .limit(1);
+
+    if (existingByContent.length > 0 && existingByContent[0].episodeSlug !== data.episodeSlug) {
+      const existing = existingByContent[0];
+      const keepExistingSlug = existing.episodeSlug.length >= data.episodeSlug.length;
+      const slugToUse = keepExistingSlug ? existing.episodeSlug : data.episodeSlug;
+      if (existing.spotifyEpisodeUrl && (!data.spotifyEpisodeUrl || data.spotifyEpisodeUrl.includes('/search/'))) {
+        updateFields.spotifyEpisodeUrl = existing.spotifyEpisodeUrl;
+      }
+      const [updated] = await db
+        .update(landingPageRecaps)
+        .set({ ...updateFields, episodeSlug: slugToUse })
+        .where(eq(landingPageRecaps.id, existing.id))
+        .returning();
+      if (slugToUse !== existing.episodeSlug) {
+        await db
+          .update(episodeQuotes)
+          .set({ episodeSlug: slugToUse })
+          .where(and(
+            eq(episodeQuotes.podcastSlug, existing.slug),
+            eq(episodeQuotes.episodeSlug, existing.episodeSlug)
+          ));
+      }
+      return updated;
+    }
+
+    const conflictUpdateFields = {
+      ...updateFields,
+      spotifyEpisodeUrl: data.spotifyEpisodeUrl && !data.spotifyEpisodeUrl.includes('/search/')
+        ? data.spotifyEpisodeUrl
+        : sql`COALESCE(NULLIF(${landingPageRecaps.spotifyEpisodeUrl}, ''), ${data.spotifyEpisodeUrl || ''})`,
+    };
     const [result] = await db
       .insert(landingPageRecaps)
       .values(data)
       .onConflictDoUpdate({
         target: [landingPageRecaps.slug, landingPageRecaps.episodeSlug],
-        set: {
-          podcastName: data.podcastName,
-          episodeTitle: data.episodeTitle,
-          publishDate: data.publishDate,
-          duration: data.duration,
-          artworkUrl: data.artworkUrl,
-          hosts: data.hosts,
-          tldl: data.tldl,
-          whatHappened: data.whatHappened,
-          keyInsights: data.keyInsights,
-          quote: data.quote,
-          quoteAttribution: data.quoteAttribution,
-          appleEpisodeUrl: data.appleEpisodeUrl,
-          spotifyEpisodeUrl: data.spotifyEpisodeUrl,
-          audioUrl: data.audioUrl,
-          keyTopics: data.keyTopics,
-          topQuestions: data.topQuestions,
-          showNotes: data.showNotes,
-          guests: data.guests,
-          sponsors: data.sponsors,
-          resources: data.resources,
-          published: data.published,
-        },
+        set: conflictUpdateFields,
       })
       .returning();
     return result;

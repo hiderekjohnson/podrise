@@ -11239,27 +11239,33 @@ Rules:
         );
         for (const row of devRows) {
           try {
-            await pool.query(
-              `INSERT INTO landing_page_recaps (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, created_at, apple_episode_url, audio_url, key_topics, top_questions, sponsors, guests, show_notes, resources, spotify_episode_url, entity_contexts_cache, topic_contexts, published) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27) ON CONFLICT (slug, episode_slug) DO UPDATE SET
-                show_notes = EXCLUDED.show_notes,
-                entity_contexts_cache = EXCLUDED.entity_contexts_cache,
-                topic_contexts = EXCLUDED.topic_contexts,
-                tldl = EXCLUDED.tldl,
-                what_happened = EXCLUDED.what_happened,
-                key_insights = EXCLUDED.key_insights,
-                quote = EXCLUDED.quote,
-                quote_attribution = EXCLUDED.quote_attribution,
-                key_topics = EXCLUDED.key_topics,
-                top_questions = EXCLUDED.top_questions,
-                sponsors = EXCLUDED.sponsors,
-                guests = EXCLUDED.guests,
-                resources = EXCLUDED.resources,
-                apple_episode_url = EXCLUDED.apple_episode_url,
-                spotify_episode_url = EXCLUDED.spotify_episode_url,
-                audio_url = EXCLUDED.audio_url,
-                published = EXCLUDED.published`,
-              [row.slug, row.itunes_id, row.podcast_name, row.episode_title, row.episode_slug, row.publish_date, row.duration, row.artwork_url, row.hosts, row.tldl, row.what_happened, row.key_insights, row.quote, row.quote_attribution, row.created_at, row.apple_episode_url, row.audio_url, row.key_topics, row.top_questions, row.sponsors, row.guests, row.show_notes, row.resources, row.spotify_episode_url, row.entity_contexts_cache, row.topic_contexts, row.published]
-            );
+            await storage.upsertLandingPageRecap({
+              slug: row.slug,
+              itunesId: row.itunes_id,
+              podcastName: row.podcast_name,
+              episodeTitle: row.episode_title,
+              episodeSlug: row.episode_slug,
+              publishDate: row.publish_date,
+              duration: row.duration,
+              artworkUrl: row.artwork_url,
+              hosts: row.hosts,
+              tldl: row.tldl,
+              whatHappened: row.what_happened,
+              keyInsights: row.key_insights,
+              quote: row.quote,
+              quoteAttribution: row.quote_attribution,
+              appleEpisodeUrl: row.apple_episode_url,
+              audioUrl: row.audio_url,
+              keyTopics: row.key_topics,
+              topQuestions: row.top_questions,
+              sponsors: row.sponsors,
+              guests: row.guests,
+              showNotes: row.show_notes,
+              resources: row.resources,
+              spotifyEpisodeUrl: row.spotify_episode_url,
+              topicContexts: row.topic_contexts,
+              published: row.published,
+            });
             inserted++;
           } catch (e: any) { log.push(`Skip recap ${row.episode_slug}: ${e.message?.substring(0, 100)}`); }
         }
@@ -13734,37 +13740,36 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           : `${durationMin} minutes`;
 
         const spotifyEpisodeUrl = `https://open.spotify.com/search/${encodeURIComponent(podcastName + " " + epTitle)}`;
-        const insertResult = await client.query(
-          `INSERT INTO landing_page_recaps
-           (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, topic_contexts, top_questions, audio_url, sponsors, guests, resources, spotify_episode_url)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
-           ON CONFLICT (slug, episode_slug) DO UPDATE SET
-             tldl = EXCLUDED.tldl, what_happened = EXCLUDED.what_happened, key_insights = EXCLUDED.key_insights,
-             quote = EXCLUDED.quote, quote_attribution = EXCLUDED.quote_attribution, key_topics = EXCLUDED.key_topics,
-             topic_contexts = EXCLUDED.topic_contexts, top_questions = EXCLUDED.top_questions, audio_url = EXCLUDED.audio_url,
-             sponsors = EXCLUDED.sponsors, guests = EXCLUDED.guests, resources = EXCLUDED.resources,
-             spotify_episode_url = COALESCE(NULLIF(landing_page_recaps.spotify_episode_url, ''), EXCLUDED.spotify_episode_url)
-           RETURNING id`,
-          [
-            podcastSlug, itunesId, podcastName, epTitle, epSlug, publishDate,
-            durationStr, t.image_url || podcastArtwork, hosts,
-            recap.tldl, recap.whatHappened,
-            recap.keyInsights, recap.quote, recap.quoteAttribution,
-            recap.keyTopics,
-            recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
-            recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
-            t.audio_url || "",
-            recap.sponsors ? JSON.stringify(recap.sponsors) : "[]",
-            recap.guests ? JSON.stringify(recap.guests) : "[]",
-            recap.resources ? JSON.stringify(recap.resources) : "[]",
-            spotifyEpisodeUrl,
-          ]
-        );
-        const newRecapId = insertResult.rows[0]?.id;
+        const upsertedRecap = await storage.upsertLandingPageRecap({
+          slug: podcastSlug,
+          itunesId,
+          podcastName,
+          episodeTitle: epTitle,
+          episodeSlug: epSlug,
+          publishDate,
+          duration: durationStr,
+          artworkUrl: t.image_url || podcastArtwork,
+          hosts,
+          tldl: recap.tldl,
+          whatHappened: recap.whatHappened,
+          keyInsights: recap.keyInsights,
+          quote: recap.quote,
+          quoteAttribution: recap.quoteAttribution,
+          keyTopics: recap.keyTopics,
+          topicContexts: recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
+          topQuestions: recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
+          audioUrl: t.audio_url || "",
+          sponsors: recap.sponsors ? JSON.stringify(recap.sponsors) : "[]",
+          guests: recap.guests ? JSON.stringify(recap.guests) : "[]",
+          resources: recap.resources ? JSON.stringify(recap.resources) : "[]",
+          spotifyEpisodeUrl,
+          published: true,
+        });
+        const newRecapId = upsertedRecap.id;
 
         await postProcessRecap({
           transcript: t.transcript,
-          podcastSlug, episodeSlug: epSlug, podcastName, episodeTitle: epTitle,
+          podcastSlug, episodeSlug: upsertedRecap.episodeSlug, podcastName, episodeTitle: epTitle,
           itunesId, hosts,
           guests: recap.guests || null,
           resources: recap.resources || null,
@@ -13772,7 +13777,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           extractedQuotes: recap.extractedQuotes || null,
         });
 
-        const quoteCount = (await storage.getEpisodeQuotes(podcastSlug, epSlug)).length;
+        const canonicalEpSlug = upsertedRecap.episodeSlug;
+        const quoteCount = (await storage.getEpisodeQuotes(podcastSlug, canonicalEpSlug)).length;
         const qa = validateRecap(recap, epTitle, quoteCount);
 
         if (qa.passed) {
@@ -13786,8 +13792,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         const criticals = qa.issues.filter(i => i.severity === "critical");
         if (attempt < maxAttempts) {
           console.log(`[QA] RETRY (${attempt}/${maxAttempts}) for "${epTitle.slice(0, 50)}": ${criticals.map(c => c.message).join("; ")}`);
-          await pool.query(`DELETE FROM episode_quotes WHERE podcast_slug = $1 AND episode_slug = $2`, [podcastSlug, epSlug]);
-          await pool.query(`DELETE FROM landing_page_recaps WHERE slug = $1 AND episode_slug = $2`, [podcastSlug, epSlug]);
+          await pool.query(`DELETE FROM episode_quotes WHERE podcast_slug = $1 AND episode_slug = $2`, [podcastSlug, canonicalEpSlug]);
+          await pool.query(`DELETE FROM landing_page_recaps WHERE slug = $1 AND episode_slug = $2`, [podcastSlug, canonicalEpSlug]);
           continue;
         }
 
@@ -14043,21 +14049,31 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       for (const r of recaps) {
         try {
           const bulkSpotifyUrl = r.spotify_episode_url || `https://open.spotify.com/search/${encodeURIComponent((r.podcast_name || "") + " " + (r.episode_title || ""))}`;
-          await client.query(
-            `INSERT INTO landing_page_recaps
-             (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, topic_contexts, top_questions, audio_url, sponsors, guests, resources, spotify_episode_url)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
-             ON CONFLICT (slug, episode_slug) DO UPDATE SET
-               tldl = EXCLUDED.tldl, what_happened = EXCLUDED.what_happened, key_insights = EXCLUDED.key_insights,
-               quote = EXCLUDED.quote, quote_attribution = EXCLUDED.quote_attribution, key_topics = EXCLUDED.key_topics,
-               topic_contexts = EXCLUDED.topic_contexts, top_questions = EXCLUDED.top_questions, audio_url = EXCLUDED.audio_url,
-               sponsors = EXCLUDED.sponsors, guests = EXCLUDED.guests, resources = EXCLUDED.resources,
-               spotify_episode_url = COALESCE(NULLIF(landing_page_recaps.spotify_episode_url, ''), EXCLUDED.spotify_episode_url)`,
-            [r.slug, r.itunes_id, r.podcast_name, r.episode_title, r.episode_slug, r.publish_date,
-             r.duration, r.artwork_url, r.hosts, r.tldl, r.what_happened, r.key_insights,
-             r.quote, r.quote_attribution, r.key_topics, r.topic_contexts, r.top_questions,
-             r.audio_url, r.sponsors, r.guests, r.resources, bulkSpotifyUrl]
-          );
+          await storage.upsertLandingPageRecap({
+            slug: r.slug,
+            itunesId: r.itunes_id,
+            podcastName: r.podcast_name,
+            episodeTitle: r.episode_title,
+            episodeSlug: r.episode_slug,
+            publishDate: r.publish_date,
+            duration: r.duration,
+            artworkUrl: r.artwork_url,
+            hosts: r.hosts,
+            tldl: r.tldl,
+            whatHappened: r.what_happened,
+            keyInsights: r.key_insights,
+            quote: r.quote,
+            quoteAttribution: r.quote_attribution,
+            keyTopics: r.key_topics,
+            topicContexts: r.topic_contexts,
+            topQuestions: r.top_questions,
+            audioUrl: r.audio_url,
+            sponsors: r.sponsors,
+            guests: r.guests,
+            resources: r.resources,
+            spotifyEpisodeUrl: bulkSpotifyUrl,
+            published: true,
+          });
           inserted++;
         } catch (err) {
           skipped++;
@@ -16509,13 +16525,21 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
             }
 
             const isComplete = !!(epData.description && epData.datePublished && epData.duration && epData.audioUrl);
-            await pool.query(
-              `INSERT INTO episode_transcripts (podcast_id, episode_guid, episode_title, transcript, description, subtitle, date_published, duration, audio_url, image_url, season_number, episode_number, episode_type, complete_record)
-               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) ON CONFLICT DO NOTHING`,
-              [podcast.itunes_id, epUuid, epTitle, transcript, epData.description || null, epData.subtitle || null,
-               epData.datePublished || null, epData.duration || null, epData.audioUrl || null, epData.imageUrl || null,
-               epData.seasonNumber || null, epData.episodeNumber || null, epData.episodeType || null, isComplete]
-            );
+            await storage.saveTranscript({
+              podcastId: podcast.itunes_id,
+              episodeGuid: epUuid,
+              episodeTitle: epTitle,
+              transcript,
+              description: epData.description || undefined,
+              subtitle: epData.subtitle || undefined,
+              datePublished: epData.datePublished || undefined,
+              duration: epData.duration || undefined,
+              audioUrl: epData.audioUrl || undefined,
+              imageUrl: epData.imageUrl || undefined,
+              seasonNumber: epData.seasonNumber || undefined,
+              episodeNumber: epData.episodeNumber || undefined,
+              episodeType: epData.episodeType || undefined,
+            });
             console.log(`[TaddyWebhook] Saved transcript: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
 
             try {
@@ -16551,30 +16575,32 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
               : new Date().toISOString().split("T")[0];
 
             const webhookSpotifyUrl = `https://open.spotify.com/search/${encodeURIComponent(podcast.name + " " + epTitle)}`;
-            await pool.query(
-              `INSERT INTO landing_page_recaps
-               (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, topic_contexts, top_questions, audio_url, sponsors, guests, resources, spotify_episode_url)
-               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
-               ON CONFLICT (slug, episode_slug) DO UPDATE SET
-                 tldl = EXCLUDED.tldl, what_happened = EXCLUDED.what_happened, key_insights = EXCLUDED.key_insights,
-                 quote = EXCLUDED.quote, quote_attribution = EXCLUDED.quote_attribution, key_topics = EXCLUDED.key_topics,
-                 topic_contexts = EXCLUDED.topic_contexts, top_questions = EXCLUDED.top_questions, audio_url = EXCLUDED.audio_url,
-                 sponsors = EXCLUDED.sponsors, guests = EXCLUDED.guests, resources = EXCLUDED.resources,
-                 spotify_episode_url = COALESCE(NULLIF(landing_page_recaps.spotify_episode_url, ''), EXCLUDED.spotify_episode_url)`,
-              [
-                podcast.slug, podcast.itunes_id, podcast.name, epTitle, epSlug, publishDate,
-                durationStr, epData.imageUrl || podcast.artwork_url || "", podcast.hosts || "",
-                recap.tldl, recap.whatHappened, recap.keyInsights,
-                recap.quote, recap.quoteAttribution, recap.keyTopics,
-                recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
-                recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
-                epData.audioUrl || "",
-                recap.sponsors ? JSON.stringify(recap.sponsors) : "[]",
-                recap.guests ? JSON.stringify(recap.guests) : "[]",
-                recap.resources ? JSON.stringify(recap.resources) : "[]",
-                webhookSpotifyUrl,
-              ]
-            );
+            const webhookUpserted = await storage.upsertLandingPageRecap({
+              slug: podcast.slug,
+              itunesId: podcast.itunes_id,
+              podcastName: podcast.name,
+              episodeTitle: epTitle,
+              episodeSlug: epSlug,
+              publishDate,
+              duration: durationStr,
+              artworkUrl: epData.imageUrl || podcast.artwork_url || "",
+              hosts: podcast.hosts || "",
+              tldl: recap.tldl,
+              whatHappened: recap.whatHappened,
+              keyInsights: recap.keyInsights,
+              quote: recap.quote,
+              quoteAttribution: recap.quoteAttribution,
+              keyTopics: recap.keyTopics,
+              topQuestions: recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
+              audioUrl: epData.audioUrl || "",
+              sponsors: recap.sponsors ? JSON.stringify(recap.sponsors) : "[]",
+              guests: recap.guests ? JSON.stringify(recap.guests) : "[]",
+              resources: recap.resources ? JSON.stringify(recap.resources) : "[]",
+              spotifyEpisodeUrl: webhookSpotifyUrl,
+              topicContexts: recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
+              published: true,
+            });
+            const webhookCanonicalSlug = webhookUpserted.episodeSlug;
             console.log(`[TaddyWebhook] Generated recap: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
 
             if (recap.products && recap.products.length > 0) {
@@ -16598,7 +16624,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
                   await pool.query(
                     `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, category, episode_title, episode_slug, podcast_slug, status, rejection_reason, image_url)
                      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) ON CONFLICT DO NOTHING`,
-                    [p.name, p.company || null, p.description || null, p.purchaseUrl || null, p.context, p.mentionType || "personal_use", p.category || "service_or_tool", epTitle, epSlug, podcast.slug, initialStatus, filterResult.reason, imageUrl]
+                    [p.name, p.company || null, p.description || null, p.purchaseUrl || null, p.context, p.mentionType || "personal_use", p.category || "service_or_tool", epTitle, webhookCanonicalSlug, podcast.slug, initialStatus, filterResult.reason, imageUrl]
                   );
                   if (filterResult.isFiltered) productsFiltered++;
                   else productsSaved++;
@@ -16610,12 +16636,12 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
             try {
               const { rows: recapIdRows } = await pool.query(
                 `SELECT id FROM landing_page_recaps WHERE slug = $1 AND episode_slug = $2 LIMIT 1`,
-                [podcast.slug, epSlug]
+                [podcast.slug, webhookCanonicalSlug]
               );
               await postProcessRecap({
                 transcript: fullTranscript,
                 podcastSlug: podcast.slug,
-                episodeSlug: epSlug,
+                episodeSlug: webhookCanonicalSlug,
                 podcastName: podcast.name,
                 episodeTitle: epTitle,
                 itunesId: podcast.itunes_id,

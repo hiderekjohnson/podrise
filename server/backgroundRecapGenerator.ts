@@ -1,4 +1,5 @@
 import { pool } from "./db";
+import { storage } from "./storage";
 import { generateRecapFromFullTranscript, ExtractedProduct } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 import { isLikelySponsorProduct } from "./productFilter";
@@ -97,50 +98,49 @@ async function processEpisode(
       const spotifyEpisodeUrl = `https://open.spotify.com/search/${encodeURIComponent(podcastName + " " + epTitle)}`;
       const showNotes = ep.description || null;
 
-      await pool.query(
-        `INSERT INTO landing_page_recaps
-         (slug, itunes_id, podcast_name, episode_title, episode_slug, publish_date, duration, artwork_url, hosts, tldl, what_happened, key_insights, quote, quote_attribution, key_topics, topic_contexts, top_questions, audio_url, sponsors, guests, resources, published, apple_episode_url, spotify_episode_url, show_notes)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)
-         ON CONFLICT (slug, episode_slug) DO UPDATE SET
-           tldl = EXCLUDED.tldl, what_happened = EXCLUDED.what_happened, key_insights = EXCLUDED.key_insights,
-           quote = EXCLUDED.quote, quote_attribution = EXCLUDED.quote_attribution, key_topics = EXCLUDED.key_topics,
-           topic_contexts = EXCLUDED.topic_contexts, top_questions = EXCLUDED.top_questions, audio_url = EXCLUDED.audio_url,
-           sponsors = EXCLUDED.sponsors, guests = EXCLUDED.guests, resources = EXCLUDED.resources,
-           published = EXCLUDED.published, apple_episode_url = EXCLUDED.apple_episode_url,
-           spotify_episode_url = EXCLUDED.spotify_episode_url, show_notes = EXCLUDED.show_notes`,
-        [
-          podcastSlug, itunesId, podcastName, epTitle, epSlug, publishDate,
-          durationStr, ep.image_url || podcastArtwork, hosts,
-          recap.tldl, recap.whatHappened,
-          recap.keyInsights, recap.quote, recap.quoteAttribution,
-          recap.keyTopics,
-          recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
-          recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
-          ep.audio_url || "",
-          recap.sponsors ? JSON.stringify(recap.sponsors) : "[]",
-          recap.guests ? JSON.stringify(recap.guests) : "[]",
-          recap.resources ? JSON.stringify(recap.resources) : "[]",
-          false,
-          appleEpisodeUrl || null,
-          spotifyEpisodeUrl,
-          showNotes,
-        ]
-      );
+      const upsertedRecap = await storage.upsertLandingPageRecap({
+        slug: podcastSlug,
+        itunesId,
+        podcastName,
+        episodeTitle: epTitle,
+        episodeSlug: epSlug,
+        publishDate,
+        duration: durationStr,
+        artworkUrl: ep.image_url || podcastArtwork,
+        hosts,
+        tldl: recap.tldl,
+        whatHappened: recap.whatHappened,
+        keyInsights: recap.keyInsights,
+        quote: recap.quote,
+        quoteAttribution: recap.quoteAttribution,
+        keyTopics: recap.keyTopics,
+        topicContexts: recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
+        topQuestions: recap.topQuestions ? JSON.stringify(recap.topQuestions) : null,
+        audioUrl: ep.audio_url || "",
+        sponsors: recap.sponsors ? JSON.stringify(recap.sponsors) : "[]",
+        guests: recap.guests ? JSON.stringify(recap.guests) : "[]",
+        resources: recap.resources ? JSON.stringify(recap.resources) : "[]",
+        published: false,
+        appleEpisodeUrl: appleEpisodeUrl || null,
+        spotifyEpisodeUrl,
+        showNotes,
+      });
 
+      const canonicalSlug = upsertedRecap.episodeSlug;
       let quoteCount = 0;
       try {
         const extractedQuotes = recap.extractedQuotes || [];
         if (extractedQuotes.length > 0) {
           await pool.query(
             `DELETE FROM episode_quotes WHERE podcast_slug = $1 AND episode_slug = $2`,
-            [podcastSlug, epSlug]
+            [podcastSlug, canonicalSlug]
           );
           for (let qi = 0; qi < extractedQuotes.length; qi++) {
             const q = extractedQuotes[qi];
             await pool.query(
               `INSERT INTO episode_quotes (podcast_slug, episode_slug, speaker_name, speaker_role, quote_text, context, quote_type, sort_order)
                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-              [podcastSlug, epSlug, q.speakerName, q.speakerRole || "", q.quoteText, q.context || "", q.quoteType || "Tweetable", qi]
+              [podcastSlug, canonicalSlug, q.speakerName, q.speakerRole || "", q.quoteText, q.context || "", q.quoteType || "Tweetable", qi]
             );
           }
           quoteCount = extractedQuotes.length;
@@ -197,7 +197,7 @@ async function processEpisode(
             const insertResult = await pool.query(
               `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, category, episode_title, episode_slug, podcast_slug, status, rejection_reason, image_url)
                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) ON CONFLICT DO NOTHING`,
-              [p.name, p.company || null, p.description || null, p.purchaseUrl || null, p.context, p.mentionType || "personal_use", p.category || "service_or_tool", epTitle, epSlug, podcastSlug, initialStatus, rejectionReason, imageUrl]
+              [p.name, p.company || null, p.description || null, p.purchaseUrl || null, p.context, p.mentionType || "personal_use", p.category || "service_or_tool", epTitle, canonicalSlug, podcastSlug, initialStatus, rejectionReason, imageUrl]
             );
             if (insertResult.rowCount && insertResult.rowCount > 0) {
               productsInserted++;
@@ -214,7 +214,7 @@ async function processEpisode(
         const criticals = qa.issues.filter(i => i.severity === "critical");
         if (attempt < maxAttempts) {
           console.log(`[BgRecap] QA retry (${attempt}/${maxAttempts}) for "${epTitle.slice(0, 50)}": ${criticals.map(c => c.message).join("; ")}`);
-          await pool.query(`DELETE FROM landing_page_recaps WHERE slug = $1 AND episode_slug = $2`, [podcastSlug, epSlug]);
+          await pool.query(`DELETE FROM landing_page_recaps WHERE slug = $1 AND episode_slug = $2`, [podcastSlug, canonicalSlug]);
           continue;
         }
         console.warn(`[BgRecap] QA accepted with ${criticals.length} critical(s) for "${epTitle.slice(0, 50)}"`);

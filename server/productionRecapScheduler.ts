@@ -1,4 +1,5 @@
 import { pool } from "./db";
+import { storage } from "./storage";
 import { generateRecapFromFullTranscript } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 import { isLikelySponsorProduct } from "./productFilter";
@@ -53,31 +54,35 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
       console.warn(`[ProdRecap] Tabloid headline generation failed for "${epTitle?.slice(0, 50)}": ${err.message}`);
     }
 
-    await pool.query(
-      `INSERT INTO landing_page_recaps
-       (slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url,
-        tldl, what_happened, key_insights, quote, quote_attribution,
-        duration, itunes_id, key_topics, guests, tabloid_headline, tabloid_sub_headline, published)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,true)
-       ON CONFLICT (slug, episode_slug) DO NOTHING`,
-      [
-        podcastSlug, epSlug, podcastName, epTitle, publishDate, artwork,
-        recap.tldl, recap.whatHappened,
-        JSON.stringify(recap.keyInsights || []),
-        recap.quote, recap.quoteAttribution,
-        ep.duration || null, itunesId,
-        recap.keyTopics || [],
-        JSON.stringify(recap.guests || []),
-        tabloidHeadline, tabloidSubHeadline,
-      ]
-    );
+    const upsertedRecap = await storage.upsertLandingPageRecap({
+      slug: podcastSlug,
+      itunesId,
+      podcastName,
+      episodeTitle: epTitle,
+      episodeSlug: epSlug,
+      publishDate: publishDate || new Date().toISOString().slice(0, 10),
+      duration: ep.duration ? String(ep.duration) : null,
+      artworkUrl: artwork,
+      hosts: hosts || "",
+      tldl: recap.tldl,
+      whatHappened: recap.whatHappened,
+      keyInsights: recap.keyInsights || [],
+      quote: recap.quote,
+      quoteAttribution: recap.quoteAttribution,
+      keyTopics: recap.keyTopics || [],
+      guests: JSON.stringify(recap.guests || []),
+      tabloidHeadline,
+      tabloidSubHeadline,
+      published: true,
+    });
+    const canonicalSlug = upsertedRecap.episodeSlug;
 
     if (recap.quotes && recap.quotes.length > 0) {
       for (const q of recap.quotes.slice(0, 5)) {
         await pool.query(
           `INSERT INTO episode_quotes (podcast_slug, episode_slug, episode_title, speaker_name, quote_text, context)
            VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT DO NOTHING`,
-          [podcastSlug, epSlug, epTitle, q.speaker || recap.quoteAttribution || podcastName, q.text, q.context || ""]
+          [podcastSlug, canonicalSlug, epTitle, q.speaker || recap.quoteAttribution || podcastName, q.text, q.context || ""]
         ).catch(() => {});
       }
     }
@@ -107,7 +112,7 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
           await pool.query(
             `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, category, episode_title, episode_slug, podcast_slug, status, rejection_reason, image_url)
              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) ON CONFLICT DO NOTHING`,
-            [p.name, p.company || null, p.description || null, p.purchaseUrl || null, p.context, p.mentionType || "personal_use", p.category || "service_or_tool", epTitle, epSlug, podcastSlug, initialStatus, rejectionReason, imageUrl]
+            [p.name, p.company || null, p.description || null, p.purchaseUrl || null, p.context, p.mentionType || "personal_use", p.category || "service_or_tool", epTitle, canonicalSlug, podcastSlug, initialStatus, rejectionReason, imageUrl]
           );
         } catch {}
       }
@@ -120,7 +125,7 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
           await pool.query(
             `INSERT INTO book_insights (podcast_slug, episode_slug, episode_title, book_title, author, context)
              VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT DO NOTHING`,
-            [podcastSlug, epSlug, epTitle, book.title, book.author || null, book.context || ""]
+            [podcastSlug, canonicalSlug, epTitle, book.title, book.author || null, book.context || ""]
           ).catch(() => {});
         } catch {}
       }
