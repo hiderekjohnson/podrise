@@ -292,11 +292,19 @@ async function cleanupDuplicateRecaps() {
       DELETE FROM landing_page_recaps
       WHERE id IN (
         SELECT lpr.id FROM landing_page_recaps lpr
-        JOIN episode_transcripts et
-          ON et.podcast_id = lpr.itunes_id
-          AND lower(trim(et.episode_title)) = lower(trim(lpr.episode_title))
         WHERE lpr.created_at >= NOW() - INTERVAL '7 days'
-          AND et.date_published IS NULL
+          AND EXISTS (
+            SELECT 1 FROM episode_transcripts et
+            WHERE et.podcast_id = lpr.itunes_id
+              AND lower(trim(et.episode_title)) = lower(trim(lpr.episode_title))
+              AND et.date_published IS NULL
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM episode_transcripts et2
+            WHERE et2.podcast_id = lpr.itunes_id
+              AND lower(trim(et2.episode_title)) = lower(trim(lpr.episode_title))
+              AND et2.date_published IS NOT NULL
+          )
       )
       RETURNING id, episode_title
     `);
