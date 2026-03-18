@@ -42,3 +42,9 @@ id = "raN3BGzZXV9pQaIAmH0u3"
 uri = "file://podcasts_need_youtube.txt"
 type = "text"
 title = "215 Podcasts Needing Real YouTube Links"
+
+[[outputs]]
+id = "eMLHcp4fG2RKl6mLkCJIc"
+uri = "file://.local/podcasts_with_hosts.txt"
+type = "text"
+title = "Podcasts with Hosts"
