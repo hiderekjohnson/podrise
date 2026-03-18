@@ -8438,6 +8438,174 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     res.json({ message: "Stop requested" });
   });
 
+  // Backfill missed episodes from Taddy (catches episodes missed due to webhook action=updated bug)
+  let missedEpBackfillRunning = false;
+  let missedEpBackfillProgress = { total: 0, processed: 0, newEpisodes: 0, failed: 0, currentPodcast: "", stopped: false };
+
+  app.post("/api/admin/backfill-missed-episodes", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    if (missedEpBackfillRunning) return res.status(409).json({ message: "Already running", progress: missedEpBackfillProgress });
+
+    missedEpBackfillRunning = true;
+    missedEpBackfillProgress = { total: 0, processed: 0, newEpisodes: 0, failed: 0, currentPodcast: "", stopped: false };
+    res.json({ message: "Missed episodes backfill started" });
+
+    (async () => {
+      try {
+        const { rows: podcasts } = await pool.query(
+          `SELECT slug, name, itunes_id, taddy_uuid, hosts, artwork_url FROM podcast_directory WHERE itunes_id IS NOT NULL ORDER BY name`
+        );
+        missedEpBackfillProgress.total = podcasts.length;
+        console.log(`[MissedEpBackfill] Starting for ${podcasts.length} podcasts`);
+
+        const { searchPodcastByItunesId, getRecentEpisodesWithTranscripts, getEpisodeTranscript } = await import("./taddyClient");
+        const { generateRecapFromFullTranscript } = await import("./recapGenerator");
+
+        for (const podcast of podcasts) {
+          if (missedEpBackfillProgress.stopped) {
+            console.log("[MissedEpBackfill] Stopped by admin");
+            break;
+          }
+          missedEpBackfillProgress.currentPodcast = podcast.name;
+          missedEpBackfillProgress.processed++;
+
+          try {
+            const taddyPodcast = await searchPodcastByItunesId(
+              podcast.itunes_id, podcast.name, podcast.taddy_uuid
+            );
+            if (!taddyPodcast?.uuid) {
+              console.log(`[MissedEpBackfill] No Taddy UUID for ${podcast.name}, skipping`);
+              continue;
+            }
+
+            if (!podcast.taddy_uuid && taddyPodcast.uuid) {
+              await pool.query(`UPDATE podcast_directory SET taddy_uuid = $1 WHERE itunes_id = $2`, [taddyPodcast.uuid, podcast.itunes_id]);
+            }
+
+            const episodes = await getRecentEpisodesWithTranscripts(taddyPodcast.uuid, 10);
+            if (!episodes || episodes.length === 0) continue;
+
+            for (const ep of episodes) {
+              if (missedEpBackfillProgress.stopped) break;
+              const epTitle = ep.name || "";
+              const epSlug = epTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
+
+              const { rows: existing } = await pool.query(
+                `SELECT id FROM landing_page_recaps WHERE slug = $1 AND (lower(trim(episode_title)) = lower(trim($2)) OR episode_slug = $3) LIMIT 1`,
+                [podcast.slug, epTitle, epSlug]
+              );
+              if (existing.length > 0) continue;
+
+              const { rows: existingTranscript } = await pool.query(
+                `SELECT id FROM episode_transcripts WHERE podcast_id = $1 AND lower(trim(episode_title)) = lower(trim($2)) LIMIT 1`,
+                [podcast.itunes_id, epTitle]
+              );
+
+              let transcript: string | null = null;
+              if (existingTranscript.length > 0) {
+                const { rows: tRows } = await pool.query(
+                  `SELECT transcript FROM episode_transcripts WHERE id = $1`, [existingTranscript[0].id]
+                );
+                transcript = tRows[0]?.transcript || null;
+              } else {
+                transcript = await getEpisodeTranscript(ep.uuid);
+                if (transcript) {
+                  await pool.query(
+                    `INSERT INTO episode_transcripts (podcast_id, episode_guid, episode_title, transcript, date_published, audio_url)
+                     VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING`,
+                    [podcast.itunes_id, ep.uuid, epTitle, transcript,
+                     ep.datePublished || null, ep.audioUrl || null]
+                  );
+                }
+              }
+
+              if (!transcript) continue;
+
+              try {
+                const recap = await generateRecapFromFullTranscript(
+                  transcript, epTitle, podcast.name, podcast.hosts || "", ""
+                );
+                if (!recap) { missedEpBackfillProgress.failed++; continue; }
+
+                const publishDate = ep.datePublished
+                  ? new Date(ep.datePublished * 1000).toISOString().slice(0, 10)
+                  : null;
+
+                let tabloidHeadline: string | null = null;
+                let tabloidSubHeadline: string | null = null;
+                try {
+                  const { generateTabloidHeadline } = await import("./emailScheduler");
+                  const tabloidResult = await generateTabloidHeadline(
+                    epTitle, podcast.name, recap.tldl, recap.whatHappened, recap.keyInsights || []
+                  );
+                  if (tabloidResult) {
+                    tabloidHeadline = tabloidResult.tabloidHeadline;
+                    tabloidSubHeadline = tabloidResult.tabloidSubHeadline;
+                  }
+                } catch {}
+
+                const durationSec = 0;
+                const durationStr = durationSec > 0 ? `${Math.floor(durationSec / 60)} min` : null;
+
+                await storage.upsertLandingPageRecap({
+                  slug: podcast.slug,
+                  itunesId: podcast.itunes_id,
+                  podcastName: podcast.name,
+                  episodeTitle: epTitle,
+                  episodeSlug: epSlug,
+                  publishDate,
+                  artworkUrl: podcast.artwork_url || "",
+                  tldl: recap.tldl,
+                  whatHappened: recap.whatHappened,
+                  keyInsights: recap.keyInsights,
+                  quote: recap.quote,
+                  quoteAttribution: recap.quoteAttribution,
+                  sponsors: recap.sponsors,
+                  guests: recap.guests,
+                  resources: recap.resources,
+                  keyTopics: recap.keyTopics,
+                  hosts: podcast.hosts || "",
+                  duration: durationStr,
+                  topQuestions: recap.topQuestions,
+                  topicContexts: recap.topicContexts,
+                  tabloidHeadline,
+                  tabloidSubHeadline,
+                });
+
+                missedEpBackfillProgress.newEpisodes++;
+                console.log(`[MissedEpBackfill] Created recap: ${podcast.name} - "${epTitle.slice(0, 50)}" (${publishDate})`);
+              } catch (err: any) {
+                missedEpBackfillProgress.failed++;
+                console.error(`[MissedEpBackfill] Failed: ${podcast.name} - "${epTitle.slice(0, 50)}": ${err.message}`);
+              }
+            }
+          } catch (err: any) {
+            console.error(`[MissedEpBackfill] Error on ${podcast.name}: ${err.message}`);
+          }
+
+          await new Promise(r => setTimeout(r, 500));
+        }
+
+        console.log(`[MissedEpBackfill] Done: ${missedEpBackfillProgress.newEpisodes} new, ${missedEpBackfillProgress.failed} failed`);
+      } catch (err: any) {
+        console.error("[MissedEpBackfill] Fatal error:", err.message);
+      } finally {
+        missedEpBackfillRunning = false;
+      }
+    })();
+  });
+
+  app.get("/api/admin/backfill-missed-episodes/progress", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    res.json({ running: missedEpBackfillRunning, ...missedEpBackfillProgress });
+  });
+
+  app.post("/api/admin/backfill-missed-episodes/stop", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    missedEpBackfillProgress.stopped = true;
+    res.json({ message: "Stop requested" });
+  });
+
   app.get("/api/admin/episode-data-gaps", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     try {
