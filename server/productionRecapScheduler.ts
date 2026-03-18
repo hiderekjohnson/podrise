@@ -59,6 +59,15 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
       console.warn(`[ProdRecap] Tabloid headline generation failed for "${epTitle?.slice(0, 50)}": ${err.message}`);
     }
 
+    const { rows: existingRows } = await pool.query(
+      `SELECT id FROM landing_page_recaps WHERE itunes_id = $1 AND lower(trim(episode_title)) = lower(trim($2)) LIMIT 1`,
+      [itunesId, epTitle]
+    );
+    if (existingRows.length > 0) {
+      console.log(`[ProdRecap] Skip duplicate: "${epTitle?.slice(0, 60)}" already exists (id=${existingRows[0].id})`);
+      return true;
+    }
+
     const upsertedRecap = await storage.upsertLandingPageRecap({
       slug: podcastSlug,
       itunesId,
@@ -253,6 +262,32 @@ async function runBatch() {
   }
 }
 
+async function cleanupDuplicateRecaps() {
+  try {
+    const { rows } = await pool.query(`
+      DELETE FROM landing_page_recaps
+      WHERE id IN (
+        SELECT lpr.id FROM landing_page_recaps lpr
+        WHERE lpr.created_at >= NOW() - INTERVAL '7 days'
+          AND EXISTS (
+            SELECT 1 FROM landing_page_recaps older
+            WHERE older.itunes_id = lpr.itunes_id
+              AND lower(trim(older.episode_title)) = lower(trim(lpr.episode_title))
+              AND older.id < lpr.id
+          )
+      )
+      RETURNING id, episode_title
+    `);
+    if (rows.length > 0) {
+      console.log(`[ProdRecap] Cleaned up ${rows.length} recent duplicate recap(s)`);
+    } else {
+      console.log(`[ProdRecap] No recent duplicates found`);
+    }
+  } catch (err: any) {
+    console.error(`[ProdRecap] Duplicate cleanup error: ${err.message}`);
+  }
+}
+
 export function startProductionRecapScheduler() {
   if (process.env.NODE_ENV !== "production") {
     console.log("[ProdRecap] Not in production, skipping scheduler");
@@ -261,7 +296,8 @@ export function startProductionRecapScheduler() {
 
   console.log(`[ProdRecap] Starting scheduler (every ${INTERVAL_MS / 60000} min, ${BATCH_SIZE} episodes/batch)`);
 
-  setTimeout(() => {
+  setTimeout(async () => {
+    await cleanupDuplicateRecaps();
     runBatch();
     setInterval(runBatch, INTERVAL_MS);
   }, 60_000);
