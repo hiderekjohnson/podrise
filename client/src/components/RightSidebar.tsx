@@ -31,7 +31,7 @@ interface DirectoryPodcast {
 }
 
 interface GlobalSearchData {
-  podcasts: { slug: string; name: string; artworkUrl: string }[];
+  podcasts: { slug: string; name: string; artworkUrl: string; itunesId: string | null; hasLandingPage: boolean }[];
   episodes: { podcastSlug: string; episodeSlug: string; podcastName: string; episodeTitle: string; artworkUrl: string; publishDate: string }[];
   people: { slug: string; name: string; photoUrl: string; title: string; company: string }[];
   companies: { slug: string; name: string; logoUrl: string; industry: string }[];
@@ -40,6 +40,7 @@ interface GlobalSearchData {
 function SidebarSearch() {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [recentlyFollowed, setRecentlyFollowed] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const { data: user } = useAuth();
 
@@ -71,8 +72,9 @@ function SidebarSearch() {
   });
 
   const platformSlugs = new Set(searchData?.podcasts?.map(p => p.slug) || []);
+  const platformItunesIds = new Set(searchData?.podcasts?.map(p => p.itunesId).filter(Boolean) || []);
   const itunesExternalResults = (itunesData?.results || []).filter(
-    (r: any) => !r.onPlatform && !platformSlugs.has(r.slug)
+    (r: any) => !platformSlugs.has(r.slug) && !platformItunesIds.has(String(r.id))
   ).slice(0, 5);
 
   const handleFollowExternal = async (result: any) => {
@@ -86,8 +88,11 @@ function SidebarSearch() {
         podcastName: result.name,
         artworkUrl: result.artworkUrl,
       });
+      setRecentlyFollowed(prev => new Set(prev).add(String(result.id)));
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       queryClient.invalidateQueries({ queryKey: ["/api/feed/followed-slugs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/global-search", debouncedQuery] });
+      queryClient.invalidateQueries({ queryKey: ["/api/podcasts/search-itunes", debouncedQuery] });
       toast({ title: "Following!", description: `Now following ${result.name}` });
     } catch {
       toast({ title: "Error", description: "Failed to follow", variant: "destructive" });
@@ -137,26 +142,63 @@ function SidebarSearch() {
               {searchData!.podcasts.length > 0 && (
                 <div>
                   <div className="px-3 py-1.5 text-[10px] font-bold text-[#A1A1AA] uppercase tracking-wider bg-[#FAFAFA]">Podcasts</div>
-                  {searchData!.podcasts.map((result) => (
-                    <Link
-                      key={result.slug}
-                      href={`/podcasts/${result.slug}`}
-                      className="flex items-center gap-2.5 px-3 py-2 hover:bg-[#F7F7FC] transition-colors border-b border-[#F0F0F2] last:border-b-0 no-underline"
-                      onClick={() => setQuery("")}
-                      data-testid={`sidebar-result-podcast-${result.slug}`}
-                    >
-                      <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-[#F0F0F2]">
-                        {result.artworkUrl ? (
-                          <img src={result.artworkUrl.replace(/\/\d+x\d+bb\./, "/100x100bb.")} alt={result.name} className="w-full h-full object-cover" loading="lazy" />
-                        ) : (
-                          <div className="w-full h-full bg-[#E4E4E7] flex items-center justify-center"><Mic className="w-3 h-3 text-[#A1A1AA]" /></div>
+                  {searchData!.podcasts.map((result) => 
+                    result.hasLandingPage ? (
+                      <Link
+                        key={result.slug}
+                        href={`/podcasts/${result.slug}`}
+                        className="flex items-center gap-2.5 px-3 py-2 hover:bg-[#F7F7FC] transition-colors border-b border-[#F0F0F2] last:border-b-0 no-underline"
+                        onClick={() => setQuery("")}
+                        data-testid={`sidebar-result-podcast-${result.slug}`}
+                      >
+                        <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-[#F0F0F2]">
+                          {result.artworkUrl ? (
+                            <img src={result.artworkUrl.replace(/\/\d+x\d+bb\./, "/100x100bb.")} alt={result.name} className="w-full h-full object-cover" loading="lazy" />
+                          ) : (
+                            <div className="w-full h-full bg-[#E4E4E7] flex items-center justify-center"><Mic className="w-3 h-3 text-[#A1A1AA]" /></div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[13px] font-semibold text-[#09090B] truncate">{result.name}</div>
+                        </div>
+                      </Link>
+                    ) : (
+                      <div
+                        key={result.slug}
+                        className="flex items-center gap-2.5 px-3 py-2 hover:bg-[#F7F7FC] transition-colors border-b border-[#F0F0F2] last:border-b-0"
+                        data-testid={`sidebar-result-podcast-${result.slug}`}
+                      >
+                        <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-[#F0F0F2]">
+                          {result.artworkUrl ? (
+                            <img src={result.artworkUrl.replace(/\/\d+x\d+bb\./, "/100x100bb.")} alt={result.name} className="w-full h-full object-cover" loading="lazy" />
+                          ) : (
+                            <div className="w-full h-full bg-[#E4E4E7] flex items-center justify-center"><Mic className="w-3 h-3 text-[#A1A1AA]" /></div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[13px] font-semibold text-[#09090B] truncate">{result.name}</div>
+                        </div>
+                        {result.itunesId && (
+                          recentlyFollowed.has(String(result.itunesId)) ? (
+                            <span
+                              className="text-[11px] font-bold text-[#A1A1AA] bg-[#F0F0F2] rounded-full px-2.5 py-1 flex-shrink-0"
+                              data-testid={`sidebar-following-podcast-${result.slug}`}
+                            >
+                              Following
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => handleFollowExternal({ id: result.itunesId, name: result.name, artworkUrl: result.artworkUrl })}
+                              className="text-[11px] font-bold text-[#6366F1] bg-[#EEF2FF] hover:bg-[#E0E7FF] rounded-full px-2.5 py-1 transition-colors flex-shrink-0"
+                              data-testid={`sidebar-follow-podcast-${result.slug}`}
+                            >
+                              Follow
+                            </button>
+                          )
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[13px] font-semibold text-[#09090B] truncate">{result.name}</div>
-                      </div>
-                    </Link>
-                  ))}
+                    )
+                  )}
                 </div>
               )}
               {searchData!.episodes.length > 0 && (
@@ -263,13 +305,22 @@ function SidebarSearch() {
                     <div className="text-[13px] font-semibold text-[#09090B] truncate">{result.name}</div>
                     <div className="text-[10px] text-[#A1A1AA] truncate">{result.artistName || result.genre || ""}</div>
                   </div>
-                  <button
-                    onClick={() => handleFollowExternal(result)}
-                    className="text-[11px] font-bold text-[#6366F1] bg-[#EEF2FF] hover:bg-[#E0E7FF] rounded-full px-2.5 py-1 transition-colors flex-shrink-0"
-                    data-testid={`sidebar-follow-itunes-${result.id}`}
-                  >
-                    Follow
-                  </button>
+                  {recentlyFollowed.has(String(result.id)) ? (
+                    <span
+                      className="text-[11px] font-bold text-[#A1A1AA] bg-[#F0F0F2] rounded-full px-2.5 py-1 flex-shrink-0"
+                      data-testid={`sidebar-following-itunes-${result.id}`}
+                    >
+                      Following
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => handleFollowExternal(result)}
+                      className="text-[11px] font-bold text-[#6366F1] bg-[#EEF2FF] hover:bg-[#E0E7FF] rounded-full px-2.5 py-1 transition-colors flex-shrink-0"
+                      data-testid={`sidebar-follow-itunes-${result.id}`}
+                    >
+                      Follow
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

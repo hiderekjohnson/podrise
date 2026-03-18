@@ -2949,9 +2949,14 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     try {
       const [podcastsResult, episodesResult, peopleResult, companiesResult] = await Promise.all([
         pool.query(
-          `SELECT itunes_id, name, artwork_url, slug FROM podcast_directory
-           WHERE has_landing_page = true AND (name ILIKE $1 OR slug ILIKE $1)
-           ORDER BY name ASC LIMIT 5`,
+          `SELECT pd.itunes_id, pd.name, pd.artwork_url, pd.slug, pd.has_landing_page,
+                  EXISTS(
+                    SELECT 1 FROM landing_page_recaps lpr
+                    WHERE lpr.slug = pd.slug AND lpr.published = true AND lpr.status = 'published'
+                  ) AS has_published_recaps
+           FROM podcast_directory pd
+           WHERE (pd.name ILIKE $1 OR pd.slug ILIKE $1)
+           ORDER BY pd.has_landing_page DESC, pd.name ASC LIMIT 10`,
           [searchTerm]
         ),
         pool.query(
@@ -2979,6 +2984,8 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       res.json({
         podcasts: podcastsResult.rows.map((r: any) => ({
           slug: r.slug, name: r.name, artworkUrl: r.artwork_url || "", type: "podcast" as const,
+          itunesId: r.itunes_id ? String(r.itunes_id) : null,
+          hasLandingPage: !!(r.has_landing_page && r.has_published_recaps),
         })),
         episodes: episodesResult.rows.map((r: any) => ({
           podcastSlug: r.slug, episodeSlug: r.episode_slug, podcastName: r.podcast_name,
