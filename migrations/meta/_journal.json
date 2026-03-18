@@ -57,6 +57,13 @@
       "when": 1774054800000,
       "tag": "0004_add_youtube_url",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1773846719190,
+      "tag": "0005_charming_magma",
+      "breakpoints": true
     }
   ]
 }
