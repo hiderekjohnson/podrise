@@ -44,6 +44,38 @@ function CopyableId({ label, value, context }: { label: string; value: string | 
   );
 }
 
+function EnrichmentStatus({ fields }: { fields: { label: string; filled: boolean }[] }) {
+  const filledCount = fields.filter(f => f.filled).length;
+  const total = fields.length;
+  const pct = total > 0 ? Math.round((filledCount / total) * 100) : 0;
+  return (
+    <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4 space-y-2" data-testid="enrichment-status">
+      <div className="flex items-center justify-between">
+        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Enrichment Status</h4>
+        <span className={`text-xs font-bold ${pct >= 80 ? "text-emerald-600" : pct >= 50 ? "text-amber-600" : "text-red-500"}`} data-testid="enrichment-summary">
+          {filledCount}/{total} ({pct}%)
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {fields.map((f) => (
+          <span
+            key={f.label}
+            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium ${
+              f.filled
+                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                : "bg-red-50 text-red-500 dark:bg-red-900/20 dark:text-red-400"
+            }`}
+            data-testid={`enrichment-field-${f.label.toLowerCase().replace(/\s+/g, "-")}`}
+          >
+            {f.filled ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+            {f.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 type CMSView =
   | { tab: "podcasts"; podcastSlug?: undefined; episodeSlug?: undefined }
   | { tab: "podcast-detail"; podcastSlug: string; episodeSlug?: undefined }
@@ -628,6 +660,21 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
       </div>
 
       <CopyableId label="Podcast" value={podcast.id} context={podcast.name} />
+
+      <EnrichmentStatus fields={[
+        { label: "Description", filled: !!podcast?.description?.trim() },
+        { label: "Artwork", filled: !!podcast?.artwork_url?.trim() },
+        { label: "Apple URL", filled: !!podcast?.apple_url?.trim() },
+        { label: "Spotify URL", filled: !!podcast?.spotify_url?.trim() },
+        { label: "YouTube URL", filled: !!podcast?.youtube_url?.trim() },
+        { label: "Twitter", filled: !!podcast?.twitter_handle?.trim() },
+        { label: "Website", filled: !!podcast?.website_url?.trim() },
+        { label: "Category", filled: !!podcast?.category?.trim() },
+        { label: "Frequency", filled: !!podcast?.frequency?.trim() },
+        { label: "About Podcast", filled: !!podcast?.about_podcast?.trim() },
+        { label: "Hosts", filled: !!(podcast?.hosts?.trim() || podcast?.hosts_data?.length) },
+        { label: "Known For", filled: !!(podcast?.known_for?.length) },
+      ]} />
 
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
@@ -2386,6 +2433,19 @@ function PersonDetailPanel({ slug, onClose }: { slug: string; onClose: () => voi
         </div>
       </div>
       <CopyableId label="Person" value={data.id} context={data.name} />
+      <EnrichmentStatus fields={[
+        { label: "Photo", filled: !!data.photoUrl?.trim() },
+        { label: "Bio", filled: !!data.bio?.trim() },
+        { label: "Title", filled: !!data.title?.trim() },
+        { label: "Company", filled: !!data.company?.trim() },
+        { label: "Category", filled: !!data.category?.trim() },
+        { label: "Twitter", filled: !!data.twitterHandle?.trim() },
+        { label: "LinkedIn", filled: !!data.linkedinUrl?.trim() },
+        { label: "Website", filled: !!data.websiteUrl?.trim() },
+        { label: "Search Terms", filled: !!(data.searchTerms?.length) },
+        { label: "Hosted Slugs", filled: !!(data.hostedSlugs?.length) },
+        { label: "Verified", filled: !!data.verified },
+      ]} />
       <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
         <div className="flex items-start gap-4">
           <div className="flex flex-col items-center gap-1">
@@ -2690,6 +2750,17 @@ function CompanyDetailPanel({ slug, onClose }: { slug: string; onClose: () => vo
         </div>
       </div>
       <CopyableId label="Company" value={data.id} context={data.name} />
+      <EnrichmentStatus fields={[
+        { label: "Logo", filled: !!data.logoUrl?.trim() },
+        { label: "Description", filled: !!data.description?.trim() },
+        { label: "Industry", filled: !!data.industry?.trim() },
+        { label: "Category", filled: !!data.category?.trim() },
+        { label: "Website", filled: !!data.websiteUrl?.trim() },
+        { label: "Twitter", filled: !!data.twitterHandle?.trim() },
+        { label: "Search Terms", filled: !!(data.searchTerms?.length) },
+        { label: "Associated Terms", filled: !!(data.associatedTerms?.length) },
+        { label: "Verified", filled: !!data.verified },
+      ]} />
       <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
         <div className="flex items-start gap-4">
           {data.logoUrl ? (
