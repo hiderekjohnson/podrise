@@ -1141,21 +1141,36 @@ export async function registerRoutes(
         }
       }
 
-      const systemPrompt = `You are PodRise's friendly and knowledgeable AI support assistant. You help users understand how PodRise works and troubleshoot any issues they have. You also accept feature requests from users. Keep your answers concise, helpful, and conversational.
+      const systemPrompt = `You are PodRise's AI support assistant. You're friendly, helpful, and have a dry wit. Think of yourself as that one friend who actually knows how everything works AND has a sense of humor about it. Keep answers concise and conversational — no walls of text.
+
+Your personality guidelines:
+- Be warm and genuinely helpful first, funny second.
+- Use light humor and mild snark sparingly — a dash of personality, not a comedy routine.
+- When you DO know the answer, be clear and direct. Sprinkle in personality but don't let it get in the way of being useful.
+- When you DON'T know the answer, use a humorous deflection that makes the user smile, then point them to hello@podrise.com. Examples of good deflections: "That's a great question that's above my pay grade (do bots even get paid?)," or "I'd love to help with that, but my knowledge has limits — kind of like my ability to taste coffee."
+- Never be mean, condescending, or dismissive. The snark should always punch up (at yourself, at the situation), never at the user.
+- Do NOT make up features that don't exist. If something isn't in your knowledge base, say so honestly (with charm).
+
+CONTACT SCENARIOS:
+- If someone is a podcaster with questions about their podcast being on PodRise, direct them to contact hello@podrise.com.
+- If someone wants to advertise on PodRise or is a brand interested in partnerships, direct them to hello@podrise.com.
+- If someone asks about enterprise rollouts (PodRise for their company/employees), tell them yes PodRise does enterprise rollouts and direct them to hello@podrise.com to get started.
+- If someone is interested in investing in PodRise, direct them to hello@podrise.com.
+- If someone asks who is behind PodRise or who built it, say something like: "PodRise is built by a small team of people who are genuinely obsessed with podcasts and the incredible knowledge buried inside them — that's why we built this. For more info, reach out to hello@podrise.com."
 
 Here is your knowledge base about PodRise:
 ${knowledgeBase}
-If you don't know the answer to something, be honest about it and suggest the user contact hello@podrise.com for further help. Do not make up features that don't exist.
 
 FEATURE REQUEST HANDLING:
 When a user suggests a feature, requests a new feature, or describes something they wish PodRise could do:
-1. Acknowledge their suggestion warmly and thank them for the feedback.
+1. Acknowledge their suggestion warmly and thank them for the feedback. Feel free to be enthusiastic — you love hearing ideas.
 2. At the very end of your response, on a new line, include exactly this marker (the user will NOT see this):
 [FEATURE_REQUEST: <a brief summary of the feature request>]
 
 Only include the marker if the user is genuinely requesting or suggesting a feature. Do not include it for normal support questions.`;
 
-      const { openai } = await import("./replit_integrations/image/client");
+      const OpenAI = (await import("openai")).default;
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
       const recentMessages = validatedMessages.slice(-10);
 
       const completion = await openai.chat.completions.create({
@@ -1209,6 +1224,9 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       res.json({ reply });
     } catch (err: any) {
       console.error("[HelpChat] Failed to generate response:", err?.message || err);
+      if (err?.status) console.error("[HelpChat] OpenAI status:", err.status);
+      if (err?.code) console.error("[HelpChat] Error code:", err.code);
+      if (err?.stack) console.error("[HelpChat] Stack:", err.stack);
       res.status(500).json({ message: "Failed to generate response" });
     }
   });
@@ -17948,30 +17966,41 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     }
 
     try {
-      const { rows: kbCount } = await pool.query("SELECT COUNT(*)::int AS count FROM support_articles");
-      if (kbCount[0].count === 0) {
-        console.log("[SupportKB] No support articles found — seeding defaults...");
-        const defaultArticles = [
-          { title: "What is PodRise?", category: "About", body: "PodRise generates AI-powered recaps of your favorite podcasts. Follow the podcasts you care about, and PodRise delivers concise summaries of new episodes to your inbox and feed.", sortOrder: 0 },
-          { title: "Following Podcasts", category: "Getting Started", body: "- To follow a podcast: Go to the Discover page and search for a podcast, or browse curated lists. Click the \"Follow\" button next to any podcast.\n- Email recaps are sent daily at your configured delivery time. You can change your delivery time and timezone in Settings.\n- You can pause email delivery in Settings by setting a \"Pause emails until\" date. Your feed will still update while emails are paused.", sortOrder: 1 },
-          { title: "Account Management", category: "Account", body: "- To change your email: Go to Settings and update your email address in the Account section. Click Save.\n- To log out: Go to Settings and scroll to the bottom. Click \"Log out.\"\n- To update your profile: Go to Settings > Account Settings. You can update display name, location, language, and more.\n- To delete your account: Go to Settings and follow the account deletion option. This is permanent and removes all data.", sortOrder: 2 },
-          { title: "Feed & Content", category: "Feed & Content", body: "- \"For You\" tab shows recaps from all podcasts that might interest you. \"Following\" shows only recaps from podcasts you explicitly follow.\n- Bookmarks: Click the bookmark icon on any recap card to save it. Access saved episodes from the Bookmarks page in the sidebar.\n- Sharing: Each recap card has a share button. On mobile it uses native share. On desktop it copies the link.", sortOrder: 3 },
-          { title: "How Recaps Work", category: "How Recaps Work", body: "- PodRise checks for new episodes released the previous calendar day in your timezone.\n- If no podcasts released a new episode, no email is sent that day — no empty digests.\n- Recaps are generated using advanced AI that analyzes episode content for accurate summaries.\n- Your daily recap is delivered at your chosen time each day.", sortOrder: 4 },
-          { title: "Subscriptions & Pricing", category: "Subscriptions & Pricing", body: "- PodRise is free to use. You can follow as many podcasts as you want.\n- PodRise Pro offers additional features. Pro plans can be managed from Settings.", sortOrder: 5 },
-          { title: "Troubleshooting", category: "Troubleshooting", body: "- Not receiving emails? Check your spam/junk folder first. Verify your email address in Settings. If emails are in spam, mark them as \"not spam.\"\n- Still having issues? Users can contact support at hello@podrise.com or use the Support page.", sortOrder: 6 },
-          { title: "Data & Privacy", category: "Data & Privacy", body: "- PodRise only collects your email and podcast preferences. Data is never sold.\n- Payment processing is handled by Stripe — PodRise never sees or stores credit card details.", sortOrder: 7 },
-        ];
-        for (const a of defaultArticles) {
-          await pool.query(
-            `INSERT INTO support_articles (title, category, body, sort_order, active) VALUES ($1, $2, $3, $4, true)`,
-            [a.title, a.category, a.body, a.sortOrder]
-          );
-        }
-        console.log(`[SupportKB] Seeded ${defaultArticles.length} default support articles`);
-      } else {
-        console.log(`[SupportKB] ${kbCount[0].count} support articles already exist, skipping`);
+      console.log("[SupportKB] Syncing support articles...");
+      await pool.query("BEGIN");
+      const defaultArticles = [
+        { title: "What is PodRise?", category: "About", body: "PodRise is an AI-powered podcast intelligence platform. You follow the podcasts you care about, and PodRise delivers concise, AI-generated recaps of new episodes straight to your inbox and your feed. Think of it as your personal podcast briefing — all the knowledge, none of the 3-hour listening sessions (unless you want those too). PodRise also surfaces people mentioned, companies discussed, books recommended, and key topics covered in each episode.", sortOrder: 0 },
+        { title: "For You vs Following Feed", category: "Feed & Content", body: "Your feed has two tabs:\n\n**For You** — A personalized feed that surfaces recaps from podcasts PodRise thinks you'll enjoy, based on your interests and listening patterns. Great for discovering new shows.\n\n**Following** — Shows recaps exclusively from podcasts you've explicitly followed. This is your curated, no-surprises feed.\n\nYou can switch between tabs at the top of your feed page anytime.", sortOrder: 1 },
+        { title: "Following Podcasts", category: "Getting Started", body: "You can follow as many podcasts as you want — there are no limits, no caps, no hidden restrictions. Seriously, go wild.\n\nTo follow a podcast:\n1. Go to the Discover page.\n2. Search for a podcast by name, or browse curated collections.\n3. Click the \"Follow\" button.\n\nOnce you follow a podcast, new episode recaps will appear in your Following feed and be included in your daily email digest.", sortOrder: 2 },
+        { title: "Email Recaps", category: "Email Recaps", body: "PodRise sends you a daily email recap for the podcasts you follow. Here's how it works:\n\n- PodRise checks for new episodes that were released the previous day (in your timezone).\n- If any of your followed podcasts published a new episode, you'll get a recap email at your chosen delivery time.\n- If none of your followed podcasts released anything that day, you won't get an email. No empty inboxes cluttered with \"nothing new today\" messages.\n- Each recap includes a TL;DL (Too Long; Didn't Listen) summary, key insights, notable quotes, and more.", sortOrder: 3 },
+        { title: "Email Delivery Time", category: "Email Recaps", body: "You can choose exactly when your daily recap email arrives. Go to Settings > Email Delivery > Delivery Time and pick the time that works best for you. Morning coffee reading? Late-night catch-up? It's your call.", sortOrder: 4 },
+        { title: "Timezone Settings", category: "Email Recaps", body: "PodRise uses your timezone to determine which episodes count as \"yesterday's\" releases and when to send your email. To adjust your timezone:\n\n1. Go to Settings.\n2. Under Email Delivery, find \"Timezone.\"\n3. Select your correct timezone from the dropdown.\n\nPodRise tries to auto-detect your timezone when you sign up, but you can change it anytime.", sortOrder: 5 },
+        { title: "Pausing Emails", category: "Email Recaps", body: "Going on vacation? Need a break from your inbox? You can pause your recap emails:\n\n1. Go to Settings.\n2. Under Email Delivery, find \"Pause emails until.\"\n3. Pick a date — you won't receive any recap emails until after that date.\n\nYour feed will still update while emails are paused, so you won't miss anything. You just won't get the emails until you're back.", sortOrder: 6 },
+        { title: "Saved Episodes / Bookmarks", category: "Feed & Content", body: "See a recap you want to come back to later? Save it!\n\n- Click the bookmark icon on any recap card in your feed to save it.\n- Access all your saved episodes from the \"Saved\" page in the sidebar navigation.\n- Each saved episode keeps the full recap, key insights, quotes, and all the good stuff.\n- You can remove saved episodes anytime by clicking the remove icon.\n\nBookmarks are your personal reading list for podcast knowledge.", sortOrder: 7 },
+        { title: "Finding Your Followed Podcasts", category: "Getting Started", body: "To see all the podcasts you currently follow:\n\n- On mobile: Tap the sidebar menu and look for your followed podcasts list.\n- On desktop: Check the sidebar on the left — your followed podcasts are listed there.\n\nYou can also visit the Discover page to manage your follows or find new podcasts to add.", sortOrder: 8 },
+        { title: "Pod Squad — Referral Program", category: "Pod Squad", body: "Pod Squad is PodRise's referral program. Invite your friends to join PodRise, and as they sign up using your referral link, you earn rewards!\n\nHow it works:\n1. Go to the Pod Squad page (accessible from the sidebar or your feed).\n2. Copy your unique referral link and share it with friends.\n3. When friends sign up using your link, your referral count goes up.\n4. Hit referral milestones to unlock increasingly awesome rewards.\n\nReward tiers include things like exclusive PodRise stickers, t-shirts, AirPods, and more. The more friends you invite, the better the rewards get. There's no limit to how many people you can refer.", sortOrder: 9 },
+        { title: "Shop & Affiliates", category: "Shop & Affiliates", body: "PodRise surfaces products, books, and tools that are mentioned or recommended across podcast episodes. When you see a product link on PodRise, some of those links may be affiliate links.\n\nWhat does that mean?\n- If you click a product link and make a purchase, PodRise may earn a small commission at no extra cost to you.\n- This helps support PodRise and keep the platform running.\n- Affiliate relationships never influence which products are shown — PodRise surfaces what's actually discussed in episodes.\n\nFor full details, visit the disclosure page on PodRise. Transparency is important to us.", sortOrder: 10 },
+        { title: "Dark Mode", category: "Display & Preferences", body: "PodRise supports both light and dark mode. To switch:\n\n1. Go to Settings.\n2. Under the \"Display\" section, you'll see Light and Dark toggle buttons.\n3. Click your preference.\n\nYour choice is saved and will persist across sessions. Night owls, rejoice.", sortOrder: 11 },
+        { title: "Language Settings", category: "Display & Preferences", body: "You can set your preferred language in PodRise:\n\n1. Go to Settings.\n2. Under Account Settings, find \"Language.\"\n3. Select your preferred language from the dropdown.\n\nPodRise currently supports English, Spanish, French, German, Portuguese, Japanese, Korean, Chinese, Hindi, and Arabic.", sortOrder: 12 },
+        { title: "Account Deletion", category: "Account", body: "If you want to delete your PodRise account:\n\n1. Go to Settings.\n2. Look for the account deletion option.\n3. Confirm the deletion.\n\nPlease note: Account deletion is permanent. All your data — including your followed podcasts, saved episodes, email preferences, and profile information — will be permanently removed. This action cannot be undone.\n\nIf you're having issues and considering deleting your account, we'd love to help first. Reach out to hello@podrise.com before you go.", sortOrder: 13 },
+        { title: "Account Management", category: "Account", body: "From the Settings page, you can manage your account:\n\n- **Email**: Update your email address in the Account section.\n- **Display Name**: Set how your name appears.\n- **Birthday, Gender, Location**: Optional profile details you can add or update.\n- **Log out**: Scroll to the bottom of Settings and click \"Log out.\"\n\nAll changes are saved immediately when you click Save.", sortOrder: 14 },
+        { title: "Subscriptions & Pricing", category: "Subscriptions & Pricing", body: "PodRise is free to use. You can follow as many podcasts as you want at no cost — no limits, no trial periods.\n\nPodRise Pro is available for users who want extra features, including personalized daily topic briefings (Pulse). Pro plans can be managed from the Subscription section in Settings, where you can also manage billing through Stripe.", sortOrder: 15 },
+        { title: "Troubleshooting — Not Receiving Emails", category: "Troubleshooting", body: "If you're not receiving your daily recap emails:\n\n1. Check your spam/junk folder first. Sometimes email providers are overzealous.\n2. If you find PodRise emails in spam, mark them as \"not spam\" to train your email provider.\n3. Verify your email address is correct in Settings.\n4. Make sure you haven't set a \"Pause emails until\" date in Settings.\n5. Remember: if none of your followed podcasts released new episodes yesterday, no email is sent — that's by design.\n\nStill having issues? Contact hello@podrise.com and we'll sort it out.", sortOrder: 16 },
+        { title: "Data & Privacy", category: "Data & Privacy", body: "PodRise takes your privacy seriously:\n\n- We only collect your email address and podcast preferences.\n- Your data is never sold to third parties.\n- Payment processing is handled entirely by Stripe — PodRise never sees or stores your credit card details.\n- You can delete your account and all associated data at any time from Settings.", sortOrder: 17 },
+        { title: "Contact & Business Inquiries", category: "Contact", body: "For any questions, feedback, or business inquiries, reach out to hello@podrise.com. This includes:\n\n- General support questions\n- Podcasters with questions about their show on PodRise\n- Brands or advertisers interested in partnerships\n- Enterprise inquiries (PodRise for your company or employees)\n- Investment inquiries\n- Press and media requests\n\nWe read every email and try to respond promptly.", sortOrder: 18 },
+        { title: "Enterprise", category: "Enterprise", body: "Yes! PodRise offers enterprise rollouts for companies that want to provide podcast intelligence to their employees. If you're interested in bringing PodRise to your team or organization, contact us at hello@podrise.com and we'll get you set up.", sortOrder: 19 },
+      ];
+      await pool.query("DELETE FROM support_articles");
+      for (const a of defaultArticles) {
+        await pool.query(
+          `INSERT INTO support_articles (title, category, body, sort_order, active) VALUES ($1, $2, $3, $4, true)`,
+          [a.title, a.category, a.body, a.sortOrder]
+        );
       }
+      await pool.query("COMMIT");
+      console.log(`[SupportKB] Synced ${defaultArticles.length} support articles`);
     } catch (err) {
+      await pool.query("ROLLBACK").catch(() => {});
       console.error("[SupportKB] Failed to seed support articles:", err);
     }
 
