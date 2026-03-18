@@ -1230,6 +1230,7 @@ export class DatabaseStorage implements IStorage {
     const defaults = [
       { key: "pulse", description: "Controls visibility of Pulse features (My Pulse page, topic pulse routes, sidebar nav)", enabled: false },
       { key: "upgrade", description: "Controls visibility of upgrade/pricing flow and Stripe checkout", enabled: false },
+      { key: "show_non_book_products", description: "Show non-book products (tools, physical products, experiences) in the shop. When off, only books are shown.", enabled: false },
     ];
     for (const flag of defaults) {
       const existing = await this.getFeatureFlagByKey(flag.key);

@@ -4471,6 +4471,18 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
   app.get("/api/podcasts/:slug/products", async (req, res) => {
     try {
+      const userId = getAuthUserId(req) || (req.session.userId ?? null);
+      let showNonBookProducts = false;
+      if (userId) {
+        const resolved = await storage.getResolvedFlagsForUser(userId);
+        showNonBookProducts = resolved["show_non_book_products"] ?? false;
+      } else {
+        const flag = await storage.getFeatureFlagByKey("show_non_book_products");
+        showNonBookProducts = flag?.enabled ?? false;
+      }
+      if (!showNonBookProducts) {
+        return res.json({ products: [], total: 0 });
+      }
       const { slug } = req.params;
       const { rows } = await pool.query(
         `SELECT ep.id, ep.name, ep.company, ep.description, ep.purchase_url, ep.context,
@@ -4547,6 +4559,18 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
   app.get("/api/podcasts/:slug/episode-products/:episodeSlug", async (req, res) => {
     try {
+      const userId = getAuthUserId(req) || (req.session.userId ?? null);
+      let showNonBookProducts = false;
+      if (userId) {
+        const resolved = await storage.getResolvedFlagsForUser(userId);
+        showNonBookProducts = resolved["show_non_book_products"] ?? false;
+      } else {
+        const flag = await storage.getFeatureFlagByKey("show_non_book_products");
+        showNonBookProducts = flag?.enabled ?? false;
+      }
+      if (!showNonBookProducts) {
+        return res.json({ products: [], total: 0 });
+      }
       const { slug, episodeSlug } = req.params;
       const { rows } = await pool.query(
         `SELECT ep.name, ep.company, ep.description, ep.purchase_url, ep.context,
@@ -4585,8 +4609,21 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
   app.get("/api/shop", async (_req, res) => {
     try {
+      const userId = getAuthUserId(_req) || (_req.session.userId ?? null);
+      let showNonBookProducts = false;
+      if (userId) {
+        const resolved = await storage.getResolvedFlagsForUser(userId);
+        showNonBookProducts = resolved["show_non_book_products"] ?? false;
+      } else {
+        const flag = await storage.getFeatureFlagByKey("show_non_book_products");
+        showNonBookProducts = flag?.enabled ?? false;
+      }
+
       const cached = shopCache.get();
-      if (cached) return res.json(cached);
+      if (cached) {
+        if (showNonBookProducts) return res.json(cached);
+        return res.json({ ...cached, products: [], items: (cached as any).items?.filter((i: any) => i.itemType === "book") || [] });
+      }
 
       const slugToName: Record<string, string> = {};
       const { rows: pdRows } = await pool.query(`SELECT slug, name FROM podcast_directory WHERE has_landing_page = true`);
@@ -4800,7 +4837,11 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
       const result = { items: [...books, ...products], books, products, total: books.length + products.length };
       shopCache.set(result);
-      res.json(result);
+      if (showNonBookProducts) {
+        res.json(result);
+      } else {
+        res.json({ ...result, products: [], items: books });
+      }
     } catch (err) {
       console.error("Shop error:", err);
       res.status(500).json({ message: "Failed to load shop" });
