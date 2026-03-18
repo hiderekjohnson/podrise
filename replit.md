@@ -28,6 +28,7 @@ PodRise is a full-stack web application designed to provide personalized daily p
 **Feed Ads System**: Configurable inline feed ads (podcast and regular) integrated into the user feed, with admin controls for management.
 **Error Tracking**: Global middleware logs all API errors to a dedicated table for monitoring and deduplication.
 **Facebook Ad Landing Pages**: A scalable system for campaign-specific landing pages with visit tracking and analytics.
+**Recap Validator** (`server/recapValidator.ts`): Unified post-creation validation that runs after every episode recap creation across all 4 code paths (emailScheduler, productionRecapScheduler, backgroundRecapGenerator, admin routes). Checks 14 fields and auto-fills gaps: tabloid headlines, Spotify URLs, Apple URLs, audio URLs, and quotes DB entries. Admin batch validation endpoint at `POST /api/admin/validate-recaps` supports `dateRange`, `limit`, and `dryRun` options.
 
 ## External Dependencies
 - **Stripe**: Payment processing and subscription management.

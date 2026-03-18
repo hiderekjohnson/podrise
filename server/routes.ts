@@ -8692,6 +8692,69 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     res.json({ message: "Stop requested" });
   });
 
+  app.post("/api/admin/validate-recaps", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    const { dateRange, limit: batchLimit, dryRun } = req.body;
+    const maxBatch = Math.min(batchLimit || 50, 200);
+    try {
+      const params: any[] = [maxBatch];
+      let dateFilter = '';
+      if (dateRange?.from && dateRange?.to) {
+        dateFilter = ` AND r.publish_date >= $2 AND r.publish_date <= $3`;
+        params.push(dateRange.from, dateRange.to);
+      }
+      const { rows } = await pool.query(`
+        SELECT r.id, r.slug, r.episode_slug, r.episode_title, r.podcast_name, r.itunes_id, r.hosts,
+               r.tldl, r.tabloid_headline, r.spotify_episode_url, r.apple_episode_url
+        FROM landing_page_recaps r
+        WHERE r.published = true${dateFilter}
+        ORDER BY r.id DESC LIMIT $1
+      `, params);
+
+      if (dryRun) {
+        const { validateAndEnrichRecap } = await import("./recapValidator");
+        const issues: any[] = [];
+        for (const row of rows) {
+          const isEmpty = (v: any) => v === null || v === undefined || v === "" || v === "[]";
+          const missing: string[] = [];
+          if (isEmpty(row.tldl)) missing.push("tldl");
+          if (isEmpty(row.tabloid_headline)) missing.push("tabloid");
+          if (isEmpty(row.spotify_episode_url)) missing.push("spotify_url");
+          if (isEmpty(row.apple_episode_url)) missing.push("apple_url");
+          if (missing.length > 0) {
+            issues.push({ id: row.id, title: row.episode_title?.slice(0, 60), podcast: row.podcast_name, missing });
+          }
+        }
+        return res.json({ mode: "dry_run", checked: rows.length, withIssues: issues.length, issues: issues.slice(0, 100) });
+      }
+
+      const { validateAndEnrichRecap } = await import("./recapValidator");
+      const results: any[] = [];
+      for (const row of rows) {
+        let transcript: string | null = null;
+        try {
+          const { rows: tRows } = await pool.query(
+            `SELECT et.transcript FROM episode_transcripts et
+             JOIN podcast_directory pd ON pd.itunes_id = CAST(et.podcast_id AS TEXT)
+             WHERE pd.slug = $1 AND et.episode_title = $2 LIMIT 1`,
+            [row.slug, row.episode_title]
+          );
+          transcript = tRows[0]?.transcript || null;
+        } catch {}
+        const result = await validateAndEnrichRecap(
+          row.id, row.slug, row.episode_slug, row.podcast_name,
+          row.episode_title, row.itunes_id, transcript, row.hosts || null
+        );
+        if (result.missing.length > 0 || result.fixed.length > 0) {
+          results.push(result);
+        }
+      }
+      res.json({ checked: rows.length, enriched: results.length, results: results.slice(0, 100) });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   // Backfill missed episodes from Taddy (catches episodes missed due to webhook action=updated bug)
   let missedEpBackfillRunning = false;
   let missedEpBackfillProgress = { total: 0, processed: 0, newEpisodes: 0, failed: 0, currentPodcast: "", stopped: false };
@@ -14314,6 +14377,16 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           recapId: newRecapId,
           extractedQuotes: recap.extractedQuotes || null,
         });
+
+        try {
+          const { validateAndEnrichRecap } = await import("./recapValidator");
+          await validateAndEnrichRecap(
+            newRecapId, podcastSlug, upsertedRecap.episodeSlug, podcastName,
+            epTitle, itunesId, t.transcript || null, hosts || null
+          );
+        } catch (valErr: any) {
+          console.warn(`[Admin] Recap validation failed for "${epTitle?.slice(0, 50)}":`, valErr);
+        }
 
         const canonicalEpSlug = upsertedRecap.episodeSlug;
         const quoteCount = (await storage.getEpisodeQuotes(podcastSlug, canonicalEpSlug)).length;

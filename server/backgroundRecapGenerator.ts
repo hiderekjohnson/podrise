@@ -221,6 +221,18 @@ async function processEpisode(
         console.warn(`[BgRecap] QA accepted with ${criticals.length} critical(s) for "${epTitle.slice(0, 50)}"`);
       }
 
+      if (upsertedRecap?.id) {
+        try {
+          const { validateAndEnrichRecap } = await import("./recapValidator");
+          await validateAndEnrichRecap(
+            upsertedRecap.id, podcastSlug, canonicalSlug, podcastName,
+            epTitle, itunesId, ep.transcript || null, hosts || null
+          );
+        } catch (valErr: any) {
+          console.warn(`[BgRecap] Validation failed for "${epTitle?.slice(0, 50)}":`, valErr);
+        }
+      }
+
       return "generated";
     } catch (err: any) {
       if (attempt < maxAttempts) {

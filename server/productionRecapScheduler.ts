@@ -136,7 +136,7 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
         const { validateAndEnrichRecap } = await import("./recapValidator");
         await validateAndEnrichRecap(
           upsertedRecap.id, podcastSlug, canonicalSlug, podcastName,
-          epTitle, itunesId, transcript || null, hosts || null
+          epTitle, itunesId, ep.transcript || null, hosts || null
         );
       } catch (valErr) {
         console.warn(`[ProdRecap] Validation failed for "${epTitle?.slice(0, 50)}":`, valErr);

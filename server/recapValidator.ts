@@ -144,25 +144,6 @@ export async function validateAndEnrichRecap(
       }
     }
 
-    if (result.missing.includes("products") && transcript) {
-      try {
-        const { generateRecapFromTranscript } = await import("./recapGenerator");
-        const miniRecap = await generateRecapFromTranscript(transcript.slice(0, 20000), podcastName, episodeTitle);
-        if (miniRecap?.products && miniRecap.products.length > 0) {
-          for (const p of miniRecap.products) {
-            await client.query(
-              `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, episode_title, episode_slug, podcast_slug, status, category)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'pending', $10) ON CONFLICT DO NOTHING`,
-              [p.name, p.company, p.description, p.purchaseUrl, p.context, p.mentionType, episodeTitle, episodeSlug, podcastSlug, p.category]
-            );
-          }
-          result.fixed.push(`products(${miniRecap.products.length})`);
-        }
-      } catch (err: any) {
-        result.errors.push(`products: ${err.message?.slice(0, 80)}`);
-      }
-    }
-
     if (result.missing.includes("apple_url") && itunesId) {
       try {
         const lookupUrl = `https://itunes.apple.com/lookup?id=${itunesId}&media=podcast&entity=podcastEpisode&limit=25`;
