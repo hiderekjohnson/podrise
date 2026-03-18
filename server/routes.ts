@@ -7929,6 +7929,111 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/admin/all-data-gaps", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const [podcastGaps, personGaps, companyGaps, mentionCounts] = await Promise.all([
+        pool.query(`
+          SELECT COUNT(*)::int as total,
+            SUM(CASE WHEN description IS NULL OR description = '' THEN 1 ELSE 0 END)::int as missing_description,
+            SUM(CASE WHEN artwork_url IS NULL OR artwork_url = '' THEN 1 ELSE 0 END)::int as missing_artwork,
+            SUM(CASE WHEN category IS NULL OR category = '' THEN 1 ELSE 0 END)::int as missing_category,
+            SUM(CASE WHEN hosts IS NULL OR hosts = '' THEN 1 ELSE 0 END)::int as missing_hosts,
+            SUM(CASE WHEN about_podcast IS NULL OR about_podcast = '' THEN 1 ELSE 0 END)::int as missing_about,
+            SUM(CASE WHEN known_for IS NULL OR array_length(known_for, 1) IS NULL THEN 1 ELSE 0 END)::int as missing_known_for,
+            SUM(CASE WHEN host_bios IS NULL THEN 1 ELSE 0 END)::int as missing_host_bios,
+            SUM(CASE WHEN related_slugs IS NULL OR array_length(related_slugs, 1) IS NULL THEN 1 ELSE 0 END)::int as missing_related,
+            SUM(CASE WHEN twitter_handle IS NULL OR twitter_handle = '' THEN 1 ELSE 0 END)::int as missing_twitter,
+            SUM(CASE WHEN website_url IS NULL OR website_url = '' THEN 1 ELSE 0 END)::int as missing_website,
+            SUM(CASE WHEN frequency IS NULL OR frequency = '' THEN 1 ELSE 0 END)::int as missing_frequency,
+            SUM(CASE WHEN total_episodes IS NULL THEN 1 ELSE 0 END)::int as missing_total_eps,
+            SUM(CASE WHEN year_started IS NULL THEN 1 ELSE 0 END)::int as missing_year
+          FROM podcast_directory WHERE status = 'published'
+        `),
+        pool.query(`
+          SELECT COUNT(*)::int as total,
+            SUM(CASE WHEN bio IS NULL OR bio = '' THEN 1 ELSE 0 END)::int as missing_bio,
+            SUM(CASE WHEN photo_url IS NULL OR photo_url = '' THEN 1 ELSE 0 END)::int as missing_photo,
+            SUM(CASE WHEN title IS NULL OR title = '' THEN 1 ELSE 0 END)::int as missing_title,
+            SUM(CASE WHEN company IS NULL OR company = '' THEN 1 ELSE 0 END)::int as missing_company,
+            SUM(CASE WHEN twitter_handle IS NULL OR twitter_handle = '' THEN 1 ELSE 0 END)::int as missing_twitter,
+            SUM(CASE WHEN category IS NULL OR category = '' THEN 1 ELSE 0 END)::int as missing_category
+          FROM entity_people
+        `),
+        pool.query(`
+          SELECT COUNT(*)::int as total,
+            SUM(CASE WHEN description IS NULL OR description = '' THEN 1 ELSE 0 END)::int as missing_description,
+            SUM(CASE WHEN logo_url IS NULL OR logo_url = '' THEN 1 ELSE 0 END)::int as missing_logo,
+            SUM(CASE WHEN industry IS NULL OR industry = '' THEN 1 ELSE 0 END)::int as missing_industry,
+            SUM(CASE WHEN website_url IS NULL OR website_url = '' THEN 1 ELSE 0 END)::int as missing_website,
+            SUM(CASE WHEN category IS NULL OR category = '' THEN 1 ELSE 0 END)::int as missing_category
+          FROM entity_companies
+        `),
+        pool.query(`SELECT COUNT(*)::int as total FROM entity_episode_mentions`),
+      ]);
+      res.json({
+        podcasts: podcastGaps.rows[0],
+        people: personGaps.rows[0],
+        companies: companyGaps.rows[0],
+        mentions: { total: mentionCounts.rows[0]?.total || 0 },
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post("/api/admin/backfill-podcast-metadata", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { startPodcastMetadataBackfill, getPodcastBackfillProgress } = await import("./podcastBackfill");
+      const progress = getPodcastBackfillProgress();
+      if (progress.running) return res.status(409).json({ message: "Already running", progress });
+      startPodcastMetadataBackfill();
+      res.json({ message: "Podcast metadata backfill started" });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get("/api/admin/backfill-podcast-metadata/progress", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    const { getPodcastBackfillProgress } = await import("./podcastBackfill");
+    res.json(getPodcastBackfillProgress());
+  });
+
+  app.post("/api/admin/backfill-podcast-metadata/stop", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    const { stopPodcastBackfill } = await import("./podcastBackfill");
+    stopPodcastBackfill();
+    res.json({ message: "Stop requested" });
+  });
+
+  app.post("/api/admin/backfill-entities", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { startEntityBackfill, getEntityBackfillProgress } = await import("./entityBackfill");
+      const progress = getEntityBackfillProgress();
+      if (progress.running) return res.status(409).json({ message: "Already running", progress });
+      startEntityBackfill();
+      res.json({ message: "Entity backfill started" });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get("/api/admin/backfill-entities/progress", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    const { getEntityBackfillProgress } = await import("./entityBackfill");
+    res.json(getEntityBackfillProgress());
+  });
+
+  app.post("/api/admin/backfill-entities/stop", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    const { stopEntityBackfill } = await import("./entityBackfill");
+    stopEntityBackfill();
+    res.json({ message: "Stop requested" });
+  });
+
   app.post("/api/admin/updates/trigger-batch-expand", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });

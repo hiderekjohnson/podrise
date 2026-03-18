@@ -177,12 +177,10 @@ async function backfillAIFields() {
       }
 
       const transcript = transcriptRows[0].transcript;
-      const { processFullTranscript } = await import("./transcriptChunker");
-      const processedTranscript = processFullTranscript(transcript);
 
       const { generateRecapFromFullTranscript } = await import("./recapGenerator");
       const recap = await generateRecapFromFullTranscript(
-        processedTranscript,
+        transcript,
         row.podcast_name,
         row.episode_title,
         row.show_notes || null
@@ -271,12 +269,10 @@ async function backfillQuotes() {
       }
 
       const transcript = transcriptRows[0].transcript;
-      const { processFullTranscript } = await import("./transcriptChunker");
-      const processedTranscript = processFullTranscript(transcript);
 
       const { generateRecapFromFullTranscript } = await import("./recapGenerator");
       const recap = await generateRecapFromFullTranscript(
-        processedTranscript,
+        transcript,
         row.podcast_name,
         row.episode_title,
         row.show_notes || null
