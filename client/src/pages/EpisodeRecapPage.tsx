@@ -1,20 +1,23 @@
 import { useParams } from "wouter";
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, ArrowUp, Mail, Clock, ShoppingBag, Bookmark, BookmarkCheck, Heart } from "lucide-react";
+import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, ArrowUp, Mail, Clock, ShoppingBag, Bookmark, BookmarkCheck, Heart, ListChecks, ArrowRight } from "lucide-react";
 import { BookCover as SharedBookCover } from "@/components/BookCover";
 import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
-import { getPodcastBySlug } from "../data/podcastLandingData";
+import { getPodcastBySlug, type PodcastLandingConfig } from "../data/podcastLandingData";
 import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "../data/entityDirectoryData";
-import { Link } from "wouter";
-import { EpisodePageLayout } from "@/components/EpisodePageLayout";
+import { Link, useLocation } from "wouter";
 import { GetRecapsModal } from "@/components/GetRecapsModal";
 import { FeedStyleCard, FeedStyleCardHeader, FeedStyleCardSection } from "@/components/FeedStyleCard";
+import { SiteHeader } from "@/components/SiteHeader";
+import { Footer } from "@/components/Footer";
+import { EpisodeCard } from "@/components/EpisodeCard";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, useRegister } from "@/hooks/use-auth";
+import { useSetConversion } from "@/contexts/PageConversionContext";
 
 interface BookResource {
   name: string;
@@ -494,6 +497,7 @@ export default function EpisodeRecapPage() {
   const params = useParams<{ podcastSlug: string; episodeSlug: string }>();
   const podcastSlug = params.podcastSlug || "";
   const episodeSlug = params.episodeSlug || "";
+  const [, navigate] = useLocation();
   const [activeSection, setActiveSection] = useState("section-key-insights");
   const [showAllPeople, setShowAllPeople] = useState(false);
   const [showAllCompanies, setShowAllCompanies] = useState(false);
@@ -502,7 +506,9 @@ export default function EpisodeRecapPage() {
   const chatRef = useRef<ChatContextRef | null>(null);
   const { toast } = useToast();
   const { data: authUser } = useAuth();
+  const registerMutation = useRegister();
   const [showUpdatesModal, setShowUpdatesModal] = useState(false);
+  const [ctaEmail, setCtaEmail] = useState("");
 
   const { data: bookmarksData } = useQuery<{ id: number; episodeSlug: string; podcastSlug: string }[]>({
     queryKey: ["/api/bookmarks"],
@@ -621,6 +627,45 @@ export default function EpisodeRecapPage() {
     appleUrl: "",
     spotifyUrl: "",
   } : undefined);
+
+  const epHostNames = podcastConfig?.hosts
+    ? podcastConfig.hosts.split(/,\s*|&\s*|\sand\s/i).map((h: string) => h.trim()).filter(Boolean)
+    : [];
+
+  useSetConversion({
+    pageType: "episode",
+    name: episode?.episodeTitle || "",
+    slug: episodeSlug,
+    podcastName: episode?.podcastName || "",
+    podcastSlug,
+    artworkUrl: episode?.artworkUrl || "",
+    hosts: epHostNames,
+  });
+
+  const handleCtaSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ctaEmail.trim() || !/^\S+@\S+\.\S+$/.test(ctaEmail)) {
+      toast({ title: "Invalid email", description: "Please enter a valid email address.", variant: "destructive" });
+      return;
+    }
+    if (!podcastConfig) return;
+    registerMutation.mutate(
+      {
+        podcasts: [JSON.stringify({ id: podcastConfig.itunesId, name: podcastConfig.name, artworkUrl: podcastConfig.artworkUrl || "" })],
+        email: ctaEmail.trim(),
+      },
+      {
+        onSuccess: () => navigate("/dashboard?welcome=true"),
+        onError: (err: any) => {
+          toast({
+            title: "Something went wrong",
+            description: err.message?.includes("400") ? "This email is already registered. Try logging in." : "Please try again.",
+            variant: "destructive",
+          });
+        },
+      }
+    );
+  };
 
   const { data: podcastHosts } = useQuery<any[]>({
     queryKey: ["/api/podcasts", podcastSlug, "hosts"],
@@ -861,11 +906,6 @@ export default function EpisodeRecapPage() {
     window.scrollTo({ top, behavior: "smooth" });
   };
 
-
-  const epHostNames = podcastConfig?.hosts
-    ? podcastConfig.hosts.split(/,\s*|&\s*|\sand\s/i).map((h: string) => h.trim()).filter(Boolean)
-    : [];
-
   const recapContent = (
       <motion.article
         initial={{ opacity: 0, y: 16 }}
@@ -963,38 +1003,6 @@ export default function EpisodeRecapPage() {
             </button>
           )}
         </nav>
-
-        {episode.keyInsights?.length > 0 && (
-          <section id="section-key-insights" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-key-insights">
-            <div className="px-4 sm:px-6 py-4 bg-amber-500/[0.04] border-b border-amber-500/[0.08]">
-              <div className="flex items-center gap-2.5">
-                <Lightbulb className="w-4 h-4 text-amber-500 shrink-0" />
-                <span className="text-base font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">
-                  {`Key Takeaways from ${seoSubject}`}
-                </span>
-              </div>
-            </div>
-            <div className="px-4 sm:px-6 py-5 space-y-3">
-              {episode.keyInsights.map((insight: string, i: number) => (
-                <div
-                  key={i}
-                  className="flex gap-3.5 items-start group/insight"
-                  data-testid={`insight-${i}`}
-                >
-                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 text-[16px] font-bold">
-                    {i + 1}
-                  </span>
-                  <div className="flex-1">
-                    <p className="text-base leading-[1.8] text-muted-foreground">{insight.replace(/\[([^\]]+)\]/g, '$1')}</p>
-                    <div className="mt-1 opacity-60 group-hover/insight:opacity-100 transition-opacity">
-                      <DeepDiveButton entityName={insight.slice(0, 80)} entityType="insight" chatRef={chatRef} />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
 
         <section id="section-what-happened" className="bg-white dark:bg-white/[0.03] border border-[#E4E4E7] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.05)]" data-testid="section-what-happened">
           <div className="px-5 sm:px-6 pt-5 pb-[18px] border-b border-[#F0F0F2] dark:border-white/[0.06]">
@@ -1515,88 +1523,191 @@ export default function EpisodeRecapPage() {
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   }
 
-  if (authUser) {
-    return (
-      <div className="min-h-screen bg-[#F9F9FB] pb-[calc(60px+env(safe-area-inset-bottom,0px))] md:pb-0">
-        <div className="px-4 md:px-6 py-6 pb-24 md:pb-8">
-          <FeedStyleCard testId="episode-feed-card">
-            <FeedStyleCardHeader
-              imageUrl={episode.artworkUrl || podcastConfig?.artworkUrl || ""}
-              imageAlt={episode.podcastName}
-              imageLink={`/podcasts/${podcastSlug}`}
-              name={episode.podcastName}
-              nameLink={`/podcasts/${podcastSlug}`}
-              meta={metaItems}
-              tintSource={episode.artworkUrl || podcastSlug}
-              testIdPrefix="episode-card"
-              rightAction={
-                <button
-                  onClick={() => followMutation.mutate({ follow: !isFollowing })}
-                  disabled={followMutation.isPending}
-                  className={`inline-flex items-center px-5 py-[7px] rounded-full text-[14px] font-bold transition-all ${
-                    isFollowing
-                      ? "bg-[#6366F1]/10 text-[#6366F1] hover:bg-red-50 hover:text-red-600"
-                      : "bg-[#6366F1] text-white hover:bg-[#4F46E5]"
-                  }`}
-                  data-testid="episode-card-follow-btn"
-                >
-                  {isFollowing ? "Following" : "Follow"}
-                </button>
-              }
-            />
-            <FeedStyleCardSection>
-              <div className="flex items-baseline justify-between gap-3 mb-[9px]">
-                <span className="text-[12px] text-[#A1A1AA] overflow-hidden text-ellipsis whitespace-nowrap flex-1 min-w-0" style={{ fontFamily: "var(--font-mono)" }} data-testid="episode-card-title">
-                  {episode.episodeTitle}
-                </span>
-                <span className="text-[12px] text-[#A1A1AA] whitespace-nowrap flex-shrink-0" style={{ fontFamily: "var(--font-mono)" }}>
-                  {relativeTime(episode.publishDate)}
-                </span>
-              </div>
-              {episode.tldl && (
-                <h3 className="text-[26px] font-normal text-[#09090B] leading-[1.2] tracking-[-0.01em]" style={{ fontFamily: "var(--font-serif)" }} data-testid="episode-card-headline">
-                  {episode.tldl}
-                </h3>
-              )}
-            </FeedStyleCardSection>
-          </FeedStyleCard>
+  const currentIdx = allRecaps.findIndex((r: any) => r.episodeSlug === episodeSlug);
+  const previousEpisodes = currentIdx >= 0 ? allRecaps.slice(currentIdx + 1, currentIdx + 6) : [];
 
-          <div className="mt-5 bg-white border border-black/[0.06] rounded-2xl shadow-sm shadow-black/[0.02] overflow-hidden px-4 sm:px-6 py-5" data-testid="episode-recap-body-card">
-            {recapContent}
+  const firstQuote = episodeQuotes.length > 0 ? episodeQuotes[0] : null;
+
+  const headerRightAction = authUser ? (
+    <button
+      onClick={() => followMutation.mutate({ follow: !isFollowing })}
+      disabled={followMutation.isPending}
+      className={`inline-flex items-center px-5 py-[7px] rounded-full text-[14px] font-bold transition-all ${
+        isFollowing
+          ? "bg-[#6366F1]/10 text-[#6366F1] hover:bg-red-50 hover:text-red-600"
+          : "bg-[#6366F1] text-white hover:bg-[#4F46E5]"
+      }`}
+      data-testid="episode-card-follow-btn"
+    >
+      {isFollowing ? "Following" : "Follow"}
+    </button>
+  ) : (
+    <button
+      onClick={() => setShowUpdatesModal(true)}
+      className="inline-flex items-center px-5 py-[7px] rounded-full text-[14px] font-bold transition-all bg-[#6366F1] text-white hover:bg-[#4F46E5]"
+      data-testid="episode-card-get-recaps-btn"
+    >
+      Get Recaps
+    </button>
+  );
+
+  const mainContent = (
+    <div className={`px-4 md:px-6 py-6 ${authUser ? "pb-24 md:pb-8" : "pb-8"} ${!authUser ? "max-w-4xl mx-auto" : ""}`}>
+      <FeedStyleCard testId="episode-feed-card">
+        <FeedStyleCardHeader
+          imageUrl={episode.artworkUrl || podcastConfig?.artworkUrl || ""}
+          imageAlt={episode.podcastName}
+          imageLink={`/podcasts/${podcastSlug}`}
+          name={episode.podcastName}
+          nameLink={`/podcasts/${podcastSlug}`}
+          meta={metaItems}
+          tintSource={episode.artworkUrl || podcastSlug}
+          testIdPrefix="episode-card"
+          rightAction={headerRightAction}
+        />
+        <FeedStyleCardSection>
+          <div className="flex items-baseline justify-between gap-3 mb-[9px]">
+            <span className="text-[12px] text-[#A1A1AA] overflow-hidden text-ellipsis whitespace-nowrap flex-1 min-w-0" style={{ fontFamily: "var(--font-mono)" }} data-testid="episode-card-title">
+              {episode.episodeTitle}
+            </span>
+            <span className="text-[12px] text-[#A1A1AA] whitespace-nowrap flex-shrink-0" style={{ fontFamily: "var(--font-mono)" }}>
+              {relativeTime(episode.publishDate)}
+            </span>
           </div>
-        </div>
+          {episode.tldl && (
+            <h3 className="text-[26px] font-normal text-[#09090B] dark:text-white leading-[1.2] tracking-[-0.01em]" style={{ fontFamily: "var(--font-serif)" }} data-testid="episode-card-headline">
+              {episode.tldl}
+            </h3>
+          )}
+        </FeedStyleCardSection>
 
-        <GetRecapsModal
-          open={showUpdatesModal}
-          onClose={() => setShowUpdatesModal(false)}
-          podcastName={episode.podcastName}
-          artworkUrl={episode.artworkUrl || podcastConfig?.artworkUrl}
-          itunesId={podcastConfig?.itunesId || ""}
-        />
+        {episode.keyInsights?.length > 0 && (
+          <FeedStyleCardSection>
+            <div id="section-key-insights" data-testid="section-key-insights">
+              <span className="text-[11px] font-medium tracking-[0.15em] uppercase text-[#A1A1AA] block mb-4" style={{ fontFamily: "var(--font-mono)" }}>
+                KEY TAKEAWAYS
+              </span>
+              <div className="space-y-4">
+                {episode.keyInsights.map((insight: string, i: number) => (
+                  <div
+                    key={i}
+                    className="flex gap-3 items-start"
+                    data-testid={`insight-${i}`}
+                  >
+                    <span className="w-[8px] h-[8px] rounded-full bg-[#6366F1] shrink-0 mt-[9px]" />
+                    <p className="text-[15px] leading-[1.75] text-[#52525B] dark:text-[#A1A1AA] flex-1">{insight.replace(/\[([^\]]+)\]/g, '$1')}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </FeedStyleCardSection>
+        )}
 
-        <EpisodeChatPanelWithRef
-          ref={chatRef}
-          podcastSlug={podcastSlug}
-          episodeSlug={episodeSlug}
-          episodeTitle={episode?.episodeTitle || ""}
-          podcastName={episode?.podcastName || ""}
-        />
+        {firstQuote && (
+          <FeedStyleCardSection>
+            <blockquote className="border-l-[3px] border-[#6366F1] pl-5 py-1" data-testid="inline-blockquote">
+              <p className="text-[17px] leading-[1.7] text-[#09090B] dark:text-white italic" style={{ fontFamily: "var(--font-serif)" }}>
+                "{firstQuote.quoteText}"
+              </p>
+              {firstQuote.speakerName && (
+                <cite className="text-[13px] text-[#A1A1AA] not-italic mt-2 block">
+                  — {firstQuote.speakerName}{firstQuote.speakerRole ? `, ${firstQuote.speakerRole}` : ""}
+                </cite>
+              )}
+            </blockquote>
+          </FeedStyleCardSection>
+        )}
+      </FeedStyleCard>
+
+      <div className="mt-5 bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl shadow-sm shadow-black/[0.02] overflow-hidden px-4 sm:px-6 py-5" data-testid="episode-recap-body-card">
+        {recapContent}
       </div>
-    );
-  }
+
+      {!authUser && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.15 }}
+          className="mt-10"
+        >
+          <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-2xl p-6 sm:p-8" data-testid="section-episode-cta">
+            <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
+              <div className="flex-1 text-center sm:text-left">
+                <h2 className="text-lg sm:text-xl font-display font-extrabold text-foreground leading-snug mb-2">
+                  Get {episode.podcastName} recaps in your inbox
+                </h2>
+                <p className="text-[16px] text-muted-foreground">
+                  We'll send a recap whenever a new episode drops.
+                </p>
+              </div>
+              <form onSubmit={handleCtaSubmit} className="flex gap-2.5 w-full sm:w-auto" data-testid="form-signup-episode">
+                <input
+                  data-testid="input-email-episode"
+                  type="email"
+                  value={ctaEmail}
+                  onChange={(e) => setCtaEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="flex-1 sm:w-56 h-11 px-4 bg-white border border-black/[0.08] rounded-xl text-foreground text-base focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
+                />
+                <button
+                  data-testid="button-signup-episode"
+                  type="submit"
+                  className="h-11 px-5 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 transition-all active:scale-[0.98] whitespace-nowrap"
+                >
+                  Get Started
+                </button>
+              </form>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {!authUser && previousEpisodes.length > 0 && (
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mt-10"
+          data-testid="section-more-episodes"
+        >
+          <div className="flex items-center gap-2.5 mb-4">
+            <ListChecks className="w-4 h-4 text-primary" />
+            <span className="text-base font-bold text-primary uppercase tracking-wider">More {episode.podcastName} Episode Recaps</span>
+          </div>
+          <div className="space-y-3">
+            {previousEpisodes.map((ep: any) => (
+              <EpisodeCard
+                key={ep.episodeSlug}
+                episodeSlug={ep.episodeSlug}
+                podcastSlug={podcastSlug}
+                publishDate={ep.publishDate}
+                episodeTitle={ep.episodeTitle}
+                tldl={ep.tldl}
+                duration={ep.duration}
+                testIdPrefix="card-more-episode"
+              />
+            ))}
+          </div>
+          <div className="flex justify-center mt-6">
+            <Link href={`/podcasts/${podcastSlug}`}>
+              <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-display font-bold text-base bg-primary/[0.06] text-primary hover:bg-primary/[0.1] transition-colors" data-testid="link-all-episodes">
+                View all {episode.podcastName} episodes
+                <ArrowRight className="w-4 h-4" />
+              </span>
+            </Link>
+          </div>
+        </motion.section>
+      )}
+    </div>
+  );
 
   return (
-    <EpisodePageLayout
-      episode={episode}
-      podcastSlug={podcastSlug}
-      episodeSlug={episodeSlug}
-      podcastConfig={podcastConfig}
-      activeTab="recap"
-      allRecaps={allRecaps}
-      guests={guests}
-      podcastHosts={podcastHosts || []}
-    >
-      {recapContent}
+    <div className={`min-h-screen bg-[#F9F9FB] ${authUser ? "pb-[calc(60px+env(safe-area-inset-bottom,0px))] md:pb-0" : ""}`}>
+      {!authUser && <SiteHeader />}
+
+      {mainContent}
+
+      {!authUser && <Footer />}
 
       <GetRecapsModal
         open={showUpdatesModal}
@@ -1613,6 +1724,6 @@ export default function EpisodeRecapPage() {
         episodeTitle={episode?.episodeTitle || ""}
         podcastName={episode?.podcastName || ""}
       />
-    </EpisodePageLayout>
+    </div>
   );
 }
