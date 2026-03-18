@@ -56,6 +56,7 @@ interface FeedItem {
   guests: string[];
   keyTopics: string[];
   isFollowing: boolean;
+  tabloidSubHeadline: string | null;
   hosts: string | null;
   totalEpisodes: number | null;
   yearStarted: number | null;
@@ -768,9 +769,11 @@ function RecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toa
             {relativeTime(item.publishDate)}
           </span>
         </div>
-        <h3 className="text-[26px] font-normal text-[#09090B] leading-[1.2] tracking-[-0.01em]" style={{ fontFamily: "var(--font-serif)" }} data-testid={`feed-headline-${item.id}`}>
-          {item.tldl}
-        </h3>
+        {item.tabloidSubHeadline && (
+          <h3 className="text-[26px] font-normal text-[#09090B] leading-[1.2] tracking-[-0.01em]" style={{ fontFamily: "var(--font-serif)" }} data-testid={`feed-headline-${item.id}`}>
+            {item.tabloidSubHeadline}
+          </h3>
+        )}
       </div>
 
       <div className="px-5 md:px-6 py-[22px]">
