@@ -145,7 +145,7 @@ interface UnifiedEntity {
 }
 
 function SEOHead() {
-  const title = "Podcast Trends — Trending People, Companies & Topics | PodCap";
+  const title = "Podcast Trends — Trending People, Companies & Topics | PodRise";
   const description = "See which people, companies, and topics are gaining momentum across top podcasts right now. Real-time trend data from hundreds of shows, updated daily.";
 
   if (typeof document !== "undefined") {
@@ -163,7 +163,7 @@ function SEOHead() {
     setOrCreate("name", "description", description);
     setOrCreate("property", "og:title", title);
     setOrCreate("property", "og:description", description);
-    setOrCreate("property", "og:image", "https://podcap.io/og/og-trends.png");
+    setOrCreate("property", "og:image", "https://podrise.com/og/og-trends.png");
     setOrCreate("name", "twitter:card", "summary_large_image");
     setOrCreate("name", "twitter:title", title);
     setOrCreate("name", "twitter:description", description);

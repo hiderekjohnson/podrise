@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 80" width="340" height="80">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&amp;display=swap');
+    </style>
+    <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:0.3"/>
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:0.8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon mark: Capsule shape with audio waveform inside -->
+  <g transform="translate(10, 12)">
+    <!-- Outer capsule -->
+    <rect x="0" y="0" width="56" height="56" rx="16" fill="url(#iconGrad)"/>
+
+    <!-- Audio waveform bars (centered, varying heights) -->
+    <g transform="translate(28, 28)" fill="white">
+      <!-- Bar 1 -->
+      <rect x="-20" y="-6" width="4" height="12" rx="2" opacity="0.5"/>
+      <!-- Bar 2 -->
+      <rect x="-13" y="-12" width="4" height="24" rx="2" opacity="0.7"/>
+      <!-- Bar 3 (tallest - center-left) -->
+      <rect x="-6" y="-16" width="4" height="32" rx="2" opacity="1"/>
+      <!-- Bar 4 (center-right) -->
+      <rect x="1" y="-11" width="4" height="22" rx="2" opacity="0.9"/>
+      <!-- Bar 5 -->
+      <rect x="8" y="-14" width="4" height="28" rx="2" opacity="1"/>
+      <!-- Bar 6 -->
+      <rect x="15" y="-8" width="4" height="16" rx="2" opacity="0.6"/>
+    </g>
+
+    <!-- Small dot accent (top-right of icon, suggests "insight" / signal) -->
+    <circle cx="46" cy="10" r="4" fill="white" opacity="0.9"/>
+  </g>
+
+  <!-- Wordmark -->
+  <g transform="translate(82, 0)">
+    <!-- "Pod" in medium weight -->
+    <text
+      x="0"
+      y="52"
+      font-family="'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      font-size="32"
+      font-weight="500"
+      letter-spacing="-0.5"
+      fill="#0f0f11"
+    >Pod</text>
+    <!-- "Rise" in lighter weight, slightly different color -->
+    <text
+      x="62"
+      y="52"
+      font-family="'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      font-size="32"
+      font-weight="300"
+      letter-spacing="-0.5"
+      fill="#6366f1"
+    >Rise</text>
+  </g>
+</svg>

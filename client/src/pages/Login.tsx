@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { PodRiseWordmark } from "@/components/PodRiseHeader";
 
 export default function Login() {
   const [, navigate] = useLocation();
@@ -68,7 +68,7 @@ export default function Login() {
       <div className="min-h-screen flex flex-col items-center justify-center px-5 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-8">
-            <PodCapWordmark />
+            <PodRiseWordmark />
           </div>
         </div>
 
@@ -104,7 +104,7 @@ export default function Login() {
     <div className="min-h-screen flex flex-col items-center justify-center px-5 sm:px-6 lg:px-8">
       <div className="text-center mb-8">
         <div className="flex items-center justify-center mb-8">
-          <PodCapWordmark />
+          <PodRiseWordmark />
         </div>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">
           Welcome Back

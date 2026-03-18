@@ -68,7 +68,7 @@ function categoryBucket(category: string): CategoryKey {
 }
 
 function SEOHead() {
-  const title = "Best Podcasts to Listen To in 2026 — Browse by Category | PodCap";
+  const title = "Best Podcasts to Listen To in 2026 — Browse by Category | PodRise";
   const description = "Browse 200+ top podcasts across tech, business, finance, health, and more. Get free AI-powered recaps and episode summaries delivered daily.";
 
   if (typeof document !== "undefined") {
@@ -86,7 +86,7 @@ function SEOHead() {
     setOrCreate('meta[name="description"]', "name", description);
     setOrCreate('meta[property="og:title"]', "property", title);
     setOrCreate('meta[property="og:description"]', "property", description);
-    setOrCreate('meta[property="og:image"]', "property", "https://podcap.io/og/og-podcasts.png");
+    setOrCreate('meta[property="og:image"]', "property", "https://podrise.com/og/og-podcasts.png");
     setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
     setOrCreate('meta[name="twitter:title"]', "name", title);
     setOrCreate('meta[name="twitter:description"]', "name", description);

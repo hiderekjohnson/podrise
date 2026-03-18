@@ -221,8 +221,8 @@ function setOrCreateMeta(attr: string, key: string, value: string) {
 function SEOHead({ item }: { item: NormalizedItem }) {
   const isBook = item.kind === "book";
   const title = isBook
-    ? `Why ${item.podcastCount} Podcasts Recommend ${item.name}${item.subtitle ? ` ${item.subtitle}` : ""} | PodCap`
-    : `${item.name}${item.subtitle ? ` ${item.subtitle}` : ""} — Recommended on ${item.podcastCount} Podcast${item.podcastCount !== 1 ? "s" : ""} | PodCap`;
+    ? `Why ${item.podcastCount} Podcasts Recommend ${item.name}${item.subtitle ? ` ${item.subtitle}` : ""} | PodRise`
+    : `${item.name}${item.subtitle ? ` ${item.subtitle}` : ""} — Recommended on ${item.podcastCount} Podcast${item.podcastCount !== 1 ? "s" : ""} | PodRise`;
 
   const description = isBook
     ? `${item.name} has been recommended ${item.mentionCount} times across ${item.podcastCount} podcasts including ${item.podcastNames.slice(0, 2).join(" and ")}${item.podcastNames.length > 2 ? " and more" : ""}. See who recommends it and what they say.`
@@ -235,7 +235,7 @@ function SEOHead({ item }: { item: NormalizedItem }) {
     setOrCreateMeta("name", "description", description);
     setOrCreateMeta("property", "og:title", title);
     setOrCreateMeta("property", "og:description", description);
-    setOrCreateMeta("property", "og:url", `https://podcap.io/shop/${item.slug}`);
+    setOrCreateMeta("property", "og:url", `https://podrise.com/shop/${item.slug}`);
     setOrCreateMeta("property", "og:type", isBook ? "book" : "product");
     setOrCreateMeta("name", "twitter:card", "summary");
     setOrCreateMeta("name", "twitter:title", title);
@@ -247,7 +247,7 @@ function SEOHead({ item }: { item: NormalizedItem }) {
       canonical.setAttribute("rel", "canonical");
       document.head.appendChild(canonical);
     }
-    canonical.href = `https://podcap.io/shop/${item.slug}`;
+    canonical.href = `https://podrise.com/shop/${item.slug}`;
 
     const schemaAttr = isBook ? "data-book-schema" : "data-product-schema";
     let schemaScript = document.querySelector(`script[${schemaAttr}]`) as HTMLScriptElement;
@@ -268,7 +268,7 @@ function SEOHead({ item }: { item: NormalizedItem }) {
         ...(item.description ? { description: item.description } : {}),
         ...(book.publishYear ? { datePublished: String(book.publishYear) } : {}),
         ...(book.pageCount ? { numberOfPages: book.pageCount } : {}),
-        url: `https://podcap.io/shop/${item.slug}`,
+        url: `https://podrise.com/shop/${item.slug}`,
       });
     } else {
       const product = item.raw as ProductData;
@@ -278,7 +278,7 @@ function SEOHead({ item }: { item: NormalizedItem }) {
         name: item.name,
         ...(item.description ? { description: item.description } : {}),
         ...(product.company ? { brand: { "@type": "Brand", name: product.company } } : {}),
-        url: `https://podcap.io/shop/${item.slug}`,
+        url: `https://podrise.com/shop/${item.slug}`,
       });
     }
   }, [item, title, description, isBook]);
@@ -758,7 +758,7 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData, is
           {(isBook || item.primaryUrl) && (
             <div className="bg-[#6366F1]/[0.03] dark:bg-[#6366F1]/[0.06] border border-[#6366F1]/[0.08] rounded-xl px-5 py-3 mb-7" data-testid="affiliate-disclosure">
               <p className="text-[13px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">
-                Some links are affiliate links — they help keep PodCap free, and we only feature products highly recommended by your favorite podcasters, never random picks.{" "}
+                Some links are affiliate links — they help keep PodRise free, and we only feature products highly recommended by your favorite podcasters, never random picks.{" "}
                 <Link href="/disclosure" className="text-[#6366F1] hover:underline font-medium">Learn more</Link>
               </p>
             </div>

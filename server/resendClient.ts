@@ -34,6 +34,6 @@ export async function getUncachableResendClient() {
   const { apiKey } = await getCredentials();
   return {
     client: new Resend(apiKey),
-    fromEmail: 'digest@podcap.io',
+    fromEmail: 'digest@podrise.com',
   };
 }

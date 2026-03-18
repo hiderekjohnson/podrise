@@ -3,16 +3,16 @@ import { getUncachableStripeClient } from "./stripeClient";
 async function createProducts() {
   const stripe = await getUncachableStripeClient();
 
-  const existingProducts = await stripe.products.search({ query: "name:'PodCap Pro'" });
+  const existingProducts = await stripe.products.search({ query: "name:'PodRise Pro'" });
   if (existingProducts.data.length > 0) {
-    console.log("PodCap Pro product already exists:", existingProducts.data[0].id);
+    console.log("PodRise Pro product already exists:", existingProducts.data[0].id);
     const prices = await stripe.prices.list({ product: existingProducts.data[0].id, active: true });
     console.log("Existing prices:", prices.data.map(p => `${p.id} - $${(p.unit_amount || 0) / 100}/${p.recurring?.interval}`));
     return;
   }
 
   const product = await stripe.products.create({
-    name: "PodCap Pro",
+    name: "PodRise Pro",
     description: "Unlimited podcast summaries delivered daily to your inbox.",
     metadata: {
       plan: "pro",

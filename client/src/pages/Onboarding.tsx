@@ -6,7 +6,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Check, Search, Podcast, Sparkles, X, Plus } from "lucide-react";
 import { motion } from "framer-motion";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { PodRiseWordmark } from "@/components/PodRiseHeader";
 
 interface SearchResult {
   id: string;
@@ -47,7 +47,7 @@ export default function Onboarding() {
   const [loadingRelated, setLoadingRelated] = useState(false);
 
   useEffect(() => {
-    document.title = "Set Up Your Feed | PodCap";
+    document.title = "Set Up Your Feed | PodRise";
   }, []);
 
   useEffect(() => {
@@ -180,7 +180,7 @@ export default function Onboarding() {
     <div className="min-h-screen bg-white dark:bg-[#09090B]" data-testid="onboarding-page">
       <header className="sticky top-0 z-40 bg-white dark:bg-[#09090B] border-b border-[#F0F0F2] dark:border-[#1C1C22]">
         <div className="max-w-4xl mx-auto px-5 md:px-8 h-14 flex items-center justify-between">
-          <PodCapWordmark />
+          <PodRiseWordmark />
         </div>
       </header>
 
@@ -265,12 +265,12 @@ export default function Onboarding() {
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-[15px] md:text-[16px] text-[#09090B] dark:text-white truncate">{result.name}</p>
                         <p className="text-[13px] text-[#A1A1AA] truncate">
-                          {result.onPlatform ? (result.artistName || "On PodCap") : (result.artistName || result.genre || "")}
+                          {result.onPlatform ? (result.artistName || "On PodRise") : (result.artistName || result.genre || "")}
                         </p>
                       </div>
                       {result.onPlatform && (
                         <span className="text-[10px] font-bold text-[#6366F1] bg-[#EEF2FF] dark:bg-[#1E1B4B] px-2 py-0.5 rounded-full flex-shrink-0 mr-1" data-testid={`badge-on-platform-${result.id}`}>
-                          On PodCap
+                          On PodRise
                         </span>
                       )}
                       <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${

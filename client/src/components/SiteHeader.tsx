@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { PodRiseWordmark } from "@/components/PodRiseHeader";
 import { useAuth } from "@/hooks/use-auth";
 import { Menu, X, ChevronDown, ArrowRight, Building2, Lightbulb, Users } from "lucide-react";
 import { INDUSTRIES, INTERESTS, ROLES } from "@/data/topicData";
@@ -34,7 +34,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-black/[0.04]" data-testid="site-header">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 min-h-[68px] flex items-center justify-between">
         <Link href="/" className="flex items-center" data-testid="link-home">
-          <PodCapWordmark />
+          <PodRiseWordmark />
         </Link>
         <nav className="hidden md:flex items-center gap-1">
           <div className="relative">

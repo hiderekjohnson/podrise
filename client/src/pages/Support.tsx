@@ -42,7 +42,7 @@ export default function Support() {
       setMessage("");
     },
     onError: () => {
-      toast({ title: "Something went wrong", description: "Please try again or email us directly at support@podcap.io.", variant: "destructive" });
+      toast({ title: "Something went wrong", description: "Please try again or email us directly at support@podrise.com.", variant: "destructive" });
     },
   });
 
@@ -54,12 +54,12 @@ export default function Support() {
 
   const faqs = [
     {
-      question: "How does PodCap decide which podcast episodes to include in my daily recap?",
-      answer: "PodCap automatically checks for new podcast episodes released the previous calendar day in your timezone. For example, if your daily podcast summary is set to arrive at 7:00 AM on Friday, we look for episodes published on Thursday (midnight to midnight in your timezone). This ensures your podcast recap always covers yesterday's freshest content so you never miss an episode.",
+      question: "How does PodRise decide which podcast episodes to include in my daily recap?",
+      answer: "PodRise automatically checks for new podcast episodes released the previous calendar day in your timezone. For example, if your daily podcast summary is set to arrive at 7:00 AM on Friday, we look for episodes published on Thursday (midnight to midnight in your timezone). This ensures your podcast recap always covers yesterday's freshest content so you never miss an episode.",
     },
     {
       question: "What happens if none of my podcasts released a new episode yesterday?",
-      answer: "If none of your selected podcasts published a new episode, PodCap simply skips that day - no email is sent. We don't clutter your inbox with empty podcast summaries. You'll only receive a daily podcast digest when there's new content to catch up on.",
+      answer: "If none of your selected podcasts published a new episode, PodRise simply skips that day - no email is sent. We don't clutter your inbox with empty podcast summaries. You'll only receive a daily podcast digest when there's new content to catch up on.",
     },
     {
       question: "When will I receive my daily podcast summary?",
@@ -70,19 +70,19 @@ export default function Support() {
       answer: "Yes! You can update your podcast selections anytime from your dashboard. Search for new shows and add or remove them with one click. Changes take effect starting with your next daily podcast digest - no waiting required.",
     },
     {
-      question: "How many podcasts can I follow with PodCap?",
-      answer: "PodCap is completely free with no limits. You can follow as many podcasts as you want and receive daily AI-powered summaries for each one.",
+      question: "How many podcasts can I follow with PodRise?",
+      answer: "PodRise is completely free with no limits. You can follow as many podcasts as you want and receive daily AI-powered summaries for each one.",
     },
     {
-      question: "How does PodCap create such accurate podcast recaps?",
-      answer: "PodCap uses advanced AI to analyze podcast episodes and create concise, accurate episode summaries. Every fact, quote, and insight in your daily podcast digest comes directly from the actual episode content - nothing is fabricated or guessed. This makes PodCap one of the most reliable podcast summary services available.",
+      question: "How does PodRise create such accurate podcast recaps?",
+      answer: "PodRise uses advanced AI to analyze podcast episodes and create concise, accurate episode summaries. Every fact, quote, and insight in your daily podcast digest comes directly from the actual episode content - nothing is fabricated or guessed. This makes PodRise one of the most reliable podcast summary services available.",
     },
     {
       question: "I'm not receiving my daily podcast recap emails. What should I do?",
       answer: "First, check your spam or junk folder - sometimes podcast summary emails end up there. If you find them, mark them as \"not spam\" so future podcast digests go to your inbox. Also verify the email address on your dashboard is correct. If you're still not receiving your daily podcast recaps, reach out using the contact form below and we'll help troubleshoot.",
     },
     {
-      question: "Is my data safe with PodCap?",
+      question: "Is my data safe with PodRise?",
       answer: "Absolutely. We only collect your email address and podcast preferences - the minimum needed to deliver your daily podcast summaries. We never sell your data to anyone. Payment processing is handled securely by Stripe, so we never see or store your credit card details.",
     },
     {
@@ -92,8 +92,8 @@ export default function Support() {
   ];
 
   useEffect(() => {
-    const title = "Help & Support — FAQ for Podcast Recaps & Summaries | PodCap";
-    const desc = "Find answers about AI-powered podcast recaps, episode summaries, delivery settings, Pro features, and more. Get help or contact the PodCap team.";
+    const title = "Help & Support — FAQ for Podcast Recaps & Summaries | PodRise";
+    const desc = "Find answers about AI-powered podcast recaps, episode summaries, delivery settings, Pro features, and more. Get help or contact the PodRise team.";
     document.title = title;
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
@@ -159,14 +159,14 @@ export default function Support() {
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4" data-testid="form-support">
                 <div>
-                  <label htmlFor="support-email" className="block text-base font-semibold mb-1.5">Your PodCap email address</label>
+                  <label htmlFor="support-email" className="block text-base font-semibold mb-1.5">Your PodRise email address</label>
                   <input
                     id="support-email"
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="The email you use to log in to PodCap"
+                    placeholder="The email you use to log in to PodRise"
                     className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] text-base focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                     data-testid="input-support-email"
                   />

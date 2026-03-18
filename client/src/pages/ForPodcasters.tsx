@@ -36,7 +36,7 @@ function ContactSection() {
       setSent(true);
     },
     onError: () => {
-      toast({ title: "Something went wrong", description: "Please try again or email us directly at hello@podcap.io.", variant: "destructive" });
+      toast({ title: "Something went wrong", description: "Please try again or email us directly at hello@podrise.com.", variant: "destructive" });
     },
   });
 
@@ -51,7 +51,7 @@ function ContactSection() {
       <div className="max-w-2xl mx-auto px-6">
         <div className="text-center mb-8">
           <h2 className="text-xl sm:text-2xl font-display font-bold mb-3" data-testid="text-contact-title">
-            Get your podcast on PodCap
+            Get your podcast on PodRise
           </h2>
           <p className="text-[16px] text-muted-foreground max-w-md mx-auto leading-relaxed">
             We are building the most comprehensive podcast intelligence platform on the internet. If you host a podcast, we would love to include your show.
@@ -125,8 +125,8 @@ function ContactSection() {
 
 export default function ForPodcasters() {
   useEffect(() => {
-    const title = "For Podcasters — Make Your Episodes Searchable & Discoverable | PodCap";
-    const desc = "PodCap turns your episodes into searchable, structured intelligence. Amplify your sponsors, reach new listeners, and make your content discoverable long after it drops.";
+    const title = "For Podcasters — Make Your Episodes Searchable & Discoverable | PodRise";
+    const desc = "PodRise turns your episodes into searchable, structured intelligence. Amplify your sponsors, reach new listeners, and make your content discoverable long after it drops.";
     document.title = title;
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`);
@@ -157,7 +157,7 @@ export default function ForPodcasters() {
               Your best ideas deserve to travel further than audio
             </h1>
             <p className="text-[17px] sm:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-8" data-testid="text-hero-subtitle">
-              You spend hours recording conversations worth hearing. But once they publish, the ideas inside are only accessible to people with time to listen start to finish. PodCap makes every episode discoverable, skimmable, and shareable -- so your content keeps working long after it drops.
+              You spend hours recording conversations worth hearing. But once they publish, the ideas inside are only accessible to people with time to listen start to finish. PodRise makes every episode discoverable, skimmable, and shareable -- so your content keeps working long after it drops.
             </p>
             <Link href="/podcaster/claim" data-testid="link-hero-claim">
               <Button className="rounded-xl font-display font-bold text-[16px] px-6 shadow-sm">
@@ -198,20 +198,20 @@ export default function ForPodcasters() {
                 You put everything into each episode. But once it publishes, the ideas inside are only accessible to people who listen start to finish. Everyone else moves on. The best insight you have ever shared might already be out there, buried in an episode most people will never find.
               </p>
               <p className="text-[16px] leading-[1.75] font-display font-bold text-foreground mt-4">
-                PodCap makes your content findable, skimmable, and shareable -- so your best ideas travel further.
+                PodRise makes your content findable, skimmable, and shareable -- so your best ideas travel further.
               </p>
             </div>
           </div>
         </section>
 
-        <section className="py-16 sm:py-20 bg-card/50 border-y border-border" data-testid="section-what-podcap-does">
+        <section className="py-16 sm:py-20 bg-card/50 border-y border-border" data-testid="section-what-podrise-does">
           <div className="max-w-3xl mx-auto px-6">
             <div className="text-center mb-12">
               <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3">
-                What PodCap creates for your show
+                What PodRise creates for your show
               </h2>
               <p className="text-[16px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
-                Every episode on PodCap becomes a rich, structured page of knowledge - automatically.
+                Every episode on PodRise becomes a rich, structured page of knowledge - automatically.
               </p>
             </div>
 
@@ -250,7 +250,7 @@ export default function ForPodcasters() {
                 Sponsor amplification
               </h2>
               <p className="text-[16px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
-                Your sponsors get more than an audio mention. PodCap displays sponsor details on every episode recap page and inside daily email recaps -- reaching fans who read but do not always listen.
+                Your sponsors get more than an audio mention. PodRise displays sponsor details on every episode recap page and inside daily email recaps -- reaching fans who read but do not always listen.
               </p>
             </div>
 
@@ -276,7 +276,7 @@ export default function ForPodcasters() {
 
             <div className="mt-8 bg-card border border-border rounded-2xl p-6 sm:p-8 text-center">
               <p className="text-[16px] leading-[1.7] text-muted-foreground max-w-lg mx-auto">
-                Most podcast sponsors only get value during the episode itself. With PodCap, their investment keeps delivering impressions on the web and in inboxes - giving you a stronger pitch for renewals and rate increases.
+                Most podcast sponsors only get value during the episode itself. With PodRise, their investment keeps delivering impressions on the web and in inboxes - giving you a stronger pitch for renewals and rate increases.
               </p>
             </div>
           </div>
@@ -334,7 +334,7 @@ export default function ForPodcasters() {
         <section className="py-16 sm:py-20" data-testid="section-claim-cta">
           <div className="max-w-2xl mx-auto px-6 text-center">
             <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3" data-testid="text-claim-title">
-              Ready to take control of your podcast on PodCap?
+              Ready to take control of your podcast on PodRise?
             </h2>
             <p className="text-[16px] text-muted-foreground max-w-md mx-auto leading-relaxed mb-6">
               Claim your podcast in under a minute. Add your custom byline, review your sponsor visibility, and make sure your show is represented exactly the way you want.
@@ -355,7 +355,7 @@ export default function ForPodcasters() {
                 How this helps your podcast grow
               </h2>
               <p className="text-[16px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
-                PodCap creates durable value from every episode you publish.
+                PodRise creates durable value from every episode you publish.
               </p>
             </div>
 
@@ -395,7 +395,7 @@ export default function ForPodcasters() {
                 Podcasts are where the most interesting people in the world share their deepest thinking. But unlike articles or books, podcast content is trapped in audio -- unskimmable and invisible to the web.
               </p>
               <p>
-                PodCap is building the intelligence layer that changes that. We turn every episode into structured, discoverable knowledge -- connecting ideas across shows, guests, and topics. When someone is looking for an idea your podcast discussed, they should find it.
+                PodRise is building the intelligence layer that changes that. We turn every episode into structured, discoverable knowledge -- connecting ideas across shows, guests, and topics. When someone is looking for an idea your podcast discussed, they should find it.
               </p>
               <p className="text-white/80 font-display font-bold">
                 We believe great podcast content deserves to be as discoverable as any article on the internet.
@@ -409,12 +409,12 @@ export default function ForPodcasters() {
             <div className="bg-[#EEF2FF]/60 dark:bg-[#6366F1]/10 border border-[#6366F1]/20 dark:border-[#6366F1]/20 rounded-2xl py-8 px-8 sm:px-10 text-center">
               <h2 className="text-xl sm:text-2xl font-display font-extrabold tracking-[-0.02em] mb-3" data-testid="text-free-title">Completely free for podcasters</h2>
               <p className="text-[16px] leading-[1.7] text-muted-foreground max-w-md mx-auto mb-5">
-                There is no cost, no contract, and no catch. PodCap creates episode recaps, structured insights, and discovery pages for your show automatically. Our goal is to make your content more valuable -- not to gatekeep it.
+                There is no cost, no contract, and no catch. PodRise creates episode recaps, structured insights, and discovery pages for your show automatically. Our goal is to make your content more valuable -- not to gatekeep it.
               </p>
               <div className="border-t border-[#6366F1]/20 dark:border-[#6366F1]/20 pt-5 max-w-md mx-auto">
                 <p className="text-[16px] leading-[1.7] text-muted-foreground">
                   We also promote standout episodes daily on{" "}
-                  <a href="https://x.com/podcap_io" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-foreground font-semibold hover:text-primary transition-colors">@podcap_io<ExternalLink className="w-3 h-3 text-muted-foreground/40" /></a>,
+                  <a href="https://x.com/podrise_hq" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-foreground font-semibold hover:text-primary transition-colors">@podrise_hq<ExternalLink className="w-3 h-3 text-muted-foreground/40" /></a>,
                   helping new listeners discover your show.
                 </p>
               </div>

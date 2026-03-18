@@ -420,7 +420,7 @@ function buildEpisodeCard(episode: ParsedEpisode, index: number, meta?: EpisodeM
   const duration = parseDuration(episode.metaLine);
   const epDate = parseEpisodeDate(episode.metaLine);
   const metaStr = [duration, epDate].filter(Boolean).join(" \u00a0\u00b7\u00a0 ");
-  const podcastUrl = `https://podcap.io/podcasts/${slug}`;
+  const podcastUrl = `https://podrise.com/podcasts/${slug}`;
   const epSlug = episode.episodeTitle
     .toLowerCase()
     .replace(/['']/g, "")
@@ -431,11 +431,11 @@ function buildEpisodeCard(episode: ParsedEpisode, index: number, meta?: EpisodeM
     .split("-")
     .slice(0, 8)
     .join("-");
-  const recapUrl = `https://podcap.io/podcasts/${slug}/${epSlug}`;
+  const recapUrl = `https://podrise.com/podcasts/${slug}/${epSlug}`;
 
   let artworkUrl = meta?.artworkUrl;
   if (artworkUrl && artworkUrl.startsWith("/")) {
-    artworkUrl = `https://podcap.io${artworkUrl}`;
+    artworkUrl = `https://podrise.com${artworkUrl}`;
   }
   const artworkHtml = artworkUrl
     ? `<a href="${escapeHtml(podcastUrl)}" style="text-decoration:none;display:block;">
@@ -509,7 +509,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
   const leadHeadline = emailCopy?.leadHeadline || "";
   const supportingDetail = emailCopy?.supportingDetail || "";
   const coverlines = emailCopy?.coverlines || "";
-  const logoUrl = "https://podcap.io/favicon.png";
+  const logoUrl = "https://podrise.com/favicon.png";
 
   const episodePillsHtml = parsed.episodes.map((ep, idx) => {
     const accentColor = getAccentColor(idx);
@@ -569,13 +569,13 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
 <tr><td class="topbar" style="padding:18px 28px;border-bottom:1px solid #F0F0F2;background:#ffffff;">
   <table width="100%" cellpadding="0" cellspacing="0" role="presentation"><tr>
     <td width="36" valign="middle">
-      <a href="https://podcap.io" style="text-decoration:none;">
-        <img src="${escapeHtml(logoUrl)}" alt="PodCap" width="28" height="28" style="width:28px;height:28px;border-radius:8px;display:block;" />
+      <a href="https://podrise.com" style="text-decoration:none;">
+        <img src="${escapeHtml(logoUrl)}" alt="PodRise" width="28" height="28" style="width:28px;height:28px;border-radius:8px;display:block;" />
       </a>
     </td>
     <td valign="middle" style="padding-right:12px;">
-      <a href="https://podcap.io" style="text-decoration:none;white-space:nowrap;">
-        <span style="font-size:18px;font-weight:600;color:#09090B;letter-spacing:-0.04em;">Pod</span><span style="font-size:18px;font-weight:300;color:#6366F1;letter-spacing:-0.04em;">Cap</span>
+      <a href="https://podrise.com" style="text-decoration:none;white-space:nowrap;">
+        <span style="font-size:18px;font-weight:600;color:#09090B;letter-spacing:-0.04em;">Pod</span><span style="font-size:18px;font-weight:300;color:#6366F1;letter-spacing:-0.04em;">Rise</span>
       </a>
     </td>
     <td align="right" valign="middle" style="white-space:nowrap;"><span class="topbar-date" style="font-size:12px;color:#A1A1AA;font-family:'Courier New',monospace;">${escapeHtml(shortDateStr)}</span></td>
@@ -610,7 +610,7 @@ ${referralData ? `
       <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);letter-spacing:0.12em;text-transform:uppercase;margin:0 0 6px;">THE POD SQUAD</p>
       <p style="font-size:20px;font-weight:800;color:#ffffff;margin:0 0 4px;">Share the knowledge</p>
       <p style="font-size:14px;color:rgba(255,255,255,0.8);margin:0 0 16px;">You have <strong style="color:#ffffff;">${referralData.referralCount}</strong> referral${referralData.referralCount !== 1 ? "s" : ""}${referralData.nextTierName ? `. ${referralData.nextTierThreshold! - referralData.referralCount} more to unlock <strong style="color:#ffffff;">${escapeHtml(referralData.nextTierName)}</strong>` : ""}.</p>
-      <a href="https://podcap.io/r/${escapeHtml(referralData.referralCode)}" style="display:inline-block;background:#ffffff;color:#6366F1;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:700;">Share Your Link</a>
+      <a href="https://podrise.com/r/${escapeHtml(referralData.referralCode)}" style="display:inline-block;background:#ffffff;color:#6366F1;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:700;">Share Your Link</a>
     </td></tr>
   </table>
 </td></tr>
@@ -628,19 +628,19 @@ ${referralData ? `
 <tr><td class="footer-inner" style="padding:24px 28px;background:#F7F7FC;border-top:1px solid #F0F0F2;">
   <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:14px;"><tr>
     <td valign="middle">
-      <a href="https://podcap.io" style="text-decoration:none;display:inline-block;">
+      <a href="https://podrise.com" style="text-decoration:none;display:inline-block;">
         <table cellpadding="0" cellspacing="0" role="presentation" style="display:inline-table;"><tr>
           <td valign="middle">
-            <img src="${escapeHtml(logoUrl)}" alt="PodCap" width="28" height="28" style="width:28px;height:28px;border-radius:8px;display:block;" />
+            <img src="${escapeHtml(logoUrl)}" alt="PodRise" width="28" height="28" style="width:28px;height:28px;border-radius:8px;display:block;" />
           </td>
           <td style="padding-left:8px;vertical-align:middle;">
-            <span style="font-size:16px;font-weight:600;color:#09090B;letter-spacing:-0.04em;">Pod</span><span style="font-size:16px;font-weight:300;color:#6366F1;letter-spacing:-0.04em;">Cap</span>
+            <span style="font-size:16px;font-weight:600;color:#09090B;letter-spacing:-0.04em;">Pod</span><span style="font-size:16px;font-weight:300;color:#6366F1;letter-spacing:-0.04em;">Rise</span>
           </td>
         </tr></table>
       </a>
     </td>
     <td align="right" valign="middle">
-      <a href="https://podcap.io" style="font-family:'Courier New',monospace;font-size:12px;color:#A1A1AA;text-decoration:none;">podcap.io</a>
+      <a href="https://podrise.com" style="font-family:'Courier New',monospace;font-size:12px;color:#A1A1AA;text-decoration:none;">podrise.com</a>
     </td>
   </tr></table>
 
@@ -650,11 +650,11 @@ ${referralData ? `
 
   <p class="footer-links" style="font-size:13px;color:#A1A1AA;margin:0 0 8px;">Sent daily when new episodes drop.</p>
   <p class="footer-links" style="font-size:13px;margin:0;">
-    <a href="https://podcap.io/login" style="color:#6366F1;text-decoration:none;font-weight:500;">Manage podcasts</a>
+    <a href="https://podrise.com/login" style="color:#6366F1;text-decoration:none;font-weight:500;">Manage podcasts</a>
     &nbsp;&nbsp;&#183;&nbsp;&nbsp;
-    <a href="https://podcap.io/login" style="color:#6366F1;text-decoration:none;font-weight:500;">Email preferences</a>
+    <a href="https://podrise.com/login" style="color:#6366F1;text-decoration:none;font-weight:500;">Email preferences</a>
     &nbsp;&nbsp;&#183;&nbsp;&nbsp;
-    <a href="https://podcap.io/login" style="color:#A1A1AA;text-decoration:none;">Unsubscribe</a>
+    <a href="https://podrise.com/login" style="color:#A1A1AA;text-decoration:none;">Unsubscribe</a>
   </p>
 </td></tr>
 
@@ -662,7 +662,7 @@ ${referralData ? `
 
 <table width="600" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;"><tr>
   <td style="padding:14px 0;text-align:center;">
-    <p style="font-size:12px;color:#27272A;margin:0;">&copy; 2026 PodCap</p>
+    <p style="font-size:12px;color:#27272A;margin:0;">&copy; 2026 PodRise</p>
   </td>
 </tr></table>
 

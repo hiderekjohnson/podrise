@@ -6,7 +6,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/Footer";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { PodRiseWordmark } from "@/components/PodRiseHeader";
 
 type Sponsor = {
   name: string;
@@ -200,7 +200,7 @@ export default function PodcasterDashboard() {
       <>
         <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
           <div className="max-w-6xl mx-auto flex items-center justify-between h-14 px-6">
-            <Link href="/" data-testid="link-home"><PodCapWordmark /></Link>
+            <Link href="/" data-testid="link-home"><PodRiseWordmark /></Link>
           </div>
         </nav>
         <PodcasterLogin onSuccess={() => setIsAuthed(true)} />
@@ -229,7 +229,7 @@ export default function PodcasterDashboard() {
     <>
       <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md" data-testid="nav-bar">
         <div className="max-w-6xl mx-auto flex items-center justify-between h-14 px-6">
-          <Link href="/" data-testid="link-home"><PodCapWordmark /></Link>
+          <Link href="/" data-testid="link-home"><PodRiseWordmark /></Link>
           {data?.claim && (
             <span className="text-[14px] text-muted-foreground">{data.claim.email}</span>
           )}

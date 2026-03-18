@@ -58,7 +58,7 @@ interface WeeklyIntelligence {
 
 function SEOHead({ name, description }: { name: string; description: string }) {
   useEffect(() => {
-    const title = `${name} Tactics, Strategies & Lessons from Top Podcasts | PodCap`;
+    const title = `${name} Tactics, Strategies & Lessons from Top Podcasts | PodRise`;
     const desc = `Discover ${name.toLowerCase()} tactics, key takeaways, recommended books, and expert voices — curated daily from the world's best podcasts.`;
     document.title = title;
     const setOrCreate = (selector: string, attr: string, value: string) => {

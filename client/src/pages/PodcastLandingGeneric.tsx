@@ -459,9 +459,9 @@ export default function PodcastLandingGeneric() {
     if (!config) return;
 
     const { name, slug: s, keywords, hosts, description, artworkUrl } = config;
-    const url = `https://podcap.io/podcasts/${s}`;
+    const url = `https://podrise.com/podcasts/${s}`;
 
-    document.title = `${name} Podcast Summary, Recaps & Key Takeaways | PodCap`;
+    document.title = `${name} Podcast Summary, Recaps & Key Takeaways | PodRise`;
 
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`);
@@ -471,11 +471,11 @@ export default function PodcastLandingGeneric() {
 
     setMeta("name", "description", `Get free daily ${name} podcast summaries and episode recaps with key takeaways. Every new episode by ${hosts} — ${description} — delivered to your inbox.`);
     setMeta("name", "keywords", `${name} podcast summary, ${name} episode summary, ${name} podcast recap, ${name} recap, ${keywords}, podcast summary, daily podcast recap`);
-    setMeta("property", "og:title", `${name} Podcast Summary, Recaps & Key Takeaways | PodCap`);
+    setMeta("property", "og:title", `${name} Podcast Summary, Recaps & Key Takeaways | PodRise`);
     setMeta("property", "og:description", `Daily ${name} podcast summaries and episode recaps. ${description.charAt(0).toUpperCase() + description.slice(1)} - delivered free to your inbox.`);
     setMeta("property", "og:url", url);
     setMeta("property", "og:type", "website");
-    setMeta("property", "og:site_name", "PodCap");
+    setMeta("property", "og:site_name", "PodRise");
     if (artworkUrl) {
       setMeta("property", "og:image", artworkUrl);
       setMeta("name", "twitter:card", "summary_large_image");
@@ -483,7 +483,7 @@ export default function PodcastLandingGeneric() {
     } else {
       setMeta("name", "twitter:card", "summary");
     }
-    setMeta("name", "twitter:title", `${name} Podcast Summary, Recaps & Key Takeaways | PodCap`);
+    setMeta("name", "twitter:title", `${name} Podcast Summary, Recaps & Key Takeaways | PodRise`);
     setMeta("name", "twitter:description", `Free daily ${name} podcast summaries and episode recaps delivered to your inbox.`);
 
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
@@ -498,7 +498,7 @@ export default function PodcastLandingGeneric() {
       "name": `${name} Podcast Summary, Latest Episode Recap`,
       "description": `Free daily ${name} podcast summary and episode recap. ${description.charAt(0).toUpperCase() + description.slice(1)} delivered to your inbox.`,
       "url": url,
-      "publisher": { "@type": "Organization", "name": "PodCap", "url": "https://podcap.io" },
+      "publisher": { "@type": "Organization", "name": "PodRise", "url": "https://podrise.com" },
       "about": { "@type": "PodcastSeries", "name": name },
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "description": `Free daily ${name} podcast recap delivered by email` },
     });

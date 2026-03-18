@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { PodRiseWordmark } from "@/components/PodRiseHeader";
 import { useAuth } from "@/hooks/use-auth";
 import { Bell } from "lucide-react";
 
@@ -22,7 +22,7 @@ export function FeedHeader() {
         </button>
 
         <Link href="/" className="flex items-center absolute left-1/2 -translate-x-1/2" data-testid="feed-logo">
-          <PodCapWordmark />
+          <PodRiseWordmark />
         </Link>
 
         <div className="flex items-center gap-1">

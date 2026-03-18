@@ -248,11 +248,11 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
     const formattedDate = formatDateLong(date);
     const title = pulse
       ? `${pulse.headline} | The Pulse — ${topicName}`
-      : `${topicName} Pulse — ${formattedDate} | PodCap`;
+      : `${topicName} Pulse — ${formattedDate} | PodRise`;
     const description = pulse?.summary
       ? `${pulse.summary.slice(0, 155).trim()}${pulse.summary.length > 155 ? '…' : ''}`
       : `What ${topicName.toLowerCase()} podcasts are talking about today — key developments, expert takes, and trends synthesized from top shows.`;
-    const canonicalUrl = `https://podcap.io${basePath}/${topicSlug}/pulse/${date}`;
+    const canonicalUrl = `https://podrise.com${basePath}/${topicSlug}/pulse/${date}`;
     if (typeof document !== "undefined") {
       document.title = title;
       const setOrCreate = (selector: string, attr: string, value: string) => {
@@ -270,7 +270,7 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
       setOrCreate('meta[property="og:description"]', "property", description);
       setOrCreate('meta[property="og:url"]', "property", canonicalUrl);
       setOrCreate('meta[property="og:type"]', "property", "article");
-      setOrCreate('meta[property="og:site_name"]', "property", "PodCap");
+      setOrCreate('meta[property="og:site_name"]', "property", "PodRise");
       setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
       setOrCreate('meta[name="twitter:title"]', "name", title);
       setOrCreate('meta[name="twitter:description"]', "name", description);
@@ -301,13 +301,13 @@ function PulseEdition({ topicSlug, date, basePath }: { topicSlug: string; date: 
           dateModified: `${pulse.publishDate}T06:00:00Z`,
           author: {
             "@type": "Organization",
-            name: "The Pulse by PodCap",
-            url: "https://podcap.io",
+            name: "The Pulse by PodRise",
+            url: "https://podrise.com",
           },
           publisher: {
             "@type": "Organization",
-            name: "PodCap",
-            url: "https://podcap.io",
+            name: "PodRise",
+            url: "https://podrise.com",
           },
           mainEntityOfPage: {
             "@type": "WebPage",
@@ -485,11 +485,11 @@ function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: st
 
   function SEOHead() {
     const latestPulse = pulses && pulses.length > 0 ? pulses[0] : null;
-    const title = `The Pulse on ${topicName} — Daily Podcast Intelligence | PodCap`;
+    const title = `The Pulse on ${topicName} — Daily Podcast Intelligence | PodRise`;
     const description = latestPulse
       ? `Today: ${latestPulse.headline}. Get the daily ${topicName.toLowerCase()} briefing — what top podcasts are saying, synthesized into key takeaways.`
       : `What ${topicName.toLowerCase()} podcasts are talking about — daily briefings with key developments, expert takes, and trends from top shows.`;
-    const canonicalUrl = `https://podcap.io${basePath}/${topicSlug}/pulse`;
+    const canonicalUrl = `https://podrise.com${basePath}/${topicSlug}/pulse`;
     if (typeof document !== "undefined") {
       document.title = title;
       const setOrCreate = (selector: string, attr: string, value: string) => {
@@ -506,7 +506,7 @@ function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: st
       setOrCreate('meta[property="og:title"]', "property", title);
       setOrCreate('meta[property="og:description"]', "property", description.slice(0, 160));
       setOrCreate('meta[property="og:url"]', "property", canonicalUrl);
-      setOrCreate('meta[property="og:site_name"]', "property", "PodCap");
+      setOrCreate('meta[property="og:site_name"]', "property", "PodRise");
       setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
       setOrCreate('meta[name="twitter:title"]', "name", title);
       setOrCreate('meta[name="twitter:description"]', "name", description.slice(0, 160));
@@ -529,8 +529,8 @@ function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: st
         url: canonicalUrl,
         publisher: {
           "@type": "Organization",
-          name: "PodCap",
-          url: "https://podcap.io",
+          name: "PodRise",
+          url: "https://podrise.com",
         },
         about: {
           "@type": "Thing",
@@ -541,7 +541,7 @@ function PulseArchive({ topicSlug, basePath }: { topicSlug: string; basePath: st
             "@type": "NewsArticle",
             headline: p.headline,
             datePublished: `${p.publishDate}T06:00:00Z`,
-            url: `https://podcap.io${basePath}/${topicSlug}/pulse/${p.publishDate}`,
+            url: `https://podrise.com${basePath}/${topicSlug}/pulse/${p.publishDate}`,
           })),
         }),
       };

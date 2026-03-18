@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Calendar, Clock, Lightbulb, Quote, FileText, Inbox } from "lucide-react";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { PodRiseWordmark } from "@/components/PodRiseHeader";
 
 interface ExampleRecap {
   id: number;
@@ -51,7 +51,7 @@ export function ExampleRecapSection({ slug, podcastName, hideHeading, artworkUrl
             Example {podcastName} Recap
           </h2>
           <p className="text-base text-muted-foreground text-center mb-8 max-w-xl mx-auto leading-relaxed">
-            Here's what you'll receive in your inbox - a real PodCap summary.
+            Here's what you'll receive in your inbox - a real PodRise summary.
           </p>
         </>
       )}
@@ -74,9 +74,9 @@ export function ExampleRecapSection({ slug, podcastName, hideHeading, artworkUrl
             <div className="flex items-center gap-3">
               <span className="text-[#52525B] w-12 shrink-0">From:</span>
               <div className="flex items-center gap-2">
-                <PodCapWordmark />
-                <span className="text-foreground font-medium">PodCap Daily Recap</span>
-                <span className="text-[#52525B]">&lt;digest@podcap.io&gt;</span>
+                <PodRiseWordmark />
+                <span className="text-foreground font-medium">PodRise Daily Recap</span>
+                <span className="text-[#52525B]">&lt;digest@podrise.com&gt;</span>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -176,9 +176,9 @@ export function ExampleRecapSection({ slug, podcastName, hideHeading, artworkUrl
 
           <div className="border-t border-black/[0.06] pt-6 mt-8 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <PodCapWordmark />
+              <PodRiseWordmark />
             </div>
-            <span className="text-[16px] text-[#52525B] dark:text-[#A1A1AA]">podcap.io</span>
+            <span className="text-[16px] text-[#52525B] dark:text-[#A1A1AA]">podrise.com</span>
           </div>
         </div>
       </div>

@@ -270,7 +270,7 @@ export async function generateRecap(
       const quoteAttribution = recap.quoteAttribution || recap.quote_attribution || "";
 
       const recapSlug = recap.episodeSlug || recap.episode_slug || epSlug;
-      const recapPageUrl = `https://podcap.io/podcasts/${podSlug}/${recapSlug}`;
+      const recapPageUrl = `https://podrise.com/podcasts/${podSlug}/${recapSlug}`;
 
       const lines: string[] = [];
       lines.push(`## ${(podName || "UNKNOWN PODCAST").toUpperCase()}`);
@@ -477,7 +477,7 @@ export async function generateRecapFromTranscript(
 ): Promise<ParsedEpisode | null> {
   const showNotesSection = showNotes ? `\nShow Notes (use for guest full names, social links, and additional context):\n${showNotes}\n` : "";
 
-  const pass1Prompt = `You are PodCap, an AI that writes comprehensive podcast episode recaps. Generate a complete recap for this episode.
+  const pass1Prompt = `You are PodRise, an AI that writes comprehensive podcast episode recaps. Generate a complete recap for this episode.
 
 All facts, quotes, and insights MUST come directly from the provided transcript. NEVER fabricate content. Use the show notes to find guest full names, social media handles, and links.
 
@@ -832,7 +832,7 @@ Be EXHAUSTIVE. Include everything noteworthy — it's better to include too much
 
   const showNotesSection = showNotes ? `\nShow Notes:\n${showNotes}\n` : "";
 
-  const synthesisPrompt = `You are PodCap, an AI that writes comprehensive podcast episode recaps. You have been given EXHAUSTIVE NOTES extracted from the FULL transcript of this episode (every word was read). Now synthesize them into a complete, high-quality recap.
+  const synthesisPrompt = `You are PodRise, an AI that writes comprehensive podcast episode recaps. You have been given EXHAUSTIVE NOTES extracted from the FULL transcript of this episode (every word was read). Now synthesize them into a complete, high-quality recap.
 
 Podcast: ${podcastName}
 Episode: "${episodeTitle}"${showNotesSection}
@@ -1187,7 +1187,7 @@ export async function extractQuotesFromTranscript(
     } catch {}
   }
 
-  const prompt = `You are an editorial quote curator for PodCap, a podcast intelligence platform. Extract the most shareable, culturally relevant quotes from this transcript.
+  const prompt = `You are an editorial quote curator for PodRise, a podcast intelligence platform. Extract the most shareable, culturally relevant quotes from this transcript.
 
 Podcast: ${podcastName}
 Episode: "${episodeTitle}"${hostsInfo}${guestInfo}

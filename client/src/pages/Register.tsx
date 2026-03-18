@@ -3,7 +3,7 @@ import { useLocation, Link } from "wouter";
 import { Loader2 } from "lucide-react";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { PodRiseWordmark } from "@/components/PodRiseHeader";
 
 export default function Register() {
   const [, navigate] = useLocation();
@@ -16,14 +16,14 @@ export default function Register() {
   const signupContext = searchParams.get("context") || undefined;
 
   useEffect(() => {
-    document.title = "Create Your Free Account | PodCap";
+    document.title = "Create Your Free Account | PodRise";
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`);
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.setAttribute("content", content);
     };
-    setMeta("name", "description", "Sign up for PodCap — get AI-powered podcast summaries, key insights, and episode recaps delivered to your inbox.");
-    setMeta("property", "og:title", "Create Your Free Account | PodCap");
+    setMeta("name", "description", "Sign up for PodRise — get AI-powered podcast summaries, key insights, and episode recaps delivered to your inbox.");
+    setMeta("property", "og:title", "Create Your Free Account | PodRise");
     setMeta("property", "og:description", "Join thousands of professionals who save hours every week with AI podcast intelligence.");
   }, []);
 
@@ -72,7 +72,7 @@ export default function Register() {
       <div className="w-full max-w-[400px]">
         <div className="flex justify-center mb-8">
           <Link href="/" data-testid="link-home-logo">
-            <PodCapWordmark />
+            <PodRiseWordmark />
           </Link>
         </div>
 

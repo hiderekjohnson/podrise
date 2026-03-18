@@ -19,10 +19,10 @@ import {
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 
 function SEOHead({ category, podcasts }: { category: PodcastCategory; podcasts: PodcastLandingConfig[] }) {
-  const title = `Best ${category.name} Podcasts (2026) | PodCap`;
+  const title = `Best ${category.name} Podcasts (2026) | PodRise`;
   const top3 = podcasts.slice(0, 3).map(p => p.name).join(", ");
   const desc = `Discover the best ${category.name.toLowerCase()} podcasts including ${top3}. AI-powered recaps and summaries delivered daily.`;
-  const canonical = `https://podcap.io/podcasts/${category.slug}`;
+  const canonical = `https://podrise.com/podcasts/${category.slug}`;
 
   useEffect(() => {
     document.title = title;
@@ -73,7 +73,7 @@ function SEOHead({ category, podcasts }: { category: PodcastCategory; podcasts: 
         "@type": "ListItem",
         position: i + 1,
         name: p.name,
-        url: `https://podcap.io/podcasts/${p.slug}`,
+        url: `https://podrise.com/podcasts/${p.slug}`,
       })),
     });
 

@@ -6,8 +6,8 @@ import { useAuth } from "@/hooks/use-auth";
 
 function SEOHead() {
   useEffect(() => {
-    const title = "Cookie Policy | PodCap";
-    const desc = "Learn about the cookies PodCap uses, why we use them, and how you can manage your cookie preferences.";
+    const title = "Cookie Policy | PodRise";
+    const desc = "Learn about the cookies PodRise uses, why we use them, and how you can manage your cookie preferences.";
     document.title = title;
     const setMeta = (attr: string, key: string, value: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
@@ -49,8 +49,8 @@ export default function Cookies() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">2. How PodCap Uses Cookies</h2>
-            <p>PodCap ("we," "our," or "us") uses cookies on podcap.io (the "Service") for several purposes. Below is a description of the types of cookies we use and what they do:</p>
+            <h2 className="text-lg font-semibold text-foreground mb-2">2. How PodRise Uses Cookies</h2>
+            <p>PodRise ("we," "our," or "us") uses cookies on podrise.com (the "Service") for several purposes. Below is a description of the types of cookies we use and what they do:</p>
           </section>
 
           <section>

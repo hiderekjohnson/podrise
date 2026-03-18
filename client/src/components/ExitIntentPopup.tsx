@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { usePageConversion, type PageConversionData } from "@/contexts/PageConversionContext";
 
-const STORAGE_KEY = "podcap_exit_dismissed";
+const STORAGE_KEY = "podrise_exit_dismissed";
 const MIN_TIME_ON_PAGE_MS = 8000;
 const SCROLL_THRESHOLD = 0.3;
 
@@ -21,7 +21,7 @@ function getContextualCopy(data: PageConversionData | null) {
       cta: "Get free recaps",
       subscribeType: "interest" as const,
       subscribeSlug: "general",
-      subscribeName: "PodCap Recaps",
+      subscribeName: "PodRise Recaps",
     };
   }
 
@@ -82,7 +82,7 @@ function getContextualCopy(data: PageConversionData | null) {
         cta: "Get started free",
         subscribeType: data.categoryType || "interest",
         subscribeSlug: "general",
-        subscribeName: `PodCap ${data.name}`,
+        subscribeName: `PodRise ${data.name}`,
       };
     }
     default:
@@ -93,7 +93,7 @@ function getContextualCopy(data: PageConversionData | null) {
         cta: "Get free recaps",
         subscribeType: "interest" as const,
         subscribeSlug: "general",
-        subscribeName: "PodCap Recaps",
+        subscribeName: "PodRise Recaps",
       };
   }
 }

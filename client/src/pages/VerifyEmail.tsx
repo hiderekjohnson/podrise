@@ -4,7 +4,7 @@ import { Loader2, XCircle, Mail } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { PodRiseWordmark } from "@/components/PodRiseHeader";
 
 export default function VerifyEmail() {
   const [, navigate] = useLocation();
@@ -21,7 +21,7 @@ export default function VerifyEmail() {
   const [resent, setResent] = useState(false);
 
   useEffect(() => {
-    document.title = token ? "Verifying Email | PodCap" : "Check Your Inbox | PodCap";
+    document.title = token ? "Verifying Email | PodRise" : "Check Your Inbox | PodRise";
   }, [token]);
 
   useEffect(() => {
@@ -67,7 +67,7 @@ export default function VerifyEmail() {
       <div className="min-h-screen flex flex-col items-center justify-center bg-background px-5 sm:px-6">
         <div className="flex justify-center mb-8">
           <Link href="/" data-testid="link-home-logo">
-            <PodCapWordmark />
+            <PodRiseWordmark />
           </Link>
         </div>
         <motion.div
@@ -128,7 +128,7 @@ export default function VerifyEmail() {
       <div className="min-h-screen flex flex-col items-center justify-center bg-background px-5">
         <div className="flex justify-center mb-8">
           <Link href="/" data-testid="link-home-logo">
-            <PodCapWordmark />
+            <PodRiseWordmark />
           </Link>
         </div>
         <motion.div
@@ -149,7 +149,7 @@ export default function VerifyEmail() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-5 sm:px-6">
       <div className="flex justify-center mb-8">
         <Link href="/" data-testid="link-home-logo">
-          <PodCapWordmark />
+          <PodRiseWordmark />
         </Link>
       </div>
       <motion.div

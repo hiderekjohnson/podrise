@@ -325,7 +325,7 @@ THE SINGLE TEST FOR EVERY LINE: Would a tabloid editor print this on a front pag
 1. SUBJECT LINE
 - The single most surprising, aspirational, or counterintuitive claim from any episode.
 - Under 50 characters. No emojis.
-- Never use "digest", "recap", "daily", "newsletter", "update", "roundup", "briefing", "episode", or "PodCap".
+- Never use "digest", "recap", "daily", "newsletter", "update", "roundup", "briefing", "episode", or "PodRise".
 - Creates a question in the reader's mind that can only be answered by opening.
 - Sounds like a smart friend texting you something they just heard.
 
@@ -439,7 +439,7 @@ export function reorderMarkdownLeadFirst(markdown: string, leadEpisodePodcast: s
 async function sendAdminNotification(userEmail: string, subject: string) {
   const { client, fromEmail } = await getUncachableResendClient();
   await client.emails.send({
-    from: `PodCap System <${fromEmail}>`,
+    from: `PodRise System <${fromEmail}>`,
     to: ADMIN_NOTIFY_EMAIL,
     subject: `⚡ New email pending approval - ${userEmail} (${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/New_York" })} ${new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" })})`,
     html: `
@@ -450,7 +450,7 @@ async function sendAdminNotification(userEmail: string, subject: string) {
           <p style="margin: 0; font-size: 14px; color: #92400E;"><strong>Subject:</strong> ${subject}</p>
         </div>
         <p style="margin: 0 0 16px; font-size: 14px; color: #666;">A new recap email has been generated and is waiting for your review. Please log in to the admin dashboard to preview and approve it.</p>
-        <a href="https://podcap.io/admin" style="display: inline-block; background: #2563EB; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600;">Review in Admin Dashboard</a>
+        <a href="https://podrise.com/admin" style="display: inline-block; background: #2563EB; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600;">Review in Admin Dashboard</a>
       </div>
     `,
   });
@@ -841,7 +841,7 @@ export async function sendHeldEmail(pendingId: number): Promise<void> {
 
   const baseUrl = process.env.REPLIT_DEV_DOMAIN
     ? `https://${process.env.REPLIT_DEV_DOMAIN}`
-    : "https://podcap.io";
+    : "https://podrise.com";
   const htmlWithClickTracking = freshHtml.replace(/href="(https?:\/\/[^"]+)"/g, (_match: string, url: string) => {
     if (url.includes("/api/track/") || url.includes("unsubscribe") || url.includes("mailto:")) return `href="${url}"`;
     return `href="${baseUrl}/api/track/click/${pending.id}?url=${encodeURIComponent(url)}"`;
@@ -852,7 +852,7 @@ export async function sendHeldEmail(pendingId: number): Promise<void> {
   const { client, fromEmail } = await getUncachableResendClient();
   const freshSubject = emailCopy.subject;
   const sendResult = await client.emails.send({
-    from: `PodCap <${fromEmail}>`,
+    from: `PodRise <${fromEmail}>`,
     to: pending.recipientEmail,
     subject: freshSubject,
     html: htmlWithTracking,
@@ -1833,7 +1833,7 @@ export async function enrichPodcastMetadata(singleItunesId?: string) {
       const releaseDate = itunesData?.releaseDate;
       const artworkUrl = (itunesData?.artworkUrl600 || itunesData?.artworkUrl100 || podcast.artworkUrl || "").replace(/\d+x\d+bb/, "1200x1200bb");
 
-      const prompt = `You are generating metadata for a podcast page on PodCap.io. Be factual and concise.
+      const prompt = `You are generating metadata for a podcast page on PodRise.com. Be factual and concise.
 
 Podcast: "${podcast.name}"
 ${podcast.hosts ? `Known hosts: ${podcast.hosts}` : ""}

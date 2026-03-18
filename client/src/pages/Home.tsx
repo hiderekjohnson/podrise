@@ -24,7 +24,7 @@ function hiResArtwork(url: string) {
 }
 
 function SEOHead() {
-  const title = "Podcast Summaries & Episode Recaps from Top Shows | PodCap";
+  const title = "Podcast Summaries & Episode Recaps from Top Shows | PodRise";
   const description = "Get daily podcast summaries, key takeaways, and episode recaps from hundreds of top shows. Stay current on AI, business, finance, and more — in minutes, not hours.";
 
   if (typeof document !== "undefined") {
@@ -42,7 +42,7 @@ function SEOHead() {
     setOrCreate('meta[name="description"]', "name", description);
     setOrCreate('meta[property="og:title"]', "property", title);
     setOrCreate('meta[property="og:description"]', "property", description);
-    setOrCreate('meta[property="og:image"]', "property", "https://podcap.io/podcap-og-image.png");
+    setOrCreate('meta[property="og:image"]', "property", "https://podrise.com/podrise-og-image.png");
     setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
     setOrCreate('meta[name="twitter:title"]', "name", title);
     setOrCreate('meta[name="twitter:description"]', "name", description);
@@ -85,7 +85,7 @@ export default function Home() {
               The fastest way to keep up with the smartest conversations across podcasts
             </h1>
             <p className="text-lg sm:text-xl text-[#52525B] dark:text-[#A1A1AA] max-w-2xl leading-relaxed font-medium" data-testid="text-subheadline">
-              PodCap distills the most important insights from podcasts into quick briefings you can read in minutes.
+              PodRise distills the most important insights from podcasts into quick briefings you can read in minutes.
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-3 mt-2">
               <div className="flex flex-wrap items-center justify-center gap-3">
@@ -354,7 +354,7 @@ export default function Home() {
                 Investors, founders, scientists, and operators are sharing their deepest thinking in long-form podcast conversations that go deeper than any article or tweet ever could. But who has time to listen to all of it?
               </p>
               <p className="text-base sm:text-lg text-white/70 max-w-xl leading-relaxed">
-                PodCap sits on top of that entire ecosystem and turns it into structured intelligence you can actually use -- so you always know what matters, without the time commitment.
+                PodRise sits on top of that entire ecosystem and turns it into structured intelligence you can actually use -- so you always know what matters, without the time commitment.
               </p>
               <a
                 href="/about"

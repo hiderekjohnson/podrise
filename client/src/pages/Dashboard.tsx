@@ -10,7 +10,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { PodcastSearch } from "@/components/PodcastSearch";
 import ReactMarkdown from "react-markdown";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { PodRiseWordmark } from "@/components/PodRiseHeader";
 import { TOPICS, getCategoryPath, type TopicConfig } from "@/data/topicData";
 
 const TOPIC_ICON_MAP: Record<string, any> = {
@@ -338,7 +338,7 @@ export default function Dashboard() {
               </div>
               <div className="w-full rounded-xl bg-primary/[0.04] border border-primary/10 p-4">
                 <p className="text-[15px] text-muted-foreground">
-                  We've saved PodCap listeners an estimated <span className="font-bold text-primary">2,400+ hours</span> of listening time. We're excited to start saving you some too.
+                  We've saved PodRise listeners an estimated <span className="font-bold text-primary">2,400+ hours</span> of listening time. We're excited to start saving you some too.
                 </p>
               </div>
               <button
@@ -371,7 +371,7 @@ export default function Dashboard() {
       <header className="sticky top-0 z-40 w-full border-b border-black/[0.06] bg-white/80 backdrop-blur-xl">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <a href="/" className="flex items-center" data-testid="img-logo">
-            <PodCapWordmark />
+            <PodRiseWordmark />
           </a>
           <div className="flex items-center gap-4">
             <a
@@ -1124,7 +1124,7 @@ export default function Dashboard() {
       </AnimatePresence>
 
       <footer className="max-w-5xl mx-auto px-4 sm:px-6 py-6 mt-4">
-        <p className="text-[15px] text-muted-foreground/50 text-center">© {new Date().getFullYear()} PodCap. All rights reserved.</p>
+        <p className="text-[15px] text-muted-foreground/50 text-center">© {new Date().getFullYear()} PodRise. All rights reserved.</p>
       </footer>
     </div>
   );

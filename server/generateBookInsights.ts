@@ -90,7 +90,7 @@ async function generateInsight(bookTitle: string, bookAuthor: string | null, pod
     messages: [
       {
         role: "system",
-        content: `You write editorial-quality "Why they talked about it" summaries for a podcast intelligence platform called PodCap. Your job is to distill WHY a book came up in a podcast conversation and what angle the hosts/guests took.
+        content: `You write editorial-quality "Why they talked about it" summaries for a podcast intelligence platform called PodRise. Your job is to distill WHY a book came up in a podcast conversation and what angle the hosts/guests took.
 
 STYLE RULES:
 - Write in third person, present tense ("Rogan and Musk used...", "The hosts framed...")

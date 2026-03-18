@@ -47,7 +47,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Marathon-length conversations with guests from MMA fighters to scientists to comedians","Unfiltered commentary on politics, culture, and controversial topics","Deep dives into health, fitness, and psychedelic research","The most-listened-to podcast globally with a landmark Spotify deal"],
     hostBios: [{"name":"Joe Rogan","bio":"Stand-up comedian, UFC commentator, and host of the world's most popular podcast. Former host of Fear Factor and a Brazilian jiu-jitsu black belt. His podcast became the top show on Spotify in a reported $200M exclusive deal."}],
     relatedSlugs: ["lexfridman","hubermanlab","shawnryanshow"],
-    aboutPodcast: "The Joe Rogan Experience is a podcast hosted by Joe Rogan covering long-form interviews covering MMA, comedy, politics, science, and culture. Each episode of The Joe Rogan Experience dives into wide-ranging interviews, cultural commentary, science discussions, comedy, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Joe Rogan Experience or discovering Joe Rogan for the first time, PodCap delivers a concise summary of every new The Joe Rogan Experience episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Joe Rogan Experience is a podcast hosted by Joe Rogan covering long-form interviews covering MMA, comedy, politics, science, and culture. Each episode of The Joe Rogan Experience dives into wide-ranging interviews, cultural commentary, science discussions, comedy, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Joe Rogan Experience or discovering Joe Rogan for the first time, PodRise delivers a concise summary of every new The Joe Rogan Experience episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "diaryofaceo",
@@ -67,7 +67,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Candid interviews with world-class entrepreneurs, athletes, and scientists","Deep exploration of mental health, relationships, and personal growth","Steven Bartlett's signature opening question that disarms guests","Viral clips that consistently trend on social media platforms"],
     hostBios: [{"name":"Steven Bartlett","bio":"Entrepreneur, investor, and youngest-ever Dragon on BBC's Dragons' Den. Founded Social Chain at 22, building it into a $600M+ company. Author of the bestselling book Happy Sexy Millionaire."}],
     relatedSlugs: ["onpurpose","melrobbins","timferriss"],
-    aboutPodcast: "The Diary of a CEO with Steven Bartlett is a podcast hosted by Steven Bartlett covering deep-dive conversations on business, personal growth, health, and entrepreneurship. Each episode of The Diary of a CEO with Steven Bartlett dives into business strategy, personal development, health optimization, entrepreneurship, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Diary of a CEO with Steven Bartlett or discovering Steven Bartlett for the first time, PodCap delivers a concise summary of every new The Diary of a CEO with Steven Bartlett episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Diary of a CEO with Steven Bartlett is a podcast hosted by Steven Bartlett covering deep-dive conversations on business, personal growth, health, and entrepreneurship. Each episode of The Diary of a CEO with Steven Bartlett dives into business strategy, personal development, health optimization, entrepreneurship, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Diary of a CEO with Steven Bartlett or discovering Steven Bartlett for the first time, PodRise delivers a concise summary of every new The Diary of a CEO with Steven Bartlett episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "allin",
@@ -87,7 +87,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Four Silicon Valley billionaires debating tech, economics, and politics","Insider perspectives on venture capital deals and startup valuations","Sharp geopolitical analysis from investors with real skin in the game","The annual All-In Summit bringing together tech's biggest names"],
     hostBios: [{"name":"Chamath Palihapitiya","bio":"Venture capitalist, former Facebook VP of Growth, and CEO of Social Capital. Known for early investments in Slack, Box, and other unicorns."},{"name":"Jason Calacanis","bio":"Angel investor, entrepreneur, and founder of LAUNCH. Early investor in Uber, Robinhood, and Calm."},{"name":"David Sacks","bio":"General partner at Craft Ventures, former COO of PayPal, and founder of Yammer (sold to Microsoft for $1.2B)."},{"name":"David Friedberg","bio":"CEO of The Production Board, former Google employee, and founder of The Climate Corporation (sold to Monsanto for $1.1B)."}],
     relatedSlugs: ["acquired","bg2pod","pivot"],
-    aboutPodcast: "All-In Podcast is a podcast hosted by Chamath Palihapitiya, Jason Calacanis, David Sacks & David Friedberg covering tech industry analysis, venture capital insights, economic policy, and geopolitics. Each episode of All-In Podcast dives into technology trends, venture capital, economic policy, startups, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of All-In Podcast or discovering Chamath Palihapitiya, Jason Calacanis, David Sacks & David Friedberg for the first time, PodCap delivers a concise summary of every new All-In Podcast episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "All-In Podcast is a podcast hosted by Chamath Palihapitiya, Jason Calacanis, David Sacks & David Friedberg covering tech industry analysis, venture capital insights, economic policy, and geopolitics. Each episode of All-In Podcast dives into technology trends, venture capital, economic policy, startups, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of All-In Podcast or discovering Chamath Palihapitiya, Jason Calacanis, David Sacks & David Friedberg for the first time, PodRise delivers a concise summary of every new All-In Podcast episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "thedaily",
@@ -107,7 +107,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["The definitive daily news podcast from The New York Times","In-depth single-story format that goes behind the headlines","Michael Barbaro's distinctive interviewing style and narration","Breaking news coverage that shapes the national conversation"],
     hostBios: [{"name":"Michael Barbaro","bio":"Journalist and host of The Daily at The New York Times. Previously covered New York City politics for the Times and has been with the paper since 2006."}],
     relatedSlugs: ["hardfork","thejournal","podsaveamerica"],
-    aboutPodcast: "The Daily is a podcast hosted by The New York Times covering essential news stories and in-depth reporting from The New York Times. Each episode of The Daily dives into breaking news, investigative reporting, political coverage, business news, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Daily or discovering The New York Times for the first time, PodCap delivers a concise summary of every new The Daily episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Daily is a podcast hosted by The New York Times covering essential news stories and in-depth reporting from The New York Times. Each episode of The Daily dives into breaking news, investigative reporting, political coverage, business news, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Daily or discovering The New York Times for the first time, PodRise delivers a concise summary of every new The Daily episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "lexfridman",
@@ -127,7 +127,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Ultra-long-form conversations (often 3-5 hours) with leading scientists and thinkers","Deep technical discussions on AI, robotics, and the future of intelligence","Philosophical explorations of consciousness, meaning, and the human condition","Interviews with polarizing figures approached with genuine curiosity"],
     hostBios: [{"name":"Lex Fridman","bio":"Research scientist at MIT specializing in AI and autonomous vehicles. Born in the Soviet Union, he brings a unique perspective to conversations about technology, science, and the nature of intelligence."}],
     relatedSlugs: ["joerogan","hubermanlab","timferriss"],
-    aboutPodcast: "Lex Fridman Podcast is a podcast hosted by Lex Fridman covering deep conversations about AI, technology, science, philosophy, and the nature of intelligence. Each episode of Lex Fridman Podcast dives into artificial intelligence, deep learning, robotics, philosophy of mind, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Lex Fridman Podcast or discovering Lex Fridman for the first time, PodCap delivers a concise summary of every new Lex Fridman Podcast episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Lex Fridman Podcast is a podcast hosted by Lex Fridman covering deep conversations about AI, technology, science, philosophy, and the nature of intelligence. Each episode of Lex Fridman Podcast dives into artificial intelligence, deep learning, robotics, philosophy of mind, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Lex Fridman Podcast or discovering Lex Fridman for the first time, PodRise delivers a concise summary of every new Lex Fridman Podcast episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "smartless",
@@ -147,7 +147,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Surprise celebrity guests revealed live. Only one host knows who's coming","Hilarious chemistry between three Hollywood best friends","A-list guests from politics, entertainment, sports, and beyond","Consistently one of the top-ranked comedy podcasts globally"],
     hostBios: [{"name":"Jason Bateman","bio":"Emmy-winning actor and director known for Arrested Development and Ozark."},{"name":"Sean Hayes","bio":"Emmy-winning actor best known for his role as Jack McFarland on Will & Grace."},{"name":"Will Arnett","bio":"Actor and producer known for Arrested Development, BoJack Horseman, and Lego Batman."}],
     relatedSlugs: ["conanobrien","armchairexpert","callherdaddy"],
-    aboutPodcast: "SmartLess is a podcast hosted by Jason Bateman, Sean Hayes & Will Arnett covering surprise celebrity interviews with comedic commentary from three Hollywood friends. Each episode of SmartLess dives into celebrity interviews, comedy, behind-the-scenes Hollywood stories, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of SmartLess or discovering Jason Bateman, Sean Hayes & Will Arnett for the first time, PodCap delivers a concise summary of every new SmartLess episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "SmartLess is a podcast hosted by Jason Bateman, Sean Hayes & Will Arnett covering surprise celebrity interviews with comedic commentary from three Hollywood friends. Each episode of SmartLess dives into celebrity interviews, comedy, behind-the-scenes Hollywood stories, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of SmartLess or discovering Jason Bateman, Sean Hayes & Will Arnett for the first time, PodRise delivers a concise summary of every new SmartLess episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "hubermanlab",
@@ -167,7 +167,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Science-backed protocols for sleep, focus, exercise, and stress management","Detailed neuroscience explanations made accessible to a general audience","Actionable health optimization tools listeners can implement immediately","Deep dives into hormones, supplements, and the biology of performance"],
     hostBios: [{"name":"Dr. Andrew Huberman","bio":"Tenured professor of neurobiology and ophthalmology at Stanford University School of Medicine. His lab studies neural regeneration, brain development, and neuroplasticity."}],
     relatedSlugs: ["lexfridman","melrobbins","timferriss"],
-    aboutPodcast: "Huberman Lab is a podcast hosted by Dr. Andrew Huberman covering neuroscience-based tools for health, performance, sleep, stress, and focus. Each episode of Huberman Lab dives into neuroscience, health optimization, sleep protocols, stress management, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Huberman Lab or discovering Dr. Andrew Huberman for the first time, PodCap delivers a concise summary of every new Huberman Lab episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Huberman Lab is a podcast hosted by Dr. Andrew Huberman covering neuroscience-based tools for health, performance, sleep, stress, and focus. Each episode of Huberman Lab dives into neuroscience, health optimization, sleep protocols, stress management, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Huberman Lab or discovering Dr. Andrew Huberman for the first time, PodRise delivers a concise summary of every new Huberman Lab episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "newheights",
@@ -187,7 +187,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Two Super Bowl-winning brothers bringing insider NFL analysis and humor","Behind-the-scenes locker room stories from active NFL careers","Celebrity guests from sports, entertainment, and pop culture","Authentic brotherly dynamic that fans love watching on YouTube"],
     hostBios: [{"name":"Jason Kelce","bio":"Retired NFL center who spent 13 seasons with the Philadelphia Eagles, winning Super Bowl LII. Six-time Pro Bowler known for his iconic Super Bowl parade speech."},{"name":"Travis Kelce","bio":"NFL tight end for the Kansas City Chiefs, three-time Super Bowl champion, and nine-time Pro Bowler. The most decorated tight end in NFL history."}],
     relatedSlugs: ["joerogan","smartless","shawnryanshow"],
-    aboutPodcast: "New Heights with Jason & Travis Kelce is a podcast hosted by Jason Kelce & Travis Kelce covering NFL insights, sports culture, and behind-the-scenes stories from two Super Bowl-winning brothers. Each episode of New Heights with Jason & Travis Kelce dives into NFL analysis, football culture, sports business, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of New Heights with Jason & Travis Kelce or discovering Jason Kelce & Travis Kelce for the first time, PodCap delivers a concise summary of every new New Heights with Jason & Travis Kelce episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "New Heights with Jason & Travis Kelce is a podcast hosted by Jason Kelce & Travis Kelce covering NFL insights, sports culture, and behind-the-scenes stories from two Super Bowl-winning brothers. Each episode of New Heights with Jason & Travis Kelce dives into NFL analysis, football culture, sports business, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of New Heights with Jason & Travis Kelce or discovering Jason Kelce & Travis Kelce for the first time, PodRise delivers a concise summary of every new New Heights with Jason & Travis Kelce episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "timferriss",
@@ -207,7 +207,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Deconstructing world-class performers across business, sports, and science","Tactical routines, morning habits, and productivity frameworks","The \"5 Bullet Friday\" format sharing curated tools and recommendations","Pioneering the long-form interview podcast format before it was mainstream"],
     hostBios: [{"name":"Tim Ferriss","bio":"Author of The 4-Hour Workweek, angel investor, and self-experimenter. Early-stage investor in Uber, Facebook, Shopify, and Alibaba. Known for his obsessive approach to deconstructing excellence."}],
     relatedSlugs: ["hubermanlab","lexfridman","acquired"],
-    aboutPodcast: "The Tim Ferriss Show is a podcast hosted by Tim Ferriss covering tactics, routines, and habits of world-class performers across business, sports, and science. Each episode of The Tim Ferriss Show dives into productivity, business strategies, health protocols, success patterns, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Tim Ferriss Show or discovering Tim Ferriss for the first time, PodCap delivers a concise summary of every new The Tim Ferriss Show episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Tim Ferriss Show is a podcast hosted by Tim Ferriss covering tactics, routines, and habits of world-class performers across business, sports, and science. Each episode of The Tim Ferriss Show dives into productivity, business strategies, health protocols, success patterns, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Tim Ferriss Show or discovering Tim Ferriss for the first time, PodRise delivers a concise summary of every new The Tim Ferriss Show episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "callherdaddy",
@@ -227,7 +227,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Candid conversations about relationships, dating, and modern life","High-profile celebrity interviews that make headlines","Empowering discussions about sexuality, mental health, and self-worth","One of the biggest podcast deals in history with Spotify and SiriusXM"],
     hostBios: [{"name":"Alex Cooper","bio":"Media personality and host of one of the most-listened-to podcasts in the world. Signed a landmark deal with SiriusXM reportedly worth up to $125M. Named to Forbes 30 Under 30."}],
     relatedSlugs: ["melrobbins","armchairexpert","diaryofaceo"],
-    aboutPodcast: "Call Her Daddy is a podcast hosted by Alex Cooper covering unfiltered conversations on relationships, dating, and modern life. Each episode of Call Her Daddy dives into relationships, dating culture, celebrity interviews, modern life, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Call Her Daddy or discovering Alex Cooper for the first time, PodCap delivers a concise summary of every new Call Her Daddy episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Call Her Daddy is a podcast hosted by Alex Cooper covering unfiltered conversations on relationships, dating, and modern life. Each episode of Call Her Daddy dives into relationships, dating culture, celebrity interviews, modern life, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Call Her Daddy or discovering Alex Cooper for the first time, PodRise delivers a concise summary of every new Call Her Daddy episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "pivot",
@@ -247,7 +247,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Sharp, opinionated takes on tech, business, and politics from two media veterans","Scott Galloway's bold market predictions and \"Prof G\" analysis","Kara Swisher's insider knowledge from decades covering Silicon Valley","Weekly \"wins and fails\" segment rating companies and leaders"],
     hostBios: [{"name":"Kara Swisher","bio":"Veteran technology journalist, co-founder of Recode, and former editor at The Wall Street Journal. One of the most influential voices in tech media for over 25 years."},{"name":"Scott Galloway","bio":"Professor of Marketing at NYU Stern, serial entrepreneur, and bestselling author of The Four, Post Corona, and Adrift. Known for his provocative predictions about big tech."}],
     relatedSlugs: ["hardfork","allin","decoder"],
-    aboutPodcast: "Pivot is a podcast hosted by Kara Swisher & Scott Galloway covering sharp, honest commentary on tech, business, and politics. Each episode of Pivot dives into tech industry, big tech, business strategy, politics, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Pivot or discovering Kara Swisher & Scott Galloway for the first time, PodCap delivers a concise summary of every new Pivot episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Pivot is a podcast hosted by Kara Swisher & Scott Galloway covering sharp, honest commentary on tech, business, and politics. Each episode of Pivot dives into tech industry, big tech, business strategy, politics, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Pivot or discovering Kara Swisher & Scott Galloway for the first time, PodRise delivers a concise summary of every new Pivot episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "acquired",
@@ -267,7 +267,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Epic multi-hour deep dives into how the world's greatest companies were built","Meticulous research rivaling business school case studies","Covering everything from NVIDIA and Costco to LVMH and Berkshire Hathaway","One of the fastest-growing business podcasts with a cult-like following"],
     hostBios: [{"name":"Ben Gilbert","bio":"Managing director at Pioneer Square Labs and co-founder of the venture studio. Previously worked in venture capital and tech startups in Seattle."},{"name":"David Rosenthal","bio":"Partner at Wave Capital. Previously a VC at Madrona Venture Group and early employee at several Seattle startups."}],
     relatedSlugs: ["allin","businessbreakdowns","founders"],
-    aboutPodcast: "Acquired is a podcast hosted by Ben Gilbert & David Rosenthal covering the playbooks of history's greatest companies and technology acquisitions. Each episode of Acquired dives into business history, tech acquisitions, company strategy, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Acquired or discovering Ben Gilbert & David Rosenthal for the first time, PodCap delivers a concise summary of every new Acquired episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Acquired is a podcast hosted by Ben Gilbert & David Rosenthal covering the playbooks of history's greatest companies and technology acquisitions. Each episode of Acquired dives into business history, tech acquisitions, company strategy, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Acquired or discovering Ben Gilbert & David Rosenthal for the first time, PodRise delivers a concise summary of every new Acquired episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "hardfork",
@@ -287,7 +287,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Making complex AI and tech topics accessible and entertaining","Week-by-week coverage of the AI revolution as it unfolds","Thoughtful debate between two journalists with different tech perspectives","Breaking down how social media platforms shape culture and politics"],
     hostBios: [{"name":"Kevin Roose","bio":"New York Times technology columnist and bestselling author of Futureproof and Talking to Strangers. Known for his early and deep coverage of AI and cryptocurrency."},{"name":"Casey Newton","bio":"Founder of Platformer, a newsletter covering social media platforms and their impact on society. Former senior editor at The Verge."}],
     relatedSlugs: ["pivot","thedaily","aidailybrief"],
-    aboutPodcast: "Hard Fork is a podcast hosted by Kevin Roose & Casey Newton covering the latest in AI, social media, and technology trends from The New York Times. Each episode of Hard Fork dives into AI breakthroughs, social media platform changes, tech industry news, and Silicon Valley culture, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Hard Fork or discovering Kevin Roose & Casey Newton for the first time, PodCap delivers a concise summary of every new Hard Fork episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Hard Fork is a podcast hosted by Kevin Roose & Casey Newton covering the latest in AI, social media, and technology trends from The New York Times. Each episode of Hard Fork dives into AI breakthroughs, social media platform changes, tech industry news, and Silicon Valley culture, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Hard Fork or discovering Kevin Roose & Casey Newton for the first time, PodRise delivers a concise summary of every new Hard Fork episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "waveform",
@@ -307,7 +307,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Detailed consumer tech reviews from YouTube's most respected tech reviewer","Smartphone shootouts and gadget comparisons with real-world testing","Behind-the-scenes stories from MKBHD's production process","Lightning round segments covering the week's biggest tech news"],
     hostBios: [{"name":"Marques Brownlee (MKBHD)","bio":"YouTube's most popular tech reviewer with over 19 million subscribers. Named one of the most influential people on the internet by Time magazine."},{"name":"Andrew Manganelli","bio":"Producer and co-host of Waveform. Works alongside MKBHD at the studio, bringing production expertise and a different perspective on consumer tech."}],
     relatedSlugs: ["thevergecast","decoder","moderncto"],
-    aboutPodcast: "Waveform: The MKBHD Podcast is a podcast hosted by Marques Brownlee (MKBHD) & Andrew Manganelli covering consumer tech reviews, gadget news, and technology culture discussions. Each episode of Waveform: The MKBHD Podcast dives into smartphone reviews, gadget launches, consumer electronics, and product design, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Waveform: The MKBHD Podcast or discovering Marques Brownlee (MKBHD) & Andrew Manganelli for the first time, PodCap delivers a concise summary of every new Waveform: The MKBHD Podcast episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Waveform: The MKBHD Podcast is a podcast hosted by Marques Brownlee (MKBHD) & Andrew Manganelli covering consumer tech reviews, gadget news, and technology culture discussions. Each episode of Waveform: The MKBHD Podcast dives into smartphone reviews, gadget launches, consumer electronics, and product design, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Waveform: The MKBHD Podcast or discovering Marques Brownlee (MKBHD) & Andrew Manganelli for the first time, PodRise delivers a concise summary of every new Waveform: The MKBHD Podcast episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "thevergecast",
@@ -327,7 +327,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["One of the longest-running tech podcasts covering gadgets and platforms","Insider perspective from The Verge's award-winning editorial team","Hot takes on product launches from Apple, Google, and Samsung","Weekly roundup format that covers everything happening in consumer tech"],
     hostBios: [{"name":"The Verge Editorial Team","bio":"Led by editor-in-chief Nilay Patel and a rotating cast of editors and reporters from The Verge, one of the most respected technology news outlets."}],
     relatedSlugs: ["waveform","decoder","hardfork"],
-    aboutPodcast: "The Vergecast is a podcast hosted by The Verge Editorial Team covering weekly tech news roundup covering gadgets, platforms, and the future of technology. Each episode of The Vergecast dives into tech industry news, product launches, platform updates, and internet culture, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Vergecast or discovering The Verge Editorial Team for the first time, PodCap delivers a concise summary of every new The Vergecast episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Vergecast is a podcast hosted by The Verge Editorial Team covering weekly tech news roundup covering gadgets, platforms, and the future of technology. Each episode of The Vergecast dives into tech industry news, product launches, platform updates, and internet culture, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Vergecast or discovering The Verge Editorial Team for the first time, PodRise delivers a concise summary of every new The Vergecast episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "searchengine",
@@ -347,7 +347,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Investigating the questions the internet can't stop asking","The spiritual successor to the beloved Reply All podcast","Stories about how technology intersects with everyday human life","PJ Vogt's signature narrative storytelling style"],
     hostBios: [{"name":"PJ Vogt","bio":"Journalist and former co-host of Reply All, one of the most acclaimed podcast series ever made. Known for his ability to find fascinating stories at the intersection of technology and human experience."}],
     relatedSlugs: ["thisamericanlife","hiddenbrain","hardfork"],
-    aboutPodcast: "Search Engine is a podcast hosted by PJ Vogt covering deep investigations into the questions the internet can't stop asking. Each episode of Search Engine dives into internet mysteries, technology's impact on society, cultural phenomena, and investigative deep dives, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Search Engine or discovering PJ Vogt for the first time, PodCap delivers a concise summary of every new Search Engine episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Search Engine is a podcast hosted by PJ Vogt covering deep investigations into the questions the internet can't stop asking. Each episode of Search Engine dives into internet mysteries, technology's impact on society, cultural phenomena, and investigative deep dives, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Search Engine or discovering PJ Vogt for the first time, PodRise delivers a concise summary of every new Search Engine episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "a16z",
@@ -367,7 +367,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Venture capital insights from one of Silicon Valley's most influential firms","Early and deep coverage of AI, crypto, and biotech trends","Interviews with founders building category-defining companies","Expert analysis of go-to-market strategies and technology adoption curves"],
     hostBios: [{"name":"Andreessen Horowitz","bio":"Leading venture capital firm founded by Marc Andreessen and Ben Horowitz in 2009. The firm manages over $42B in assets and has backed companies like Facebook, Airbnb, Coinbase, and GitHub."}],
     relatedSlugs: ["allin","bg2pod","acquired"],
-    aboutPodcast: "a16z Podcast is a podcast hosted by Andreessen Horowitz covering venture capital perspectives on software, AI, crypto, bio, and the future of technology. Each episode of a16z Podcast dives into venture capital trends, software industry analysis, AI, crypto, and biotech, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of a16z Podcast or discovering Andreessen Horowitz for the first time, PodCap delivers a concise summary of every new a16z Podcast episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "a16z Podcast is a podcast hosted by Andreessen Horowitz covering venture capital perspectives on software, AI, crypto, bio, and the future of technology. Each episode of a16z Podcast dives into venture capital trends, software industry analysis, AI, crypto, and biotech, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of a16z Podcast or discovering Andreessen Horowitz for the first time, PodRise delivers a concise summary of every new a16z Podcast episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "bg2pod",
@@ -387,7 +387,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Two legendary investors breaking down AI, markets, and tech trends","Bill Gurley's deep expertise in marketplace businesses and valuations","Brad Gerstner's perspective bridging public and private markets","Accessible analysis of complex investment themes and market dynamics"],
     hostBios: [{"name":"Bill Gurley","bio":"General partner at Benchmark, one of Silicon Valley's most storied VC firms. Known for his early investment in Uber and his expertise in marketplace businesses."},{"name":"Brad Gerstner","bio":"Founder and CEO of Altimeter Capital, a technology-focused investment firm. Known for investments in Snowflake, Unity, and other major tech companies."}],
     relatedSlugs: ["allin","a16z","acquired"],
-    aboutPodcast: "BG2 Pod is a podcast hosted by Bill Gurley & Brad Gerstner covering venture capital insights and AI industry analysis from two legendary investors. Each episode of BG2 Pod dives into venture capital deal analysis, AI industry trends, public markets, and startup valuations, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of BG2 Pod or discovering Bill Gurley & Brad Gerstner for the first time, PodCap delivers a concise summary of every new BG2 Pod episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "BG2 Pod is a podcast hosted by Bill Gurley & Brad Gerstner covering venture capital insights and AI industry analysis from two legendary investors. Each episode of BG2 Pod dives into venture capital deal analysis, AI industry trends, public markets, and startup valuations, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of BG2 Pod or discovering Bill Gurley & Brad Gerstner for the first time, PodRise delivers a concise summary of every new BG2 Pod episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "decoder",
@@ -407,7 +407,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["CEO and executive interviews focused on how they make decisions","Deep exploration of org charts, business models, and corporate strategy","Nilay Patel's probing questions about platform economics and regulation","Understanding how technology companies actually operate behind the scenes"],
     hostBios: [{"name":"Nilay Patel","bio":"Editor-in-chief of The Verge and host of multiple podcasts. A trained lawyer who brings analytical rigor to his coverage of the technology industry and its intersection with law and policy."}],
     relatedSlugs: ["pivot","thevergecast","hardfork"],
-    aboutPodcast: "Decoder with Nilay Patel is a podcast hosted by Nilay Patel covering interviews with CEOs and leaders about how they make decisions and run their companies. Each episode of Decoder with Nilay Patel dives into CEO decision-making, technology company operations, media business models, and platform economics, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Decoder with Nilay Patel or discovering Nilay Patel for the first time, PodCap delivers a concise summary of every new Decoder with Nilay Patel episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Decoder with Nilay Patel is a podcast hosted by Nilay Patel covering interviews with CEOs and leaders about how they make decisions and run their companies. Each episode of Decoder with Nilay Patel dives into CEO decision-making, technology company operations, media business models, and platform economics, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Decoder with Nilay Patel or discovering Nilay Patel for the first time, PodRise delivers a concise summary of every new Decoder with Nilay Patel episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "aidailybrief",
@@ -427,7 +427,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["The fastest daily briefing on AI news and developments","Concise analysis of new model releases, research papers, and industry moves","Coverage of AI policy, regulation, and societal impact","Essential listening for anyone trying to keep up with the AI revolution"],
     hostBios: [{"name":"Nathaniel Whittemore","bio":"Technology journalist and AI analyst who delivers daily coverage of the most important developments in artificial intelligence. Previously covered crypto and fintech."}],
     relatedSlugs: ["hardfork","a16z","lexfridman"],
-    aboutPodcast: "AI Daily Brief is a podcast hosted by Nathaniel Whittemore covering daily analysis of the most important developments in artificial intelligence. Each episode of AI Daily Brief dives into AI news, machine learning breakthroughs, AI policy, and industry developments, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of AI Daily Brief or discovering Nathaniel Whittemore for the first time, PodCap delivers a concise summary of every new AI Daily Brief episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "AI Daily Brief is a podcast hosted by Nathaniel Whittemore covering daily analysis of the most important developments in artificial intelligence. Each episode of AI Daily Brief dives into AI news, machine learning breakthroughs, AI policy, and industry developments, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of AI Daily Brief or discovering Nathaniel Whittemore for the first time, PodRise delivers a concise summary of every new AI Daily Brief episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "planetmoney",
@@ -447,7 +447,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Making economics entertaining through creative storytelling","Stories like buying a barrel of oil and tracking it through the global supply chain","Explaining complex financial concepts through real-world adventures","One of the most award-winning podcasts in public radio history"],
     hostBios: [{"name":"NPR Team","bio":"Produced by NPR with a rotating cast of hosts and reporters. The show was created by Alex Blumberg and Adam Davidson during the 2008 financial crisis to make economics accessible."}],
     relatedSlugs: ["theindicator","thejournal","howibuiltthis"],
-    aboutPodcast: "Planet Money is a podcast hosted by NPR covering creative, accessible explanations of how the economy actually works. Each episode of Planet Money dives into economics, trade, markets, labor, and the surprising stories behind how money moves, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Planet Money or discovering NPR for the first time, PodCap delivers a concise summary of every new Planet Money episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Planet Money is a podcast hosted by NPR covering creative, accessible explanations of how the economy actually works. Each episode of Planet Money dives into economics, trade, markets, labor, and the surprising stories behind how money moves, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Planet Money or discovering NPR for the first time, PodRise delivers a concise summary of every new Planet Money episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "thejournal",
@@ -467,7 +467,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Business and finance reporting from The Wall Street Journal's newsroom","In-depth corporate investigations and market analysis","Breaking business news stories with insider access","Concise daily format perfect for a commute or morning routine"],
     hostBios: [{"name":"The Wall Street Journal","bio":"Produced by the WSJ's podcast team, drawing on the paper's 130+ years of business journalism. Hosts include Kate Linebaugh and Ryan Knutson."}],
     relatedSlugs: ["thedaily","planetmoney","equity"],
-    aboutPodcast: "The Journal is a podcast hosted by The Wall Street Journal covering the biggest business and finance stories from The Wall Street Journal. Each episode of The Journal dives into business news, financial markets, corporate strategy, and economic trends, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Journal or discovering The Wall Street Journal for the first time, PodCap delivers a concise summary of every new The Journal episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Journal is a podcast hosted by The Wall Street Journal covering the biggest business and finance stories from The Wall Street Journal. Each episode of The Journal dives into business news, financial markets, corporate strategy, and economic trends, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Journal or discovering The Wall Street Journal for the first time, PodRise delivers a concise summary of every new The Journal episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "howibuiltthis",
@@ -487,7 +487,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Origin stories of iconic companies told by the founders themselves","The emotional rollercoaster of entrepreneurship captured authentically","Brands like Airbnb, Patagonia, Instagram, and Spanx sharing their full journey","Guy Raz's warm interviewing style that gets founders to open up"],
     hostBios: [{"name":"Guy Raz","bio":"One of the most popular podcasters in the world and former NPR correspondent. Also created TED Radio Hour. Named by Time as one of the best interviewers in broadcast."}],
     relatedSlugs: ["founders","mastersofscale","acquired"],
-    aboutPodcast: "How I Built This is a podcast hosted by Guy Raz covering the stories behind the movements and companies that shaped our world. Each episode of How I Built This dives into founder stories, startup journeys, entrepreneurship lessons, and innovation, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of How I Built This or discovering Guy Raz for the first time, PodCap delivers a concise summary of every new How I Built This episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "How I Built This is a podcast hosted by Guy Raz covering the stories behind the movements and companies that shaped our world. Each episode of How I Built This dives into founder stories, startup journeys, entrepreneurship lessons, and innovation, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of How I Built This or discovering Guy Raz for the first time, PodRise delivers a concise summary of every new How I Built This episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "ramseyshow",
@@ -507,7 +507,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["No-nonsense personal finance advice with Dave Ramsey's signature tough love","The 7 Baby Steps framework for getting out of debt and building wealth","Callers sharing their financial situations for live on-air advice","Iconic \"debt-free screams\" celebrating financial freedom"],
     hostBios: [{"name":"Dave Ramsey","bio":"Financial author, radio host, and founder of Ramsey Solutions. Author of The Total Money Makeover with over 10 million copies sold. Built a financial education empire reaching millions daily."}],
     relatedSlugs: ["themoneyguyshow","financialaudit","biggerpockets"],
-    aboutPodcast: "The Ramsey Show is a podcast hosted by Dave Ramsey covering straightforward money advice on budgeting, debt, investing, and building wealth. Each episode of The Ramsey Show dives into personal finance, debt freedom, budgeting strategies, and wealth building, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Ramsey Show or discovering Dave Ramsey for the first time, PodCap delivers a concise summary of every new The Ramsey Show episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Ramsey Show is a podcast hosted by Dave Ramsey covering straightforward money advice on budgeting, debt, investing, and building wealth. Each episode of The Ramsey Show dives into personal finance, debt freedom, budgeting strategies, and wealth building, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Ramsey Show or discovering Dave Ramsey for the first time, PodRise delivers a concise summary of every new The Ramsey Show episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "hbrideacast",
@@ -527,7 +527,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Research-backed management insights from Harvard Business Review's experts","Practical frameworks for leadership, strategy, and organizational behavior","Interviews with top business professors and corporate executives","One of the longest-running and most respected business podcasts"],
     hostBios: [{"name":"Harvard Business Review","bio":"Produced by HBR's editorial team, featuring rotating hosts and the world's leading management thinkers. Distills academic research into actionable business insights."}],
     relatedSlugs: ["mastersofscale","howibuiltthis","acquired"],
-    aboutPodcast: "HBR IdeaCast is a podcast hosted by Harvard Business Review covering leading management thinkers on strategy, leadership, and innovation. Each episode of HBR IdeaCast dives into management strategy, leadership development, organizational culture, and innovation, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of HBR IdeaCast or discovering Harvard Business Review for the first time, PodCap delivers a concise summary of every new HBR IdeaCast episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "HBR IdeaCast is a podcast hosted by Harvard Business Review covering leading management thinkers on strategy, leadership, and innovation. Each episode of HBR IdeaCast dives into management strategy, leadership development, organizational culture, and innovation, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of HBR IdeaCast or discovering Harvard Business Review for the first time, PodRise delivers a concise summary of every new HBR IdeaCast episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "financialaudit",
@@ -547,7 +547,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Real people opening their books for a candid, sometimes brutal financial review","Caleb Hammer's direct, no-holds-barred approach to financial advice","Viral moments from guests with shocking spending habits","Making financial literacy entertaining for younger audiences"],
     hostBios: [{"name":"Caleb Hammer","bio":"YouTube financial creator and podcast host who reviews real people's finances on camera. Known for his blunt, entertaining approach to financial education that resonates with millennials and Gen Z."}],
     relatedSlugs: ["ramseyshow","themoneyguyshow","biggerpockets"],
-    aboutPodcast: "Financial Audit is a podcast hosted by Caleb Hammer covering real people open their books for brutally honest personal finance reviews. Each episode of Financial Audit dives into personal finance breakdowns, budgeting critiques, debt analysis, and financial literacy, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Financial Audit or discovering Caleb Hammer for the first time, PodCap delivers a concise summary of every new Financial Audit episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Financial Audit is a podcast hosted by Caleb Hammer covering real people open their books for brutally honest personal finance reviews. Each episode of Financial Audit dives into personal finance breakdowns, budgeting critiques, debt analysis, and financial literacy, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Financial Audit or discovering Caleb Hammer for the first time, PodRise delivers a concise summary of every new Financial Audit episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "founders",
@@ -567,7 +567,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Deep reading and analysis of entrepreneur biographies and autobiographies","Extracting timeless business lessons from history's greatest builders","Covering figures from Steve Jobs and Henry Ford to obscure genius founders","David Senra's passionate, personal narration style"],
     hostBios: [{"name":"David Senra","bio":"Entrepreneur and obsessive reader who has read over 300 biographies of history's greatest founders. His podcast distills the lessons from these lives into actionable wisdom for modern entrepreneurs."}],
     relatedSlugs: ["acquired","howibuiltthis","mastersofscale"],
-    aboutPodcast: "Founders is a podcast hosted by David Senra covering what the greatest entrepreneurs, inventors, and thinkers in history actually did. Each episode of Founders dives into entrepreneurship history, business biographies, founder stories, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Founders or discovering David Senra for the first time, PodCap delivers a concise summary of every new Founders episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Founders is a podcast hosted by David Senra covering what the greatest entrepreneurs, inventors, and thinkers in history actually did. Each episode of Founders dives into entrepreneurship history, business biographies, founder stories, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Founders or discovering David Senra for the first time, PodRise delivers a concise summary of every new Founders episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "businessbreakdowns",
@@ -587,7 +587,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Detailed analysis of how specific companies make money and operate","Breaking down competitive moats, unit economics, and market dynamics","Expert guests from industry insiders to equity analysts","A go-to resource for investors and business strategists"],
     hostBios: [{"name":"Colossus","bio":"Produced by Colossus, the media company behind Invest Like the Best. Features rotating expert hosts who bring deep industry knowledge to each company breakdown."}],
     relatedSlugs: ["acquired","founders","a16z"],
-    aboutPodcast: "Business Breakdowns is a podcast hosted by Colossus covering detailed analyses of the most fascinating businesses in the world. Each episode of Business Breakdowns dives into business models, competitive advantages, financial analysis, and industry deep dives, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Business Breakdowns or discovering Colossus for the first time, PodCap delivers a concise summary of every new Business Breakdowns episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Business Breakdowns is a podcast hosted by Colossus covering detailed analyses of the most fascinating businesses in the world. Each episode of Business Breakdowns dives into business models, competitive advantages, financial analysis, and industry deep dives, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Business Breakdowns or discovering Colossus for the first time, PodRise delivers a concise summary of every new Business Breakdowns episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "mastersofscale",
@@ -607,7 +607,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Scaling strategies from the co-founder of LinkedIn and Greylock partner","Creative storytelling format mixing founder interviews with narration","Battle-tested frameworks for growing companies from zero to massive scale","Guest list reads like a who's-who of tech: Zuckerberg, Hastings, Bezos"],
     hostBios: [{"name":"Reid Hoffman","bio":"Co-founder of LinkedIn, partner at Greylock, and bestselling author of Blitzscaling and The Startup of You. One of Silicon Valley's most connected and influential entrepreneurs and investors."}],
     relatedSlugs: ["howibuiltthis","founders","acquired"],
-    aboutPodcast: "Masters of Scale is a podcast hosted by Reid Hoffman covering how legendary entrepreneurs grew their companies from zero to massive scale. Each episode of Masters of Scale dives into scaling strategies, startup growth, leadership decisions, and innovation frameworks, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Masters of Scale or discovering Reid Hoffman for the first time, PodCap delivers a concise summary of every new Masters of Scale episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Masters of Scale is a podcast hosted by Reid Hoffman covering how legendary entrepreneurs grew their companies from zero to massive scale. Each episode of Masters of Scale dives into scaling strategies, startup growth, leadership decisions, and innovation frameworks, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Masters of Scale or discovering Reid Hoffman for the first time, PodRise delivers a concise summary of every new Masters of Scale episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "biggerpockets",
@@ -627,7 +627,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["The go-to podcast for real estate investing education","Step-by-step strategies for buying rental properties and building portfolios","Stories from everyday investors who achieved financial freedom through real estate","BRRRR strategy and house-hacking deep dives"],
     hostBios: [{"name":"BiggerPockets","bio":"Hosted by a rotating team from BiggerPockets, the largest real estate investing community in the world with over 2 million members. Features interviews with investors at every level."}],
     relatedSlugs: ["ramseyshow","themoneyguyshow","financialaudit"],
-    aboutPodcast: "BiggerPockets Real Estate Podcast is a podcast hosted by David Greene & Rob Abasolo covering real estate investing strategies for beginners and experienced investors alike. Each episode of BiggerPockets Real Estate Podcast dives into real estate investing, property analysis, rental strategies, and wealth building through real estate, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of BiggerPockets Real Estate Podcast or discovering David Greene & Rob Abasolo for the first time, PodCap delivers a concise summary of every new BiggerPockets Real Estate Podcast episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "BiggerPockets Real Estate Podcast is a podcast hosted by David Greene & Rob Abasolo covering real estate investing strategies for beginners and experienced investors alike. Each episode of BiggerPockets Real Estate Podcast dives into real estate investing, property analysis, rental strategies, and wealth building through real estate, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of BiggerPockets Real Estate Podcast or discovering David Greene & Rob Abasolo for the first time, PodRise delivers a concise summary of every new BiggerPockets Real Estate Podcast episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "theindicator",
@@ -647,7 +647,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Bite-sized daily economics in under 10 minutes","Planet Money's quick-hit companion for the daily commute","Explaining economic indicators and trends with clarity and humor","Perfect for listeners who want economics without the time commitment"],
     hostBios: [{"name":"NPR Team","bio":"Produced by NPR's Planet Money team, featuring rotating hosts who distill complex economic data into quick, accessible daily episodes."}],
     relatedSlugs: ["planetmoney","thedaily","thejournal"],
-    aboutPodcast: "The Indicator from Planet Money is a podcast hosted by NPR covering quick, smart takes on the economy and what the numbers really mean. Each episode of The Indicator from Planet Money dives into economics, markets, business trends, financial data, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Indicator from Planet Money or discovering NPR for the first time, PodCap delivers a concise summary of every new The Indicator from Planet Money episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Indicator from Planet Money is a podcast hosted by NPR covering quick, smart takes on the economy and what the numbers really mean. Each episode of The Indicator from Planet Money dives into economics, markets, business trends, financial data, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Indicator from Planet Money or discovering NPR for the first time, PodRise delivers a concise summary of every new The Indicator from Planet Money episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "mastersinbusiness",
@@ -667,7 +667,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Long-form interviews with Wall Street legends and investment titans","Barry Ritholtz's deep knowledge of markets and financial history","Guests include Ray Dalio, Howard Marks, and other investing icons","Bloomberg's premier finance interview podcast"],
     hostBios: [{"name":"Barry Ritholtz","bio":"Chairman and CIO of Ritholtz Wealth Management, Bloomberg Opinion columnist, and bestselling author of Bailout Nation. One of the most widely followed financial commentators in the world."}],
     relatedSlugs: ["acquired","allin","businessbreakdowns"],
-    aboutPodcast: "Masters in Business is a podcast hosted by Barry Ritholtz covering conversations with leaders in finance, investing, and business. Each episode of Masters in Business dives into investing philosophy, market analysis, financial industry insights, and business leadership, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Masters in Business or discovering Barry Ritholtz for the first time, PodCap delivers a concise summary of every new Masters in Business episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Masters in Business is a podcast hosted by Barry Ritholtz covering conversations with leaders in finance, investing, and business. Each episode of Masters in Business dives into investing philosophy, market analysis, financial industry insights, and business leadership, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Masters in Business or discovering Barry Ritholtz for the first time, PodRise delivers a concise summary of every new Masters in Business episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "themoneyguyshow",
@@ -687,7 +687,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["The Financial Order of Operations (FOO) framework for every life stage","Practical wealth-building strategies with specific numbers and benchmarks","Content tailored to different ages: 20s, 30s, 40s, and beyond","Making complex financial planning feel approachable and actionable"],
     hostBios: [{"name":"Brian Preston","bio":"Certified Financial Planner and founder of Abound Wealth Management. Created the Financial Mutant framework and the popular Financial Order of Operations."},{"name":"Bo Hanson","bio":"CPA, CFP, and partner at Abound Wealth Management. Brings tax expertise and analytical rigor to the show's financial guidance."}],
     relatedSlugs: ["ramseyshow","financialaudit","biggerpockets"],
-    aboutPodcast: "The Money Guy Show is a podcast hosted by Brian Preston & Bo Hanson covering practical financial planning advice for building wealth at every stage of life. Each episode of The Money Guy Show dives into financial planning, investing strategies, retirement planning, and wealth management, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Money Guy Show or discovering Brian Preston & Bo Hanson for the first time, PodCap delivers a concise summary of every new The Money Guy Show episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Money Guy Show is a podcast hosted by Brian Preston & Bo Hanson covering practical financial planning advice for building wealth at every stage of life. Each episode of The Money Guy Show dives into financial planning, investing strategies, retirement planning, and wealth management, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Money Guy Show or discovering Brian Preston & Bo Hanson for the first time, PodRise delivers a concise summary of every new The Money Guy Show episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "equity",
@@ -707,7 +707,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["TechCrunch's insider view on startup fundraising and venture capital deals","Quick, news-driven format covering the week's biggest funding rounds","Analysis of IPOs, acquisitions, and the startup ecosystem","Essential listening for anyone in the startup world"],
     hostBios: [{"name":"TechCrunch","bio":"Hosted by TechCrunch's senior reporters and editors, providing startup ecosystem coverage from the most recognized name in tech journalism."}],
     relatedSlugs: ["a16z","allin","bg2pod"],
-    aboutPodcast: "Equity is a podcast hosted by TechCrunch covering the business of startups covering funding rounds, exits, and the venture capital landscape. Each episode of Equity dives into startup funding, venture capital deals, IPOs, tech business news, and emerging companies, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Equity or discovering TechCrunch for the first time, PodCap delivers a concise summary of every new Equity episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Equity is a podcast hosted by TechCrunch covering the business of startups covering funding rounds, exits, and the venture capital landscape. Each episode of Equity dives into startup funding, venture capital deals, IPOs, tech business news, and emerging companies, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Equity or discovering TechCrunch for the first time, PodRise delivers a concise summary of every new Equity episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "onpurpose",
@@ -727,7 +727,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Combining ancient wisdom with modern psychology for personal growth","Jay Shetty's unique perspective as a former monk turned content creator","Celebrity guests opening up about purpose, relationships, and mental health","Meditations and practical exercises listeners can use daily"],
     hostBios: [{"name":"Jay Shetty","bio":"Former monk, bestselling author of Think Like a Monk, and purpose coach. His content has been viewed over 10 billion times. He brings Eastern philosophy and mindfulness to a global audience."}],
     relatedSlugs: ["melrobbins","diaryofaceo","hubermanlab"],
-    aboutPodcast: "On Purpose with Jay Shetty is a podcast hosted by Jay Shetty covering conversations about purpose, mindfulness, relationships, and personal transformation. Each episode of On Purpose with Jay Shetty dives into personal growth, mindfulness practices, relationship advice, and purpose discovery, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of On Purpose with Jay Shetty or discovering Jay Shetty for the first time, PodCap delivers a concise summary of every new On Purpose with Jay Shetty episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "On Purpose with Jay Shetty is a podcast hosted by Jay Shetty covering conversations about purpose, mindfulness, relationships, and personal transformation. Each episode of On Purpose with Jay Shetty dives into personal growth, mindfulness practices, relationship advice, and purpose discovery, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of On Purpose with Jay Shetty or discovering Jay Shetty for the first time, PodRise delivers a concise summary of every new On Purpose with Jay Shetty episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "melrobbins",
@@ -747,7 +747,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Science-backed strategies for motivation, habits, and overcoming anxiety","The 5-Second Rule framework used by millions worldwide","Deeply personal stories mixed with research and actionable advice","Episodes that feel like a conversation with your most supportive friend"],
     hostBios: [{"name":"Mel Robbins","bio":"Bestselling author, motivational speaker, and one of the most booked speakers in the world. Creator of The 5-Second Rule. Her podcast has reached #1 on Apple Podcasts globally."}],
     relatedSlugs: ["onpurpose","diaryofaceo","hubermanlab"],
-    aboutPodcast: "The Mel Robbins Podcast is a podcast hosted by Mel Robbins covering science-backed strategies for motivation, confidence, habits, and personal change. Each episode of The Mel Robbins Podcast dives into motivation science, habit formation, confidence building, and neuroscience of change, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Mel Robbins Podcast or discovering Mel Robbins for the first time, PodCap delivers a concise summary of every new The Mel Robbins Podcast episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Mel Robbins Podcast is a podcast hosted by Mel Robbins covering science-backed strategies for motivation, confidence, habits, and personal change. Each episode of The Mel Robbins Podcast dives into motivation science, habit formation, confidence building, and neuroscience of change, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Mel Robbins Podcast or discovering Mel Robbins for the first time, PodRise delivers a concise summary of every new The Mel Robbins Podcast episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "armchairexpert",
@@ -767,7 +767,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Celebrity interviews that go deeper than typical press junkets","Honest conversations about addiction, recovery, and mental health","The \"Fact Check\" segment where Monica and Dax verify their claims","A uniquely vulnerable approach to celebrity podcasting"],
     hostBios: [{"name":"Dax Shepard","bio":"Actor, writer, and director known for Parenthood, Hit & Run, and CHiPs. Openly shares his journey with addiction recovery, bringing radical honesty to every conversation."},{"name":"Monica Padman","bio":"Actress, writer, and producer who started as Dax's babysitter before becoming his co-host. Provides a grounded, relatable counterpoint to Dax's Hollywood perspective."}],
     relatedSlugs: ["smartless","conanobrien","callherdaddy"],
-    aboutPodcast: "Armchair Expert with Dax Shepard is a podcast hosted by Dax Shepard & Monica Padman covering candid celebrity conversations exploring the messy truths of being human. Each episode of Armchair Expert with Dax Shepard dives into celebrity interviews, vulnerability, addiction recovery, parenting, and human psychology, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Armchair Expert with Dax Shepard or discovering Dax Shepard & Monica Padman for the first time, PodCap delivers a concise summary of every new Armchair Expert with Dax Shepard episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Armchair Expert with Dax Shepard is a podcast hosted by Dax Shepard & Monica Padman covering candid celebrity conversations exploring the messy truths of being human. Each episode of Armchair Expert with Dax Shepard dives into celebrity interviews, vulnerability, addiction recovery, parenting, and human psychology, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Armchair Expert with Dax Shepard or discovering Dax Shepard & Monica Padman for the first time, PodRise delivers a concise summary of every new Armchair Expert with Dax Shepard episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "conanobrien",
@@ -787,7 +787,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Conan's legendary wit and self-deprecating humor in podcast form","Celebrity interviews that feel like hanging out with a hilarious friend","Running bits with assistant Sona Movsesian and producer Matt Gourley","A natural extension of Conan's beloved late-night talk show persona"],
     hostBios: [{"name":"Conan O'Brien","bio":"Legendary comedian, writer, and former host of Late Night and The Tonight Show. Harvard Lampoon president turned comedy icon who has redefined the talk show format multiple times across his career."}],
     relatedSlugs: ["smartless","armchairexpert","officeladies"],
-    aboutPodcast: "Conan O'Brien Needs a Friend is a podcast hosted by Conan O'Brien covering hilarious conversations as Conan tries to make genuine friendships with celebrity guests. Each episode of Conan O'Brien Needs a Friend dives into comedy interviews, celebrity conversations, improvised humor, and entertainment stories, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Conan O'Brien Needs a Friend or discovering Conan O'Brien for the first time, PodCap delivers a concise summary of every new Conan O'Brien Needs a Friend episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Conan O'Brien Needs a Friend is a podcast hosted by Conan O'Brien covering hilarious conversations as Conan tries to make genuine friendships with celebrity guests. Each episode of Conan O'Brien Needs a Friend dives into comedy interviews, celebrity conversations, improvised humor, and entertainment stories, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Conan O'Brien Needs a Friend or discovering Conan O'Brien for the first time, PodRise delivers a concise summary of every new Conan O'Brien Needs a Friend episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "meidastouch",
@@ -807,7 +807,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Sharp political commentary and legal analysis of current events","The Meiselas brothers bringing legal expertise to political accountability","Rapid-response coverage of breaking political and legal news","One of the fastest-growing political media brands in the country"],
     hostBios: [{"name":"Ben Meiselas","bio":"Civil rights attorney and founding partner of Meiselas & Li. Known for high-profile legal cases and political commentary."},{"name":"Brett Meiselas","bio":"Emmy-nominated video editor and digital media producer who created MeidasTouch's signature viral political content."},{"name":"Jordan Meiselas","bio":"Political strategist and MeidasTouch co-founder who brings campaign and political operations expertise."}],
     relatedSlugs: ["podsaveamerica","thedaily","pivot"],
-    aboutPodcast: "The MeidasTouch Podcast is a podcast hosted by Ben Meiselas, Brett Meiselas & Jordan Meiselas covering political analysis, legal commentary, and accountability journalism. Each episode of The MeidasTouch Podcast dives into political news analysis, legal case breakdowns, constitutional law, and government accountability, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The MeidasTouch Podcast or discovering Ben Meiselas, Brett Meiselas & Jordan Meiselas for the first time, PodCap delivers a concise summary of every new The MeidasTouch Podcast episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The MeidasTouch Podcast is a podcast hosted by Ben Meiselas, Brett Meiselas & Jordan Meiselas covering political analysis, legal commentary, and accountability journalism. Each episode of The MeidasTouch Podcast dives into political news analysis, legal case breakdowns, constitutional law, and government accountability, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The MeidasTouch Podcast or discovering Ben Meiselas, Brett Meiselas & Jordan Meiselas for the first time, PodRise delivers a concise summary of every new The MeidasTouch Podcast episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "shawnryanshow",
@@ -827,7 +827,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Raw, unfiltered interviews with military veterans and special operators","Conversations that reveal classified or little-known military stories","Exploring geopolitics, intelligence, and national security from those who lived it","A platform giving voice to veterans' experiences and perspectives"],
     hostBios: [{"name":"Shawn Ryan","bio":"Former Navy SEAL and CIA contractor who served in Iraq and Afghanistan. Founded Vigilance Elite and uses his platform to share the stories of those who serve in the shadows."}],
     relatedSlugs: ["joerogan","lexfridman","newheights"],
-    aboutPodcast: "Shawn Ryan Show is a podcast hosted by Shawn Ryan covering military, intelligence, and national security stories from special operations veterans. Each episode of Shawn Ryan Show dives into military operations, intelligence community, national security, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Shawn Ryan Show or discovering Shawn Ryan for the first time, PodCap delivers a concise summary of every new Shawn Ryan Show episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Shawn Ryan Show is a podcast hosted by Shawn Ryan covering military, intelligence, and national security stories from special operations veterans. Each episode of Shawn Ryan Show dives into military operations, intelligence community, national security, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Shawn Ryan Show or discovering Shawn Ryan for the first time, PodRise delivers a concise summary of every new Shawn Ryan Show episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "thisamericanlife",
@@ -847,7 +847,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Pioneering narrative journalism that defined the podcast medium","True stories told with extraordinary craft and emotional depth","Theme-based episodes with multiple acts exploring different perspectives","The gold standard for radio storytelling that inspired an entire industry"],
     hostBios: [{"name":"Ira Glass","bio":"Journalist and creator of This American Life, which he has hosted since 1995. Widely credited with inventing the modern narrative podcast format. His show has won every major broadcasting award."}],
     relatedSlugs: ["searchengine","hiddenbrain","freshair"],
-    aboutPodcast: "This American Life is a podcast hosted by Ira Glass covering extraordinary true stories of everyday life in America, told with unmatched storytelling craft. Each episode of This American Life dives into true stories, American life, investigative journalism, human interest, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of This American Life or discovering Ira Glass for the first time, PodCap delivers a concise summary of every new This American Life episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "This American Life is a podcast hosted by Ira Glass covering extraordinary true stories of everyday life in America, told with unmatched storytelling craft. Each episode of This American Life dives into true stories, American life, investigative journalism, human interest, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of This American Life or discovering Ira Glass for the first time, PodRise delivers a concise summary of every new This American Life episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "freshair",
@@ -867,7 +867,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["The most respected interview show in broadcasting, period","Terry Gross's legendary ability to ask questions no one else thinks of","Coverage spanning books, film, music, politics, and culture","Interviews that reveal surprising depths in even the most guarded subjects"],
     hostBios: [{"name":"Terry Gross","bio":"Legendary journalist and broadcaster who has hosted Fresh Air since 1985. Recipient of a Peabody Award and the Edward R. Murrow Award. Widely considered the greatest interviewer in American media."},{"name":"Tonya Mosley","bio":"Journalist and co-host of Fresh Air. Previously hosted Here & Now on NPR and worked as a reporter covering technology and culture."}],
     relatedSlugs: ["thisamericanlife","hiddenbrain","thedaily"],
-    aboutPodcast: "Fresh Air is a podcast hosted by Terry Gross & Tonya Mosley covering in-depth interviews with creators, thinkers, and newsmakers shaping arts and culture. Each episode of Fresh Air dives into author interviews, film and TV discussions, music industry insights, and cultural criticism, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Fresh Air or discovering Terry Gross & Tonya Mosley for the first time, PodCap delivers a concise summary of every new Fresh Air episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Fresh Air is a podcast hosted by Terry Gross & Tonya Mosley covering in-depth interviews with creators, thinkers, and newsmakers shaping arts and culture. Each episode of Fresh Air dives into author interviews, film and TV discussions, music industry insights, and cultural criticism, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Fresh Air or discovering Terry Gross & Tonya Mosley for the first time, PodRise delivers a concise summary of every new Fresh Air episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "podsaveamerica",
@@ -887,7 +887,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Political analysis from former Obama White House insiders","Breaking down policy and elections in an accessible, engaging way","The Crooked Media empire it spawned, including multiple spinoff shows","Mobilizing political engagement beyond just commentary"],
     hostBios: [{"name":"Jon Favreau","bio":"Former Director of Speechwriting for President Obama. Co-founded Crooked Media and has become one of the most influential voices in progressive political media."},{"name":"Jon Lovett","bio":"Former Obama speechwriter and creator of Lovett or Leave It. Known for his sharp wit and willingness to challenge conventional political thinking."},{"name":"Dan Pfeiffer","bio":"Former Senior Advisor to President Obama and CNN political commentator. Author of Yes We (Still) Can."},{"name":"Tommy Vietor","bio":"Former NSC Spokesman for President Obama. Also hosts Pod Save the World, covering foreign policy and national security."}],
     relatedSlugs: ["meidastouch","thedaily","pivot"],
-    aboutPodcast: "Pod Save America is a podcast hosted by Jon Favreau, Jon Lovett, Dan Pfeiffer & Tommy Vietor covering political analysis and commentary from former Obama White House staffers. Each episode of Pod Save America dives into political strategy, election analysis, progressive politics, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Pod Save America or discovering Jon Favreau, Jon Lovett, Dan Pfeiffer & Tommy Vietor for the first time, PodCap delivers a concise summary of every new Pod Save America episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Pod Save America is a podcast hosted by Jon Favreau, Jon Lovett, Dan Pfeiffer & Tommy Vietor covering political analysis and commentary from former Obama White House staffers. Each episode of Pod Save America dives into political strategy, election analysis, progressive politics, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Pod Save America or discovering Jon Favreau, Jon Lovett, Dan Pfeiffer & Tommy Vietor for the first time, PodRise delivers a concise summary of every new Pod Save America episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "hiddenbrain",
@@ -907,7 +907,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Revealing the unconscious patterns that drive human behavior","Making psychology and neuroscience research compelling and relatable","Shankar Vedantam's warm, curious storytelling style","Episodes that change how you think about everyday decisions"],
     hostBios: [{"name":"Shankar Vedantam","bio":"Journalist, author of The Hidden Brain, and former Washington Post science reporter. Uses storytelling to make social science research accessible and fascinating to millions of listeners."}],
     relatedSlugs: ["searchengine","thisamericanlife","freshair"],
-    aboutPodcast: "Hidden Brain is a podcast hosted by Shankar Vedantam covering the unconscious patterns that drive human behavior, choices, and relationships. Each episode of Hidden Brain dives into behavioral psychology, unconscious bias, decision-making, social psychology, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Hidden Brain or discovering Shankar Vedantam for the first time, PodCap delivers a concise summary of every new Hidden Brain episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Hidden Brain is a podcast hosted by Shankar Vedantam covering the unconscious patterns that drive human behavior, choices, and relationships. Each episode of Hidden Brain dives into behavioral psychology, unconscious bias, decision-making, social psychology, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Hidden Brain or discovering Shankar Vedantam for the first time, PodRise delivers a concise summary of every new Hidden Brain episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "tedtalksdaily",
@@ -927,7 +927,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["The best TED Talks delivered as a daily podcast","Bite-sized inspiration covering technology, science, business, and creativity","Access to world-class speakers and breakthrough ideas","A daily dose of intellectual curiosity in under 20 minutes"],
     hostBios: [{"name":"TED","bio":"The media organization devoted to spreading ideas, usually in the form of short, powerful talks. TED began in 1984 and now covers almost every topic from science to business to global issues."}],
     relatedSlugs: ["hiddenbrain","hbrideacast","mastersofscale"],
-    aboutPodcast: "TED Talks Daily is a podcast hosted by TED covering the world's most inspiring talks on technology, science, business, and creativity. Each episode of TED Talks Daily dives into breakthrough ideas, innovation, social impact, creative thinking, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of TED Talks Daily or discovering TED for the first time, PodCap delivers a concise summary of every new TED Talks Daily episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "TED Talks Daily is a podcast hosted by TED covering the world's most inspiring talks on technology, science, business, and creativity. Each episode of TED Talks Daily dives into breakthrough ideas, innovation, social impact, creative thinking, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of TED Talks Daily or discovering TED for the first time, PodRise delivers a concise summary of every new TED Talks Daily episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "officeladies",
@@ -947,7 +947,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Episode-by-episode rewatch of The Office from two of its stars","Behind-the-scenes production secrets and deleted scene insights","Cast member guest appearances sharing their own Office memories","The definitive companion podcast for Office fans"],
     hostBios: [{"name":"Jenna Fischer","bio":"Actress best known for playing Pam Beesly on The Office. Also appeared in Walk Hard, Blades of Glory, and Hall Pass."},{"name":"Angela Kinsey","bio":"Actress best known for playing Angela Martin on The Office. Her real-life friendship with Jenna Fischer mirrors their on-screen dynamic."}],
     relatedSlugs: ["conanobrien","smartless","armchairexpert"],
-    aboutPodcast: "Office Ladies is a podcast hosted by Jenna Fischer & Angela Kinsey covering behind-the-scenes stories from The Office, episode by episode, from two of its stars. Each episode of Office Ladies dives into The Office, behind-the-scenes stories, TV production, comedy, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Office Ladies or discovering Jenna Fischer & Angela Kinsey for the first time, PodCap delivers a concise summary of every new Office Ladies episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Office Ladies is a podcast hosted by Jenna Fischer & Angela Kinsey covering behind-the-scenes stories from The Office, episode by episode, from two of its stars. Each episode of Office Ladies dives into The Office, behind-the-scenes stories, TV production, comedy, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Office Ladies or discovering Jenna Fischer & Angela Kinsey for the first time, PodRise delivers a concise summary of every new Office Ladies episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "moderncto",
@@ -967,7 +967,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Interviews with CTOs from the world's largest and most innovative companies","Practical advice on engineering team management and tech leadership","Discussions on architecture decisions, tech debt, and scaling systems","A go-to resource for technology leaders navigating complex organizations"],
     hostBios: [{"name":"Joel Beasley","bio":"Author of Modern CTO, speaker, and technology leader who has interviewed hundreds of CTOs. Provides a platform for sharing technology leadership wisdom across the industry."}],
     relatedSlugs: ["a16z","decoder","waveform"],
-    aboutPodcast: "Modern CTO is a podcast hosted by Joel Beasley covering technology leadership insights and interviews with CTOs from the world's top companies. Each episode of Modern CTO dives into technology leadership, engineering management, software architecture, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Modern CTO or discovering Joel Beasley for the first time, PodCap delivers a concise summary of every new Modern CTO episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Modern CTO is a podcast hosted by Joel Beasley covering technology leadership insights and interviews with CTOs from the world's top companies. Each episode of Modern CTO dives into technology leadership, engineering management, software architecture, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Modern CTO or discovering Joel Beasley for the first time, PodRise delivers a concise summary of every new Modern CTO episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "stuffyoushouldknow",
@@ -987,7 +987,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Making every topic imaginable fascinating, from the mundane to the bizarre","The easygoing chemistry between Josh and Chuck built over 15+ years","Short Stuff episodes for quick knowledge hits alongside deep dives","One of the original and longest-running podcast hits"],
     hostBios: [{"name":"Josh Clark","bio":"Author, producer, and podcast host. Co-creator of the HowStuffWorks podcast network and filmmaker behind the documentary The End of the World."},{"name":"Chuck Bryant","bio":"Podcast host and former HowStuffWorks editor. His laid-back style and genuine curiosity have made him one of the most beloved voices in podcasting."}],
     relatedSlugs: ["searchengine","hiddenbrain","thisamericanlife"],
-    aboutPodcast: "Stuff You Should Know is a podcast hosted by Josh Clark & Chuck Bryant covering fascinating deep dives into how everything works, from science to history to pop culture. Each episode of Stuff You Should Know dives into science, history, pop culture, technology, general knowledge, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Stuff You Should Know or discovering Josh Clark & Chuck Bryant for the first time, PodCap delivers a concise summary of every new Stuff You Should Know episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Stuff You Should Know is a podcast hosted by Josh Clark & Chuck Bryant covering fascinating deep dives into how everything works, from science to history to pop culture. Each episode of Stuff You Should Know dives into science, history, pop culture, technology, general knowledge, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Stuff You Should Know or discovering Josh Clark & Chuck Bryant for the first time, PodRise delivers a concise summary of every new Stuff You Should Know episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "myfirstmillion",
@@ -1009,7 +1009,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Brainstorming million-dollar business ideas live on air","Sam and Shaan's electric chemistry and rapid-fire banter","Interviews with unconventional entrepreneurs who built wealth creatively","The \"idea generation\" format that inspired thousands of founders"],
     hostBios: [{"name":"Sam Parr","bio":"Entrepreneur and co-founder of The Hustle, which he sold to HubSpot for a reported $27M. Known for his scrappy, bold approach to business building."},{"name":"Shaan Puri","bio":"Former CEO of Bebo (acquired by Twitch) and operator at Twitch. Known for his creative business ideas and philosophy on building wealth."}],
     relatedSlugs: ["allin","timferriss","howibuiltthis"],
-    aboutPodcast: "My First Million is a podcast hosted by Sam Parr & Shaan Puri covering business ideas, side hustles, and startup strategies. Each episode of My First Million dives into startup ideas, side hustles, business trends, entrepreneurship, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of My First Million or discovering Sam Parr & Shaan Puri for the first time, PodCap delivers a concise summary of every new My First Million episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "My First Million is a podcast hosted by Sam Parr & Shaan Puri covering business ideas, side hustles, and startup strategies. Each episode of My First Million dives into startup ideas, side hustles, business trends, entrepreneurship, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of My First Million or discovering Sam Parr & Shaan Puri for the first time, PodRise delivers a concise summary of every new My First Million episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "empowerher",
@@ -1029,7 +1029,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Faith-based personal development for ambitious women","Actionable strategies for confidence, entrepreneurship, and relationships","Kacia's authentic storytelling about overcoming challenges","Building a supportive community of women pursuing their purpose"],
     hostBios: [{"name":"Kacia Ghetmiri","bio":"Entrepreneur, speaker, and host of empowerHER. Passionate about helping women step into their purpose through faith, confidence, and personal development."}],
     relatedSlugs: ["melrobbins","onpurpose","diaryofaceo"],
-    aboutPodcast: "empowerHER is a podcast hosted by Kacia Ghetmiri covering personal growth insights, empowerment strategies, and inspiration. Each episode of empowerHER dives into personal development, women's empowerment, faith, confidence, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of empowerHER or discovering Kacia Ghetmiri for the first time, PodCap delivers a concise summary of every new empowerHER episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "empowerHER is a podcast hosted by Kacia Ghetmiri covering personal growth insights, empowerment strategies, and inspiration. Each episode of empowerHER dives into personal development, women's empowerment, faith, confidence, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of empowerHER or discovering Kacia Ghetmiri for the first time, PodRise delivers a concise summary of every new empowerHER episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "acquiringminds",
@@ -1049,7 +1049,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Deep-dive interviews with entrepreneurs who buy businesses instead of building from scratch","Practical insights on search funds, deal structures, and acquisition financing","Real stories of due diligence wins and failures","A must-listen for anyone considering entrepreneurship through acquisition"],
     hostBios: [{"name":"Will Smith","bio":"Host of Acquiring Minds and advocate for entrepreneurship through acquisition. Interviews founders who have successfully purchased and grown existing businesses."}],
     relatedSlugs: ["myfirstmillion","biggerpockets","alexhormozi"],
-    aboutPodcast: "Acquiring Minds is a podcast hosted by Will Smith covering stories of entrepreneurs who grow through acquiring existing businesses rather than starting from scratch. Each episode of Acquiring Minds dives into business acquisitions, search funds, buying small businesses, and deal-making strategies, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Acquiring Minds or discovering Will Smith for the first time, PodCap delivers a concise summary of every new Acquiring Minds episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Acquiring Minds is a podcast hosted by Will Smith covering stories of entrepreneurs who grow through acquiring existing businesses rather than starting from scratch. Each episode of Acquiring Minds dives into business acquisitions, search funds, buying small businesses, and deal-making strategies, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Acquiring Minds or discovering Will Smith for the first time, PodRise delivers a concise summary of every new Acquiring Minds episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "allthehacks",
@@ -1069,7 +1069,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Expert-level travel hacking and credit card points strategies","Practical money-saving tips that listeners can implement immediately","Deep dives into personal finance optimization and investing","Chris Hutchins' background in tech and finance bringing a data-driven approach"],
     hostBios: [{"name":"Chris Hutchins","bio":"Former head of new product strategy at Wealthfront, angel investor, and personal finance optimizer. Hosts All the Hacks to share the best life hacks for money, travel, and everyday decisions."}],
     relatedSlugs: ["themoneyguyshow","biggerpockets","moneywise"],
-    aboutPodcast: "All the Hacks is a podcast hosted by Chris Hutchins covering money-saving strategies, travel hacking, credit card points, and life optimization tips. Each episode of All the Hacks dives into travel hacking, credit card rewards, personal finance optimization, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of All the Hacks or discovering Chris Hutchins for the first time, PodCap delivers a concise summary of every new All the Hacks episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "All the Hacks is a podcast hosted by Chris Hutchins covering money-saving strategies, travel hacking, credit card points, and life optimization tips. Each episode of All the Hacks dives into travel hacking, credit card rewards, personal finance optimization, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of All the Hacks or discovering Chris Hutchins for the first time, PodRise delivers a concise summary of every new All the Hacks episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "dwarkesh",
@@ -1089,7 +1089,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Deeply intellectual interviews with AI researchers, scientists, and historians","Long-form conversations that go far deeper than typical podcast interviews","Guests include top minds from OpenAI, DeepMind, and leading universities","Rapidly growing audience in the tech and AI community"],
     hostBios: [{"name":"Dwarkesh Patel","bio":"Independent journalist and podcaster known for deeply researched, long-form interviews. His conversations with AI leaders and scientists have made the Dwarkesh Podcast one of the most respected shows in tech."}],
     relatedSlugs: ["lexfridman","aidailybrief","a16z"],
-    aboutPodcast: "Dwarkesh Podcast is a podcast hosted by Dwarkesh Patel covering long-form interviews with leading thinkers in AI, science, history, and technology. Each episode of Dwarkesh Podcast dives into artificial intelligence, frontier technology, scientific breakthroughs, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Dwarkesh Podcast or discovering Dwarkesh Patel for the first time, PodCap delivers a concise summary of every new Dwarkesh Podcast episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Dwarkesh Podcast is a podcast hosted by Dwarkesh Patel covering long-form interviews with leading thinkers in AI, science, history, and technology. Each episode of Dwarkesh Podcast dives into artificial intelligence, frontier technology, scientific breakthroughs, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Dwarkesh Podcast or discovering Dwarkesh Patel for the first time, PodRise delivers a concise summary of every new Dwarkesh Podcast episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "icedcoffeehour",
@@ -1109,7 +1109,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Graham Stephan's real estate and finance expertise in a casual setting","Entertaining takes on internet culture and trending business topics","Interviews with popular YouTubers and entrepreneurs","Accessible financial education wrapped in entertaining conversation"],
     hostBios: [{"name":"Graham Stephan","bio":"Real estate investor, YouTube creator with over 4 million subscribers, and one of the most recognized personal finance voices online."},{"name":"Jack Selby","bio":"Co-host of The Iced Coffee Hour and content creator, known for his entertaining dynamic with Graham Stephan."}],
     relatedSlugs: ["myfirstmillion","garyvee","wealthyway"],
-    aboutPodcast: "The Iced Coffee Hour is a podcast hosted by Graham Stephan & Jack Selby covering casual conversations about business, finance, real estate, and internet culture. Each episode of The Iced Coffee Hour dives into real estate investing, personal finance, YouTube business, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Iced Coffee Hour or discovering Graham Stephan & Jack Selby for the first time, PodCap delivers a concise summary of every new The Iced Coffee Hour episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Iced Coffee Hour is a podcast hosted by Graham Stephan & Jack Selby covering casual conversations about business, finance, real estate, and internet culture. Each episode of The Iced Coffee Hour dives into real estate investing, personal finance, YouTube business, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Iced Coffee Hour or discovering Graham Stephan & Jack Selby for the first time, PodRise delivers a concise summary of every new The Iced Coffee Hour episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "moneywise",
@@ -1129,7 +1129,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Candid financial stories from founders in the Hampton community","Real revenue numbers and financial strategies from successful entrepreneurs","Behind-the-scenes looks at how businesses actually make and manage money","A curated community of high-performing founders sharing lessons learned"],
     hostBios: [{"name":"Hampton","bio":"A private community for high-growth founders. The Moneywise podcast shares the financial stories and strategies of its members."}],
     relatedSlugs: ["myfirstmillion","acquiringminds","allthehacks"],
-    aboutPodcast: "Moneywise is a podcast by Hampton covering founder stories and financial strategies from successful entrepreneurs. Each episode of Moneywise dives into founder financial strategies, business growth stories, wealth building, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Moneywise or discovering Hampton for the first time, PodCap delivers a concise summary of every new Moneywise episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Moneywise is a podcast by Hampton covering founder stories and financial strategies from successful entrepreneurs. Each episode of Moneywise dives into founder financial strategies, business growth stories, wealth building, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Moneywise or discovering Hampton for the first time, PodRise delivers a concise summary of every new Moneywise episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "navigatingwealth",
@@ -1149,7 +1149,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Expert insights on wealth management for high-net-worth individuals","Practical financial planning strategies from seasoned advisors","Discussions on tax optimization, estate planning, and investment allocation","A trusted resource for affluent individuals navigating complex financial decisions"],
     hostBios: [{"name":"Long Angle","bio":"A private community for high-net-worth individuals. The Navigating Wealth podcast provides expert insights on managing and growing significant wealth."}],
     relatedSlugs: ["themoneyguyshow","allthehacks","moneywise"],
-    aboutPodcast: "Navigating Wealth is a podcast by Long Angle covering wealth management strategies and financial planning insights for high-net-worth individuals. Each episode of Navigating Wealth dives into wealth management strategies, financial planning, investment approaches, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Navigating Wealth or discovering Long Angle for the first time, PodCap delivers a concise summary of every new Navigating Wealth episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Navigating Wealth is a podcast by Long Angle covering wealth management strategies and financial planning insights for high-net-worth individuals. Each episode of Navigating Wealth dives into wealth management strategies, financial planning, investment approaches, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Navigating Wealth or discovering Long Angle for the first time, PodRise delivers a concise summary of every new Navigating Wealth episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "profgmarkets",
@@ -1169,7 +1169,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Scott Galloway's sharp, opinionated take on market movements and business news","Accessible market analysis that makes complex financial topics understandable","Weekly coverage of major earnings, IPOs, and economic policy","A companion show to The Prof G Pod focused purely on markets and investing"],
     hostBios: [{"name":"Scott Galloway","bio":"Professor of Marketing at NYU Stern School of Business, serial entrepreneur, bestselling author, and one of the most provocative voices in business media."},{"name":"Ed Elson","bio":"Co-host of Prof G Markets, providing market data and analysis alongside Professor Galloway."}],
     relatedSlugs: ["profgpod","pivot","mastersinbusiness"],
-    aboutPodcast: "Prof G Markets is a podcast hosted by Scott Galloway & Ed Elson covering weekly market analysis, business news, and economic trends. Each episode of Prof G Markets dives into stock market analysis, business earnings, economic trends, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Prof G Markets or discovering Scott Galloway for the first time, PodCap delivers a concise summary of every new Prof G Markets episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Prof G Markets is a podcast hosted by Scott Galloway & Ed Elson covering weekly market analysis, business news, and economic trends. Each episode of Prof G Markets dives into stock market analysis, business earnings, economic trends, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Prof G Markets or discovering Scott Galloway for the first time, PodRise delivers a concise summary of every new Prof G Markets episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "profgpod",
@@ -1189,7 +1189,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Scott Galloway's provocative and data-driven analysis of Big Tech and business","Career advice segments helping young professionals navigate the modern economy","Sharp cultural commentary blending humor with serious business insights","Interviews with business leaders, authors, and thought leaders"],
     hostBios: [{"name":"Scott Galloway","bio":"Professor of Marketing at NYU Stern School of Business, serial entrepreneur, bestselling author of 'The Four' and 'Post Corona,' and one of the most recognized voices in business media."}],
     relatedSlugs: ["profgmarkets","pivot","diaryofaceo"],
-    aboutPodcast: "The Prof G Pod with Scott Galloway is a podcast hosted by Scott Galloway covering business strategy, tech industry analysis, career advice, and cultural commentary. Each episode of The Prof G Pod dives into Big Tech analysis, career development, cultural commentary, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Prof G Pod or discovering Scott Galloway for the first time, PodCap delivers a concise summary of every new Prof G Pod episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Prof G Pod with Scott Galloway is a podcast hosted by Scott Galloway covering business strategy, tech industry analysis, career advice, and cultural commentary. Each episode of The Prof G Pod dives into Big Tech analysis, career development, cultural commentary, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Prof G Pod or discovering Scott Galloway for the first time, PodRise delivers a concise summary of every new Prof G Pod episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "saascfo",
@@ -1209,7 +1209,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Deep expertise in SaaS financial metrics and benchmarking","Practical CFO strategies for scaling software companies","Data-driven analysis of ARR, MRR, churn, and unit economics","A go-to resource for SaaS founders and finance leaders"],
     hostBios: [{"name":"Ben Murray","bio":"The SaaS CFO, a leading voice in SaaS financial strategy. Ben helps software companies understand and optimize their key financial metrics through his podcast, newsletter, and consulting practice."}],
     relatedSlugs: ["saaspodcast","saastr","equity"],
-    aboutPodcast: "The SaaS CFO is a podcast hosted by Ben Murray covering SaaS financial metrics, CFO strategies, and operational insights for software companies. Each episode of The SaaS CFO dives into SaaS financial metrics, ARR and MRR tracking, churn analysis, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The SaaS CFO or discovering Ben Murray for the first time, PodCap delivers a concise summary of every new SaaS CFO episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The SaaS CFO is a podcast hosted by Ben Murray covering SaaS financial metrics, CFO strategies, and operational insights for software companies. Each episode of The SaaS CFO dives into SaaS financial metrics, ARR and MRR tracking, churn analysis, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The SaaS CFO or discovering Ben Murray for the first time, PodRise delivers a concise summary of every new SaaS CFO episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "saaspodcast",
@@ -1229,7 +1229,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["In-depth interviews with successful SaaS founders sharing their growth stories","Practical strategies for finding product-market fit and scaling","One of the longest-running podcasts focused specifically on SaaS","Actionable insights for bootstrapped and venture-backed SaaS founders alike"],
     hostBios: [{"name":"Omer Khan","bio":"SaaS enthusiast and host of The SaaS Podcast since 2014. Omer has interviewed hundreds of SaaS founders, distilling their strategies into actionable lessons for the SaaS community."}],
     relatedSlugs: ["saascfo","saastr","myfirstmillion"],
-    aboutPodcast: "The SaaS Podcast is a podcast hosted by Omer Khan covering interviews with SaaS founders about growth strategies, product-market fit, and building successful software businesses. Each episode of The SaaS Podcast dives into SaaS growth strategies, product-market fit, founder interviews, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The SaaS Podcast or discovering Omer Khan for the first time, PodCap delivers a concise summary of every new SaaS Podcast episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The SaaS Podcast is a podcast hosted by Omer Khan covering interviews with SaaS founders about growth strategies, product-market fit, and building successful software businesses. Each episode of The SaaS Podcast dives into SaaS growth strategies, product-market fit, founder interviews, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The SaaS Podcast or discovering Omer Khan for the first time, PodRise delivers a concise summary of every new SaaS Podcast episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "saastr",
@@ -1249,7 +1249,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Insights from the world's largest SaaS community and annual conference","Interviews with top SaaS founders and venture capital investors","Tactical advice on scaling from $1M to $100M ARR","Coverage of the latest trends in cloud software and B2B sales"],
     hostBios: [{"name":"SaaStr","bio":"Founded by Jason Lemkin, SaaStr is the world's largest community for SaaS founders and executives. The podcast features conversations with the most successful leaders in B2B software."}],
     relatedSlugs: ["saaspodcast","saascfo","equity"],
-    aboutPodcast: "The Official SaaStr Podcast is hosted by SaaStr covering SaaS industry insights, founder interviews, and investor perspectives from the world's largest SaaS community. Each episode dives into SaaS industry trends, founder interviews, VC perspectives, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The SaaStr Podcast or discovering SaaStr for the first time, PodCap delivers a concise summary of every new SaaStr episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Official SaaStr Podcast is hosted by SaaStr covering SaaS industry insights, founder interviews, and investor perspectives from the world's largest SaaS community. Each episode dives into SaaS industry trends, founder interviews, VC perspectives, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The SaaStr Podcast or discovering SaaStr for the first time, PodRise delivers a concise summary of every new SaaStr episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "wealthyway",
@@ -1269,7 +1269,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Practical real estate investing strategies from an active investor","Ryan Pineda's journey from professional baseball player to real estate mogul","Actionable business building and wealth creation advice","Interviews with successful entrepreneurs and investors"],
     hostBios: [{"name":"Ryan Pineda","bio":"Real estate investor, entrepreneur, and former professional baseball player. Ryan has flipped over 1,000 homes and built multiple businesses. He shares his strategies and lessons on the Wealthy Way podcast."}],
     relatedSlugs: ["biggerpockets","icedcoffeehour","valuetainment"],
-    aboutPodcast: "Wealthy Way is a podcast hosted by Ryan Pineda covering real estate investing, business building, and wealth creation strategies. Each episode of Wealthy Way dives into real estate investing strategies, flipping houses, business building, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Wealthy Way or discovering Ryan Pineda for the first time, PodCap delivers a concise summary of every new Wealthy Way episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Wealthy Way is a podcast hosted by Ryan Pineda covering real estate investing, business building, and wealth creation strategies. Each episode of Wealthy Way dives into real estate investing strategies, flipping houses, business building, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Wealthy Way or discovering Ryan Pineda for the first time, PodRise delivers a concise summary of every new Wealthy Way episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "valuetainment",
@@ -1289,7 +1289,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Patrick Bet-David's high-energy entrepreneurship and business strategy content","Interviews with business titans, politicians, and cultural figures","Practical sales tactics and leadership frameworks","Building one of the largest business media brands on YouTube"],
     hostBios: [{"name":"Patrick Bet-David","bio":"Entrepreneur, author of 'Your Next Five Moves,' and founder of PHP Agency (now Integrity Life). Built Valuetainment into one of the most-watched business channels with millions of subscribers."}],
     relatedSlugs: ["garyvee","alexhormozi","wealthyway"],
-    aboutPodcast: "Valuetainment is a podcast hosted by Patrick Bet-David covering entrepreneurship, business strategy, politics, and leadership. Each episode of Valuetainment dives into entrepreneurship strategies, business leadership, political commentary, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Valuetainment or discovering Patrick Bet-David for the first time, PodCap delivers a concise summary of every new Valuetainment episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Valuetainment is a podcast hosted by Patrick Bet-David covering entrepreneurship, business strategy, politics, and leadership. Each episode of Valuetainment dives into entrepreneurship strategies, business leadership, political commentary, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Valuetainment or discovering Patrick Bet-David for the first time, PodRise delivers a concise summary of every new Valuetainment episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "ultimatehuman",
@@ -1309,7 +1309,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Gary Brecka's deep knowledge of human biology and longevity science","Practical health optimization strategies backed by science","Viral clips on social media reaching millions of views","Making complex biology and nutrition accessible to everyday listeners"],
     hostBios: [{"name":"Gary Brecka","bio":"Human biologist, mortality predictor, and co-founder of 10X Health System. Gary has spent decades studying human biology and helping high performers optimize their health and longevity."}],
     relatedSlugs: ["hubermanlab","modernwisdom","moonshots"],
-    aboutPodcast: "The Ultimate Human with Gary Brecka is a podcast covering human biology, health optimization, longevity, and peak performance strategies. Each episode dives into health optimization, longevity strategies, biohacking, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Ultimate Human or discovering Gary Brecka for the first time, PodCap delivers a concise summary of every new Ultimate Human episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Ultimate Human with Gary Brecka is a podcast covering human biology, health optimization, longevity, and peak performance strategies. Each episode dives into health optimization, longevity strategies, biohacking, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of The Ultimate Human or discovering Gary Brecka for the first time, PodRise delivers a concise summary of every new Ultimate Human episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "bigdeal",
@@ -1329,7 +1329,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Codie Sanchez's contrarian approach to wealth through buying 'boring businesses'","Practical guides to acquiring laundromats, car washes, and other cash-flow businesses","Breaking down deal structures and financing for small business acquisitions","One of the fastest-growing business podcasts with millions of social media followers"],
     hostBios: [{"name":"Codie Sanchez","bio":"Former institutional investor turned small business acquisition advocate. Codie built a massive following by teaching people how to buy 'boring businesses' like laundromats and car washes to build wealth."}],
     relatedSlugs: ["acquiringminds","alexhormozi","myfirstmillion"],
-    aboutPodcast: "BigDeal is a podcast hosted by Codie Sanchez covering buying businesses, boring business investing, and unconventional wealth-building strategies. Each episode of BigDeal dives into buying small businesses, boring business investing, deal structures, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of BigDeal or discovering Codie Sanchez for the first time, PodCap delivers a concise summary of every new BigDeal episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "BigDeal is a podcast hosted by Codie Sanchez covering buying businesses, boring business investing, and unconventional wealth-building strategies. Each episode of BigDeal dives into buying small businesses, boring business investing, deal structures, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of BigDeal or discovering Codie Sanchez for the first time, PodRise delivers a concise summary of every new BigDeal episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "joelonsdale",
@@ -1349,7 +1349,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Palantir co-founder's perspective on technology solving major societal problems","Deep discussions on defense tech, healthcare, and government innovation","Interviews with founders, policymakers, and thought leaders","An optimistic vision for American technology and entrepreneurship"],
     hostBios: [{"name":"Joe Lonsdale","bio":"Co-founder of Palantir Technologies, founder and managing partner of 8VC, and serial entrepreneur. Joe has co-founded multiple companies including Addepar, OpenGov, and Affinity, and is a leading voice in defense tech and government innovation."}],
     relatedSlugs: ["a16z","allin","dwarkesh"],
-    aboutPodcast: "Joe Lonsdale: American Optimist is a podcast hosted by Joe Lonsdale covering technology, policy, entrepreneurship, and American innovation. Each episode dives into technology and policy, venture capital, defense tech, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener or discovering Joe Lonsdale for the first time, PodCap delivers a concise summary of every new American Optimist episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Joe Lonsdale: American Optimist is a podcast hosted by Joe Lonsdale covering technology, policy, entrepreneurship, and American innovation. Each episode dives into technology and policy, venture capital, defense tech, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener or discovering Joe Lonsdale for the first time, PodRise delivers a concise summary of every new American Optimist episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "alexhormozi",
@@ -1369,7 +1369,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Actionable business scaling frameworks from a $100M+ entrepreneur","Bestselling author of '$100M Offers' and '$100M Leads'","No-nonsense advice on sales, marketing, and customer acquisition","Rapidly growing audience making it one of the top business podcasts"],
     hostBios: [{"name":"Alex Hormozi","bio":"Entrepreneur, investor, and bestselling author of '$100M Offers' and '$100M Leads.' Alex built and scaled Gym Launch, Prestige Labs, and ALAN before founding Acquisition.com, which has a portfolio generating over $200M in annual revenue."}],
     relatedSlugs: ["garyvee","valuetainment","bigdeal"],
-    aboutPodcast: "The Game with Alex Hormozi is a podcast hosted by Alex Hormozi covering business scaling strategies, sales, marketing, and wealth creation. Each episode dives into business scaling strategies, sales frameworks, marketing tactics, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener or discovering Alex Hormozi for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Game with Alex Hormozi is a podcast hosted by Alex Hormozi covering business scaling strategies, sales, marketing, and wealth creation. Each episode dives into business scaling strategies, sales frameworks, marketing tactics, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener or discovering Alex Hormozi for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "driverlessdigest",
@@ -1389,7 +1389,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Comprehensive coverage of autonomous vehicle technology and industry developments","Expert analysis of Waymo, Tesla FSD, and other self-driving platforms","Harry Campbell's unique perspective as The Rideshare Guy turned AV expert","Breaking down complex autonomous driving technology for everyday listeners"],
     hostBios: [{"name":"Harry Campbell","bio":"Known as The Rideshare Guy, Harry Campbell is a leading voice in the rideshare and autonomous vehicle space. He transitioned from covering Uber and Lyft to focusing on the autonomous driving revolution."}],
     relatedSlugs: ["a16z","dwarkesh","moonshots"],
-    aboutPodcast: "The Driverless Digest Podcast is hosted by Harry Campbell covering autonomous vehicles, self-driving technology, robotaxis, and the future of transportation. Each episode dives into autonomous vehicle technology, robotaxi services, self-driving cars, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener or discovering Harry Campbell for the first time, PodCap delivers a concise summary of every new Driverless Digest episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Driverless Digest Podcast is hosted by Harry Campbell covering autonomous vehicles, self-driving technology, robotaxis, and the future of transportation. Each episode dives into autonomous vehicle technology, robotaxi services, self-driving cars, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener or discovering Harry Campbell for the first time, PodRise delivers a concise summary of every new Driverless Digest episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "moonshots",
@@ -1409,7 +1409,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["XPRIZE founder's visionary perspective on exponential technologies","Deep dives into longevity science and anti-aging breakthroughs","Conversations about space exploration and the future of humanity","An abundance mindset approach to solving the world's biggest challenges"],
     hostBios: [{"name":"Peter Diamandis","bio":"Founder and chairman of the XPRIZE Foundation, co-founder of Singularity University, and bestselling author of 'Abundance' and 'The Future Is Faster Than You Think.' Peter is one of the world's foremost futurists and innovation leaders."}],
     relatedSlugs: ["dwarkesh","hubermanlab","ultimatehuman"],
-    aboutPodcast: "Moonshots with Peter Diamandis is a podcast covering exponential technologies, longevity science, space exploration, and abundance-minded entrepreneurship. Each episode dives into exponential technologies, longevity and anti-aging science, space exploration, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener or discovering Peter Diamandis for the first time, PodCap delivers a concise summary of every new Moonshots episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Moonshots with Peter Diamandis is a podcast covering exponential technologies, longevity science, space exploration, and abundance-minded entrepreneurship. Each episode dives into exponential technologies, longevity and anti-aging science, space exploration, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener or discovering Peter Diamandis for the first time, PodRise delivers a concise summary of every new Moonshots episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "modernwisdom",
@@ -1429,7 +1429,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Long-form interviews exploring psychology, culture, and self-improvement","Chris Williamson's thoughtful interviewing style that draws out deep insights","Guests ranging from scientists and authors to athletes and entrepreneurs","One of the fastest-growing podcasts globally with a massive YouTube presence"],
     hostBios: [{"name":"Chris Williamson","bio":"Former nightclub promoter turned podcaster and YouTuber. Chris built Modern Wisdom into one of the most popular interview podcasts by focusing on psychology, self-improvement, and cultural discourse."}],
     relatedSlugs: ["lexfridman","hubermanlab","joerogan"],
-    aboutPodcast: "Modern Wisdom is a podcast hosted by Chris Williamson covering psychology, self-improvement, relationships, fitness, and cultural commentary through long-form interviews. Each episode dives into psychology insights, self-improvement strategies, relationship dynamics, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Modern Wisdom or discovering Chris Williamson for the first time, PodCap delivers a concise summary of every new Modern Wisdom episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Modern Wisdom is a podcast hosted by Chris Williamson covering psychology, self-improvement, relationships, fitness, and cultural commentary through long-form interviews. Each episode dives into psychology insights, self-improvement strategies, relationship dynamics, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of Modern Wisdom or discovering Chris Williamson for the first time, PodRise delivers a concise summary of every new Modern Wisdom episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "thisweekinstartups",
@@ -1449,7 +1449,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["One of the longest-running and most influential startup podcasts","Jason Calacanis's insider perspective as a prolific angel investor","Pitch segments where founders present to Jason and guest investors","Comprehensive coverage of the startup ecosystem and venture capital trends"],
     hostBios: [{"name":"Jason Calacanis","bio":"Angel investor, entrepreneur, and author of 'Angel: How to Invest in Technology Startups.' Early investor in Uber, Robinhood, and Calm. Also co-hosts the All-In Podcast."}],
     relatedSlugs: ["allin","equity","a16z"],
-    aboutPodcast: "This Week in Startups is a podcast hosted by Jason Calacanis covering the startup ecosystem, founder interviews, venture capital insights, and tech industry analysis. Each episode dives into startup ecosystem news, founder interviews, venture capital trends, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of TWIST or discovering Jason Calacanis for the first time, PodCap delivers a concise summary of every new This Week in Startups episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "This Week in Startups is a podcast hosted by Jason Calacanis covering the startup ecosystem, founder interviews, venture capital insights, and tech industry analysis. Each episode dives into startup ecosystem news, founder interviews, venture capital trends, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener of TWIST or discovering Jason Calacanis for the first time, PodRise delivers a concise summary of every new This Week in Startups episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "garyvee",
@@ -1469,7 +1469,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Gary Vaynerchuk's high-energy entrepreneurship and marketing advice","Pioneering social media marketing strategies and content creation frameworks","Motivational content that has inspired millions of entrepreneurs","Keynote speeches, Q&A sessions, and interviews with business leaders"],
     hostBios: [{"name":"Gary Vaynerchuk","bio":"CEO of VaynerMedia, serial entrepreneur, five-time New York Times bestselling author, and one of the most recognized marketing and social media experts in the world. Gary built Wine Library from $3M to $60M using early internet marketing."}],
     relatedSlugs: ["alexhormozi","valuetainment","myfirstmillion"],
-    aboutPodcast: "The GaryVee Audio Experience is a podcast hosted by Gary Vaynerchuk covering entrepreneurship, marketing, social media strategy, and motivational content. Each episode dives into social media marketing, entrepreneurship motivation, content creation strategy, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener or discovering Gary Vaynerchuk for the first time, PodCap delivers a concise summary of every new GaryVee episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The GaryVee Audio Experience is a podcast hosted by Gary Vaynerchuk covering entrepreneurship, marketing, social media strategy, and motivational content. Each episode dives into social media marketing, entrepreneurship motivation, content creation strategy, offering listeners in-depth perspectives they can't find anywhere else. Whether you're a longtime listener or discovering Gary Vaynerchuk for the first time, PodRise delivers a concise summary of every new GaryVee episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "freakonomics",
@@ -1489,7 +1489,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Exploring the hidden side of everything through economic analysis","Making complex economics accessible and entertaining","Data-driven storytelling that challenges conventional wisdom","Spinoff shows including No Stupid Questions and People I (Mostly) Admire"],
     hostBios: [{"name":"Stephen Dubner","bio":"Journalist, author, and podcaster best known as co-author of the Freakonomics book series with economist Steven Levitt. His work explores the hidden side of everything using economic principles."}],
     relatedSlugs: ["hiddenbrain","planetmoney","conversationswithtyler"],
-    aboutPodcast: "Freakonomics Radio is a podcast hosted by Stephen Dubner exploring the hidden side of everything through economics, behavioral science, and data-driven storytelling. Each episode dives into behavioral economics, hidden incentives, and unconventional thinking, offering listeners perspectives they won't find anywhere else. Whether you're a longtime listener or discovering Freakonomics for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Freakonomics Radio is a podcast hosted by Stephen Dubner exploring the hidden side of everything through economics, behavioral science, and data-driven storytelling. Each episode dives into behavioral economics, hidden incentives, and unconventional thinking, offering listeners perspectives they won't find anywhere else. Whether you're a longtime listener or discovering Freakonomics for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "peterattia",
@@ -1509,7 +1509,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Deep-dive interviews on longevity and healthspan science","Physician-level analysis of nutrition, exercise, and sleep","Comprehensive coverage of the latest medical research","Peter Attia's unique blend of clinical expertise and personal optimization"],
     hostBios: [{"name":"Peter Attia","bio":"Physician, author of Outlive: The Science and Art of Longevity, and founder of Early Medical. Trained at Stanford and Johns Hopkins, specializing in longevity medicine and applied science of healthspan."}],
     relatedSlugs: ["hubermanlab","ultimatehuman","lexfridman"],
-    aboutPodcast: "The Peter Attia Drive is a podcast hosted by Peter Attia covering longevity science, healthspan optimization, medicine, nutrition, and peak performance. Each episode offers deep-dive discussions on the science of living longer and better. Whether you're a longtime listener or discovering The Drive for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Peter Attia Drive is a podcast hosted by Peter Attia covering longevity science, healthspan optimization, medicine, nutrition, and peak performance. Each episode offers deep-dive discussions on the science of living longer and better. Whether you're a longtime listener or discovering The Drive for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "knowledgeproject",
@@ -1529,7 +1529,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Shane Parrish's Farnam Street brand and mental models framework","Deeply researched conversations with world-class thinkers","Focus on timeless wisdom and decision-making over trendy topics","Interviews that reveal how the best in the world think and operate"],
     hostBios: [{"name":"Shane Parrish","bio":"Founder of Farnam Street, bestselling author of Clear Thinking, and former intelligence operative. Known for popularizing mental models and multidisciplinary thinking."}],
     relatedSlugs: ["timferriss","conversationswithtyler","founders"],
-    aboutPodcast: "The Knowledge Project is a podcast hosted by Shane Parrish featuring conversations with world-class thinkers on mental models, decision-making frameworks, and timeless wisdom. Each episode helps listeners master the best of what others have figured out. Whether you're a longtime listener or discovering The Knowledge Project for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Knowledge Project is a podcast hosted by Shane Parrish featuring conversations with world-class thinkers on mental models, decision-making frameworks, and timeless wisdom. Each episode helps listeners master the best of what others have figured out. Whether you're a longtime listener or discovering The Knowledge Project for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "investlikethebest",
@@ -1549,7 +1549,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Patrick O'Shaughnessy's deeply researched investor and operator interviews","Colossus network of business and investing podcasts","High signal-to-noise ratio conversations with top allocators","Business Breakdowns spinoff covering company deep-dives"],
     hostBios: [{"name":"Patrick O'Shaughnessy","bio":"CEO of Positive Sum and O'Shaughnessy Asset Management. Author and founder of the Colossus podcast network. Known for his deeply researched interviews with the world's best investors and business operators."}],
     relatedSlugs: ["businessbreakdowns","capitalallocators","westudybillionaires"],
-    aboutPodcast: "Invest Like the Best is a podcast hosted by Patrick O'Shaughnessy featuring conversations with the world's best investors and operators on investing strategies, business models, and capital allocation. Each episode offers deep insights into how the most successful people build and invest. Whether you're a longtime listener or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Invest Like the Best is a podcast hosted by Patrick O'Shaughnessy featuring conversations with the world's best investors and operators on investing strategies, business models, and capital allocation. Each episode offers deep insights into how the most successful people build and invest. Whether you're a longtime listener or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "twentyminutevc",
@@ -1569,7 +1569,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Over 3,000 episodes making it one of the most prolific VC podcasts","Harry Stebbings building a media empire and VC firm simultaneously","Quick-fire interview format covering the biggest names in venture capital","Accessible breakdown of complex VC and startup concepts"],
     hostBios: [{"name":"Harry Stebbings","bio":"Founder of 20VC and General Partner at 20VC Fund. Started the podcast at age 18, growing it into one of the most popular business podcasts globally. Also a venture capitalist investing in early-stage companies."}],
     relatedSlugs: ["equity","allin","thisweekinstartups"],
-    aboutPodcast: "The Twenty Minute VC is a podcast hosted by Harry Stebbings covering venture capital insights, startup funding, and interviews with the biggest names in VC and tech. Each episode delivers actionable insights from the world's top investors and founders. Whether you're a longtime listener or discovering 20VC for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Twenty Minute VC is a podcast hosted by Harry Stebbings covering venture capital insights, startup funding, and interviews with the biggest names in VC and tech. Each episode delivers actionable insights from the world's top investors and founders. Whether you're a longtime listener or discovering 20VC for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "westudybillionaires",
@@ -1589,7 +1589,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Deep study of billionaire investors like Warren Buffett and Charlie Munger","The Investor's Podcast Network flagship show","Accessible value investing education for everyday investors","Bitcoin and macroeconomic analysis from top-tier guests"],
     hostBios: [{"name":"Stig Brodersen","bio":"Co-founder of The Investor's Podcast Network. Value investor and author specializing in the investment strategies of the world's greatest investors."},{"name":"Trey Lockerbie","bio":"Host and investor covering value investing, billionaire strategies, and macroeconomic trends on The Investor's Podcast Network."}],
     relatedSlugs: ["investlikethebest","mastersinbusiness","biggerpockets"],
-    aboutPodcast: "We Study Billionaires is a podcast from The Investor's Podcast Network covering value investing principles, billionaire strategies, and financial markets analysis. Each episode studies how the world's greatest investors think and act. Whether you're a longtime listener or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "We Study Billionaires is a podcast from The Investor's Podcast Network covering value investing principles, billionaire strategies, and financial markets analysis. Each episode studies how the world's greatest investors think and act. Whether you're a longtime listener or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "oddlots",
@@ -1609,7 +1609,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Bloomberg's flagship finance podcast covering the unusual corners of markets","Tracy Alloway and Joe Weisenthal's unique chemistry and curiosity","Deep dives into market plumbing, infrastructure, and hidden financial systems","Making complex economic and financial topics accessible and engaging"],
     hostBios: [{"name":"Tracy Alloway","bio":"Bloomberg journalist and co-host of Odd Lots. Former editor at FT Alphaville, known for her expertise in financial markets infrastructure and credit markets."},{"name":"Joe Weisenthal","bio":"Bloomberg journalist and co-host of Odd Lots. Known for his accessible approach to complex financial topics and his popular presence on social media."}],
     relatedSlugs: ["planetmoney","theindicator","mastersinbusiness"],
-    aboutPodcast: "Odd Lots is a Bloomberg podcast hosted by Tracy Alloway and Joe Weisenthal exploring finance, economics, markets, and the hidden plumbing of the global financial system. Each episode dives into the unusual corners of finance and economics. Whether you're a longtime listener or discovering Odd Lots for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Odd Lots is a Bloomberg podcast hosted by Tracy Alloway and Joe Weisenthal exploring finance, economics, markets, and the hidden plumbing of the global financial system. Each episode dives into the unusual corners of finance and economics. Whether you're a longtime listener or discovering Odd Lots for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "ezraklein",
@@ -1629,7 +1629,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Ezra Klein's deeply researched and thoughtful interview style","New York Times opinion podcast with high-profile intellectual guests","Bridging politics, policy, culture, and technology in nuanced conversations","Book discussions and deep-dives into complex societal issues"],
     hostBios: [{"name":"Ezra Klein","bio":"New York Times Opinion columnist and podcast host. Co-founder of Vox. Known for his deeply researched interviews and nuanced analysis of politics, policy, and culture."}],
     relatedSlugs: ["hiddenbrain","podsaveamerica","conversationswithtyler"],
-    aboutPodcast: "The Ezra Klein Show is a New York Times podcast hosted by Ezra Klein featuring conversations about ideas, politics, policy, and culture with leading thinkers. Each episode offers deeply researched and nuanced perspectives on the issues that shape our world. Whether you're a longtime listener or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Ezra Klein Show is a New York Times podcast hosted by Ezra Klein featuring conversations about ideas, politics, policy, and culture with leading thinkers. Each episode offers deeply researched and nuanced perspectives on the issues that shape our world. Whether you're a longtime listener or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "capitalallocators",
@@ -1649,7 +1649,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["The go-to podcast for institutional investors and allocators","Ted Seides's insider perspective from Yale's endowment and hedge fund world","Interviews with CIOs, endowment managers, and top allocators","Deep coverage of the institutional investment industry"],
     hostBios: [{"name":"Ted Seides","bio":"Founder of Capital Allocators and former Co-CIO of Protégé Partners. Previously worked at the Yale University Investment Office under David Swensen. Author of So You Want to Start a Hedge Fund."}],
     relatedSlugs: ["investlikethebest","businessbreakdowns","mastersinbusiness"],
-    aboutPodcast: "Capital Allocators is a podcast hosted by Ted Seides covering institutional investing, capital allocation, and conversations with the world's top asset managers. Each episode offers insider perspectives on how institutions manage billions. Whether you're a longtime listener or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Capital Allocators is a podcast hosted by Ted Seides covering institutional investing, capital allocation, and conversations with the world's top asset managers. Each episode offers insider perspectives on how institutions manage billions. Whether you're a longtime listener or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "jordanharbinger",
@@ -1669,7 +1669,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Jordan Harbinger's expertise in social dynamics and networking","Diverse guest roster from spies to scientists to CEOs","Feedback Friday segments answering listener dilemmas","Practical advice on social skills, influence, and relationship building"],
     hostBios: [{"name":"Jordan Harbinger","bio":"Former Wall Street attorney turned podcast host and social dynamics expert. Known for his interviewing style and expertise in networking, influence, and body language. Previously co-founded The Art of Charm."}],
     relatedSlugs: ["timferriss","onpurpose","melrobbins"],
-    aboutPodcast: "The Jordan Harbinger Show is a podcast hosted by Jordan Harbinger featuring conversations about social dynamics, psychology, and fascinating stories from all walks of life. Each episode dives into how to build better relationships, think more clearly, and navigate the world. Whether you're a longtime listener or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Jordan Harbinger Show is a podcast hosted by Jordan Harbinger featuring conversations about social dynamics, psychology, and fascinating stories from all walks of life. Each episode dives into how to build better relationships, think more clearly, and navigate the world. Whether you're a longtime listener or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "radiolab",
@@ -1689,7 +1689,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Pioneering audio storytelling and sound design that defined a genre","Peabody Award-winning investigations into science and philosophy","Making complex scientific concepts emotionally resonant","One of the longest-running and most influential podcasts in history"],
     hostBios: [{"name":"Lulu Miller","bio":"Co-host of Radiolab and author of Why Fish Don't Exist. Award-winning science journalist and co-creator of NPR's Invisibilia."},{"name":"Latif Nasser","bio":"Co-host of Radiolab and host of Netflix's Connected. Known for his curiosity-driven storytelling and ability to find extraordinary stories in unexpected places."}],
     relatedSlugs: ["hiddenbrain","searchengine","thisamericanlife"],
-    aboutPodcast: "Radiolab is a WNYC Studios podcast exploring science, philosophy, and the human experience through innovative storytelling and sound design. Each episode investigates a big question with rigorous reporting and creative audio. Whether you're a longtime listener or discovering Radiolab for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Radiolab is a WNYC Studios podcast exploring science, philosophy, and the human experience through innovative storytelling and sound design. Each episode investigates a big question with rigorous reporting and creative audio. Whether you're a longtime listener or discovering Radiolab for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "darknetdiaries",
@@ -1709,7 +1709,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Gripping true stories from the dark side of the internet","Jack Rhysider's meticulous research and cinematic storytelling","Coverage of real hacking operations, cybercrime, and espionage","Making cybersecurity accessible and thrilling for a mainstream audience"],
     hostBios: [{"name":"Jack Rhysider","bio":"Creator and host of Darknet Diaries. Former IT security professional who turned his passion for cybersecurity stories into one of the most popular technology podcasts in the world."}],
     relatedSlugs: ["searchengine","hardfork","bigtechnology"],
-    aboutPodcast: "Darknet Diaries is a podcast hosted by Jack Rhysider featuring true stories from the dark side of the internet: hacking, cybercrime, espionage, and digital security. Each episode investigates real incidents with cinematic storytelling. Whether you're a longtime listener or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Darknet Diaries is a podcast hosted by Jack Rhysider featuring true stories from the dark side of the internet: hacking, cybercrime, espionage, and digital security. Each episode investigates real incidents with cinematic storytelling. Whether you're a longtime listener or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "bigtechnology",
@@ -1729,7 +1729,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Alex Kantrowitz's insider analysis of big tech companies","Breaking down the strategies and power dynamics of FAANG companies","Accessible coverage of AI, social media, and tech regulation","The companion Big Technology newsletter on Substack"],
     hostBios: [{"name":"Alex Kantrowitz","bio":"Tech journalist, author of Always Day One, and founder of the Big Technology newsletter. Former BuzzFeed News tech reporter covering the internal workings of big tech companies."}],
     relatedSlugs: ["hardfork","decoder","pivot"],
-    aboutPodcast: "Big Technology Podcast is hosted by Alex Kantrowitz covering big tech companies, AI, social media, and the forces shaping the technology industry. Each episode offers insider analysis of the biggest stories in tech. Whether you're a longtime listener or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Big Technology Podcast is hosted by Alex Kantrowitz covering big tech companies, AI, social media, and the forces shaping the technology industry. Each episode offers insider analysis of the biggest stories in tech. Whether you're a longtime listener or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "conversationswithtyler",
@@ -1749,7 +1749,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Tyler Cowen's uniquely rapid-fire and unpredictable interview style","Incredibly diverse guest roster spanning economists, authors, scientists, and artists","Marginal Revolution blog and Mercatus Center intellectual ecosystem","Questions that reveal unexpected depths in even the most well-known guests"],
     hostBios: [{"name":"Tyler Cowen","bio":"Economist, professor at George Mason University, co-author of the Marginal Revolution blog, and Director of the Mercatus Center. Known as one of the most eclectic and curious interviewers in podcasting."}],
     relatedSlugs: ["knowledgeproject","freakonomics","ezraklein"],
-    aboutPodcast: "Conversations with Tyler is a podcast hosted by Tyler Cowen featuring wide-ranging intellectual conversations with world-class thinkers on economics, culture, and ideas. Each episode explores the full range of a guest's knowledge in Tyler's signature rapid-fire style. Whether you're a longtime listener or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Conversations with Tyler is a podcast hosted by Tyler Cowen featuring wide-ranging intellectual conversations with world-class thinkers on economics, culture, and ideas. Each episode explores the full range of a guest's knowledge in Tyler's signature rapid-fire style. Whether you're a longtime listener or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "ologies",
@@ -1769,7 +1769,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Making every scientific discipline fascinating and accessible","Alie Ward's infectious enthusiasm and audience-submitted questions","Covering niche -ologies most people have never heard of","Award-winning science communication that inspires curiosity"],
     hostBios: [{"name":"Alie Ward","bio":"Emmy-nominated science communicator, TV host, and creator of Ologies. Known for making science accessible and fun by interviewing experts across hundreds of scientific disciplines."}],
     relatedSlugs: ["radiolab","hiddenbrain","stuffyoushouldknow"],
-    aboutPodcast: "Ologies is a podcast hosted by Alie Ward featuring deep-dive conversations with leading experts across every -ology, from volcanology to thanatology. Each episode makes a different scientific discipline fascinating and accessible. Whether you're a longtime listener or discovering Ologies for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Ologies is a podcast hosted by Alie Ward featuring deep-dive conversations with leading experts across every -ology, from volcanology to thanatology. Each episode makes a different scientific discipline fascinating and accessible. Whether you're a longtime listener or discovering Ologies for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "thebigpicture",
@@ -1788,7 +1788,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["In-depth movie reviews and Oscar season analysis","Sean Fennessey's encyclopedic film knowledge and passionate takes","Draft episodes ranking directors, actors, and movie moments","Hollywood industry coverage from The Ringer's entertainment team"],
     hostBios: [{"name":"Sean Fennessey","bio":"Film critic, editor, and host at The Ringer. Known for his deep love of cinema and thoughtful analysis of both blockbusters and indie films."}],
     relatedSlugs: ["therewatchables","freshair","stuffyoushouldknow"],
-    aboutPodcast: "The Big Picture is a podcast hosted by Sean Fennessey covering movies, the film industry, and entertainment culture. Each episode of The Big Picture dives into movie reviews, Oscar predictions, director spotlights, and Hollywood trends. Whether you're a longtime listener or discovering The Big Picture for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Big Picture is a podcast hosted by Sean Fennessey covering movies, the film industry, and entertainment culture. Each episode of The Big Picture dives into movie reviews, Oscar predictions, director spotlights, and Hollywood trends. Whether you're a longtime listener or discovering The Big Picture for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "therewatchables",
@@ -1807,7 +1807,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Deep dives into the most rewatchable movies of all time","Bill Simmons and rotating guests debating iconic movie moments","Categories like 'Apex Mountain,' 'Casting What-Ifs,' and 'What's Aged the Worst'","Infectious enthusiasm that makes you want to immediately rewatch the movie"],
     hostBios: [{"name":"Bill Simmons","bio":"Sports and pop culture writer, founder of The Ringer, and former ESPN personality. Known for his unique ability to blend sports analysis with entertainment commentary."}],
     relatedSlugs: ["thebigpicture","smartless","conanobrien"],
-    aboutPodcast: "The Rewatchables is a podcast hosted by Bill Simmons where a rotating cast from The Ringer breaks down the most rewatchable movies ever made. Each episode dives deep into a classic film with categories, debates, and pure movie love. Whether you're a longtime listener or discovering The Rewatchables for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Rewatchables is a podcast hosted by Bill Simmons where a rotating cast from The Ringer breaks down the most rewatchable movies ever made. Each episode dives deep into a classic film with categories, debates, and pure movie love. Whether you're a longtime listener or discovering The Rewatchables for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "therestispolitics",
@@ -1826,7 +1826,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Cross-party political analysis from a Labour and Conservative insider","Alastair Campbell and Rory Stewart's genuine friendship despite political differences","Making complex political events accessible and entertaining","Rapid response episodes on breaking political news"],
     hostBios: [{"name":"Alastair Campbell","bio":"Former Director of Communications for UK Prime Minister Tony Blair, journalist, and author. Known for his role in shaping New Labour's communications strategy."},{"name":"Rory Stewart","bio":"Former UK Cabinet minister, diplomat, and author. Served as International Development Secretary and walked across Afghanistan. Known for his thoughtful, independent-minded conservatism."}],
     relatedSlugs: ["podsaveamerica","pivot","thedaily"],
-    aboutPodcast: "The Rest Is Politics is a podcast hosted by Alastair Campbell and Rory Stewart offering lively political analysis from two insiders on opposite sides. Each episode breaks down the biggest political stories with humor and insight. Whether you're a longtime listener or discovering The Rest Is Politics for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Rest Is Politics is a podcast hosted by Alastair Campbell and Rory Stewart offering lively political analysis from two insiders on opposite sides. Each episode breaks down the biggest political stories with humor and insight. Whether you're a longtime listener or discovering The Rest Is Politics for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "dotnetrocks",
@@ -1845,7 +1845,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["One of the longest-running software development podcasts (since 2002)","Deep technical interviews with .NET and Microsoft ecosystem experts","Carl and Richard's engaging hosting style mixing humor with technical depth","Covering the full evolution of .NET from its inception to modern .NET"],
     hostBios: [{"name":"Carl Franklin","bio":"Developer, musician, and podcaster. Co-founder of .NET Rocks and creator of BlazorTrain. Has been interviewing software developers since 2002."},{"name":"Richard Campbell","bio":"Software developer, consultant, and Microsoft Regional Director. Co-host of .NET Rocks and RunAs Radio, known for deep technical expertise across the Microsoft stack."}],
     relatedSlugs: ["moderncto","bigtechnology","decoder"],
-    aboutPodcast: ".NET Rocks is a podcast hosted by Carl Franklin and Richard Campbell covering .NET development, software engineering, and the Microsoft technology ecosystem. Each episode features expert interviews on topics from C# to Azure to modern web development. Whether you're a longtime listener or discovering .NET Rocks for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: ".NET Rocks is a podcast hosted by Carl Franklin and Richard Campbell covering .NET development, software engineering, and the Microsoft technology ecosystem. Each episode features expert interviews on topics from C# to Azure to modern web development. Whether you're a longtime listener or discovering .NET Rocks for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "dailystoic",
@@ -1864,7 +1864,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Daily bite-sized Stoic wisdom for practical application","Ryan Holiday's ability to connect ancient philosophy to modern life","Interviews with world-class performers on how they apply Stoic principles","Making philosophy accessible without dumbing it down"],
     hostBios: [{"name":"Ryan Holiday","bio":"Bestselling author of The Obstacle Is the Way, Ego Is the Enemy, and Stillness Is the Key. Former marketing director turned Stoic philosophy popularizer. Runs the Daily Stoic brand reaching millions."}],
     relatedSlugs: ["onpurpose","hubermanlab","timferriss"],
-    aboutPodcast: "Daily Stoic is a podcast hosted by Ryan Holiday offering daily meditations on Stoic philosophy for modern life. Each episode distills timeless wisdom from Marcus Aurelius, Seneca, and Epictetus into actionable insights. Whether you're a longtime listener or discovering Daily Stoic for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Daily Stoic is a podcast hosted by Ryan Holiday offering daily meditations on Stoic philosophy for modern life. Each episode distills timeless wisdom from Marcus Aurelius, Seneca, and Epictetus into actionable insights. Whether you're a longtime listener or discovering Daily Stoic for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "animalspirits",
@@ -1883,7 +1883,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Conversational, fun take on markets and investing news","Michael and Ben's natural chemistry and humor","Blending serious financial analysis with pop culture and everyday life","Making institutional-quality market commentary accessible to everyone"],
     hostBios: [{"name":"Michael Batnick","bio":"Director of Research at Ritholtz Wealth Management and author of Big Mistakes. Known for his data-driven market analysis and approachable communication style."},{"name":"Ben Carlson","bio":"Director of Institutional Asset Management at Ritholtz Wealth Management and author of A Wealth of Common Sense. Known for his clear, no-nonsense investment writing."}],
     relatedSlugs: ["oddlots","westudybillionaires","investlikethebest"],
-    aboutPodcast: "Animal Spirits is a podcast hosted by Michael Batnick and Ben Carlson covering markets, investing, and financial news with humor and insight. Each episode breaks down the week's biggest financial stories in a conversational style. Whether you're a longtime listener or discovering Animal Spirits for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Animal Spirits is a podcast hosted by Michael Batnick and Ben Carlson covering markets, investing, and financial news with humor and insight. Each episode breaks down the week's biggest financial stories in a conversational style. Whether you're a longtime listener or discovering Animal Spirits for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "lennys",
@@ -1902,7 +1902,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Deep interviews with top product leaders from companies like Airbnb, Stripe, and Notion","Actionable frameworks for product management and growth","Lenny's warm interviewing style that draws out practical insights","One of the most popular podcasts in the product management community"],
     hostBios: [{"name":"Lenny Rachitsky","bio":"Former product lead at Airbnb, author of the #1 business newsletter on Substack. Known for his deep expertise in product management, growth, and marketplace dynamics."}],
     relatedSlugs: ["acquired","mastersofscale","twentyminutevc"],
-    aboutPodcast: "Lenny's Podcast is hosted by Lenny Rachitsky and features deep conversations with world-class product leaders, growth experts, and operators. Each episode delivers actionable insights on building great products and growing your career. Whether you're a longtime listener or discovering Lenny's Podcast for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Lenny's Podcast is hosted by Lenny Rachitsky and features deep conversations with world-class product leaders, growth experts, and operators. Each episode delivers actionable insights on building great products and growing your career. Whether you're a longtime listener or discovering Lenny's Podcast for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "entrepreneursonfire",
@@ -1921,7 +1921,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Daily interviews with successful entrepreneurs since 2012","John Lee Dumas's signature 'What is your worst entrepreneurial moment?' question","One of the first daily business podcasts with over 100 million listens","Transparent monthly income reports showing podcast revenue"],
     hostBios: [{"name":"John Lee Dumas","bio":"Entrepreneur, podcaster, and author of The Common Path to Uncommon Success. Built Entrepreneurs on Fire into a seven-figure business and has conducted over 3,000 interviews with successful founders."}],
     relatedSlugs: ["mixergy","youngandprofiting","amyporterfield"],
-    aboutPodcast: "Entrepreneurs on Fire is a daily podcast hosted by John Lee Dumas featuring interviews with successful entrepreneurs. Each episode shares the highs, lows, and lessons learned from building a business. Whether you're a longtime listener or discovering Entrepreneurs on Fire for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Entrepreneurs on Fire is a daily podcast hosted by John Lee Dumas featuring interviews with successful entrepreneurs. Each episode shares the highs, lows, and lessons learned from building a business. Whether you're a longtime listener or discovering Entrepreneurs on Fire for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "100mba",
@@ -1940,7 +1940,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Bite-sized business lessons under 15 minutes","Practical, no-fluff approach to business education","Best of iTunes award winner","Making MBA-level business knowledge accessible to everyone"],
     hostBios: [{"name":"Omar Zenhom","bio":"Entrepreneur, educator, and founder of WebinarNinja. Former teacher who brings a clear, structured approach to business education through daily bite-sized lessons."}],
     relatedSlugs: ["entrepreneursonfire","marketingschool","sidehustleshow"],
-    aboutPodcast: "The $100 MBA Show is hosted by Omar Zenhom and delivers short, actionable business lessons you can apply immediately. Each episode is under 15 minutes and covers one practical business concept. Whether you're a longtime listener or discovering The $100 MBA Show for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The $100 MBA Show is hosted by Omar Zenhom and delivers short, actionable business lessons you can apply immediately. Each episode is under 15 minutes and covers one practical business concept. Whether you're a longtime listener or discovering The $100 MBA Show for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "startupsfortherestofus",
@@ -1959,7 +1959,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["The go-to podcast for bootstrapped SaaS founders","Rob Walling's decades of experience building and selling software companies","Practical advice for non-VC-funded startups","Founder of MicroConf, the premier conference for bootstrapped founders"],
     hostBios: [{"name":"Rob Walling","bio":"Serial entrepreneur, founder of Drip (sold to Leadpages), TinySeed (the first startup accelerator for bootstrappers), and MicroConf. Author of Start Small, Stay Small."}],
     relatedSlugs: ["tropicalmba","saaspodcast","thisweekinstartups"],
-    aboutPodcast: "Startups For the Rest of Us is hosted by Rob Walling and covers bootstrapping, SaaS, and building startups without venture capital. Each episode offers tactical advice for founders building real businesses. Whether you're a longtime listener or discovering Startups For the Rest of Us for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Startups For the Rest of Us is hosted by Rob Walling and covers bootstrapping, SaaS, and building startups without venture capital. Each episode offers tactical advice for founders building real businesses. Whether you're a longtime listener or discovering Startups For the Rest of Us for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "tropicalmba",
@@ -1978,7 +1978,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Pioneering the location-independent business movement","Dan and Ian's honest conversations about building businesses abroad","The Dynamite Circle community for location-independent entrepreneurs","One of the longest-running entrepreneurship podcasts"],
     hostBios: [{"name":"Dan Andrews","bio":"Co-founder of the Dynamite Circle and serial entrepreneur who has built and sold multiple location-independent businesses while living abroad."},{"name":"Ian Schoen","bio":"Co-founder of the Dynamite Circle and entrepreneur focused on building systems-driven businesses that can operate from anywhere in the world."}],
     relatedSlugs: ["startupsfortherestofus","sidehustleshow","entrepreneursonfire"],
-    aboutPodcast: "The Tropical MBA is hosted by Dan Andrews and Ian Schoen and covers location-independent entrepreneurship and lifestyle business design. Each episode explores what it takes to build a business you can run from anywhere. Whether you're a longtime listener or discovering The Tropical MBA for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Tropical MBA is hosted by Dan Andrews and Ian Schoen and covers location-independent entrepreneurship and lifestyle business design. Each episode explores what it takes to build a business you can run from anywhere. Whether you're a longtime listener or discovering The Tropical MBA for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "marketingschool",
@@ -1997,7 +1997,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Daily marketing tips in under 10 minutes","Eric Siu and Neil Patel's combined expertise in SEO and growth","Actionable tactics you can implement immediately","One of the most popular marketing podcasts globally"],
     hostBios: [{"name":"Eric Siu","bio":"CEO of Single Grain, a digital marketing agency. Known for growing companies through SEO and content marketing strategies."},{"name":"Neil Patel","bio":"Co-founder of Crazy Egg, Hello Bar, and KISSmetrics. One of the world's foremost digital marketing experts and a New York Times bestselling author."}],
     relatedSlugs: ["100mba","amyporterfield","entrepreneursonfire"],
-    aboutPodcast: "Marketing School is hosted by Eric Siu and Neil Patel and delivers daily digital marketing tips and strategies in bite-sized episodes. Each episode covers one actionable marketing tactic you can use right away. Whether you're a longtime listener or discovering Marketing School for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Marketing School is hosted by Eric Siu and Neil Patel and delivers daily digital marketing tips and strategies in bite-sized episodes. Each episode covers one actionable marketing tactic you can use right away. Whether you're a longtime listener or discovering Marketing School for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "mixergy",
@@ -2016,7 +2016,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Deep-dive interviews that uncover the real stories behind successful startups","Andrew Warner's persistent interviewing style that gets founders to share details they've never shared","Over 2,000 interviews with founders of companies like Wikipedia, Groupon, and Pixar","One of the original startup interview podcasts"],
     hostBios: [{"name":"Andrew Warner","bio":"Entrepreneur who built and sold an online greeting card company before founding Mixergy. Known for his meticulous research and ability to get founders to reveal their real numbers and strategies."}],
     relatedSlugs: ["entrepreneursonfire","howibuiltthis","youngandprofiting"],
-    aboutPodcast: "Mixergy is hosted by Andrew Warner and features in-depth interviews with proven entrepreneurs about how they built their companies. Each episode digs into the tactics, numbers, and real stories behind successful businesses. Whether you're a longtime listener or discovering Mixergy for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Mixergy is hosted by Andrew Warner and features in-depth interviews with proven entrepreneurs about how they built their companies. Each episode digs into the tactics, numbers, and real stories behind successful businesses. Whether you're a longtime listener or discovering Mixergy for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "youngandprofiting",
@@ -2035,7 +2035,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Interviewing top business minds with a focus on actionable takeaways","Hala Taha's rise from side hustler to podcast network CEO","Blending business strategy with personal development","One of the top-ranked business podcasts on Apple"],
     hostBios: [{"name":"Hala Taha","bio":"CEO and founder of YAP Media Network, former VP at Disney Streaming. Built Young and Profiting into one of the most popular business podcasts and a full podcast media company."}],
     relatedSlugs: ["entrepreneursonfire","mixergy","amyporterfield"],
-    aboutPodcast: "Young and Profiting is hosted by Hala Taha and features interviews with the brightest minds in business, marketing, and self-improvement. Each episode delivers actionable strategies for leveling up your career and business. Whether you're a longtime listener or discovering Young and Profiting for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Young and Profiting is hosted by Hala Taha and features interviews with the brightest minds in business, marketing, and self-improvement. Each episode delivers actionable strategies for leveling up your career and business. Whether you're a longtime listener or discovering Young and Profiting for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "amyporterfield",
@@ -2054,7 +2054,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Step-by-step strategies for building an online course business","Amy's warm, relatable teaching style","Deep expertise in list building, webinars, and digital marketing","Empowering entrepreneurs to leave the 9-to-5 and build online businesses"],
     hostBios: [{"name":"Amy Porterfield","bio":"Online marketing expert, former social media director at Tony Robbins' company. Built a multi-million dollar digital course business and teaches others to do the same."}],
     relatedSlugs: ["marketingschool","entrepreneursonfire","youngandprofiting"],
-    aboutPodcast: "The Amy Porterfield Show is hosted by Amy Porterfield and covers online marketing strategies for building a thriving digital business. Each episode provides step-by-step guidance on courses, list building, and social media. Whether you're a longtime listener or discovering The Amy Porterfield Show for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Amy Porterfield Show is hosted by Amy Porterfield and covers online marketing strategies for building a thriving digital business. Each episode provides step-by-step guidance on courses, list building, and social media. Whether you're a longtime listener or discovering The Amy Porterfield Show for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "sidehustleshow",
@@ -2073,7 +2073,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Practical, tested side hustle ideas with real income numbers","Nick Loper's thorough research and clear presentation","Guests who share exactly how they earn extra income","One of the longest-running side hustle podcasts"],
     hostBios: [{"name":"Nick Loper","bio":"Founder of Side Hustle Nation and author of Buy Buttons and The Side Hustle Path. Has explored dozens of side hustle ideas and shares what actually works."}],
     relatedSlugs: ["100mba","tropicalmba","entrepreneursonfire"],
-    aboutPodcast: "The Side Hustle Show is hosted by Nick Loper and covers actionable tips for building profitable side businesses. Each episode features real people sharing exactly how they earn extra income. Whether you're a longtime listener or discovering The Side Hustle Show for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Side Hustle Show is hosted by Nick Loper and covers actionable tips for building profitable side businesses. Each episode features real people sharing exactly how they earn extra income. Whether you're a longtime listener or discovering The Side Hustle Show for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "coachingforleaders",
@@ -2092,7 +2092,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Practical leadership advice backed by research and experience","Dave Stachowiak's thoughtful, empathetic approach to leadership development","Interviews with top leadership thinkers and authors","Building a supportive community of leaders through the podcast"],
     hostBios: [{"name":"Dave Stachowiak","bio":"Leadership development consultant and former Dale Carnegie Training executive. Has been helping leaders grow through the podcast since 2011."}],
     relatedSlugs: ["learningleader","atthetable","worklife"],
-    aboutPodcast: "Coaching for Leaders is hosted by Dave Stachowiak and covers leadership development and practical management advice. Each episode helps leaders at every level build the skills they need to succeed. Whether you're a longtime listener or discovering Coaching for Leaders for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Coaching for Leaders is hosted by Dave Stachowiak and covers leadership development and practical management advice. Each episode helps leaders at every level build the skills they need to succeed. Whether you're a longtime listener or discovering Coaching for Leaders for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "worklife",
@@ -2111,7 +2111,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Applying organizational psychology research to real workplace challenges","Adam Grant's ability to make academic research engaging and practical","Behind-the-scenes looks at unconventional workplaces","A TED original podcast that challenges how we think about work"],
     hostBios: [{"name":"Adam Grant","bio":"Wharton professor, organizational psychologist, and New York Times bestselling author of Think Again, Give and Take, and Originals. One of the world's most influential management thinkers."}],
     relatedSlugs: ["happinesslab","hiddenbrain","coachingforleaders"],
-    aboutPodcast: "WorkLife is hosted by Adam Grant and explores the science of making work better through organizational psychology. Each episode challenges conventional wisdom about work and reveals what actually makes teams and organizations thrive. Whether you're a longtime listener or discovering WorkLife for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "WorkLife is hosted by Adam Grant and explores the science of making work better through organizational psychology. Each episode challenges conventional wisdom about work and reveals what actually makes teams and organizations thrive. Whether you're a longtime listener or discovering WorkLife for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "daretolead",
@@ -2130,7 +2130,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Brené Brown's groundbreaking research on vulnerability and courage in leadership","Deep conversations about what it means to lead with heart","Practical frameworks for building brave workplace cultures","One of the most influential voices on leadership and human connection"],
     hostBios: [{"name":"Brené Brown","bio":"Research professor at the University of Houston, bestselling author of Dare to Lead, Daring Greatly, and The Gifts of Imperfection. Her TED talk on vulnerability has over 60 million views."}],
     relatedSlugs: ["worklife","atthetable","coachingforleaders"],
-    aboutPodcast: "Dare to Lead is hosted by Brené Brown and explores courageous leadership, vulnerability, and building brave workplace cultures. Each episode features conversations with leaders who are doing the hard work of leading with heart. Whether you're a longtime listener or discovering Dare to Lead for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Dare to Lead is hosted by Brené Brown and explores courageous leadership, vulnerability, and building brave workplace cultures. Each episode features conversations with leaders who are doing the hard work of leading with heart. Whether you're a longtime listener or discovering Dare to Lead for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "atthetable",
@@ -2149,7 +2149,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Patrick Lencioni's frameworks for building healthy teams and organizations","Practical, story-driven approach to leadership challenges","Extending the ideas from The Five Dysfunctions of a Team","Honest, often humorous conversations about real leadership struggles"],
     hostBios: [{"name":"Patrick Lencioni","bio":"Bestselling author of The Five Dysfunctions of a Team, The Ideal Team Player, and The Advantage. Founder of The Table Group, a firm dedicated to organizational health."}],
     relatedSlugs: ["daretolead","coachingforleaders","learningleader"],
-    aboutPodcast: "At The Table is hosted by Patrick Lencioni and covers practical wisdom on leadership, teamwork, and organizational health. Each episode offers actionable advice grounded in decades of consulting experience. Whether you're a longtime listener or discovering At The Table for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "At The Table is hosted by Patrick Lencioni and covers practical wisdom on leadership, teamwork, and organizational health. Each episode offers actionable advice grounded in decades of consulting experience. Whether you're a longtime listener or discovering At The Table for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "nobullshitleadership",
@@ -2168,7 +2168,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Cutting through leadership fluff with direct, practical advice","Martin Moore's experience as a CEO and board director","Short episodes packed with actionable leadership tactics","Challenging popular leadership myths with real-world experience"],
     hostBios: [{"name":"Martin G. Moore","bio":"Former CEO of CS Energy and experienced board director. Built a reputation for turning around underperforming organizations through strong leadership principles."}],
     relatedSlugs: ["jockopodcast","learningleader","coachingforleaders"],
-    aboutPodcast: "No Bullsh!t Leadership is hosted by Martin G. Moore and delivers direct, no-nonsense leadership advice for leaders who want results. Each episode cuts through the fluff with practical strategies from decades of executive experience. Whether you're a longtime listener or discovering No Bullsh!t Leadership for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "No Bullsh!t Leadership is hosted by Martin G. Moore and delivers direct, no-nonsense leadership advice for leaders who want results. Each episode cuts through the fluff with practical strategies from decades of executive experience. Whether you're a longtime listener or discovering No Bullsh!t Leadership for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "learningleader",
@@ -2187,7 +2187,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["In-depth interviews with world-class leaders across every field","Ryan Hawk's thoughtful, well-researched interview style","Focus on what separates good leaders from great ones","Exploring the habits and practices that sustain long-term excellence"],
     hostBios: [{"name":"Ryan Hawk","bio":"Author of Welcome to Management and The Pursuit of Excellence. Former quarterback turned leadership consultant who has interviewed over 500 world-class leaders."}],
     relatedSlugs: ["jockopodcast","nobullshitleadership","coachingforleaders"],
-    aboutPodcast: "The Learning Leader Show is hosted by Ryan Hawk and features conversations with world-class leaders about sustaining excellence. Each episode explores the habits, mindsets, and practices of top performers. Whether you're a longtime listener or discovering The Learning Leader Show for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Learning Leader Show is hosted by Ryan Hawk and features conversations with world-class leaders about sustaining excellence. Each episode explores the habits, mindsets, and practices of top performers. Whether you're a longtime listener or discovering The Learning Leader Show for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "jockopodcast",
@@ -2206,7 +2206,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Jocko Willink's intense, no-excuses approach to leadership and discipline","Deep dives into military history and extracting leadership lessons","The mantra 'Discipline equals freedom'","Applying battlefield leadership principles to business and everyday life"],
     hostBios: [{"name":"Jocko Willink","bio":"Retired Navy SEAL officer who commanded SEAL Team Three's Task Unit Bruiser. Bestselling author of Extreme Ownership and Discipline Equals Freedom. Co-founder of Echelon Front."}],
     relatedSlugs: ["nobullshitleadership","shawnryanshow","learningleader"],
-    aboutPodcast: "Jocko Podcast is hosted by Jocko Willink and covers discipline, leadership, and strategy drawn from military history and combat experience. Each episode delivers hard-won lessons about leading, overcoming adversity, and building mental toughness. Whether you're a longtime listener or discovering Jocko Podcast for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Jocko Podcast is hosted by Jocko Willink and covers discipline, leadership, and strategy drawn from military history and combat experience. Each episode delivers hard-won lessons about leading, overcoming adversity, and building mental toughness. Whether you're a longtime listener or discovering Jocko Podcast for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "entreleadership",
@@ -2225,7 +2225,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Combining Dave Ramsey's financial principles with leadership training","Practical advice for small business owners and entrepreneurs","Focus on building businesses without debt","Interviews with top business leaders and authors"],
     hostBios: [{"name":"Ramsey Network","bio":"Produced by the Ramsey Solutions team, featuring rotating hosts and expert guests who bring decades of business building experience."}],
     relatedSlugs: ["ramseyshow","nobullshitleadership","coachingforleaders"],
-    aboutPodcast: "The EntreLeadership Podcast from the Ramsey Network covers practical business and leadership advice for entrepreneurs. Each episode delivers actionable strategies for building and leading a successful business. Whether you're a longtime listener or discovering The EntreLeadership Podcast for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The EntreLeadership Podcast from the Ramsey Network covers practical business and leadership advice for entrepreneurs. Each episode delivers actionable strategies for building and leading a successful business. Whether you're a longtime listener or discovering The EntreLeadership Podcast for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "moneyfortherestofus",
@@ -2244,7 +2244,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Making complex investing concepts accessible to everyday investors","David Stein's background as a former institutional investor managing $1 billion","Evidence-based approach to personal finance and investing","Explaining the 'why' behind market movements and economic trends"],
     hostBios: [{"name":"J. David Stein","bio":"Former Chief Investment Strategist and Chief Portfolio Strategist at Fund Evaluation Group, where he managed over $1 billion. Now teaches everyday investors through the podcast and his Plus membership."}],
     relatedSlugs: ["rationalreminder","affordanything","choosefi"],
-    aboutPodcast: "Money For the Rest of Us is hosted by J. David Stein and covers investing, personal finance, and economics for everyday investors. Each episode breaks down complex financial topics into clear, actionable insights. Whether you're a longtime listener or discovering Money For the Rest of Us for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Money For the Rest of Us is hosted by J. David Stein and covers investing, personal finance, and economics for everyday investors. Each episode breaks down complex financial topics into clear, actionable insights. Whether you're a longtime listener or discovering Money For the Rest of Us for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "rationalreminder",
@@ -2263,7 +2263,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Rigorous evidence-based approach to investing backed by academic research","Benjamin Felix's popular YouTube videos on financial topics","In-depth discussions on factor investing, index funds, and portfolio construction","One of the most respected personal finance podcasts in the investing community"],
     hostBios: [{"name":"Benjamin Felix","bio":"Portfolio manager at PWL Capital and popular YouTube creator. Known for his ability to translate complex academic finance research into practical investing advice."},{"name":"Cameron Passmore","bio":"CEO of PWL Capital and experienced financial planner. Brings decades of wealth management experience to discussions about evidence-based investing."}],
     relatedSlugs: ["moneyfortherestofus","choosefi","westudybillionaires"],
-    aboutPodcast: "Rational Reminder is hosted by Benjamin Felix and Cameron Passmore and covers evidence-based investing and financial planning. Each episode dives into academic research and practical strategies for building wealth rationally. Whether you're a longtime listener or discovering Rational Reminder for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Rational Reminder is hosted by Benjamin Felix and Cameron Passmore and covers evidence-based investing and financial planning. Each episode dives into academic research and practical strategies for building wealth rationally. Whether you're a longtime listener or discovering Rational Reminder for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "choosefi",
@@ -2282,7 +2282,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["The flagship podcast of the financial independence (FIRE) movement","Practical strategies for achieving financial independence on any income","Travel hacking and tax optimization deep dives","Building a massive community around the FI lifestyle"],
     hostBios: [{"name":"Jonathan Mendonsa","bio":"Co-founder of ChooseFI and advocate for the financial independence movement. Passionate about making FI accessible to everyone through practical, actionable content."},{"name":"Brad Barrett","bio":"Co-founder of ChooseFI, CPA, and financial independence practitioner. Reached FI himself and now helps others do the same through the podcast and community."}],
     relatedSlugs: ["affordanything","rationalreminder","moneyfortherestofus"],
-    aboutPodcast: "ChooseFI is hosted by Jonathan Mendonsa and Brad Barrett and covers the path to financial independence and early retirement. Each episode provides practical strategies for building wealth, optimizing taxes, and designing a life of freedom. Whether you're a longtime listener or discovering ChooseFI for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "ChooseFI is hosted by Jonathan Mendonsa and Brad Barrett and covers the path to financial independence and early retirement. Each episode provides practical strategies for building wealth, optimizing taxes, and designing a life of freedom. Whether you're a longtime listener or discovering ChooseFI for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "affordanything",
@@ -2301,7 +2301,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["The philosophy that 'you can afford anything, but not everything'","Paula Pant's expertise in real estate investing and financial independence","Blending money strategy with psychology and mindset","Frank, no-BS approach to personal finance decisions"],
     hostBios: [{"name":"Paula Pant","bio":"Real estate investor, financial independence advocate, and journalist. Owns multiple rental properties and retired from traditional work in her 30s through strategic investing and entrepreneurship."}],
     relatedSlugs: ["choosefi","moneyfortherestofus","biggerpockets"],
-    aboutPodcast: "Afford Anything is hosted by Paula Pant and explores how to make smart financial tradeoffs so you can afford what matters most. Each episode covers real estate investing, financial independence, and money mindset. Whether you're a longtime listener or discovering Afford Anything for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Afford Anything is hosted by Paula Pant and explores how to make smart financial tradeoffs so you can afford what matters most. Each episode covers real estate investing, financial independence, and money mindset. Whether you're a longtime listener or discovering Afford Anything for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "clarkhoward",
@@ -2320,7 +2320,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Decades of trusted consumer advice and money-saving tips","Clark's encyclopedic knowledge of credit cards, insurance, and deals","Helping listeners avoid scams and make smarter purchases","One of the most trusted voices in personal finance and consumer advocacy"],
     hostBios: [{"name":"Clark Howard","bio":"Consumer expert, bestselling author, and former talk radio host. Has spent decades helping millions of people save money and avoid getting ripped off."}],
     relatedSlugs: ["ramseyshow","affordanything","choosefi"],
-    aboutPodcast: "The Clark Howard Podcast is hosted by Clark Howard and covers saving money, consumer protection, and making smart financial decisions. Each episode helps listeners save money and avoid scams. Whether you're a longtime listener or discovering The Clark Howard Podcast for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Clark Howard Podcast is hosted by Clark Howard and covers saving money, consumer protection, and making smart financial decisions. Each episode helps listeners save money and avoid scams. Whether you're a longtime listener or discovering The Clark Howard Podcast for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "unhedged",
@@ -2339,7 +2339,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Sharp, witty analysis of financial markets from the Financial Times","Making Wall Street jargon accessible and entertaining","Quick, insightful episodes that cut through market noise","Produced by one of the world's most respected financial publications"],
     hostBios: [{"name":"Financial Times","bio":"Produced by the Financial Times' editorial team, featuring top FT journalists and columnists analyzing markets, economics, and global finance."}],
     relatedSlugs: ["oddlots","animalspirits","profgmarkets"],
-    aboutPodcast: "Unhedged is produced by the Financial Times and covers markets, finance, and economics with sharp analysis and wit. Each episode breaks down the biggest stories moving markets. Whether you're a longtime listener or discovering Unhedged for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Unhedged is produced by the Financial Times and covers markets, finance, and economics with sharp analysis and wit. Each episode breaks down the biggest stories moving markets. Whether you're a longtime listener or discovering Unhedged for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "intrinsicvalue",
@@ -2358,7 +2358,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Deep stock analysis using value investing principles","Breaking down Warren Buffett and Charlie Munger's investment strategies","Accessible explanations of company valuations and business models","Part of the respected Investor's Podcast Network"],
     hostBios: [{"name":"The Investor's Podcast Network","bio":"A leading podcast network focused on investing education, founded by Preston Pysh and Stig Brodersen, known for making complex investing concepts accessible."}],
     relatedSlugs: ["westudybillionaires","rationalreminder","moneyfortherestofus"],
-    aboutPodcast: "The Intrinsic Value Podcast from The Investor's Podcast Network covers value investing principles and in-depth stock analysis. Each episode breaks down company valuations and investing strategies. Whether you're a longtime listener or discovering The Intrinsic Value Podcast for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Intrinsic Value Podcast from The Investor's Podcast Network covers value investing principles and in-depth stock analysis. Each episode breaks down company valuations and investing strategies. Whether you're a longtime listener or discovering The Intrinsic Value Podcast for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "twimlai",
@@ -2377,7 +2377,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["In-depth interviews with leading AI researchers from Google, OpenAI, and top universities","Sam Charrington's ability to make complex ML topics accessible","Covering cutting-edge research papers and their practical implications","One of the longest-running and most respected AI podcasts"],
     hostBios: [{"name":"Sam Charrington","bio":"AI and machine learning industry analyst and host of one of the most respected AI podcasts. Known for his deep technical knowledge and ability to interview top researchers."}],
     relatedSlugs: ["latentspace","practicalai","cognitiverevolution"],
-    aboutPodcast: "TWIML AI Podcast is hosted by Sam Charrington and features interviews with top AI and machine learning researchers and practitioners. Each episode dives into the latest breakthroughs and practical applications of AI. Whether you're a longtime listener or discovering TWIML AI for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "TWIML AI Podcast is hosted by Sam Charrington and features interviews with top AI and machine learning researchers and practitioners. Each episode dives into the latest breakthroughs and practical applications of AI. Whether you're a longtime listener or discovering TWIML AI for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "latentspace",
@@ -2396,7 +2396,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Deep technical coverage of AI engineering and LLM applications","Interviews with founders and engineers building the AI stack","Covering the rapidly evolving AI infrastructure landscape","The go-to podcast for developers building with AI"],
     hostBios: [{"name":"swyx","bio":"Developer advocate, writer, and AI engineer. Known for his 'learning in public' philosophy and deep coverage of the AI engineering ecosystem."},{"name":"Alessio Fanelli","bio":"Partner at Decibel Partners, focusing on AI and developer tools investments. Brings an investor's perspective to AI engineering trends."}],
     relatedSlugs: ["twimlai","cognitiverevolution","practicalai"],
-    aboutPodcast: "Latent Space is hosted by Alessio Fanelli and swyx and covers the latest in AI engineering, LLMs, and AI infrastructure. Each episode provides deep technical insights for developers building with AI. Whether you're a longtime listener or discovering Latent Space for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Latent Space is hosted by Alessio Fanelli and swyx and covers the latest in AI engineering, LLMs, and AI infrastructure. Each episode provides deep technical insights for developers building with AI. Whether you're a longtime listener or discovering Latent Space for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "practicalai",
@@ -2415,7 +2415,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Making AI concepts practical and accessible for real-world applications","Covering the full AI lifecycle from data to deployment","Honest discussions about what AI can and can't do","Bridging the gap between AI research and practical implementation"],
     hostBios: [{"name":"Daniel Whitenack","bio":"Data scientist and AI consultant who helps organizations implement practical AI solutions. Known for making complex AI concepts accessible."},{"name":"Chris Benson","bio":"AI strategist and technologist focused on bringing AI capabilities to enterprise organizations."}],
     relatedSlugs: ["twimlai","latentspace","cognitiverevolution"],
-    aboutPodcast: "Practical AI is hosted by Daniel Whitenack and Chris Benson and focuses on making AI practical, productive, and accessible. Each episode covers real-world AI applications and implementation strategies. Whether you're a longtime listener or discovering Practical AI for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Practical AI is hosted by Daniel Whitenack and Chris Benson and focuses on making AI practical, productive, and accessible. Each episode covers real-world AI applications and implementation strategies. Whether you're a longtime listener or discovering Practical AI for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "eyeonai",
@@ -2434,7 +2434,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Interviews with top AI researchers and industry leaders","Craig Smith's journalistic approach to covering AI developments","Exploring both the promise and risks of artificial intelligence","Making technical AI topics accessible through great storytelling"],
     hostBios: [{"name":"Craig S. Smith","bio":"Former New York Times correspondent turned AI journalist. Brings decades of journalistic experience to covering the most important developments in artificial intelligence."}],
     relatedSlugs: ["twimlai","latentspace","aidailybrief"],
-    aboutPodcast: "Eye on AI is hosted by Craig S. Smith and features conversations with AI leaders about the technology reshaping our world. Each episode explores the latest AI developments and their implications. Whether you're a longtime listener or discovering Eye on AI for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Eye on AI is hosted by Craig S. Smith and features conversations with AI leaders about the technology reshaping our world. Each episode explores the latest AI developments and their implications. Whether you're a longtime listener or discovering Eye on AI for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "techmemeridehome",
@@ -2453,7 +2453,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["The daily tech news podcast that Silicon Valley listens to","Concise 15-minute recaps of the biggest tech stories each day","Brian McCullough's deep tech industry knowledge and analysis","The fastest way to stay current on technology news"],
     hostBios: [{"name":"Brian McCullough","bio":"Tech historian, author of How the Internet Happened, and host of the Internet History Podcast. Brings deep knowledge of tech industry history to daily news analysis."}],
     relatedSlugs: ["hardfork","thevergecast","decoder"],
-    aboutPodcast: "Techmeme Ride Home is hosted by Brian McCullough and delivers a daily 15-minute recap of the biggest tech news stories. Each episode is Silicon Valley's water cooler conversation. Whether you're a longtime listener or discovering Techmeme Ride Home for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Techmeme Ride Home is hosted by Brian McCullough and delivers a daily 15-minute recap of the biggest tech news stories. Each episode is Silicon Valley's water cooler conversation. Whether you're a longtime listener or discovering Techmeme Ride Home for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "pragmaticengineer",
@@ -2472,7 +2472,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Insider perspectives on engineering culture at big tech companies","Gergely Orosz's experience as a senior engineer at Uber and other tech companies","Deep analysis of engineering management practices and tech careers","One of the most popular engineering newsletters and podcasts"],
     hostBios: [{"name":"Gergely Orosz","bio":"Former senior engineer at Uber, Skype, and Microsoft. Author of the #1 tech newsletter The Pragmatic Engineer on Substack, reaching over 500,000 subscribers."}],
     relatedSlugs: ["dotnetrocks","moderncto","lennys"],
-    aboutPodcast: "The Pragmatic Engineer is hosted by Gergely Orosz and covers big tech and startup engineering culture from the inside. Each episode provides insights on engineering practices, management, and tech careers. Whether you're a longtime listener or discovering The Pragmatic Engineer for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Pragmatic Engineer is hosted by Gergely Orosz and covers big tech and startup engineering culture from the inside. Each episode provides insights on engineering practices, management, and tech careers. Whether you're a longtime listener or discovering The Pragmatic Engineer for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "cognitiverevolution",
@@ -2491,7 +2491,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Deep interviews with AI researchers and builders at the frontier","Covering AI safety and policy alongside technical developments","Nathan Labenz's hands-on experience as an AI power user","Exploring both the opportunities and risks of advancing AI"],
     hostBios: [{"name":"Nathan Labenz","bio":"AI advisor, entrepreneur, and one of the first power users of GPT-4. Known for his deep understanding of AI capabilities and thoughtful approach to AI safety."},{"name":"Erik Torenberg","bio":"Co-founder of Turpentine Media and former VP at Product Hunt. Brings a venture and startup perspective to AI coverage."}],
     relatedSlugs: ["latentspace","twimlai","aidailybrief"],
-    aboutPodcast: "Cognitive Revolution is hosted by Nathan Labenz and Erik Torenberg and features interviews with AI researchers, builders, and policymakers. Each episode explores the cutting edge of AI development and its implications. Whether you're a longtime listener or discovering Cognitive Revolution for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Cognitive Revolution is hosted by Nathan Labenz and Erik Torenberg and features interviews with AI researchers, builders, and policymakers. Each episode explores the cutting edge of AI development and its implications. Whether you're a longtime listener or discovering Cognitive Revolution for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "startalkradio",
@@ -2510,7 +2510,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Neil deGrasse Tyson's infectious enthusiasm for all things science","Blending science with pop culture, comedy, and celebrity guests","Making astrophysics and complex science entertaining and accessible","One of the most popular science podcasts in the world"],
     hostBios: [{"name":"Neil deGrasse Tyson","bio":"Astrophysicist, author, and science communicator. Director of the Hayden Planetarium, host of Cosmos, and one of the most recognized scientists in the world."}],
     relatedSlugs: ["sciencevs","sciencefriday","radiolab"],
-    aboutPodcast: "StarTalk Radio is hosted by Neil deGrasse Tyson and blends science with pop culture and comedy. Each episode makes astrophysics and scientific discovery entertaining and accessible. Whether you're a longtime listener or discovering StarTalk Radio for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "StarTalk Radio is hosted by Neil deGrasse Tyson and blends science with pop culture and comedy. Each episode makes astrophysics and scientific discovery entertaining and accessible. Whether you're a longtime listener or discovering StarTalk Radio for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "sciencevs",
@@ -2529,7 +2529,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Pitting popular beliefs against scientific evidence on hot-button topics","Wendy Zukerman's energetic, humorous approach to science communication","Rigorous research with a fun, accessible presentation","Tackling controversial topics like vaccines, GMOs, and climate change head-on"],
     hostBios: [{"name":"Wendy Zukerman","bio":"Science journalist and producer. Known for her thorough, evidence-based approach to tackling controversial topics with humor and clarity."}],
     relatedSlugs: ["sciencefriday","radiolab","startalkradio"],
-    aboutPodcast: "Science Vs is hosted by Wendy Zukerman and pits facts against popular opinion using rigorous science. Each episode tackles a controversial topic and separates fact from fiction. Whether you're a longtime listener or discovering Science Vs for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Science Vs is hosted by Wendy Zukerman and pits facts against popular opinion using rigorous science. Each episode tackles a controversial topic and separates fact from fiction. Whether you're a longtime listener or discovering Science Vs for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "sciencefriday",
@@ -2548,7 +2548,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["One of the longest-running science shows on American radio (since 1991)","Ira Flatow's legendary ability to make any science topic fascinating","Covering the full spectrum of science from biology to astrophysics","Listener call-ins and interactive science discussions"],
     hostBios: [{"name":"Ira Flatow","bio":"Veteran science journalist and broadcaster. Has been hosting Science Friday since 1991, making him one of the most experienced science communicators in media."}],
     relatedSlugs: ["sciencevs","radiolab","startalkradio"],
-    aboutPodcast: "Science Friday is hosted by Ira Flatow and covers science, technology, and the natural world through engaging conversations with researchers and experts. Each episode makes the latest scientific discoveries accessible. Whether you're a longtime listener or discovering Science Friday for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Science Friday is hosted by Ira Flatow and covers science, technology, and the natural world through engaging conversations with researchers and experts. Each episode makes the latest scientific discoveries accessible. Whether you're a longtime listener or discovering Science Friday for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "foundmyfitness",
@@ -2567,7 +2567,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Extremely detailed breakdowns of health and nutrition science","Dr. Rhonda Patrick's PhD-level analysis of supplements and nutrition","Making complex biochemistry and longevity research understandable","One of the most trusted voices in the health optimization space"],
     hostBios: [{"name":"Rhonda Patrick, Ph.D.","bio":"Biomedical scientist with a Ph.D. in biomedical science. Known for her rigorous, research-based approach to nutrition, health, and longevity."}],
     relatedSlugs: ["hubermanlab","peterattia","doctorsfarmacy"],
-    aboutPodcast: "FoundMyFitness is hosted by Dr. Rhonda Patrick and features deep dives into nutrition, health, and longevity science. Each episode breaks down the latest research on health optimization. Whether you're a longtime listener or discovering FoundMyFitness for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "FoundMyFitness is hosted by Dr. Rhonda Patrick and features deep dives into nutrition, health, and longevity science. Each episode breaks down the latest research on health optimization. Whether you're a longtime listener or discovering FoundMyFitness for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "doctorsfarmacy",
@@ -2586,7 +2586,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Dr. Mark Hyman's expertise in functional medicine and food as medicine","Interviews with leading health experts and doctors","Practical advice on using nutrition to prevent and reverse chronic disease","One of the most popular health podcasts globally"],
     hostBios: [{"name":"Mark Hyman, M.D.","bio":"Functional medicine physician, Head of Strategy and Innovation at the Cleveland Clinic Center for Functional Medicine, and bestselling author of over a dozen books on health and nutrition."}],
     relatedSlugs: ["foundmyfitness","hubermanlab","modelhealthshow"],
-    aboutPodcast: "The Doctor's Farmacy is hosted by Dr. Mark Hyman and covers functional medicine, nutrition, and radical health. Each episode explores how food and lifestyle can be the most powerful medicine. Whether you're a longtime listener or discovering The Doctor's Farmacy for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Doctor's Farmacy is hosted by Dr. Mark Hyman and covers functional medicine, nutrition, and radical health. Each episode explores how food and lifestyle can be the most powerful medicine. Whether you're a longtime listener or discovering The Doctor's Farmacy for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "modelhealthshow",
@@ -2605,7 +2605,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Shawn Stevenson's comprehensive approach to health covering sleep, nutrition, and fitness","The #1 health podcast on Apple Podcasts at multiple points","His bestselling book Sleep Smarter which started his health platform","Blending science-based health advice with inspiring personal stories"],
     hostBios: [{"name":"Shawn Stevenson","bio":"Bestselling author of Sleep Smarter, nutritionist, and health educator. Built The Model Health Show into one of the top health podcasts with millions of downloads."}],
     relatedSlugs: ["hubermanlab","foundmyfitness","doctorsfarmacy"],
-    aboutPodcast: "The Model Health Show is hosted by Shawn Stevenson and covers health, fitness, and nutrition to help you become the healthiest version of yourself. Each episode provides science-based strategies for optimal health. Whether you're a longtime listener or discovering The Model Health Show for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Model Health Show is hosted by Shawn Stevenson and covers health, fitness, and nutrition to help you become the healthiest version of yourself. Each episode provides science-based strategies for optimal health. Whether you're a longtime listener or discovering The Model Health Show for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "richroll",
@@ -2624,7 +2624,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Rich Roll's incredible personal transformation from addiction to ultra-endurance athlete","Long-form interviews that go deep on health, wellness, and human potential","Strong advocacy for plant-based nutrition and sustainable living","One of the top health and wellness podcasts globally"],
     hostBios: [{"name":"Rich Roll","bio":"Ultra-endurance athlete, author of Finding Ultra, and plant-based nutrition advocate. Transformed from a sedentary, overweight lawyer to one of the world's fittest men at age 40."}],
     relatedSlugs: ["hubermanlab","foundmyfitness","artofmanliness"],
-    aboutPodcast: "The Rich Roll Podcast is hosted by Rich Roll and features deep conversations about health, fitness, nutrition, and unlocking human potential. Each episode explores what it takes to live your best life. Whether you're a longtime listener or discovering Rich Roll Podcast for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Rich Roll Podcast is hosted by Rich Roll and features deep conversations about health, fitness, nutrition, and unlocking human potential. Each episode explores what it takes to live your best life. Whether you're a longtime listener or discovering Rich Roll Podcast for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "artofmanliness",
@@ -2643,7 +2643,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Broad coverage of skills, history, philosophy, and personal development","Brett McKay's thorough research and thoughtful interview style","Making timeless wisdom and practical skills relevant for modern life","One of the largest and most respected men's self-improvement platforms"],
     hostBios: [{"name":"Brett McKay","bio":"Founder of The Art of Manliness website and podcast. Author and journalist who has spent over 15 years researching and writing about personal development, history, and practical skills."}],
     relatedSlugs: ["jockopodcast","deepquestions","richroll"],
-    aboutPodcast: "The Art of Manliness is hosted by Brett McKay and covers the skills, habits, and knowledge needed for personal development and a well-lived life. Each episode explores topics from fitness and philosophy to history and practical skills. Whether you're a longtime listener or discovering The Art of Manliness for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Art of Manliness is hosted by Brett McKay and covers the skills, habits, and knowledge needed for personal development and a well-lived life. Each episode explores topics from fitness and philosophy to history and practical skills. Whether you're a longtime listener or discovering The Art of Manliness for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "happinesslab",
@@ -2662,7 +2662,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Based on Dr. Santos' famous Yale course 'The Science of Well-Being', the most popular class in Yale's history","Research-backed strategies for increasing happiness","Challenging misconceptions about what actually makes us happy","Making positive psychology research accessible and actionable"],
     hostBios: [{"name":"Dr. Laurie Santos","bio":"Professor of Psychology at Yale University and creator of 'The Science of Well-Being,' the most popular course in Yale's 300+ year history with over 4 million students on Coursera."}],
     relatedSlugs: ["hiddenbrain","worklife","tenpercenthappier"],
-    aboutPodcast: "The Happiness Lab is hosted by Dr. Laurie Santos and explores the science of happiness based on her famous Yale course. Each episode reveals what research actually shows about living a happier life. Whether you're a longtime listener or discovering The Happiness Lab for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Happiness Lab is hosted by Dr. Laurie Santos and explores the science of happiness based on her famous Yale course. Each episode reveals what research actually shows about living a happier life. Whether you're a longtime listener or discovering The Happiness Lab for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "deepquestions",
@@ -2681,7 +2681,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Cal Newport's frameworks for deep work and digital minimalism","Practical strategies for living a focused, intentional life","The concept of 'slow productivity' and lifestyle-centric career planning","Answering listener questions about work, technology, and life"],
     hostBios: [{"name":"Cal Newport","bio":"Georgetown University computer science professor and bestselling author of Deep Work, Digital Minimalism, and Slow Productivity. One of the leading thinkers on focus and technology in modern life."}],
     relatedSlugs: ["artofmanliness","onpurpose","optimallivingdaily"],
-    aboutPodcast: "Deep Questions is hosted by Cal Newport and explores how to live and work deeply in an increasingly distracted world. Each episode provides practical strategies for focus, productivity, and intentional living. Whether you're a longtime listener or discovering Deep Questions for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Deep Questions is hosted by Cal Newport and explores how to live and work deeply in an increasingly distracted world. Each episode provides practical strategies for focus, productivity, and intentional living. Whether you're a longtime listener or discovering Deep Questions for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "lifecoachschool",
@@ -2700,7 +2700,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Brooke Castillo's Self Coaching Model for managing your mind","Direct, no-excuses approach to personal development","Building one of the most successful life coaching businesses in the world","Practical tools for changing your thoughts, feelings, and results"],
     hostBios: [{"name":"Brooke Castillo","bio":"Founder and CEO of The Life Coach School, one of the largest life coach certification programs in the world. Pioneer of the Self Coaching Model and author of multiple self-help books."}],
     relatedSlugs: ["onpurpose","melrobbins","optimallivingdaily"],
-    aboutPodcast: "The Life Coach School Podcast is hosted by Brooke Castillo and covers life coaching tools for creating the life you want. Each episode provides practical techniques for managing your mind and achieving your goals. Whether you're a longtime listener or discovering The Life Coach School Podcast for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Life Coach School Podcast is hosted by Brooke Castillo and covers life coaching tools for creating the life you want. Each episode provides practical techniques for managing your mind and achieving your goals. Whether you're a longtime listener or discovering The Life Coach School Podcast for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "philosophizethis",
@@ -2719,7 +2719,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Making complex philosophical ideas accessible and entertaining","Stephen West's clear, engaging teaching style","Walking chronologically through the history of philosophy","One of the most popular philosophy podcasts in the world"],
     hostBios: [{"name":"Stephen West","bio":"Self-taught philosopher and educator who has made philosophy accessible to millions through his engaging, narrative-driven podcast format."}],
     relatedSlugs: ["makingsense","dailystoic","deepquestions"],
-    aboutPodcast: "Philosophize This! is hosted by Stephen West and makes philosophy accessible, interesting, and relevant to everyday life. Each episode explores a philosophical idea or thinker in a clear, engaging way. Whether you're a longtime listener or discovering Philosophize This! for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Philosophize This! is hosted by Stephen West and makes philosophy accessible, interesting, and relevant to everyday life. Each episode explores a philosophical idea or thinker in a clear, engaging way. Whether you're a longtime listener or discovering Philosophize This! for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "makingsense",
@@ -2738,7 +2738,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Deep, intellectually rigorous conversations on consciousness, AI, and morality","Sam Harris's background in neuroscience and philosophy","Tackling controversial topics with nuance and reason","One of the most influential intellectual podcasts globally"],
     hostBios: [{"name":"Sam Harris","bio":"Neuroscientist, philosopher, and bestselling author of The End of Faith, Free Will, and Waking Up. Creator of the Waking Up meditation app."}],
     relatedSlugs: ["philosophizethis","lexfridman","deepquestions"],
-    aboutPodcast: "Making Sense is hosted by Sam Harris and features conversations about the mind, society, and current events through the lens of neuroscience and philosophy. Each episode tackles complex topics with intellectual rigor. Whether you're a longtime listener or discovering Making Sense for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Making Sense is hosted by Sam Harris and features conversations about the mind, society, and current events through the lens of neuroscience and philosophy. Each episode tackles complex topics with intellectual rigor. Whether you're a longtime listener or discovering Making Sense for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "psychologypodcast",
@@ -2757,7 +2757,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["In-depth conversations with leading psychologists and researchers","Scott Barry Kaufman's expertise in creativity and human potential","Covering the full spectrum of psychology from clinical to positive","Making cutting-edge psychological research accessible"],
     hostBios: [{"name":"Scott Barry Kaufman","bio":"Cognitive scientist and humanistic psychologist at Columbia University. Author of Transcend and Wired to Create. Known for his research on intelligence, creativity, and human potential."}],
     relatedSlugs: ["hiddenbrain","happinesslab","makingsense"],
-    aboutPodcast: "The Psychology Podcast is hosted by Scott Barry Kaufman and explores the mind, brain, behavior, and creativity with leading psychologists. Each episode provides insights from the latest research in psychology. Whether you're a longtime listener or discovering The Psychology Podcast for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The Psychology Podcast is hosted by Scott Barry Kaufman and explores the mind, brain, behavior, and creativity with leading psychologists. Each episode provides insights from the latest research in psychology. Whether you're a longtime listener or discovering The Psychology Podcast for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "optimallivingdaily",
@@ -2776,7 +2776,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Daily narration of the best personal development blog posts and articles","Justin Malik curating and reading top self-improvement content","Short, daily episodes perfect for building a personal development habit","The flagship show of the Optimal Living Daily podcast network"],
     hostBios: [{"name":"Justin Malik","bio":"Curator and narrator who reads and selects the best personal development content from top authors and bloggers, delivering it in daily bite-sized audio episodes."}],
     relatedSlugs: ["deepquestions","lifecoachschool","onpurpose"],
-    aboutPodcast: "Optimal Living Daily is hosted by Justin Malik and narrates the best personal development and self-improvement content daily. Each episode delivers curated wisdom in under 10 minutes. Whether you're a longtime listener or discovering Optimal Living Daily for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Optimal Living Daily is hosted by Justin Malik and narrates the best personal development and self-improvement content daily. Each episode delivers curated wisdom in under 10 minutes. Whether you're a longtime listener or discovering Optimal Living Daily for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "oneyoufeed",
@@ -2795,7 +2795,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["The parable of the two wolves: you become what you feed","Eric Zimmer's own recovery story lending authenticity to conversations","Interviews with thought leaders on habits, mindfulness, and personal growth","Combining practical wisdom with deep, meaningful conversations"],
     hostBios: [{"name":"Eric Zimmer","bio":"Podcast host, behavior change coach, and person in long-term recovery from addiction. His personal transformation story informs his thoughtful, empathetic interviewing style."}],
     relatedSlugs: ["tenpercenthappier","happinesslab","deepquestions"],
-    aboutPodcast: "The One You Feed is hosted by Eric Zimmer and features conversations about creating a life worth living through habits, mindfulness, and resilience. Each episode explores practical strategies for personal growth. Whether you're a longtime listener or discovering The One You Feed for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "The One You Feed is hosted by Eric Zimmer and features conversations about creating a life worth living through habits, mindfulness, and resilience. Each episode explores practical strategies for personal growth. Whether you're a longtime listener or discovering The One You Feed for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "tenpercenthappier",
@@ -2814,7 +2814,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Making meditation accessible for skeptics and non-spiritual types","Dan Harris's honest, humorous approach to his own mindfulness journey","Interviews with leading meditation teachers and scientists","Based on his bestselling book about having a panic attack on live TV"],
     hostBios: [{"name":"Dan Harris","bio":"Former ABC News anchor who had a panic attack on live television, leading him to discover meditation. Author of 10% Happier and co-founder of the Ten Percent Happier app."}],
     relatedSlugs: ["happinesslab","oneyoufeed","onpurpose"],
-    aboutPodcast: "Ten Percent Happier is hosted by Dan Harris and covers meditation and mindfulness for skeptics. Each episode makes the case for meditation through science, humor, and honest conversation. Whether you're a longtime listener or discovering Ten Percent Happier for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways.",
+    aboutPodcast: "Ten Percent Happier is hosted by Dan Harris and covers meditation and mindfulness for skeptics. Each episode makes the case for meditation through science, humor, and honest conversation. Whether you're a longtime listener or discovering Ten Percent Happier for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways.",
   },
   {
     slug: "foundr-podcast-with-nathan-chan",
@@ -2840,7 +2840,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["founders","entrepreneursonfire","howibuiltthis"],
 
-    aboutPodcast: "Foundr Podcast with Nathan Chan is a podcast hosted by Nathan Chan and covering entrepreneurship topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Foundr Podcast with Nathan Chan or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Foundr Podcast with Nathan Chan is a podcast hosted by Nathan Chan and covering entrepreneurship topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Foundr Podcast with Nathan Chan or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "marketing-against-the-grain",
@@ -2866,7 +2866,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["marketingschool","social-media-marketing-podcast","foundr-podcast-with-nathan-chan"],
 
-    aboutPodcast: "Marketing Against the Grain is a podcast hosted by Kipp Bodnar, Kieran Flanagan and covering marketing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Marketing Against the Grain or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Marketing Against the Grain is a podcast hosted by Kipp Bodnar, Kieran Flanagan and covering marketing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Marketing Against the Grain or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "dtc-podcast",
@@ -2892,7 +2892,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["foundr-podcast-with-nathan-chan","marketing-against-the-grain","howibuiltthis"],
 
-    aboutPodcast: "DTC Podcast is a podcast hosted by Eric Dyck and covering marketing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of DTC Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "DTC Podcast is a podcast hosted by Eric Dyck and covering marketing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of DTC Podcast or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "logan-bartlett-show",
@@ -2918,7 +2918,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["thisweekinstartups","founders","invested-with-phil-and-danielle-town"],
 
-    aboutPodcast: "The Logan Bartlett Show is a podcast hosted by Logan Bartlett and covering venture capital topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Logan Bartlett Show or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Logan Bartlett Show is a podcast hosted by Logan Bartlett and covering venture capital topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Logan Bartlett Show or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "invested-with-phil-and-danielle-town",
@@ -2944,7 +2944,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["compound-and-friends","pomp-podcast","moneyfortherestofus"],
 
-    aboutPodcast: "InvestED with Phil & Danielle Town is a podcast hosted by Phil Town, Danielle Town and covering investing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of InvestED with Phil & Danielle Town or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "InvestED with Phil & Danielle Town is a podcast hosted by Phil Town, Danielle Town and covering investing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of InvestED with Phil & Danielle Town or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "compound-and-friends",
@@ -2970,7 +2970,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["invested-with-phil-and-danielle-town","real-vision-daily-briefing","pomp-podcast"],
 
-    aboutPodcast: "The Compound and Friends is a podcast hosted by Josh Brown, Michael Batnick and covering markets topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Compound and Friends or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Compound and Friends is a podcast hosted by Josh Brown, Michael Batnick and covering markets topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Compound and Friends or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "forward-thinking-investors",
@@ -2996,7 +2996,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["invested-with-phil-and-danielle-town","compound-and-friends","pomp-podcast"],
 
-    aboutPodcast: "Forward Thinking Investors is a podcast covering investing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Forward Thinking Investors or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Forward Thinking Investors is a podcast covering investing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Forward Thinking Investors or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "meb-faber-show",
@@ -3022,7 +3022,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["invested-with-phil-and-danielle-town","compound-and-friends","pomp-podcast"],
 
-    aboutPodcast: "Meb Faber Show is a podcast hosted by Meb Faber and covering investing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Meb Faber Show or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Meb Faber Show is a podcast hosted by Meb Faber and covering investing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Meb Faber Show or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "real-vision-daily-briefing",
@@ -3048,7 +3048,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["compound-and-friends","invested-with-phil-and-danielle-town","pomp-podcast"],
 
-    aboutPodcast: "Real Vision Daily Briefing is a podcast hosted by Raoul Pal and covering markets topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Real Vision Daily Briefing or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Real Vision Daily Briefing is a podcast hosted by Raoul Pal and covering markets topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Real Vision Daily Briefing or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "pomp-podcast",
@@ -3074,7 +3074,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["invested-with-phil-and-danielle-town","real-vision-daily-briefing","compound-and-friends"],
 
-    aboutPodcast: "The Pomp Podcast is a podcast hosted by Anthony Pompliano and covering crypto topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Pomp Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Pomp Podcast is a podcast hosted by Anthony Pompliano and covering crypto topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Pomp Podcast or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "unchained",
@@ -3100,7 +3100,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["bankless","ai-breakdown","gradient-dissent"],
 
-    aboutPodcast: "Unchained is a podcast hosted by Laura Shin and covering crypto topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Unchained or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Unchained is a podcast hosted by Laura Shin and covering crypto topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Unchained or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "bankless",
@@ -3126,7 +3126,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["unchained","ai-breakdown","gradient-dissent"],
 
-    aboutPodcast: "Bankless is a podcast hosted by Ryan Sean Adams, David Hoffman and covering crypto topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Bankless or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Bankless is a podcast hosted by Ryan Sean Adams, David Hoffman and covering crypto topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Bankless or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "ai-breakdown",
@@ -3152,7 +3152,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["no-priors","gradient-dissent","superdatascience-podcast"],
 
-    aboutPodcast: "The AI Breakdown is a podcast hosted by Nathaniel Whittemore and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The AI Breakdown or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The AI Breakdown is a podcast hosted by Nathaniel Whittemore and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The AI Breakdown or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "no-priors",
@@ -3178,7 +3178,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["ai-breakdown","gradient-dissent","superdatascience-podcast"],
 
-    aboutPodcast: "No Priors is a podcast hosted by Sarah Guo, Elad Gil and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of No Priors or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "No Priors is a podcast hosted by Sarah Guo, Elad Gil and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of No Priors or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "gradient-dissent",
@@ -3204,7 +3204,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["ai-breakdown","no-priors","superdatascience-podcast"],
 
-    aboutPodcast: "Gradient Dissent is a podcast hosted by Lukas Biewald and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Gradient Dissent or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Gradient Dissent is a podcast hosted by Lukas Biewald and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Gradient Dissent or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "software-engineering-daily",
@@ -3230,7 +3230,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["changelog","data-exchange-podcast","machine-learning-street-talk"],
 
-    aboutPodcast: "Software Engineering Daily is a podcast hosted by Sean Falconer and covering software engineering topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Software Engineering Daily or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Software Engineering Daily is a podcast hosted by Sean Falconer and covering software engineering topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Software Engineering Daily or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "changelog",
@@ -3256,7 +3256,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["software-engineering-daily","data-exchange-podcast","machine-learning-street-talk"],
 
-    aboutPodcast: "The Changelog is a podcast hosted by Adam Stacoviak, Jerod Santo and covering software development topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Changelog or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Changelog is a podcast hosted by Adam Stacoviak, Jerod Santo and covering software development topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Changelog or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "data-exchange-podcast",
@@ -3282,7 +3282,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["software-engineering-daily","changelog","superdatascience-podcast"],
 
-    aboutPodcast: "The Data Exchange Podcast is a podcast hosted by Ben Lorica and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Data Exchange Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Data Exchange Podcast is a podcast hosted by Ben Lorica and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Data Exchange Podcast or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "superdatascience-podcast",
@@ -3308,7 +3308,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["ai-breakdown","no-priors","gradient-dissent"],
 
-    aboutPodcast: "SuperDataScience Podcast is a podcast hosted by Jon Krohn and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of SuperDataScience Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "SuperDataScience Podcast is a podcast hosted by Jon Krohn and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of SuperDataScience Podcast or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "machine-learning-street-talk",
@@ -3334,7 +3334,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["gradient-dissent","ai-breakdown","superdatascience-podcast"],
 
-    aboutPodcast: "Machine Learning Street Talk is a podcast hosted by Tim Scarfe, Connor Shorten and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Machine Learning Street Talk or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Machine Learning Street Talk is a podcast hosted by Tim Scarfe, Connor Shorten and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Machine Learning Street Talk or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "future-of-life-institute-podcast",
@@ -3360,7 +3360,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["lexfridman","ai-breakdown","foundmyfitness"],
 
-    aboutPodcast: "Future of Life Institute Podcast is a podcast covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Future of Life Institute Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Future of Life Institute Podcast is a podcast covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Future of Life Institute Podcast or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "econtalk",
@@ -3386,7 +3386,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["macro-musings","freakonomics","theindicator"],
 
-    aboutPodcast: "EconTalk is a podcast hosted by Russ Roberts and covering economics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of EconTalk or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "EconTalk is a podcast hosted by Russ Roberts and covering economics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of EconTalk or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "macro-musings",
@@ -3412,7 +3412,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["econtalk","theindicator","investtalk"],
 
-    aboutPodcast: "Macro Musings is a podcast hosted by David Beckworth and covering economics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Macro Musings or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Macro Musings is a podcast hosted by David Beckworth and covering economics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Macro Musings or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "long-view",
@@ -3438,7 +3438,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["compound-insights","investtalk","mastersinbusiness"],
 
-    aboutPodcast: "The Long View is a podcast hosted by Christine Benz, Jeff Ptak and covering investing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Long View or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Long View is a podcast hosted by Christine Benz, Jeff Ptak and covering investing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Long View or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "compound-insights",
@@ -3464,7 +3464,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["long-view","investtalk","theindicator"],
 
-    aboutPodcast: "Compound Insights is a podcast hosted by Josh Brown and covering markets topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Compound Insights or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Compound Insights is a podcast hosted by Josh Brown and covering markets topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Compound Insights or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "art-of-investing",
@@ -3490,7 +3490,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["long-view","compound-insights","investtalk"],
 
-    aboutPodcast: "The Art of Investing is a podcast covering investing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Art of Investing or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Art of Investing is a podcast covering investing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Art of Investing or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "investtalk",
@@ -3516,7 +3516,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["macro-musings","long-view","compound-insights"],
 
-    aboutPodcast: "InvestTalk is a podcast hosted by Justin Klein, Luke Guerrero and covering investing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of InvestTalk or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "InvestTalk is a podcast hosted by Justin Klein, Luke Guerrero and covering investing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of InvestTalk or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "james-altucher-show",
@@ -3542,7 +3542,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["founders","howibuiltthis","myfirstmillion"],
 
-    aboutPodcast: "The James Altucher Show is a podcast hosted by James Altucher and covering entrepreneurship topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The James Altucher Show or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The James Altucher Show is a podcast hosted by James Altucher and covering entrepreneurship topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The James Altucher Show or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "startup-school-by-y-combinator",
@@ -3568,7 +3568,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["y-combinator-podcast","founders","howibuiltthis"],
 
-    aboutPodcast: "Startup School by Y Combinator is a podcast hosted by Y Combinator and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Startup School by Y Combinator or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Startup School by Y Combinator is a podcast hosted by Y Combinator and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Startup School by Y Combinator or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "y-combinator-podcast",
@@ -3594,7 +3594,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["startup-school-by-y-combinator","founders","howibuiltthis"],
 
-    aboutPodcast: "Y Combinator Podcast is a podcast hosted by Y Combinator and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Y Combinator Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Y Combinator Podcast is a podcast hosted by Y Combinator and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Y Combinator Podcast or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "indie-hackers-podcast",
@@ -3620,7 +3620,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["bootstrapped-founder","lean-startup-podcast","saas-revolution-show"],
 
-    aboutPodcast: "Indie Hackers Podcast is a podcast hosted by Courtland Allen and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Indie Hackers Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Indie Hackers Podcast is a podcast hosted by Courtland Allen and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Indie Hackers Podcast or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "bootstrapped-founder",
@@ -3646,7 +3646,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["indie-hackers-podcast","lean-startup-podcast","saas-revolution-show"],
 
-    aboutPodcast: "The Bootstrapped Founder is a podcast hosted by Arvid Kahl and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Bootstrapped Founder or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Bootstrapped Founder is a podcast hosted by Arvid Kahl and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Bootstrapped Founder or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "saas-revolution-show",
@@ -3672,7 +3672,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["indie-hackers-podcast","bootstrapped-founder","lean-startup-podcast"],
 
-    aboutPodcast: "SaaS Revolution Show is a podcast hosted by Alex Sherwood and covering saas topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of SaaS Revolution Show or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "SaaS Revolution Show is a podcast hosted by Alex Sherwood and covering saas topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of SaaS Revolution Show or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "product-thinking",
@@ -3698,7 +3698,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["product-podcast","build-with-maggie-crowley","lean-startup-podcast"],
 
-    aboutPodcast: "Product Thinking is a podcast hosted by Melissa Perri and covering product management topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Product Thinking or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Product Thinking is a podcast hosted by Melissa Perri and covering product management topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Product Thinking or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "product-podcast",
@@ -3724,7 +3724,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["product-thinking","build-with-maggie-crowley","lean-startup-podcast"],
 
-    aboutPodcast: "The Product Podcast is a podcast hosted by Product School and covering product management topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Product Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Product Podcast is a podcast hosted by Product School and covering product management topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Product Podcast or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "build-with-maggie-crowley",
@@ -3750,7 +3750,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["product-thinking","product-podcast","lean-startup-podcast"],
 
-    aboutPodcast: "Build with Maggie Crowley is a podcast hosted by Maggie Crowley and covering product management topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Build with Maggie Crowley or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Build with Maggie Crowley is a podcast hosted by Maggie Crowley and covering product management topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Build with Maggie Crowley or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "lean-startup-podcast",
@@ -3776,7 +3776,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["indie-hackers-podcast","bootstrapped-founder","saas-revolution-show"],
 
-    aboutPodcast: "The Lean Startup Podcast is a podcast hosted by Eric Ries and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Lean Startup Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Lean Startup Podcast is a podcast hosted by Eric Ries and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Lean Startup Podcast or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "strategy-skills-podcast",
@@ -3802,7 +3802,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["indie-hackers-podcast","lean-startup-podcast","saas-revolution-show"],
 
-    aboutPodcast: "The Strategy Skills Podcast is a podcast covering strategy topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Strategy Skills Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Strategy Skills Podcast is a podcast covering strategy topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Strategy Skills Podcast or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "exponential-view-with-azeem-azhar",
@@ -3828,7 +3828,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["product-thinking","lean-startup-podcast","saas-revolution-show"],
 
-    aboutPodcast: "Exponential View with Azeem Azhar is a podcast hosted by Azeem Azhar and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Exponential View with Azeem Azhar or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Exponential View with Azeem Azhar is a podcast hosted by Azeem Azhar and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Exponential View with Azeem Azhar or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "school-of-greatness",
@@ -3854,7 +3854,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["indie-hackers-podcast","lean-startup-podcast","saas-revolution-show"],
 
-    aboutPodcast: "The School of Greatness is a podcast hosted by Lewis Howes and covering personal development topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The School of Greatness or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The School of Greatness is a podcast hosted by Lewis Howes and covering personal development topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The School of Greatness or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "impact-theory",
@@ -3880,7 +3880,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["tony-robbins-podcast","mind-your-business-podcast","success-story"],
 
-    aboutPodcast: "Impact Theory is a podcast hosted by Tom Bilyeu and covering personal development topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Impact Theory or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Impact Theory is a podcast hosted by Tom Bilyeu and covering personal development topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Impact Theory or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "skinny-confidential-him-and-her-podcast",
@@ -3906,7 +3906,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["influencer-podcast","success-story","mind-your-business-podcast"],
 
-    aboutPodcast: "The Skinny Confidential Him & Her Podcast is a podcast hosted by Lauryn Bosstick, Michael Bosstick and covering lifestyle topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Skinny Confidential Him & Her Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Skinny Confidential Him & Her Podcast is a podcast hosted by Lauryn Bosstick, Michael Bosstick and covering lifestyle topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Skinny Confidential Him & Her Podcast or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "tony-robbins-podcast",
@@ -3932,7 +3932,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["impact-theory","success-story","mind-your-business-podcast"],
 
-    aboutPodcast: "The Tony Robbins Podcast is a podcast hosted by Tony Robbins and covering personal development topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Tony Robbins Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Tony Robbins Podcast is a podcast hosted by Tony Robbins and covering personal development topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Tony Robbins Podcast or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "online-marketing-made-easy",
@@ -3958,7 +3958,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["influencer-podcast","success-story","skinny-confidential-him-and-her-podcast"],
 
-    aboutPodcast: "Online Marketing Made Easy is a podcast hosted by Amy Porterfield and covering online marketing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Online Marketing Made Easy or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Online Marketing Made Easy is a podcast hosted by Amy Porterfield and covering online marketing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Online Marketing Made Easy or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "influencer-podcast",
@@ -3984,7 +3984,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["skinny-confidential-him-and-her-podcast","online-marketing-made-easy","success-story"],
 
-    aboutPodcast: "The Influencer Podcast is a podcast hosted by Julie Solomon and covering marketing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Influencer Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Influencer Podcast is a podcast hosted by Julie Solomon and covering marketing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Influencer Podcast or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "success-story",
@@ -4010,7 +4010,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["impact-theory","tony-robbins-podcast","mind-your-business-podcast"],
 
-    aboutPodcast: "Success Story is a podcast hosted by Scott D. Clary and covering entrepreneurship topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Success Story or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Success Story is a podcast hosted by Scott D. Clary and covering entrepreneurship topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Success Story or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "mind-your-business-podcast",
@@ -4036,7 +4036,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["tony-robbins-podcast","success-story","online-marketing-made-easy"],
 
-    aboutPodcast: "Mind Your Business Podcast is a podcast hosted by James Wedmore and covering online marketing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Mind Your Business Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Mind Your Business Podcast is a podcast hosted by James Wedmore and covering online marketing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Mind Your Business Podcast or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "social-proof",
@@ -4062,7 +4062,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["influencer-podcast","success-story","skinny-confidential-him-and-her-podcast"],
 
-    aboutPodcast: "Social Proof is a podcast hosted by David Shands, Donni Wiggins and covering entrepreneurship topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Social Proof or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Social Proof is a podcast hosted by David Shands, Donni Wiggins and covering entrepreneurship topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Social Proof or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "tbpn",
@@ -4088,7 +4088,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["thedaily","thevergecast","marketplace-tech"],
 
-    aboutPodcast: "TBPN is a podcast hosted by John Coogan, Jordi Hays and covering news topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of TBPN or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "TBPN is a podcast hosted by John Coogan, Jordi Hays and covering news topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of TBPN or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "daily-charge",
@@ -4114,7 +4114,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["tbpn","thevergecast","marketplace-tech"],
 
-    aboutPodcast: "The Daily Charge is a podcast hosted by CNET and covering news topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Daily Charge or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Daily Charge is a podcast hosted by CNET and covering news topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Daily Charge or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "accidental-tech-podcast",
@@ -4140,7 +4140,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["exponent","product-hunt-radio","marketplace-tech"],
 
-    aboutPodcast: "Accidental Tech Podcast is a podcast hosted by Marco Arment, Casey Liss, John Siracusa and covering apple topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Accidental Tech Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Accidental Tech Podcast is a podcast hosted by Marco Arment, Casey Liss, John Siracusa and covering apple topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Accidental Tech Podcast or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "bloomberg-technology",
@@ -4166,7 +4166,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["marketplace-tech","exponent","up-first"],
 
-    aboutPodcast: "Bloomberg Technology is a podcast hosted by Caroline Hyde and covering news topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Bloomberg Technology or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Bloomberg Technology is a podcast hosted by Caroline Hyde and covering news topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Bloomberg Technology or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "exponent",
@@ -4192,7 +4192,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["accidental-tech-podcast","information-411","marketplace-tech"],
 
-    aboutPodcast: "Exponent is a podcast hosted by Ben Thompson, James Allworth and covering business topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Exponent or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Exponent is a podcast hosted by Ben Thompson, James Allworth and covering business topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Exponent or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "marketplace-tech",
@@ -4218,7 +4218,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["bloomberg-technology","exponent","up-first"],
 
-    aboutPodcast: "Marketplace Tech is a podcast hosted by Lily Jamali and covering news topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Marketplace Tech or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Marketplace Tech is a podcast hosted by Lily Jamali and covering news topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Marketplace Tech or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "last-week-in-ai",
@@ -4244,7 +4244,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["ai-for-humans","exponent","product-hunt-radio"],
 
-    aboutPodcast: "Last Week in AI is a podcast hosted by Jeremie Harris, Andrey Kurenkov and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Last Week in AI or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Last Week in AI is a podcast hosted by Jeremie Harris, Andrey Kurenkov and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Last Week in AI or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "ai-for-humans",
@@ -4270,7 +4270,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["last-week-in-ai","exponent","marketplace-tech"],
 
-    aboutPodcast: "AI For Humans is a podcast hosted by Gavin Purcell, Kevin Pereira and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of AI For Humans or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "AI For Humans is a podcast hosted by Gavin Purcell, Kevin Pereira and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of AI For Humans or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "product-hunt-radio",
@@ -4296,7 +4296,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["exponent","accidental-tech-podcast","marketplace-tech"],
 
-    aboutPodcast: "Product Hunt Radio is a podcast hosted by Product Hunt and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Product Hunt Radio or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Product Hunt Radio is a podcast hosted by Product Hunt and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Product Hunt Radio or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "next-wave",
@@ -4322,7 +4322,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["last-week-in-ai","ai-for-humans","exponent"],
 
-    aboutPodcast: "The Next Wave is a podcast hosted by Matt Wolfe, Nathan Lands and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Next Wave or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Next Wave is a podcast hosted by Matt Wolfe, Nathan Lands and covering ai topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Next Wave or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "information-411",
@@ -4348,7 +4348,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["exponent","marketplace-tech","bloomberg-technology"],
 
-    aboutPodcast: "The Information 411 is a podcast hosted by The Information and covering business topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Information 411 or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Information 411 is a podcast hosted by The Information and covering business topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Information 411 or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "up-first",
@@ -4374,7 +4374,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["bloomberg-technology","marketplace-tech","exponent"],
 
-    aboutPodcast: "Up First is a podcast hosted by NPR and covering daily topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Up First or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Up First is a podcast hosted by NPR and covering daily topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Up First or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "today-explained",
@@ -4400,7 +4400,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["thedaily","cbs-mornings-on-the-go","global-news-podcast"],
 
-    aboutPodcast: "Today, Explained is a podcast hosted by Sean Rameswaram, Noel King and covering daily topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Today, Explained or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Today, Explained is a podcast hosted by Sean Rameswaram, Noel King and covering daily topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Today, Explained or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "nbc-nightly-news",
@@ -4426,7 +4426,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["abc-world-news-this-week","global-news-podcast","thedaily"],
 
-    aboutPodcast: "NBC Nightly News is a podcast hosted by Lester Holt and covering daily topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of NBC Nightly News or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "NBC Nightly News is a podcast hosted by Lester Holt and covering daily topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of NBC Nightly News or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "global-news-podcast",
@@ -4452,7 +4452,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["today-explained","thedaily","cbs-mornings-on-the-go"],
 
-    aboutPodcast: "Global News Podcast is a podcast hosted by BBC World Service and covering international topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Global News Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Global News Podcast is a podcast hosted by BBC World Service and covering international topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Global News Podcast or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "cbs-mornings-on-the-go",
@@ -4478,7 +4478,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["nbc-nightly-news","thedaily","global-news-podcast"],
 
-    aboutPodcast: "CBS Mornings on the Go is a podcast hosted by CBS News and covering daily topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of CBS Mornings on the Go or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "CBS Mornings on the Go is a podcast hosted by CBS News and covering daily topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of CBS Mornings on the Go or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "post-reports",
@@ -4504,7 +4504,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["thedaily","nbc-nightly-news","abc-world-news-this-week"],
 
-    aboutPodcast: "Post Reports is a podcast hosted by Washington Post and covering daily topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Post Reports or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Post Reports is a podcast hosted by Washington Post and covering daily topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Post Reports or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "abc-world-news-this-week",
@@ -4530,7 +4530,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["nbc-nightly-news","global-news-podcast","breaking-points"],
 
-    aboutPodcast: "ABC World News This Week is a podcast hosted by ABC News and covering weekly topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of ABC World News This Week or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "ABC World News This Week is a podcast hosted by ABC News and covering weekly topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of ABC World News This Week or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "economist-podcasts",
@@ -4556,7 +4556,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["breaking-points","theindicator","thejournal"],
 
-    aboutPodcast: "The Economist Podcasts is a podcast hosted by The Economist and covering business topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Economist Podcasts or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Economist Podcasts is a podcast hosted by The Economist and covering business topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Economist Podcasts or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "breaking-points",
@@ -4582,7 +4582,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["megyn-kelly-show","ben-shapiro-show","theindicator"],
 
-    aboutPodcast: "Breaking Points is a podcast hosted by Krystal Ball, Saagar Enjeti and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Breaking Points or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Breaking Points is a podcast hosted by Krystal Ball, Saagar Enjeti and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Breaking Points or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "megyn-kelly-show",
@@ -4608,7 +4608,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["breaking-points","ben-shapiro-show","theindicator"],
 
-    aboutPodcast: "The Megyn Kelly Show is a podcast hosted by Megyn Kelly and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Megyn Kelly Show or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Megyn Kelly Show is a podcast hosted by Megyn Kelly and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Megyn Kelly Show or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "ben-shapiro-show",
@@ -4634,7 +4634,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["megyn-kelly-show","breaking-points","theindicator"],
 
-    aboutPodcast: "The Ben Shapiro Show is a podcast hosted by Ben Shapiro and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Ben Shapiro Show or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Ben Shapiro Show is a podcast hosted by Ben Shapiro and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Ben Shapiro Show or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "stay-tuned-with-preet",
@@ -4660,7 +4660,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["democracy-now","young-turks","majority-report"],
 
-    aboutPodcast: "Stay Tuned with Preet is a podcast hosted by Preet Bharara and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Stay Tuned with Preet or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Stay Tuned with Preet is a podcast hosted by Preet Bharara and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Stay Tuned with Preet or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "majority-report",
@@ -4686,7 +4686,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["stay-tuned-with-preet","democracy-now","young-turks"],
 
-    aboutPodcast: "The Majority Report is a podcast hosted by Sam Seder and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Majority Report or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Majority Report is a podcast hosted by Sam Seder and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Majority Report or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "pucks-the-powers-that-be",
@@ -4712,7 +4712,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["majority-report","democracy-now","young-turks"],
 
-    aboutPodcast: "Puck's The Powers That Be is a podcast hosted by Puck and covering business topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Puck's The Powers That Be or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Puck's The Powers That Be is a podcast hosted by Puck and covering business topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Puck's The Powers That Be or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "gist",
@@ -4738,7 +4738,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["democracy-now","young-turks","majority-report"],
 
-    aboutPodcast: "The Gist is a podcast hosted by Mike Pesca and covering culture topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Gist or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Gist is a podcast hosted by Mike Pesca and covering culture topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Gist or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "democracy-now",
@@ -4764,7 +4764,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["stay-tuned-with-preet","majority-report","young-turks"],
 
-    aboutPodcast: "Democracy Now is a podcast hosted by Amy Goodman and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Democracy Now or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Democracy Now is a podcast hosted by Amy Goodman and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Democracy Now or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "rising",
@@ -4790,7 +4790,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["majority-report","stay-tuned-with-preet","young-turks"],
 
-    aboutPodcast: "Rising is a podcast hosted by The Hill and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Rising or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Rising is a podcast hosted by The Hill and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Rising or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "news-agents",
@@ -4816,7 +4816,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["stay-tuned-with-preet","majority-report","democracy-now"],
 
-    aboutPodcast: "The News Agents is a podcast hosted by Emily Maitlis, Jon Sopel, Lewis Goodall and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The News Agents or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The News Agents is a podcast hosted by Emily Maitlis, Jon Sopel, Lewis Goodall and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The News Agents or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "redacted",
@@ -4842,7 +4842,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["majority-report","stay-tuned-with-preet","democracy-now"],
 
-    aboutPodcast: "Redacted is a podcast hosted by Clayton Morris, Natali Morris and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Redacted or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Redacted is a podcast hosted by Clayton Morris, Natali Morris and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Redacted or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "citations-needed",
@@ -4868,7 +4868,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["stay-tuned-with-preet","majority-report","democracy-now"],
 
-    aboutPodcast: "Citations Needed is a podcast hosted by Nima Shirazi, Adam Johnson and covering media topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Citations Needed or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Citations Needed is a podcast hosted by Nima Shirazi, Adam Johnson and covering media topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Citations Needed or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "young-turks",
@@ -4894,7 +4894,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["stay-tuned-with-preet","majority-report","democracy-now"],
 
-    aboutPodcast: "The Young Turks is a podcast hosted by Cenk Uygur, Ana Kasparian and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Young Turks or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Young Turks is a podcast hosted by Cenk Uygur, Ana Kasparian and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Young Turks or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "daily-stoic",
@@ -4920,7 +4920,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["timferriss","howibuiltthis","hbrideacast"],
 
-    aboutPodcast: "The Daily Stoic is a podcast hosted by Ryan Holiday and covering self-improvement topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Daily Stoic or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Daily Stoic is a podcast hosted by Ryan Holiday and covering self-improvement topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Daily Stoic or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "rest-is-history",
@@ -4946,7 +4946,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["in-our-time","thisamericanlife","freakonomics"],
 
-    aboutPodcast: "The Rest is History is a podcast hosted by Tom Holland, Dominic Sandbrook and covering education topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Rest is History or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Rest is History is a podcast hosted by Tom Holland, Dominic Sandbrook and covering education topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Rest is History or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "choiceology-with-katy-milkman",
@@ -4972,7 +4972,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["no-stupid-questions","hiddenbrain","theindicator"],
 
-    aboutPodcast: "Choiceology with Katy Milkman is a podcast hosted by Katy Milkman and covering behavior topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Choiceology with Katy Milkman or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Choiceology with Katy Milkman is a podcast hosted by Katy Milkman and covering behavior topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Choiceology with Katy Milkman or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "no-stupid-questions",
@@ -4998,7 +4998,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["choiceology-with-katy-milkman","hiddenbrain","freakonomics"],
 
-    aboutPodcast: "No Stupid Questions is a podcast hosted by Angela Duckworth, Stephen Dubner and covering science topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of No Stupid Questions or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "No Stupid Questions is a podcast hosted by Angela Duckworth, Stephen Dubner and covering science topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of No Stupid Questions or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "99-invisible",
@@ -5024,7 +5024,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["stuffyoushouldknow","thevergecast","modernwisdom"],
 
-    aboutPodcast: "99% Invisible is a podcast hosted by Roman Mars and covering culture topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of 99% Invisible or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "99% Invisible is a podcast hosted by Roman Mars and covering culture topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of 99% Invisible or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "in-our-time",
@@ -5050,7 +5050,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["rest-is-history","freakonomics","thisamericanlife"],
 
-    aboutPodcast: "In Our Time is a podcast hosted by Melvyn Bragg and covering history topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of In Our Time or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "In Our Time is a podcast hosted by Melvyn Bragg and covering history topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of In Our Time or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "intelligence-from-the-economist",
@@ -5076,7 +5076,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["checks-and-balance","slate-money","thejournal"],
 
-    aboutPodcast: "The Intelligence from The Economist is a podcast hosted by The Economist and covering international topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Intelligence from The Economist or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Intelligence from The Economist is a podcast hosted by The Economist and covering international topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Intelligence from The Economist or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "checks-and-balance",
@@ -5102,7 +5102,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["intelligence-from-the-economist","slate-money","thejournal"],
 
-    aboutPodcast: "Checks and Balance is a podcast hosted by The Economist and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Checks and Balance or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Checks and Balance is a podcast hosted by The Economist and covering politics topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Checks and Balance or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "slate-money",
@@ -5128,7 +5128,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["intelligence-from-the-economist","white-coat-investor-podcast","thejournal"],
 
-    aboutPodcast: "Slate Money is a podcast hosted by Felix Salmon, Emily Peck, Elizabeth Spiers and covering business topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Slate Money or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Slate Money is a podcast hosted by Felix Salmon, Emily Peck, Elizabeth Spiers and covering business topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Slate Money or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "white-coat-investor-podcast",
@@ -5154,7 +5154,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["slate-money","theindicator","moneyfortherestofus"],
 
-    aboutPodcast: "The White Coat Investor Podcast is a podcast hosted by Jim Dahle and covering personal finance topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The White Coat Investor Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The White Coat Investor Podcast is a podcast hosted by Jim Dahle and covering personal finance topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The White Coat Investor Podcast or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "motley-fool-money",
@@ -5180,7 +5180,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["investtalk","moneyfortherestofus","financialaudit"],
 
-    aboutPodcast: "Motley Fool Money is a podcast hosted by The Motley Fool and covering investing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Motley Fool Money or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Motley Fool Money is a podcast hosted by The Motley Fool and covering investing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Motley Fool Money or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "marketing-book-podcast",
@@ -5206,7 +5206,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["social-media-marketing-podcast","marketing-against-the-grain","entrepreneursonfire"],
 
-    aboutPodcast: "The Marketing Book Podcast is a podcast hosted by Douglas Burdett and covering marketing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Marketing Book Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Marketing Book Podcast is a podcast hosted by Douglas Burdett and covering marketing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Marketing Book Podcast or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "social-media-marketing-podcast",
@@ -5232,7 +5232,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["marketing-book-podcast","influencer-podcast","online-marketing-made-easy"],
 
-    aboutPodcast: "Social Media Marketing Podcast is a podcast hosted by Michael Stelzner and covering marketing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Social Media Marketing Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Social Media Marketing Podcast is a podcast hosted by Michael Stelzner and covering marketing topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Social Media Marketing Podcast or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "ed-mylett-show",
@@ -5258,7 +5258,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["high-performance-podcast","impact-theory","school-of-greatness"],
 
-    aboutPodcast: "The Ed Mylett Show is a podcast hosted by Ed Mylett and covering personal development topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Ed Mylett Show or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Ed Mylett Show is a podcast hosted by Ed Mylett and covering personal development topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Ed Mylett Show or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "high-performance-podcast",
@@ -5284,7 +5284,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["ed-mylett-show","school-of-greatness","tony-robbins-podcast"],
 
-    aboutPodcast: "The High Performance Podcast is a podcast hosted by Jake Humphrey, Damian Hughes and covering performance topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The High Performance Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The High Performance Podcast is a podcast hosted by Jake Humphrey, Damian Hughes and covering performance topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The High Performance Podcast or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "rethinking-with-adam-grant",
@@ -5310,7 +5310,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["psychologypodcast","theindicator","hbrideacast"],
 
-    aboutPodcast: "ReThinking with Adam Grant is a podcast hosted by Adam Grant and covering behavior topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of ReThinking with Adam Grant or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "ReThinking with Adam Grant is a podcast hosted by Adam Grant and covering behavior topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of ReThinking with Adam Grant or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "startup-chat-with-steli-and-hiten",
@@ -5336,7 +5336,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["pitch","founders","thisweekinstartups"],
 
-    aboutPodcast: "The Startup Chat with Steli and Hiten is a podcast hosted by Steli Efti, Hiten Shah and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Startup Chat with Steli and Hiten or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Startup Chat with Steli and Hiten is a podcast hosted by Steli Efti, Hiten Shah and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Startup Chat with Steli and Hiten or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "pitch",
@@ -5362,7 +5362,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["startup-chat-with-steli-and-hiten","founders","thisweekinstartups"],
 
-    aboutPodcast: "The Pitch is a podcast hosted by Josh Muccio and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Pitch or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Pitch is a podcast hosted by Josh Muccio and covering startups topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Pitch or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "land-of-the-giants",
@@ -5388,7 +5388,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["thisweekinstartups","bigtechnology","marketplace-tech"],
 
-    aboutPodcast: "Land of the Giants is a podcast covering business topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Land of the Giants or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Land of the Giants is a podcast covering business topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Land of the Giants or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "you-are-not-so-smart",
@@ -5414,7 +5414,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["psychologypodcast","hiddenbrain","freakonomics"],
 
-    aboutPodcast: "You Are Not So Smart is a podcast hosted by David McRaney and covering science topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of You Are Not So Smart or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "You Are Not So Smart is a podcast hosted by David McRaney and covering science topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of You Are Not So Smart or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "intelligence-squared-u-s-debates",
@@ -5440,7 +5440,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["thejournal","hbrideacast","podsaveamerica"],
 
-    aboutPodcast: "Intelligence Squared U.S. Debates is a podcast hosted by John Donvan and covering debates topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Intelligence Squared U.S. Debates or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Intelligence Squared U.S. Debates is a podcast hosted by John Donvan and covering debates topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Intelligence Squared U.S. Debates or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "gray-area-with-sean-illing",
@@ -5466,7 +5466,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["theindicator","thisamericanlife","hiddenbrain"],
 
-    aboutPodcast: "The Gray Area with Sean Illing is a podcast hosted by Sean Illing and covering society & culture topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Gray Area with Sean Illing or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Gray Area with Sean Illing is a podcast hosted by Sean Illing and covering society & culture topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Gray Area with Sean Illing or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "lexicon-valley",
@@ -5492,7 +5492,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["howibuiltthis","stuffyoushouldknow","tedtalksdaily"],
 
-    aboutPodcast: "Lexicon Valley is a podcast hosted by John McWhorter and covering language topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Lexicon Valley or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "Lexicon Valley is a podcast hosted by John McWhorter and covering language topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of Lexicon Valley or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "skeptics-guide-to-the-universe",
@@ -5518,7 +5518,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["foundmyfitness","sciencefriday","freakonomics"],
 
-    aboutPodcast: "The Skeptics' Guide to the Universe is a podcast hosted by Steven Novella and covering education topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Skeptics' Guide to the Universe or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Skeptics' Guide to the Universe is a podcast hosted by Steven Novella and covering education topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Skeptics' Guide to the Universe or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "infinite-monkey-cage",
@@ -5544,7 +5544,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["foundmyfitness","sciencevs","skeptics-guide-to-the-universe"],
 
-    aboutPodcast: "The Infinite Monkey Cage is a podcast hosted by Brian Cox, Robin Ince and covering comedy topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Infinite Monkey Cage or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Infinite Monkey Cage is a podcast hosted by Brian Cox, Robin Ince and covering comedy topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The Infinite Monkey Cage or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "mckinsey-podcast",
@@ -5570,7 +5570,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["howibuiltthis","businessbreakdowns","mastersinbusiness"],
 
-    aboutPodcast: "The McKinsey Podcast is a podcast hosted by McKinsey & Company and covering strategy topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The McKinsey Podcast or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The McKinsey Podcast is a podcast hosted by McKinsey & Company and covering strategy topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of The McKinsey Podcast or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "no-bullshit-leadership",
@@ -5596,7 +5596,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["entreleadership","hbrideacast","jockopodcast"],
 
-    aboutPodcast: "No Bullshit Leadership is a podcast hosted by Martin G. Moore and covering leadership topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of No Bullshit Leadership or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "No Bullshit Leadership is a podcast hosted by Martin G. Moore and covering leadership topics. Each episode delivers expert perspectives and in-depth analysis. Whether you're a longtime listener of No Bullshit Leadership or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "goal-digger",
@@ -5622,7 +5622,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
 
     relatedSlugs: ["online-marketing-made-easy","amyporterfield","sidehustleshow"],
 
-    aboutPodcast: "The Goal Digger Podcast is hosted by Jenna Kutcher and covers entrepreneurship, online marketing, and building a life and business you love. Each episode delivers actionable strategies for growing an online business, mastering social media, and creating a purpose-driven brand. Whether you're a longtime listener of The Goal Digger Podcast or discovering Jenna Kutcher for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Goal Digger Podcast is hosted by Jenna Kutcher and covers entrepreneurship, online marketing, and building a life and business you love. Each episode delivers actionable strategies for growing an online business, mastering social media, and creating a purpose-driven brand. Whether you're a longtime listener of The Goal Digger Podcast or discovering Jenna Kutcher for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   },
   {
     slug: "daily-beans",
@@ -5641,7 +5641,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
     knownFor: ["Woman-led daily political news coverage with sharp legal analysis","Accessible breakdown of complex political and legal developments","Community-driven progressive news with humor and accountability reporting","Quick daily updates on government oversight and breaking political stories"],
     hostBios: [{"name":"Allison Gill","bio":"Allison Gill is a veteran, musician, and political commentator who previously hosted the Mueller, She Wrote podcast. She brings a unique perspective combining military service with sharp political analysis."},{"name":"Dana Goldberg","bio":"Dana Goldberg is a stand-up comedian and political commentator known for her sharp wit. She co-hosts The Daily Beans, bringing humor and accessibility to daily political news coverage."}],
     relatedSlugs: ["podsaveamerica","breaking-points","democracy-now"],
-    aboutPodcast: "The Daily Beans is a podcast hosted by Allison Gill and Dana Goldberg covering daily US political news and legal developments. Each episode delivers sharp analysis of government accountability and breaking political stories. Whether you're a longtime listener of The Daily Beans or discovering it for the first time, PodCap delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
+    aboutPodcast: "The Daily Beans is a podcast hosted by Allison Gill and Dana Goldberg covering daily US political news and legal developments. Each episode delivers sharp analysis of government accountability and breaking political stories. Whether you're a longtime listener of The Daily Beans or discovering it for the first time, PodRise delivers a concise summary of every new episode, so you never miss the key takeaways, even on your busiest days.",
   }
 ];
 

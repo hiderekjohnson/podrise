@@ -17,7 +17,7 @@ const ThemeContext = createContext<ThemeContextType>({
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
     if (typeof window !== "undefined") {
-      return (localStorage.getItem("podcap-theme") as Theme) || "light";
+      return (localStorage.getItem("podrise-theme") as Theme) || "light";
     }
     return "light";
   });
@@ -29,7 +29,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } else {
       root.classList.remove("dark");
     }
-    localStorage.setItem("podcap-theme", theme);
+    localStorage.setItem("podrise-theme", theme);
   }, [theme]);
 
   const setTheme = (t: Theme) => setThemeState(t);

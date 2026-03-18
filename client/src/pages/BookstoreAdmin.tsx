@@ -129,7 +129,7 @@ type ApiSource = "gb" | "ol" | "pc" | "amazon";
 const SOURCE_BADGES: Record<ApiSource, { label: string; color: string }> = {
   gb: { label: "Google Books", color: "bg-blue-50 text-blue-600 border-blue-200" },
   ol: { label: "Open Library", color: "bg-indigo-50 text-indigo-600 border-indigo-200" },
-  pc: { label: "PodCap", color: "bg-violet-50 text-violet-600 border-violet-200" },
+  pc: { label: "PodRise", color: "bg-violet-50 text-violet-600 border-violet-200" },
   amazon: { label: "Amazon", color: "bg-orange-50 text-orange-600 border-orange-200" },
 };
 
@@ -569,7 +569,7 @@ function BookDetail({ book: initialBook, onBack, onUpdate }: { book: BookEnrichm
               </div>
             )}
             <div className="flex items-center gap-2">
-              <a href={`/myfirstmillion/books/${book.slug}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-podcap">PodCap Page <ExternalLink className="w-3 h-3" /></a>
+              <a href={`/myfirstmillion/books/${book.slug}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-bold text-primary hover:underline" data-testid="link-book-podrise">PodRise Page <ExternalLink className="w-3 h-3" /></a>
               <SourceBadge source="pc" />
             </div>
           </div>

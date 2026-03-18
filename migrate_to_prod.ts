@@ -1,7 +1,7 @@
 import pg from "pg";
 
 const devPool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
-const PROD_URL = "https://podcap.io";
+const PROD_URL = "https://podrise.com";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD!;
 let COOKIE = "";
 

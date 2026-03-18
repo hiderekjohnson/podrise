@@ -6,7 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/Footer";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { PodRiseWordmark } from "@/components/PodRiseHeader";
 
 type PodcastOption = {
   slug: string;
@@ -53,7 +53,7 @@ export default function PodcasterClaim() {
       <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md" data-testid="nav-bar">
         <div className="max-w-6xl mx-auto flex items-center justify-between h-14 px-6">
           <Link href="/" data-testid="link-home">
-            <PodCapWordmark />
+            <PodRiseWordmark />
           </Link>
           <Link href="/we-heart-podcasters" className="text-[15px] font-display font-semibold text-muted-foreground hover:text-foreground transition-colors" data-testid="link-back-podcasters">
             For Podcasters
@@ -119,7 +119,7 @@ export default function PodcasterClaim() {
                         )}
                         <div className="flex-1 min-w-0">
                           <p className="text-[14px] font-display font-semibold truncate">{podcast.name}</p>
-                          <p className="text-[14px] text-muted-foreground truncate">podcap.io/podcasts/{podcast.slug}</p>
+                          <p className="text-[14px] text-muted-foreground truncate">podrise.com/podcasts/{podcast.slug}</p>
                         </div>
                         <ArrowRight className="w-4 h-4 text-muted-foreground/30 shrink-0" />
                       </button>

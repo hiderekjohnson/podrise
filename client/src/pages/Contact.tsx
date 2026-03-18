@@ -21,7 +21,7 @@ export default function Contact() {
       setMessage("");
     },
     onError: () => {
-      toast({ title: "Something went wrong", description: "Please try again or email us directly at support@podcap.io.", variant: "destructive" });
+      toast({ title: "Something went wrong", description: "Please try again or email us directly at support@podrise.com.", variant: "destructive" });
     },
   });
 
@@ -32,8 +32,8 @@ export default function Contact() {
   };
 
   useEffect(() => {
-    const title = "Contact PodCap — Questions, Feedback & Partnership Inquiries | PodCap";
-    const desc = "Reach the PodCap team for questions about podcast recaps, episode summaries, partnerships, or feature requests. We'd love to hear from you.";
+    const title = "Contact PodRise — Questions, Feedback & Partnership Inquiries | PodRise";
+    const desc = "Reach the PodRise team for questions about podcast recaps, episode summaries, partnerships, or feature requests. We'd love to hear from you.";
     document.title = title;
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
@@ -43,15 +43,15 @@ export default function Contact() {
     setMeta("name", "description", desc);
     setMeta("property", "og:title", title);
     setMeta("property", "og:description", desc);
-    setMeta("property", "og:url", "https://podcap.io/contact");
-    setMeta("property", "og:image", "https://podcap.io/og/og-podcasts.png");
+    setMeta("property", "og:url", "https://podrise.com/contact");
+    setMeta("property", "og:image", "https://podrise.com/og/og-podcasts.png");
     setMeta("name", "twitter:card", "summary_large_image");
     setMeta("name", "twitter:title", title);
     setMeta("name", "twitter:description", desc);
 
     let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!link) { link = document.createElement("link"); link.rel = "canonical"; document.head.appendChild(link); }
-    link.href = "https://podcap.io/contact";
+    link.href = "https://podrise.com/contact";
     return () => { if (link) link.remove(); };
   }, []);
 

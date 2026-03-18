@@ -25,7 +25,7 @@ function EnterpriseContactForm() {
       setSent(true);
     },
     onError: () => {
-      toast({ title: "Something went wrong", description: "Please try again or email us directly at hello@podcap.io.", variant: "destructive" });
+      toast({ title: "Something went wrong", description: "Please try again or email us directly at hello@podrise.com.", variant: "destructive" });
     },
   });
 
@@ -103,7 +103,7 @@ function EnterpriseContactForm() {
 
 export default function Enterprise() {
   useEffect(() => {
-    const title = "Enterprise Podcast Intelligence for Teams & Organizations | PodCap";
+    const title = "Enterprise Podcast Intelligence for Teams & Organizations | PodRise";
     const desc = "Custom podcast intelligence for your team. Automated briefings by industry, role, and topic — so everyone stays ahead without listening to a single episode.";
     document.title = title;
     const setMeta = (attr: string, key: string, content: string) => {
@@ -114,7 +114,7 @@ export default function Enterprise() {
     setMeta("name", "description", desc);
     setMeta("property", "og:title", title);
     setMeta("property", "og:description", desc);
-    setMeta("property", "og:url", "https://podcap.io/enterprise");
+    setMeta("property", "og:url", "https://podrise.com/enterprise");
     setMeta("property", "og:type", "website");
     setMeta("name", "twitter:card", "summary_large_image");
     setMeta("name", "twitter:title", title);
@@ -342,7 +342,7 @@ export default function Enterprise() {
           <div className="max-w-3xl mx-auto px-6">
             <div className="text-center mb-12">
               <h2 className="text-xl sm:text-2xl font-display font-bold tracking-[-0.02em] mb-3">
-                Who uses PodCap Enterprise
+                Who uses PodRise Enterprise
               </h2>
               <p className="text-[16px] text-muted-foreground max-w-xl mx-auto leading-relaxed">
                 Any team that needs to know what the smartest people in their industry are saying — without spending hours listening.

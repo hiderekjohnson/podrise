@@ -73,7 +73,7 @@ function highlightText(text: string, query: string) {
 
 function CopyLinkButton({ anchorId }: { anchorId: string }) {
   const [copied, setCopied] = useState(false);
-  const url = `https://podcap.io${window.location.pathname}#${anchorId}`;
+  const url = `https://podrise.com${window.location.pathname}#${anchorId}`;
 
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(url).then(() => {
@@ -208,9 +208,9 @@ export default function EpisodeTranscriptPage() {
 
   useEffect(() => {
     if (!meta) return;
-    const pageTitle = `${meta.episodeTitle} Full Transcript — ${meta.podcastName} | PodCap`;
+    const pageTitle = `${meta.episodeTitle} Full Transcript — ${meta.podcastName} | PodRise`;
     const pageDescription = `Read the full transcript of "${meta.episodeTitle}" from ${meta.podcastName}. Timestamped and searchable with direct links to any moment.`;
-    const canonicalUrl = `https://podcap.io/podcasts/${podcastSlug}/${episodeSlug}/transcript`;
+    const canonicalUrl = `https://podrise.com/podcasts/${podcastSlug}/${episodeSlug}/transcript`;
 
     document.title = pageTitle;
 
@@ -250,7 +250,7 @@ export default function EpisodeTranscriptPage() {
     canonical.href = canonicalUrl;
 
     return () => {
-      document.title = "PodCap | Daily Podcast Recaps from Your Favorite Shows";
+      document.title = "PodRise | Daily Podcast Recaps from Your Favorite Shows";
       if (canonical) canonical.remove();
     };
   }, [meta, podcastSlug, episodeSlug]);

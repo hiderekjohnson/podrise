@@ -42,7 +42,7 @@ const AD_FORMATS = [
   {
     icon: Megaphone,
     title: "Podcast Ad Spots",
-    description: "Audio and video ad placements within PodCap-produced podcast content. Reach engaged listeners in the medium they love most.",
+    description: "Audio and video ad placements within PodRise-produced podcast content. Reach engaged listeners in the medium they love most.",
     available: false,
   },
   {
@@ -63,7 +63,7 @@ const fadeUp = {
 
 export default function Advertise() {
   useEffect(() => {
-    document.title = "Advertise with PodCap — Reach Engaged Podcast Listeners at Scale | PodCap";
+    document.title = "Advertise with PodRise — Reach Engaged Podcast Listeners at Scale | PodRise";
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
@@ -71,19 +71,19 @@ export default function Advertise() {
     };
     const desc = "Reach podcast listeners through targeted email sponsorships. Precision targeting by podcast, role, industry, and interest — without selling user data.";
     setMeta("name", "description", desc);
-    setMeta("property", "og:title", "Advertise with PodCap — Reach Engaged Podcast Listeners at Scale | PodCap");
+    setMeta("property", "og:title", "Advertise with PodRise — Reach Engaged Podcast Listeners at Scale | PodRise");
     setMeta("property", "og:description", desc);
     setMeta("property", "og:type", "website");
-    setMeta("property", "og:url", "https://podcap.io/advertise");
-    setMeta("property", "og:image", "https://podcap.io/og/og-advertise.png");
+    setMeta("property", "og:url", "https://podrise.com/advertise");
+    setMeta("property", "og:image", "https://podrise.com/og/og-advertise.png");
     setMeta("name", "twitter:card", "summary_large_image");
-    setMeta("name", "twitter:title", "Advertise with PodCap — Reach Engaged Podcast Listeners at Scale | PodCap");
+    setMeta("name", "twitter:title", "Advertise with PodRise — Reach Engaged Podcast Listeners at Scale | PodRise");
     setMeta("name", "twitter:description", desc);
-    setMeta("name", "twitter:image", "https://podcap.io/og/og-advertise.png");
+    setMeta("name", "twitter:image", "https://podrise.com/og/og-advertise.png");
 
     let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!link) { link = document.createElement("link"); link.rel = "canonical"; document.head.appendChild(link); }
-    link.href = "https://podcap.io/advertise";
+    link.href = "https://podrise.com/advertise";
     return () => { if (link) link.remove(); };
   }, []);
 
@@ -107,11 +107,11 @@ export default function Advertise() {
             Reach the most engaged podcast listeners on the internet
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed mb-10">
-            PodCap readers are curious, ambitious professionals who start their day with podcast intelligence.
+            PodRise readers are curious, ambitious professionals who start their day with podcast intelligence.
             Put your brand in front of them with precision targeting they'll actually appreciate.
           </p>
           <a
-            href="mailto:advertise@podcap.io?subject=Advertising%20Inquiry"
+            href="mailto:advertise@podrise.com?subject=Advertising%20Inquiry"
             className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-primary text-white text-base font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:bg-primary/90 transition-all hover:-translate-y-0.5"
             data-testid="link-contact-advertising"
           >
@@ -121,7 +121,7 @@ export default function Advertise() {
         </motion.section>
 
 
-        <section className="max-w-4xl mx-auto px-4 sm:px-6 pb-20" data-testid="section-why-podcap">
+        <section className="max-w-4xl mx-auto px-4 sm:px-6 pb-20" data-testid="section-why-podrise">
           <motion.div
             className="text-center mb-12"
             initial={{ opacity: 0, y: 20 }}
@@ -130,7 +130,7 @@ export default function Advertise() {
             transition={{ duration: 0.5 }}
           >
             <h2 className="text-[1.35rem] sm:text-[1.6rem] font-display font-extrabold tracking-[-0.02em] mb-3" data-testid="text-why-title">
-              Why advertise with PodCap?
+              Why advertise with PodRise?
             </h2>
             <p className="text-base text-muted-foreground max-w-lg mx-auto">
               We know exactly what our readers care about — because they told us. Every user selects their podcasts, roles, industries, and interests when they sign up.
@@ -174,7 +174,7 @@ export default function Advertise() {
               We never sell your data
             </h2>
             <p className="text-base text-muted-foreground max-w-lg mx-auto leading-relaxed">
-              PodCap does not share personal information like names or emails with advertisers.
+              PodRise does not share personal information like names or emails with advertisers.
               Instead, we use the intelligence we have — which podcasts you follow, your role, your industry, and your interests — to show you offers that are genuinely relevant.
               Advertisers reach audience segments, not individuals. Your data stays with us.
             </p>
@@ -285,7 +285,7 @@ export default function Advertise() {
             </p>
             <div className="flex items-center justify-center gap-3 flex-wrap">
               <a
-                href="mailto:advertise@podcap.io?subject=Advertising%20Inquiry"
+                href="mailto:advertise@podrise.com?subject=Advertising%20Inquiry"
                 className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-primary text-white text-base font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:bg-primary/90 transition-all hover:-translate-y-0.5"
                 data-testid="link-cta-contact"
               >
@@ -297,7 +297,7 @@ export default function Advertise() {
                 className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl border border-black/[0.08] dark:border-white/[0.08] text-base font-bold hover:bg-accent/5 transition-all"
                 data-testid="link-learn-more"
               >
-                Learn About PodCap
+                Learn About PodRise
               </Link>
             </div>
           </motion.div>

@@ -8,8 +8,8 @@ import { DollarSign, BookOpen, ShoppingBag, Megaphone, CreditCard, Scale, Messag
 
 export default function Disclosure() {
   useEffect(() => {
-    const title = "How PodCap Makes Money — Affiliate Disclosure & Advertising Transparency | PodCap";
-    const desc = "PodCap earns revenue through affiliate links, paid advertising, and subscriptions. Nothing in the Shop can be paid for. Here is exactly how it works.";
+    const title = "How PodRise Makes Money — Affiliate Disclosure & Advertising Transparency | PodRise";
+    const desc = "PodRise earns revenue through affiliate links, paid advertising, and subscriptions. Nothing in the Shop can be paid for. Here is exactly how it works.";
     document.title = title;
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
@@ -20,16 +20,16 @@ export default function Disclosure() {
     setMeta("property", "og:title", title);
     setMeta("property", "og:description", desc);
     setMeta("property", "og:type", "website");
-    setMeta("property", "og:url", "https://podcap.io/disclosure");
-    setMeta("property", "og:image", "https://podcap.io/og/og-podcasts.png");
+    setMeta("property", "og:url", "https://podrise.com/disclosure");
+    setMeta("property", "og:image", "https://podrise.com/og/og-podcasts.png");
     setMeta("name", "twitter:card", "summary_large_image");
     setMeta("name", "twitter:title", title);
     setMeta("name", "twitter:description", desc);
-    setMeta("name", "twitter:image", "https://podcap.io/og/og-podcasts.png");
+    setMeta("name", "twitter:image", "https://podrise.com/og/og-podcasts.png");
 
     let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!link) { link = document.createElement("link"); link.rel = "canonical"; document.head.appendChild(link); }
-    link.href = "https://podcap.io/disclosure";
+    link.href = "https://podrise.com/disclosure";
 
     return () => { if (link) link.remove(); };
   }, []);
@@ -52,7 +52,7 @@ export default function Disclosure() {
             Disclosure
           </div>
           <h1 className="text-[1.75rem] sm:text-[2rem] md:text-[2.35rem] font-display font-extrabold tracking-[-0.03em] leading-[1.15] mb-5 max-w-2xl mx-auto" data-testid="text-hero-title">
-            How PodCap Makes Money
+            How PodRise Makes Money
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed" data-testid="text-opening-paragraph">
             Most disclosure pages are buried legalese nobody reads. We would rather just tell you how the business works. It takes two minutes and you will know exactly where our revenue comes from — and where it does not come from.
@@ -103,7 +103,7 @@ export default function Disclosure() {
 
           <div className="space-y-5 text-[17px] leading-[1.85] text-[#52525B] max-w-2xl">
             <p>
-              When you click a link in the <Link href="/shop" className="text-primary font-medium hover:underline" data-testid="link-shop-affiliate">Shop</Link> and make a purchase, PodCap may earn a small commission through Amazon Associates or other affiliate programs.
+              When you click a link in the <Link href="/shop" className="text-primary font-medium hover:underline" data-testid="link-shop-affiliate">Shop</Link> and make a purchase, PodRise may earn a small commission through Amazon Associates or other affiliate programs.
             </p>
             <p>
               The price you pay is identical to what you would pay going directly. We never mark anything up.
@@ -112,7 +112,7 @@ export default function Disclosure() {
               Affiliate commission rates have zero influence on rankings, placement, or what appears on the site. A product with no affiliate program still appears if podcasters recommend it enough.
             </p>
             <p>
-              Affiliate revenue helps keep PodCap free for everyone.
+              Affiliate revenue helps keep PodRise free for everyone.
             </p>
           </div>
         </motion.section>
@@ -143,19 +143,19 @@ export default function Disclosure() {
 
           <div className="space-y-5 text-[17px] leading-[1.85] text-[#52525B] max-w-2xl">
             <p>
-              PodCap runs paid advertisements. Brands can pay to have their products and services promoted to our audience. You can learn more on our <Link href="/advertise" className="text-primary font-medium hover:underline" data-testid="link-advertise-inline">advertising page</Link>.
+              PodRise runs paid advertisements. Brands can pay to have their products and services promoted to our audience. You can learn more on our <Link href="/advertise" className="text-primary font-medium hover:underline" data-testid="link-advertise-inline">advertising page</Link>.
             </p>
             <p>
               These paid ads appear in the newsletter, on <Link href="/industries" className="text-primary font-medium hover:underline" data-testid="link-industries-inline">industry</Link> and category pages, and in personalized briefings — never in the <Link href="/shop" className="text-primary font-medium hover:underline" data-testid="link-shop-advertising">Shop</Link>.
             </p>
             <p>
-              Every paid ad is written by PodCap in our voice, but it is always clearly labeled as sponsored. There is no ambiguity about what is an ad and what is not.
+              Every paid ad is written by PodRise in our voice, but it is always clearly labeled as sponsored. There is no ambiguity about what is an ad and what is not.
             </p>
             <p>
-              Advertisers cannot buy editorial coverage. What PodCap writes about a <Link href="/podcasts" className="text-primary font-medium hover:underline" data-testid="link-podcasts-advertising">podcast</Link>, episode, guest, or topic is never influenced by any advertiser relationship.
+              Advertisers cannot buy editorial coverage. What PodRise writes about a <Link href="/podcasts" className="text-primary font-medium hover:underline" data-testid="link-podcasts-advertising">podcast</Link>, episode, guest, or topic is never influenced by any advertiser relationship.
             </p>
             <p>
-              User trust is the most important asset PodCap has. Paid advertising exists to fund the product — it is never allowed to compromise the product.
+              User trust is the most important asset PodRise has. Paid advertising exists to fund the product — it is never allowed to compromise the product.
             </p>
           </div>
         </motion.section>
@@ -204,10 +204,10 @@ export default function Disclosure() {
 
           <div className="space-y-3 text-[14px] leading-[1.75] text-[#A1A1AA] max-w-2xl">
             <p>
-              PodCap participates in the Amazon Services LLC Associates Program, an affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to Amazon.com. PodCap may also participate in other affiliate programs.
+              PodRise participates in the Amazon Services LLC Associates Program, an affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to Amazon.com. PodRise may also participate in other affiliate programs.
             </p>
             <p>
-              Purchases made through affiliate links may earn PodCap a commission at no extra cost to the buyer.
+              Purchases made through affiliate links may earn PodRise a commission at no extra cost to the buyer.
             </p>
             <p>
               This page constitutes disclosure in accordance with the Federal Trade Commission's guidelines on the use of endorsements and testimonials in advertising (16 CFR Part 255).
@@ -236,7 +236,7 @@ export default function Disclosure() {
 
           <div className="space-y-4 text-[17px] leading-[1.85] text-[#52525B] max-w-2xl">
             <p>
-              If you ever want to know whether PodCap has a commercial relationship with something you see on the site, ask us directly. We will give you a straight answer.
+              If you ever want to know whether PodRise has a commercial relationship with something you see on the site, ask us directly. We will give you a straight answer.
             </p>
             <p>
               Reach us through our <Link href="/contact" className="text-primary font-medium hover:underline" data-testid="link-contact-page">contact page</Link> or <Link href="/support" className="text-primary font-medium hover:underline" data-testid="link-support-page">support page</Link>.

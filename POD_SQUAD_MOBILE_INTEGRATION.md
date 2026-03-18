@@ -1,6 +1,6 @@
 # Pod Squad Referral System — Mobile App Integration Guide
 
-This document contains everything needed to build the Pod Squad referral feature into the PodCap mobile app. The backend is fully built and ready — the mobile app just needs to call these API endpoints and handle deep links.
+This document contains everything needed to build the Pod Squad referral feature into the PodRise mobile app. The backend is fully built and ready — the mobile app just needs to call these API endpoints and handle deep links.
 
 ---
 
@@ -21,7 +21,7 @@ The Pod Squad is a Morning Brew-style referral program. Users get a unique refer
 
 All endpoints use the same backend as the rest of the app:
 ```
-https://podcap.io
+https://podrise.com
 ```
 
 Authentication uses JWT Bearer tokens (same as existing mobile auth):
@@ -44,13 +44,13 @@ Authorization: Bearer <access_token>
 ```json
 {
   "referralCode": "abc12345",
-  "referralLink": "https://podcap.io/r/abc12345",
+  "referralLink": "https://podrise.com/r/abc12345",
   "count": 7,
   "currentTier": {
     "id": 3,
     "threshold": 5,
-    "rewardName": "PodCap Premium — 1 Month Free",
-    "rewardDescription": "Unlock a free month of PodCap Premium with all features.",
+    "rewardName": "PodRise Premium — 1 Month Free",
+    "rewardDescription": "Unlock a free month of PodRise Premium with all features.",
     "imageUrl": null,
     "sortOrder": 2,
     "active": true
@@ -58,8 +58,8 @@ Authorization: Bearer <access_token>
   "nextTier": {
     "id": 4,
     "threshold": 10,
-    "rewardName": "PodCap Mug",
-    "rewardDescription": "A sleek PodCap-branded ceramic mug.",
+    "rewardName": "PodRise Mug",
+    "rewardDescription": "A sleek PodRise-branded ceramic mug.",
     "imageUrl": null,
     "sortOrder": 3,
     "active": true
@@ -69,7 +69,7 @@ Authorization: Bearer <access_token>
       "id": 1,
       "threshold": 3,
       "rewardName": "Exclusive Sticker Pack",
-      "rewardDescription": "A set of premium PodCap stickers.",
+      "rewardDescription": "A set of premium PodRise stickers.",
       "imageUrl": null,
       "sortOrder": 1,
       "active": true
@@ -140,7 +140,7 @@ Content-Type: application/json
 - `401`: `{ "message": "Not authenticated" }`
 
 **Notes:**
-- Sends a branded HTML invitation email from PodCap on behalf of the user
+- Sends a branded HTML invitation email from PodRise on behalf of the user
 - The email includes the user's referral link and their display name
 
 ---
@@ -171,14 +171,14 @@ Content-Type: application/json
 
 Referral links have the format:
 ```
-https://podcap.io/r/{code}
+https://podrise.com/r/{code}
 ```
 
-Example: `https://podcap.io/r/abc12345`
+Example: `https://podrise.com/r/abc12345`
 
 ### What the Mobile App Needs to Do:
 
-1. **Register a Universal Link / App Link** for `podcap.io/r/*` paths
+1. **Register a Universal Link / App Link** for `podrise.com/r/*` paths
 2. **When the app opens via a referral link:**
    - Extract the referral code from the URL path (the part after `/r/`)
    - Persist it locally (UserDefaults on iOS, SharedPreferences on Android, AsyncStorage in React Native)
@@ -187,17 +187,17 @@ Example: `https://podcap.io/r/abc12345`
    - Include it as `referralCode` in the registration request body
    - Clear it from local storage after successful registration
 4. **If the app is not installed:**
-   - The web fallback already handles this — `podcap.io/r/{code}` stores the code in a web session cookie and redirects to `/register`
+   - The web fallback already handles this — `podrise.com/r/{code}` stores the code in a web session cookie and redirects to `/register`
 
 ### iOS Universal Links Setup:
-Add to your `apple-app-site-association` file on `podcap.io`:
+Add to your `apple-app-site-association` file on `podrise.com`:
 ```json
 {
   "applinks": {
     "apps": [],
     "details": [
       {
-        "appID": "TEAM_ID.com.podcap.app",
+        "appID": "TEAM_ID.com.podrise.app",
         "paths": ["/r/*"]
       }
     ]
@@ -206,13 +206,13 @@ Add to your `apple-app-site-association` file on `podcap.io`:
 ```
 
 ### Android App Links Setup:
-Add to your `assetlinks.json` on `podcap.io`:
+Add to your `assetlinks.json` on `podrise.com`:
 ```json
 [{
   "relation": ["delegate_permission/common.handle_all_urls"],
   "target": {
     "namespace": "android_app",
-    "package_name": "com.podcap.app",
+    "package_name": "com.podrise.app",
     "sha256_cert_fingerprints": ["YOUR_CERT_FINGERPRINT"]
   }
 }]
@@ -226,34 +226,34 @@ The mobile app should use the **native share sheet** as the primary sharing mech
 
 ### Share Text Template:
 ```
-I've been using PodCap to get AI-powered podcast summaries and it's awesome. Check it out! https://podcap.io/r/{referralCode}
+I've been using PodRise to get AI-powered podcast summaries and it's awesome. Check it out! https://podrise.com/r/{referralCode}
 ```
 
 ### Channel-Specific URLs:
 
 **SMS:**
 ```
-sms:?body=I've been using PodCap to get AI-powered podcast summaries and it's awesome. Check it out! https://podcap.io/r/{code}
+sms:?body=I've been using PodRise to get AI-powered podcast summaries and it's awesome. Check it out! https://podrise.com/r/{code}
 ```
 
 **WhatsApp:**
 ```
-https://wa.me/?text=I've been using PodCap to get AI-powered podcast summaries and it's awesome. Check it out! https://podcap.io/r/{code}
+https://wa.me/?text=I've been using PodRise to get AI-powered podcast summaries and it's awesome. Check it out! https://podrise.com/r/{code}
 ```
 
 **Twitter/X:**
 ```
-https://twitter.com/intent/tweet?text=I've been using PodCap to get AI-powered podcast summaries and it's awesome. Check it out!&url=https://podcap.io/r/{code}
+https://twitter.com/intent/tweet?text=I've been using PodRise to get AI-powered podcast summaries and it's awesome. Check it out!&url=https://podrise.com/r/{code}
 ```
 
 **LinkedIn:**
 ```
-https://www.linkedin.com/sharing/share-offsite/?url=https://podcap.io/r/{code}
+https://www.linkedin.com/sharing/share-offsite/?url=https://podrise.com/r/{code}
 ```
 
 **Facebook:**
 ```
-https://www.facebook.com/sharer/sharer.php?u=https://podcap.io/r/{code}
+https://www.facebook.com/sharer/sharer.php?u=https://podrise.com/r/{code}
 ```
 
 **Remember:** URL-encode the text content when constructing these URLs.
@@ -326,12 +326,12 @@ These are the 7 default tiers seeded in the database. Always use the `tiers` arr
 
 | Referrals | Reward | Description |
 |-----------|--------|-------------|
-| 3 | Exclusive Sticker Pack | A set of premium PodCap stickers |
-| 5 | PodCap Premium — 1 Month Free | Unlock a free month of PodCap Premium with all features |
-| 10 | PodCap Mug | A sleek PodCap-branded ceramic mug |
-| 15 | Limited Edition T-Shirt | PodCap crew-neck tee, limited run |
+| 3 | Exclusive Sticker Pack | A set of premium PodRise stickers |
+| 5 | PodRise Premium — 1 Month Free | Unlock a free month of PodRise Premium with all features |
+| 10 | PodRise Mug | A sleek PodRise-branded ceramic mug |
+| 15 | Limited Edition T-Shirt | PodRise crew-neck tee, limited run |
 | 25 | AirPods Pro | Top-tier audio for a top-tier referrer |
-| 50 | Annual Premium Membership | A full year of PodCap Premium, on us |
+| 50 | Annual Premium Membership | A full year of PodRise Premium, on us |
 | 100 | VIP Experience Package | Exclusive VIP access and premium perks |
 
 ---
@@ -340,7 +340,7 @@ These are the 7 default tiers seeded in the database. Always use the `tiers` arr
 
 If the user is not logged in, the Pod Squad screen should show:
 - The Pod Squad icon and title
-- A message: "Sign up or log in to start earning rewards by sharing PodCap with friends."
+- A message: "Sign up or log in to start earning rewards by sharing PodRise with friends."
 - "Sign Up" and "Log In" buttons
 
 ---
@@ -380,7 +380,7 @@ interface LeaderboardEntry {
 
 ## Implementation Checklist
 
-- [ ] Deep link handler for `podcap.io/r/*` URLs
+- [ ] Deep link handler for `podrise.com/r/*` URLs
 - [ ] Local storage for referral code persistence (survives app close)
 - [ ] Pass `referralCode` in `POST /api/mobile/auth/register` body
 - [ ] Pod Squad screen with hero banner, share section, tiers, leaderboard

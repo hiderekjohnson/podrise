@@ -1,7 +1,7 @@
-# PodCap - Daily Podcast Digest
+# PodRise - Daily Podcast Digest
 
 ## Overview
-PodCap is a full-stack web application designed to provide personalized daily podcast digest subscriptions. It enables users to manage their podcast selections, receive AI-generated recaps, and access detailed episode information. The project aims to simplify podcast discovery, deliver personalized audio content, and enhance user engagement, aspiring to become a leading platform in the personalized podcast consumption market. Key capabilities include AI-powered content summarization, personalized recommendations, and a comprehensive admin suite for content and user management.
+PodRise is a full-stack web application designed to provide personalized daily podcast digest subscriptions. It enables users to manage their podcast selections, receive AI-generated recaps, and access detailed episode information. The project aims to simplify podcast discovery, deliver personalized audio content, and enhance user engagement, aspiring to become a leading platform in the personalized podcast consumption market. Key capabilities include AI-powered content summarization, personalized recommendations, and a comprehensive admin suite for content and user management.
 
 ## User Preferences
 - **User Data Safety**: NEVER bulk-delete user accounts. All user accounts are real users. Only delete individual accounts via the admin panel delete button (with confirmation). The 8 core user accounts are: ss@contactsheet.org, johnsonjessicanoel@gmail.com, hiderekjohnson@gmail.com, kpfitz@gmail.com, alexdmitt@gmail.com, brissonemail@gmail.com, badonnelly84@gmail.com, ru1@mac.com

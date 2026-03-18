@@ -18,59 +18,59 @@ const STATIC_PAGES: Record<string, PageMeta | (() => PageMeta)> = {
     const topPodcasts = PODCAST_SEO.slice(0, 30);
     const podcastLinks = topPodcasts.map(p => `<li><a href="/podcasts/${escapeAttr(p.slug)}">${escapeAttr(p.name)}</a></li>`).join("");
     return {
-      title: "PodCap - AI-Powered Podcast Intelligence Platform",
+      title: "PodRise - AI-Powered Podcast Intelligence Platform",
       description: "Get free AI-powered daily recaps for 240+ top podcasts. Episode summaries, key insights, notable quotes, and trending topics delivered to your inbox.",
-      image: "https://podcap.io/favicon.png",
-      url: "https://podcap.io",
+      image: "https://podrise.com/favicon.png",
+      url: "https://podrise.com",
       twitterCard: "summary",
       replaceFavicon: false,
-      ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodCap - Podcast Intelligence Platform</h1><p>AI-powered daily recaps for ${PODCAST_SEO.length}+ top podcasts. Get episode summaries, key insights, notable quotes, and trending topics.</p><nav><ul style="display:flex;gap:16px;list-style:none;padding:0;"><li><a href="/podcasts">All Podcasts</a></li><li><a href="/people">People</a></li><li><a href="/companies">Companies</a></li><li><a href="/insights">Insights</a></li><li><a href="/shop">Shop</a></li></ul></nav><h2>Featured Podcasts</h2><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${podcastLinks}</ul></div>`,
+      ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodRise - Podcast Intelligence Platform</h1><p>AI-powered daily recaps for ${PODCAST_SEO.length}+ top podcasts. Get episode summaries, key insights, notable quotes, and trending topics.</p><nav><ul style="display:flex;gap:16px;list-style:none;padding:0;"><li><a href="/podcasts">All Podcasts</a></li><li><a href="/people">People</a></li><li><a href="/companies">Companies</a></li><li><a href="/insights">Insights</a></li><li><a href="/shop">Shop</a></li></ul></nav><h2>Featured Podcasts</h2><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${podcastLinks}</ul></div>`,
     };
   },
   "/contact": {
-    title: "Contact Us - PodCap | Daily Podcast Summaries",
-    description: "Get in touch with the PodCap team. Questions, feedback, or just want to say hello - we'd love to hear from you.",
-    image: "https://podcap.io/favicon.png",
-    url: "https://podcap.io/contact",
+    title: "Contact Us - PodRise | Daily Podcast Summaries",
+    description: "Get in touch with the PodRise team. Questions, feedback, or just want to say hello - we'd love to hear from you.",
+    image: "https://podrise.com/favicon.png",
+    url: "https://podrise.com/contact",
     twitterCard: "summary",
     replaceFavicon: false,
-    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Contact PodCap</h1><p>Have questions, feedback, or just want to say hello? We'd love to hear from you.</p><p>Email: <a href="mailto:hello@podcap.io">hello@podcap.io</a></p><a href="/">Back to Home</a></div>`,
+    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Contact PodRise</h1><p>Have questions, feedback, or just want to say hello? We'd love to hear from you.</p><p>Email: <a href="mailto:hello@podrise.com">hello@podrise.com</a></p><a href="/">Back to Home</a></div>`,
   },
   "/about": {
-    title: "About PodCap - The Intelligence Layer for Podcasts",
-    description: "PodCap is the intelligence layer on top of podcasts. We monitor hundreds of the world's top shows and deliver structured briefings so you always know what the smartest people in your industry are talking about.",
-    image: "https://podcap.io/favicon.png",
-    url: "https://podcap.io/about",
+    title: "About PodRise - The Intelligence Layer for Podcasts",
+    description: "PodRise is the intelligence layer on top of podcasts. We monitor hundreds of the world's top shows and deliver structured briefings so you always know what the smartest people in your industry are talking about.",
+    image: "https://podrise.com/favicon.png",
+    url: "https://podrise.com/about",
     twitterCard: "summary",
     replaceFavicon: false,
-    ssrHtml: `<article style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>About PodCap</h1><p>PodCap is the intelligence layer on top of podcasts. We monitor hundreds of the world's top shows and deliver structured briefings so you always know what the smartest people in your industry are talking about.</p><p>PodCap provides AI-powered recaps for 240+ top podcasts, delivering key insights, notable quotes, and actionable takeaways to your inbox every morning.</p><a href="/">Back to Home</a></article>`,
+    ssrHtml: `<article style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>About PodRise</h1><p>PodRise is the intelligence layer on top of podcasts. We monitor hundreds of the world's top shows and deliver structured briefings so you always know what the smartest people in your industry are talking about.</p><p>PodRise provides AI-powered recaps for 240+ top podcasts, delivering key insights, notable quotes, and actionable takeaways to your inbox every morning.</p><a href="/">Back to Home</a></article>`,
   },
   "/advertise": {
-    title: "Advertise with PodCap - Reach Podcast Listeners at Scale",
-    description: "Reach highly engaged podcast listeners through targeted email sponsorships. PodCap delivers precision targeting by podcast, role, industry, and interest — without selling user data.",
-    image: "https://podcap.io/favicon.png",
-    url: "https://podcap.io/advertise",
+    title: "Advertise with PodRise - Reach Podcast Listeners at Scale",
+    description: "Reach highly engaged podcast listeners through targeted email sponsorships. PodRise delivers precision targeting by podcast, role, industry, and interest — without selling user data.",
+    image: "https://podrise.com/favicon.png",
+    url: "https://podrise.com/advertise",
     twitterCard: "summary",
     replaceFavicon: false,
-    ssrHtml: `<article style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Advertise with PodCap</h1><p>Reach highly engaged podcast listeners through targeted email sponsorships. PodCap delivers precision targeting by podcast, role, industry, and interest — without selling user data.</p><h2>Targeting Options</h2><ul><li>Podcast Preferences</li><li>Professional Roles</li><li>Industries</li><li>Interest Categories</li></ul><h2>Ad Formats</h2><ul><li>Sponsored Email Placements (Available Now)</li><li>Podcast Ad Spots (Coming Soon)</li><li>Website Sponsorships (Coming Soon)</li></ul><p>Contact: <a href="mailto:advertise@podcap.io">advertise@podcap.io</a></p><a href="/">Back to Home</a></article>`,
+    ssrHtml: `<article style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Advertise with PodRise</h1><p>Reach highly engaged podcast listeners through targeted email sponsorships. PodRise delivers precision targeting by podcast, role, industry, and interest — without selling user data.</p><h2>Targeting Options</h2><ul><li>Podcast Preferences</li><li>Professional Roles</li><li>Industries</li><li>Interest Categories</li></ul><h2>Ad Formats</h2><ul><li>Sponsored Email Placements (Available Now)</li><li>Podcast Ad Spots (Coming Soon)</li><li>Website Sponsorships (Coming Soon)</li></ul><p>Contact: <a href="mailto:advertise@podrise.com">advertise@podrise.com</a></p><a href="/">Back to Home</a></article>`,
   },
   "/leaderboard": () => {
     const podcastLinks = PODCAST_SEO.slice(0, 50).map((p, i) => `<li>${i + 1}. <a href="/podcasts/${escapeAttr(p.slug)}">${escapeAttr(p.name)}</a></li>`).join("");
     return {
-      title: "PodCap Leaderboard - Most Popular Podcasts",
-      description: "See which podcasts are trending on PodCap. Discover the most popular shows and create your own free daily AI-powered recap.",
-      image: "https://podcap.io/favicon.png",
-      url: "https://podcap.io/leaderboard",
+      title: "PodRise Leaderboard - Most Popular Podcasts",
+      description: "See which podcasts are trending on PodRise. Discover the most popular shows and create your own free daily AI-powered recap.",
+      image: "https://podrise.com/favicon.png",
+      url: "https://podrise.com/leaderboard",
       twitterCard: "summary",
       replaceFavicon: false,
-      ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodCap Leaderboard - Most Popular Podcasts</h1><p>See which podcasts are trending on PodCap.</p><ol style="padding-left:20px;">${podcastLinks}</ol><a href="/podcasts">Browse All Podcasts</a></div>`,
+      ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodRise Leaderboard - Most Popular Podcasts</h1><p>See which podcasts are trending on PodRise.</p><ol style="padding-left:20px;">${podcastLinks}</ol><a href="/podcasts">Browse All Podcasts</a></div>`,
     };
   },
   "/podcasts": {
-    title: "All Podcasts - Browse 240+ Shows with Free Daily Recaps | PodCap",
-    description: "Browse the full PodCap podcast directory. Get free AI-powered daily recaps for 240+ top podcasts including Joe Rogan, Lex Fridman, All-In, Huberman Lab, and more.",
-    image: "https://podcap.io/favicon.png",
-    url: "https://podcap.io/podcasts",
+    title: "All Podcasts - Browse 240+ Shows with Free Daily Recaps | PodRise",
+    description: "Browse the full PodRise podcast directory. Get free AI-powered daily recaps for 240+ top podcasts including Joe Rogan, Lex Fridman, All-In, Huberman Lab, and more.",
+    image: "https://podrise.com/favicon.png",
+    url: "https://podrise.com/podcasts",
     twitterCard: "summary",
     replaceFavicon: false,
   },
@@ -78,10 +78,10 @@ const STATIC_PAGES: Record<string, PageMeta | (() => PageMeta)> = {
     const entries = Object.entries(ENTITY_PEOPLE_META).slice(0, 100);
     const links = entries.map(([slug, p]) => `<li><a href="/people/${escapeAttr(slug)}">${escapeAttr(p.name)}</a> - ${escapeAttr(p.title)}</li>`).join("");
     return {
-      title: "People in Podcasts - Notable Figures & Podcast Appearances | PodCap",
+      title: "People in Podcasts - Notable Figures & Podcast Appearances | PodRise",
       description: "Discover notable people mentioned across top podcasts. See which episodes discuss Elon Musk, Sam Altman, Warren Buffett, and other influential figures.",
-      image: "https://podcap.io/favicon.png",
-      url: "https://podcap.io/people",
+      image: "https://podrise.com/favicon.png",
+      url: "https://podrise.com/people",
       twitterCard: "summary",
       replaceFavicon: false,
       ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>People in Podcasts</h1><p>Notable figures mentioned across ${PODCAST_SEO.length}+ top podcasts. Discover who's being talked about and what's being said.</p><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${links}</ul><a href="/">Back to Home</a></div>`,
@@ -91,10 +91,10 @@ const STATIC_PAGES: Record<string, PageMeta | (() => PageMeta)> = {
     const entries = Object.entries(ENTITY_COMPANIES_META).slice(0, 100);
     const links = entries.map(([slug, c]) => `<li><a href="/companies/${escapeAttr(slug)}">${escapeAttr(c.name)}</a></li>`).join("");
     return {
-      title: "Companies in Podcasts - Brands & Organizations Discussed | PodCap",
+      title: "Companies in Podcasts - Brands & Organizations Discussed | PodRise",
       description: "Discover companies discussed across top podcasts. See which episodes mention OpenAI, Tesla, NVIDIA, and other notable companies.",
-      image: "https://podcap.io/favicon.png",
-      url: "https://podcap.io/companies",
+      image: "https://podrise.com/favicon.png",
+      url: "https://podrise.com/companies",
       twitterCard: "summary",
       replaceFavicon: false,
       ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Companies in Podcasts</h1><p>Notable companies and brands discussed across ${PODCAST_SEO.length}+ top podcasts.</p><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${links}</ul><a href="/">Back to Home</a></div>`,
@@ -103,77 +103,77 @@ const STATIC_PAGES: Record<string, PageMeta | (() => PageMeta)> = {
   "/insights": () => {
     const topicLinks = TOPICS.map(t => `<li><a href="/insights/${escapeAttr(t.slug)}">${escapeAttr(t.name)}</a> - ${escapeAttr(t.description.slice(0, 100))}</li>`).join("");
     return {
-      title: "Podcast Insights - Trending Topics Across Top Podcasts | PodCap",
+      title: "Podcast Insights - Trending Topics Across Top Podcasts | PodRise",
       description: "Explore trending topics across 240+ top podcasts. From AI and startups to health and investing, see what the smartest people are talking about.",
-      image: "https://podcap.io/favicon.png",
-      url: "https://podcap.io/insights",
+      image: "https://podrise.com/favicon.png",
+      url: "https://podrise.com/insights",
       twitterCard: "summary",
       replaceFavicon: false,
       ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Podcast Insights - Trending Topics</h1><p>Explore what the world's top podcasts are talking about. Trending topics, emerging themes, and key narratives across ${PODCAST_SEO.length}+ shows.</p><ul style="list-style:none;padding:0;">${topicLinks}</ul><a href="/">Back to Home</a></div>`,
     };
   },
   "/enterprise": {
-    title: "PodCap Enterprise - Podcast Intelligence for Teams",
+    title: "PodRise Enterprise - Podcast Intelligence for Teams",
     description: "Podcast intelligence for teams. Monitor industry trends, track competitors, and discover insights from hundreds of top podcasts.",
-    image: "https://podcap.io/favicon.png",
-    url: "https://podcap.io/enterprise",
+    image: "https://podrise.com/favicon.png",
+    url: "https://podrise.com/enterprise",
     twitterCard: "summary",
     replaceFavicon: false,
-    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodCap Enterprise</h1><p>Podcast intelligence for teams. Monitor industry trends, track competitors, and discover insights from hundreds of top podcasts.</p><a href="/">Back to Home</a></div>`,
+    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodRise Enterprise</h1><p>Podcast intelligence for teams. Monitor industry trends, track competitors, and discover insights from hundreds of top podcasts.</p><a href="/">Back to Home</a></div>`,
   },
   "/support": {
-    title: "Support - PodCap Help Center",
-    description: "Get help with PodCap. Find answers to common questions and get support for your podcast intelligence needs.",
-    image: "https://podcap.io/favicon.png",
-    url: "https://podcap.io/support",
+    title: "Support - PodRise Help Center",
+    description: "Get help with PodRise. Find answers to common questions and get support for your podcast intelligence needs.",
+    image: "https://podrise.com/favicon.png",
+    url: "https://podrise.com/support",
     twitterCard: "summary",
     replaceFavicon: false,
-    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodCap Support</h1><p>Need help? Contact us at <a href="mailto:hello@podcap.io">hello@podcap.io</a>.</p><a href="/">Back to Home</a></div>`,
+    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodRise Support</h1><p>Need help? Contact us at <a href="mailto:hello@podrise.com">hello@podrise.com</a>.</p><a href="/">Back to Home</a></div>`,
   },
   "/privacy": {
-    title: "Privacy Policy - PodCap",
-    description: "PodCap's privacy policy. Learn how we collect, use, and protect your personal information.",
-    image: "https://podcap.io/favicon.png",
-    url: "https://podcap.io/privacy",
+    title: "Privacy Policy - PodRise",
+    description: "PodRise's privacy policy. Learn how we collect, use, and protect your personal information.",
+    image: "https://podrise.com/favicon.png",
+    url: "https://podrise.com/privacy",
     twitterCard: "summary",
     replaceFavicon: false,
-    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Privacy Policy</h1><p>PodCap respects your privacy. This policy explains how we collect, use, and protect your personal information when you use our podcast intelligence platform.</p><a href="/">Back to Home</a></div>`,
+    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Privacy Policy</h1><p>PodRise respects your privacy. This policy explains how we collect, use, and protect your personal information when you use our podcast intelligence platform.</p><a href="/">Back to Home</a></div>`,
   },
   "/terms": {
-    title: "Terms of Service - PodCap",
-    description: "PodCap's terms of service. Read our terms and conditions for using the podcast intelligence platform.",
-    image: "https://podcap.io/favicon.png",
-    url: "https://podcap.io/terms",
+    title: "Terms of Service - PodRise",
+    description: "PodRise's terms of service. Read our terms and conditions for using the podcast intelligence platform.",
+    image: "https://podrise.com/favicon.png",
+    url: "https://podrise.com/terms",
     twitterCard: "summary",
     replaceFavicon: false,
-    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Terms of Service</h1><p>These terms govern your use of PodCap, an AI-powered podcast intelligence platform.</p><a href="/">Back to Home</a></div>`,
+    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Terms of Service</h1><p>These terms govern your use of PodRise, an AI-powered podcast intelligence platform.</p><a href="/">Back to Home</a></div>`,
   },
   "/we-heart-podcasters": {
-    title: "We Heart Podcasters - PodCap for Podcast Creators",
-    description: "PodCap loves podcasters. Learn how we support podcast creators with tools, visibility, and audience growth.",
-    image: "https://podcap.io/favicon.png",
-    url: "https://podcap.io/we-heart-podcasters",
+    title: "We Heart Podcasters - PodRise for Podcast Creators",
+    description: "PodRise loves podcasters. Learn how we support podcast creators with tools, visibility, and audience growth.",
+    image: "https://podrise.com/favicon.png",
+    url: "https://podrise.com/we-heart-podcasters",
     twitterCard: "summary",
     replaceFavicon: false,
-    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>We Heart Podcasters</h1><p>PodCap is built for podcast lovers and creators. We help podcasters reach new audiences by making their best content discoverable through AI-powered recaps, insights, and entity tracking.</p><p><a href="/podcaster/claim">Claim Your Podcast</a></p><a href="/">Back to Home</a></div>`,
+    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>We Heart Podcasters</h1><p>PodRise is built for podcast lovers and creators. We help podcasters reach new audiences by making their best content discoverable through AI-powered recaps, insights, and entity tracking.</p><p><a href="/podcaster/claim">Claim Your Podcast</a></p><a href="/">Back to Home</a></div>`,
   },
   "/updates": {
-    title: "Product Updates - PodCap",
-    description: "See the latest product updates and feature releases from PodCap.",
-    image: "https://podcap.io/favicon.png",
-    url: "https://podcap.io/updates",
+    title: "Product Updates - PodRise",
+    description: "See the latest product updates and feature releases from PodRise.",
+    image: "https://podrise.com/favicon.png",
+    url: "https://podrise.com/updates",
     twitterCard: "summary",
     replaceFavicon: false,
-    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodCap Product Updates</h1><p>See the latest features and improvements to the PodCap podcast intelligence platform.</p><a href="/">Back to Home</a></div>`,
+    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodRise Product Updates</h1><p>See the latest features and improvements to the PodRise podcast intelligence platform.</p><a href="/">Back to Home</a></div>`,
   },
   "/get-started": {
-    title: "Get Started - Create Your Free PodCap Account",
+    title: "Get Started - Create Your Free PodRise Account",
     description: "Sign up for free and get daily AI-powered podcast recaps delivered to your inbox. Choose from 240+ top podcasts.",
-    image: "https://podcap.io/favicon.png",
-    url: "https://podcap.io/register",
+    image: "https://podrise.com/favicon.png",
+    url: "https://podrise.com/register",
     twitterCard: "summary",
     replaceFavicon: false,
-    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Get Started with PodCap</h1><p>Sign up for free and get daily AI-powered podcast recaps delivered to your inbox. Choose from ${PODCAST_SEO.length}+ top podcasts.</p><a href="/podcasts">Browse Podcasts</a></div>`,
+    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Get Started with PodRise</h1><p>Sign up for free and get daily AI-powered podcast recaps delivered to your inbox. Choose from ${PODCAST_SEO.length}+ top podcasts.</p><a href="/podcasts">Browse Podcasts</a></div>`,
   },
 };
 
@@ -368,12 +368,12 @@ function buildEpisodeJsonLd(ep: any, podcast: any): object {
     "@type": "PodcastEpisode",
     "name": decodeHtmlEntities(ep.episode_title),
     "description": decodeHtmlEntities(ep.tldl || ""),
-    "url": `https://podcap.io/podcasts/${ep.slug}/${ep.episode_slug}`,
+    "url": `https://podrise.com/podcasts/${ep.slug}/${ep.episode_slug}`,
     "datePublished": ep.publish_date || undefined,
     "partOfSeries": {
       "@type": "PodcastSeries",
       "name": ep.podcast_name,
-      "url": `https://podcap.io/podcasts/${ep.slug}`,
+      "url": `https://podrise.com/podcasts/${ep.slug}`,
     },
   };
 
@@ -400,7 +400,7 @@ function buildEpisodeJsonLd(ep: any, podcast: any): object {
   }
 
   if (ep.artwork_url) {
-    const img = ep.artwork_url.startsWith("/") ? `https://podcap.io${ep.artwork_url}` : ep.artwork_url;
+    const img = ep.artwork_url.startsWith("/") ? `https://podrise.com${ep.artwork_url}` : ep.artwork_url;
     jsonLd.image = img;
   }
 
@@ -456,26 +456,26 @@ async function getEpisodeMeta(podcastSlug: string, episodeSlug: string): Promise
     if (rows.length === 0) return null;
     const ep = rows[0];
     const podcast = PODCAST_SEO.find(p => p.slug === podcastSlug);
-    const title = `${decodeHtmlEntities(ep.episode_title)} - ${ep.podcast_name} Recap | PodCap`;
+    const title = `${decodeHtmlEntities(ep.episode_title)} - ${ep.podcast_name} Recap | PodRise`;
     const desc = ep.tldl
       ? truncateAtWord(decodeHtmlEntities(ep.tldl), 150)
-      : `Listen to the recap of ${decodeHtmlEntities(ep.episode_title)} from ${ep.podcast_name} on PodCap.`;
+      : `Listen to the recap of ${decodeHtmlEntities(ep.episode_title)} from ${ep.podcast_name} on PodRise.`;
     const image = ep.artwork_url?.startsWith("/")
-      ? `https://podcap.io${ep.artwork_url}`
-      : (ep.artwork_url || (podcast?.artworkUrl?.startsWith("/") ? `https://podcap.io${podcast.artworkUrl}` : podcast?.artworkUrl) || "https://podcap.io/favicon.png");
+      ? `https://podrise.com${ep.artwork_url}`
+      : (ep.artwork_url || (podcast?.artworkUrl?.startsWith("/") ? `https://podrise.com${podcast.artworkUrl}` : podcast?.artworkUrl) || "https://podrise.com/favicon.png");
 
     const breadcrumbs = buildBreadcrumbJsonLd([
-      { name: "Home", url: "https://podcap.io/" },
-      { name: "Podcasts", url: "https://podcap.io/podcasts" },
-      { name: ep.podcast_name, url: `https://podcap.io/podcasts/${podcastSlug}` },
-      { name: decodeHtmlEntities(ep.episode_title), url: `https://podcap.io/podcasts/${podcastSlug}/${episodeSlug}` },
+      { name: "Home", url: "https://podrise.com/" },
+      { name: "Podcasts", url: "https://podrise.com/podcasts" },
+      { name: ep.podcast_name, url: `https://podrise.com/podcasts/${podcastSlug}` },
+      { name: decodeHtmlEntities(ep.episode_title), url: `https://podrise.com/podcasts/${podcastSlug}/${episodeSlug}` },
     ]);
 
     return {
       title,
       description: desc,
       image,
-      url: `https://podcap.io/podcasts/${podcastSlug}/${episodeSlug}`,
+      url: `https://podrise.com/podcasts/${podcastSlug}/${episodeSlug}`,
       twitterCard: "summary_large_image",
       jsonLd: [buildEpisodeJsonLd(ep, podcast), breadcrumbs],
       ssrHtml: buildEpisodeSsrHtml(ep, podcast),
@@ -527,10 +527,10 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
       ssrHtml += `<a href="/">Back to Home</a></div>`;
     } catch (err) { console.error("[SSR] shop listing error:", err); }
     return replaceMetaTags(html, {
-      title: "Podcast Shop — Books, Tools & Products Recommended on Top Podcasts | PodCap",
+      title: "Podcast Shop — Books, Tools & Products Recommended on Top Podcasts | PodRise",
       description: "Browse books, tools, and products recommended by top podcast hosts and guests. See which items come up most, who recommends them, and why.",
-      image: "https://podcap.io/favicon.png",
-      url: "https://podcap.io/shop",
+      image: "https://podrise.com/favicon.png",
+      url: "https://podrise.com/shop",
       twitterCard: "summary",
       replaceFavicon: false,
       ssrHtml,
@@ -558,7 +558,7 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
     const slug = archiveMatch[1].toLowerCase();
     const podcast = PODCAST_SEO.find(p => p.slug === slug);
     if (podcast) {
-      const desc = `Browse all ${podcast.name} episode recaps on PodCap. Every episode summarized with key insights and takeaways by ${podcast.hosts}.`;
+      const desc = `Browse all ${podcast.name} episode recaps on PodRise. Every episode summarized with key insights and takeaways by ${podcast.hosts}.`;
       let ssrHtml = "";
       try {
         const { rows: eps } = await pool.query(
@@ -571,10 +571,10 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
         }
       } catch (err) { console.error("[SSR] archive page error:", err); }
       return replaceMetaTags(html, {
-        title: `All ${podcast.name} Episode Recaps | PodCap`,
+        title: `All ${podcast.name} Episode Recaps | PodRise`,
         description: desc,
-        image: podcast.artworkUrl.startsWith("/") ? `https://podcap.io${podcast.artworkUrl}` : podcast.artworkUrl,
-        url: `https://podcap.io/podcasts/${podcast.slug}/episodes`,
+        image: podcast.artworkUrl.startsWith("/") ? `https://podrise.com${podcast.artworkUrl}` : podcast.artworkUrl,
+        url: `https://podrise.com/podcasts/${podcast.slug}/episodes`,
         twitterCard: "summary_large_image",
         ssrHtml,
       });
@@ -613,10 +613,10 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
         }
       } catch (err) { console.error("[SSR] podcast page error:", err); }
       return replaceMetaTags(html, {
-        title: `${podcast.name} Podcast Summary - Free Daily Recap | PodCap`,
+        title: `${podcast.name} Podcast Summary - Free Daily Recap | PodRise`,
         description: desc,
-        image: podcast.artworkUrl.startsWith("/") ? `https://podcap.io${podcast.artworkUrl}` : podcast.artworkUrl,
-        url: `https://podcap.io/podcasts/${podcast.slug}`,
+        image: podcast.artworkUrl.startsWith("/") ? `https://podrise.com${podcast.artworkUrl}` : podcast.artworkUrl,
+        url: `https://podrise.com/podcasts/${podcast.slug}`,
         twitterCard: "summary_large_image",
         ssrHtml,
       });
@@ -629,10 +629,10 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
     const person = ENTITY_PEOPLE_META[slug];
     if (person) {
       return replaceMetaTags(html, {
-        title: `${person.name} - Podcast Episodes & Appearances | PodCap`,
+        title: `${person.name} - Podcast Episodes & Appearances | PodRise`,
         description: `Discover podcast episodes where ${person.name} (${person.title}) is mentioned. Get AI-powered recaps and key insights from each appearance.`,
-        image: "https://podcap.io/favicon.png",
-        url: `https://podcap.io/people/${slug}`,
+        image: "https://podrise.com/favicon.png",
+        url: `https://podrise.com/people/${slug}`,
         twitterCard: "summary",
         replaceFavicon: false,
         ssrHtml: buildPersonSsrHtml(person.name, person.title, slug),
@@ -646,10 +646,10 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
     const company = ENTITY_COMPANIES_META[slug];
     if (company) {
       return replaceMetaTags(html, {
-        title: `${company.name} on Podcasts - Episodes & Mentions | PodCap`,
+        title: `${company.name} on Podcasts - Episodes & Mentions | PodRise`,
         description: `Discover podcast episodes where ${company.name} is discussed. ${company.description}. Get AI-powered recaps and insights.`,
-        image: "https://podcap.io/favicon.png",
-        url: `https://podcap.io/companies/${slug}`,
+        image: "https://podrise.com/favicon.png",
+        url: `https://podrise.com/companies/${slug}`,
         twitterCard: "summary",
         replaceFavicon: false,
         ssrHtml: buildCompanySsrHtml(company.name, company.description, slug),
@@ -688,12 +688,12 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
         } catch (err) { console.error("[SSR] book mentions error:", err); }
         ssrHtml += `<a href="/shop">Browse All Items</a></article>`;
         return replaceMetaTags(html, {
-          title: `${book.book_title} by ${book.author || "Unknown"} - Podcast Book Recommendation | PodCap`,
+          title: `${book.book_title} by ${book.author || "Unknown"} - Podcast Book Recommendation | PodRise`,
           description: book.description
             ? truncateAtWord(book.description, 150)
             : `${book.book_title} was recommended on podcasts. See which episodes mention this book and what hosts said about it.`,
-          image: "https://podcap.io/favicon.png",
-          url: `https://podcap.io/shop/${bookSlug}`,
+          image: "https://podrise.com/favicon.png",
+          url: `https://podrise.com/shop/${bookSlug}`,
           twitterCard: "summary",
           replaceFavicon: false,
           ssrHtml,
@@ -715,7 +715,7 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
         const parts = [p.name, p.company].filter(Boolean).join("-");
         const pSlug = parts.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
         if (pSlug === bookMatch[1].toLowerCase()) {
-          const title = `${p.name}${p.company && p.company !== p.name ? ` by ${p.company}` : ""} — Podcast Recommendation | PodCap`;
+          const title = `${p.name}${p.company && p.company !== p.name ? ` by ${p.company}` : ""} — Podcast Recommendation | PodRise`;
           const description = p.description
             ? truncateAtWord(p.description, 150)
             : `${p.name} has been recommended on podcasts. See why podcasters love this product.`;
@@ -723,8 +723,8 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
           return replaceMetaTags(html, {
             title,
             description,
-            image: p.imageUrl || "https://podcap.io/favicon.png",
-            url: `https://podcap.io/shop/${pSlug}`,
+            image: p.imageUrl || "https://podrise.com/favicon.png",
+            url: `https://podrise.com/shop/${pSlug}`,
             twitterCard: "summary",
             replaceFavicon: false,
             ssrHtml,
@@ -740,10 +740,10 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
     const topic = TOPICS.find(t => t.slug === topicSlug);
     if (topic) {
       return replaceMetaTags(html, {
-        title: `${topic.name} - Podcast Insights & Analysis | PodCap`,
+        title: `${topic.name} - Podcast Insights & Analysis | PodRise`,
         description: truncateAtWord(topic.description, 150),
-        image: "https://podcap.io/favicon.png",
-        url: `https://podcap.io/insights/${topicSlug}`,
+        image: "https://podrise.com/favicon.png",
+        url: `https://podrise.com/insights/${topicSlug}`,
         twitterCard: "summary",
         replaceFavicon: false,
         ssrHtml: `<article style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>${escapeAttr(topic.name)} - Podcast Insights</h1><p>${escapeAttr(topic.description)}</p><a href="/insights">Browse All Topics</a> | <a href="/">Back to Home</a></article>`,
@@ -752,7 +752,7 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
   }
 
   if (!html.includes('rel="canonical"')) {
-    const fallbackUrl = `https://podcap.io${cleanUrl === "/" ? "" : cleanUrl}`;
+    const fallbackUrl = `https://podrise.com${cleanUrl === "/" ? "" : cleanUrl}`;
     html = html.replace("</head>", `<link rel="canonical" href="${escapeAttr(fallbackUrl)}" />\n</head>`);
   }
 

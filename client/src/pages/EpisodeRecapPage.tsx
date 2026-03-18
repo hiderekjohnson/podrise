@@ -419,7 +419,7 @@ function SponsorCard({ sponsor, index }: { sponsor: Sponsor; index: number }) {
 }
 
 function QuoteShareBar({ quote, podcastName, episodeTitle }: { quote: EpisodeQuoteData; podcastName: string; episodeTitle: string }) {
-  const shareText = `"${quote.quoteText}" - ${quote.speakerName}${quote.speakerRole ? `, ${quote.speakerRole}` : ""}\n\nFrom ${podcastName}: ${episodeTitle}\nvia @podcap_io`;
+  const shareText = `"${quote.quoteText}" - ${quote.speakerName}${quote.speakerRole ? `, ${quote.speakerRole}` : ""}\n\nFrom ${podcastName}: ${episodeTitle}\nvia @podrise_hq`;
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
   const encodedText = encodeURIComponent(shareText);
   const encodedUrl = encodeURIComponent(shareUrl);
@@ -704,11 +704,11 @@ export default function EpisodeRecapPage() {
 
   useEffect(() => {
     if (!episode) {
-      document.title = "Episode Not Found | PodCap";
+      document.title = "Episode Not Found | PodRise";
       return;
     }
 
-    const pageTitle = `${episode.episodeTitle} — ${episode.podcastName} Summary & Key Takeaways | PodCap`;
+    const pageTitle = `${episode.episodeTitle} — ${episode.podcastName} Summary & Key Takeaways | PodRise`;
     const truncateAtWord = (s: string, max: number) => {
       if (s.length <= max) return s;
       const t = s.slice(0, max);
@@ -716,7 +716,7 @@ export default function EpisodeRecapPage() {
       return (sp < max * 0.6 ? t : t.slice(0, sp)) + "...";
     };
     const pageDescription = truncateAtWord(episode.tldl, 150);
-    const canonicalUrl = `https://podcap.io/podcasts/${podcastSlug}/${episodeSlug}`;
+    const canonicalUrl = `https://podrise.com/podcasts/${podcastSlug}/${episodeSlug}`;
 
     document.title = pageTitle;
 
@@ -756,7 +756,7 @@ export default function EpisodeRecapPage() {
     canonical.href = canonicalUrl;
 
     return () => {
-      document.title = "PodCap | Daily Podcast Recaps from Your Favorite Shows";
+      document.title = "PodRise | Daily Podcast Recaps from Your Favorite Shows";
     };
   }, [episode, podcastSlug, episodeSlug]);
 
@@ -1488,7 +1488,7 @@ export default function EpisodeRecapPage() {
             </div>
             <div className="px-4 sm:px-6 pb-4">
               <p className="text-[12px] text-[#A1A1AA] leading-relaxed" data-testid="affiliate-disclosure-shop">
-                Some links are affiliate links — they help keep PodCap free. We only feature products recommended by podcasters, never random picks.{" "}
+                Some links are affiliate links — they help keep PodRise free. We only feature products recommended by podcasters, never random picks.{" "}
                 <Link href="/disclosure" className="text-[#6366F1] hover:underline">Learn more</Link>
               </p>
             </div>

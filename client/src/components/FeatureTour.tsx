@@ -23,7 +23,7 @@ const TOUR_STEPS: TourStep[] = [
   },
 ];
 
-const TOUR_STORAGE_KEY = "podcap_tour_completed";
+const TOUR_STORAGE_KEY = "podrise_tour_completed";
 
 interface TooltipPosition {
   top: number;

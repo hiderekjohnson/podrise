@@ -1,10 +1,10 @@
 import { Link } from "wouter";
 
-interface PodCapHeaderProps {
+interface PodRiseHeaderProps {
   rightContent?: React.ReactNode;
 }
 
-function PodCapIcon({ size = 36 }: { size?: number }) {
+function PodRiseIcon({ size = 36 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <rect width="56" height="56" rx="16" fill="url(#headerGrad)" />
@@ -27,27 +27,27 @@ function PodCapIcon({ size = 36 }: { size?: number }) {
   );
 }
 
-function PodCapWordmark({ variant = "light" }: { variant?: "light" | "dark" | "color" }) {
+function PodRiseWordmark({ variant = "light" }: { variant?: "light" | "dark" | "color" }) {
   const podColor = variant === "dark" || variant === "color" ? "text-white" : "text-[#09090B]";
-  const capColor = variant === "dark" ? "text-[#A5B4FC]" : variant === "color" ? "text-white" : "text-[#6366F1]";
+  const riseColor = variant === "dark" ? "text-[#A5B4FC]" : variant === "color" ? "text-white" : "text-[#6366F1]";
   return (
-    <span className="flex items-center gap-2.5" style={{ letterSpacing: "-0.04em" }} role="img" aria-label="PodCap">
-      <PodCapIcon size={36} />
+    <span className="flex items-center gap-2.5" style={{ letterSpacing: "-0.04em" }} role="img" aria-label="PodRise">
+      <PodRiseIcon size={36} />
       <span className="text-xl leading-none">
         <span className={`font-semibold ${podColor}`}>Pod</span>
-        <span className={`font-light ${capColor}`}>Cap</span>
+        <span className={`font-light ${riseColor}`}>Rise</span>
       </span>
     </span>
   );
 }
 
-export function PodCapHeader({ rightContent }: PodCapHeaderProps) {
+export function PodRiseHeader({ rightContent }: PodRiseHeaderProps) {
   return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-black/[0.04]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 min-h-[68px] flex items-center justify-between">
         <Link href="/">
           <span data-testid="link-home-logo">
-            <PodCapWordmark />
+            <PodRiseWordmark />
           </span>
         </Link>
         {rightContent}
@@ -56,4 +56,4 @@ export function PodCapHeader({ rightContent }: PodCapHeaderProps) {
   );
 }
 
-export { PodCapIcon, PodCapWordmark };
+export { PodRiseIcon, PodRiseWordmark };

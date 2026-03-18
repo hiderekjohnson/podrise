@@ -25,7 +25,7 @@ const AdminFeatureFlags = lazy(() => import("./AdminFeatureFlags"));
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { PodRiseWordmark } from "@/components/PodRiseHeader";
 
 interface AdminUser {
   id: number;
@@ -432,7 +432,7 @@ export default function Admin() {
       <div className="min-h-screen flex flex-col">
         <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
           <a href="/" className="flex items-center">
-            <PodCapWordmark />
+            <PodRiseWordmark />
           </a>
         </header>
 
@@ -498,7 +498,7 @@ export default function Admin() {
           <div className="max-w-6xl mx-auto flex items-center gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0" />
             <p className="text-sm font-medium text-amber-400">
-              <span className="font-bold">Dev Environment</span> — Changes made here won't appear on the live site. Approve/reject products and manage data on the <a href="https://podcap.replit.app/admin" target="_blank" rel="noopener noreferrer" className="underline font-bold hover:text-amber-300">production admin</a> instead.
+              <span className="font-bold">Dev Environment</span> — Changes made here won't appear on the live site. Approve/reject products and manage data on the <a href="https://podrise.com/admin" target="_blank" rel="noopener noreferrer" className="underline font-bold hover:text-amber-300">production admin</a> instead.
             </p>
           </div>
         </div>
@@ -506,7 +506,7 @@ export default function Admin() {
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
         <div className="flex items-center gap-3">
           <a href="/" className="flex items-center">
-            <PodCapWordmark />
+            <PodRiseWordmark />
           </a>
           <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-bold rounded-md uppercase tracking-wide">Admin</span>
         </div>

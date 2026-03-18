@@ -28,7 +28,7 @@ const TABS: { id: TabId; label: string; icon: typeof BarChart3 }[] = [
 ];
 
 function SEOHead() {
-  const title = "Companies Mentioned on Podcasts — Trends & Analysis | PodCap";
+  const title = "Companies Mentioned on Podcasts — Trends & Analysis | PodRise";
   const description = "Track which companies are trending across top podcasts. See mention data, rising brands, and explore every episode where companies like OpenAI, Tesla, and more are discussed.";
 
   if (typeof document !== "undefined") {
@@ -46,7 +46,7 @@ function SEOHead() {
     setOrCreate('meta[name="description"]', "name", description);
     setOrCreate('meta[property="og:title"]', "property", title);
     setOrCreate('meta[property="og:description"]', "property", description);
-    setOrCreate('meta[property="og:image"]', "property", "https://podcap.io/og/og-companies.png");
+    setOrCreate('meta[property="og:image"]', "property", "https://podrise.com/og/og-companies.png");
     setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
     setOrCreate('meta[name="twitter:title"]', "name", title);
     setOrCreate('meta[name="twitter:description"]', "name", description);

@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { PodRiseWordmark } from "@/components/PodRiseHeader";
 import { Podcast, ArrowRight, Sparkles } from "lucide-react";
 
 export default function LogoutPage() {
   useEffect(() => {
-    document.title = "Signed Out | PodCap";
+    document.title = "Signed Out | PodRise";
   }, []);
 
   return (
@@ -13,7 +13,7 @@ export default function LogoutPage() {
       <header className="border-b border-[#F0F0F2] dark:border-[#1C1C22]">
         <div className="max-w-5xl mx-auto px-4 md:px-8 h-16 flex items-center">
           <Link href="/">
-            <PodCapWordmark />
+            <PodRiseWordmark />
           </Link>
         </div>
       </header>
@@ -28,7 +28,7 @@ export default function LogoutPage() {
             You've been signed out
           </h1>
           <p className="text-[16px] md:text-[17px] text-[#71717A] dark:text-[#A1A1AA] leading-relaxed mb-8">
-            Thanks for using PodCap. Sign back in anytime to access your personalized podcast feed and saved recaps.
+            Thanks for using PodRise. Sign back in anytime to access your personalized podcast feed and saved recaps.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -56,7 +56,7 @@ export default function LogoutPage() {
             <p className="text-[14px] text-[#A1A1AA] mb-4">Discover what's being discussed on your favorite podcasts</p>
             <Link href="/">
               <span className="text-[14px] font-semibold text-[#6366F1] hover:underline" data-testid="logout-explore-link">
-                Explore PodCap
+                Explore PodRise
               </span>
             </Link>
           </div>

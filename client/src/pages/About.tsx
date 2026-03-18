@@ -7,8 +7,8 @@ import { SiteHeader } from "@/components/SiteHeader";
 
 export default function About() {
   useEffect(() => {
-    const title = "About PodCap — Podcast Summaries, Recaps & Intelligence | PodCap";
-    const desc = "PodCap monitors hundreds of top podcasts and delivers daily summaries, key takeaways, and structured intelligence by topic, person, or company.";
+    const title = "About PodRise — Podcast Summaries, Recaps & Intelligence | PodRise";
+    const desc = "PodRise monitors hundreds of top podcasts and delivers daily summaries, key takeaways, and structured intelligence by topic, person, or company.";
     document.title = title;
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
@@ -19,16 +19,16 @@ export default function About() {
     setMeta("property", "og:title", title);
     setMeta("property", "og:description", desc);
     setMeta("property", "og:type", "website");
-    setMeta("property", "og:url", "https://podcap.io/about");
-    setMeta("property", "og:image", "https://podcap.io/og/og-podcasts.png");
+    setMeta("property", "og:url", "https://podrise.com/about");
+    setMeta("property", "og:image", "https://podrise.com/og/og-podcasts.png");
     setMeta("name", "twitter:card", "summary_large_image");
     setMeta("name", "twitter:title", title);
     setMeta("name", "twitter:description", desc);
-    setMeta("name", "twitter:image", "https://podcap.io/og/og-podcasts.png");
+    setMeta("name", "twitter:image", "https://podrise.com/og/og-podcasts.png");
 
     let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!link) { link = document.createElement("link"); link.rel = "canonical"; document.head.appendChild(link); }
-    link.href = "https://podcap.io/about";
+    link.href = "https://podrise.com/about";
 
     return () => { if (link) link.remove(); };
   }, []);
@@ -47,13 +47,13 @@ export default function About() {
         >
           <div className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-primary/[0.07] text-primary text-base sm:text-lg font-display font-bold uppercase tracking-widest mb-6">
             <Sparkles className="w-5 h-5" />
-            About PodCap
+            About PodRise
           </div>
           <h1 className="text-[1.75rem] sm:text-[2rem] md:text-[2.35rem] font-display font-extrabold tracking-[-0.03em] leading-[1.15] mb-5 max-w-2xl mx-auto" data-testid="text-hero-title">
             We are building the intelligence layer on top of podcasts
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed mb-10">
-            The world's best thinkers are sharing everything on podcasts — but nobody has time to listen to all of it. PodCap monitors hundreds of the top shows and delivers structured intelligence so you always know what matters.
+            The world's best thinkers are sharing everything on podcasts — but nobody has time to listen to all of it. PodRise monitors hundreds of the top shows and delivers structured intelligence so you always know what matters.
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <Link
@@ -124,7 +124,7 @@ export default function About() {
               The breakthrough insight you need is probably already out there, discussed in an episode you will never get to. Every contrarian take, every playbook, every hard-won lesson — recorded, published, and effectively invisible to anyone who was not already listening.
             </p>
             <p>
-              There is too much signal and not enough time. That is exactly why we built PodCap.
+              There is too much signal and not enough time. That is exactly why we built PodRise.
             </p>
             <p className="text-foreground font-semibold text-lg">
               You should not have to listen to everything to know what matters. That is our job.
@@ -193,7 +193,7 @@ export default function About() {
           transition={{ duration: 0.5, delay: 0.35 }}
           data-testid="section-what-we-do"
         >
-          <h2 className="text-2xl sm:text-3xl font-display font-bold mb-3 text-center">What PodCap does today</h2>
+          <h2 className="text-2xl sm:text-3xl font-display font-bold mb-3 text-center">What PodRise does today</h2>
           <p className="text-[17px] leading-[1.85] text-muted-foreground mb-10 text-center max-w-2xl mx-auto">
             We monitor hundreds of the world's top podcasts and deliver structured intelligence so you always know what the smartest people in your industry are saying. Two paths in, same result: you stay current in minutes, not hours.
           </p>
@@ -299,7 +299,7 @@ export default function About() {
                 We believe that will change.
               </p>
               <p>
-                PodCap is building the infrastructure that turns the world's podcast conversations into structured, actionable intelligence — so you always know what the sharpest minds in your field are saying.
+                PodRise is building the infrastructure that turns the world's podcast conversations into structured, actionable intelligence — so you always know what the sharpest minds in your field are saying.
               </p>
             </div>
           </div>
@@ -320,7 +320,7 @@ export default function About() {
                 <span className="text-[14px] font-bold uppercase tracking-[0.15em] text-primary">For Teams</span>
               </div>
               <h2 className="text-xl sm:text-2xl font-display font-bold text-white mb-3">
-                PodCap for your whole organization
+                PodRise for your whole organization
               </h2>
               <p className="text-[16px] text-white/60 leading-relaxed max-w-xl mb-6">
                 Give every employee intelligence tailored to their industry and role. Custom briefings, team management, Slack integration, and more — so your whole team stays ahead without listening to a single episode.
@@ -352,7 +352,7 @@ export default function About() {
               </div>
               <div className="space-y-4 text-[17px] leading-[1.85] text-muted-foreground">
                 <p>
-                  We did not build PodCap to replace podcasts. We built it to make them more powerful. Every episode you have ever loved is full of ideas worth revisiting, sharing, and acting on. PodCap turns that audio into structured intelligence that is easy to find and easy to use.
+                  We did not build PodRise to replace podcasts. We built it to make them more powerful. Every episode you have ever loved is full of ideas worth revisiting, sharing, and acting on. PodRise turns that audio into structured intelligence that is easy to find and easy to use.
                 </p>
                 <p>
                   For listeners, that means spending less time trying to keep up and more time on the episodes that truly deserve your attention. For creators, it means your best ideas do not disappear after publish day. Your content becomes discoverable and actionable for your audience long after the episode drops.
@@ -379,7 +379,7 @@ export default function About() {
             <div className="flex-1 bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-7 shadow-sm">
               <h3 className="text-lg font-display font-bold mb-2">Constantly improving</h3>
               <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed mb-4">
-                We are constantly improving PodCap — adding features, refining analysis, and making it easier to stay informed.
+                We are constantly improving PodRise — adding features, refining analysis, and making it easier to stay informed.
               </p>
               <Link
                 href="/updates"

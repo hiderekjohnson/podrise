@@ -80,8 +80,8 @@ export default function EpisodeGuestsPage() {
     if (episode && podcastConfig) {
       const guestNames = guests.length > 0 ? guests.map(g => g.name).join(", ") : "";
       const pageTitle = guestNames
-        ? `${guestNames} on ${episode.podcastName} — Guest Bios & Topics | PodCap`
-        : `${episode.episodeTitle} Guests — ${episode.podcastName} | PodCap`;
+        ? `${guestNames} on ${episode.podcastName} — Guest Bios & Topics | PodRise`
+        : `${episode.episodeTitle} Guests — ${episode.podcastName} | PodRise`;
       document.title = pageTitle;
 
       const desc = guestNames

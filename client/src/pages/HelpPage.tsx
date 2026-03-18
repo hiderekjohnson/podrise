@@ -41,7 +41,7 @@ export default function HelpPage() {
     } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Sorry, I'm having trouble right now. Please try again or contact us at hello@podcap.io." },
+        { role: "assistant", content: "Sorry, I'm having trouble right now. Please try again or contact us at hello@podrise.com." },
       ]);
     } finally {
       setIsLoading(false);
@@ -73,10 +73,10 @@ export default function HelpPage() {
                     <Sparkles className="w-7 h-7 text-[#6366F1]" />
                   </div>
                   <h2 className="text-[18px] font-bold text-[#09090B] dark:text-white mb-2" data-testid="chat-welcome-title">
-                    Hi! I'm PodCap's AI assistant.
+                    Hi! I'm PodRise's AI assistant.
                   </h2>
                   <p className="text-[14px] text-[#71717A] dark:text-[#A1A1AA] max-w-md">
-                    I can help you with questions about how PodCap works, and even can take feature requests, just ask me.
+                    I can help you with questions about how PodRise works, and even can take feature requests, just ask me.
                   </p>
                 </div>
               )}

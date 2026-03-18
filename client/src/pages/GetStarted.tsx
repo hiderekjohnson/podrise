@@ -6,7 +6,7 @@ import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { PodcastSearch } from "@/components/PodcastSearch";
 import { Footer } from "@/components/Footer";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { PodRiseWordmark } from "@/components/PodRiseHeader";
 
 function hiResArtwork(url: string) {
   return url.replace(/\/\d+x\d+bb\./, "/300x300bb.");
@@ -19,7 +19,7 @@ interface SelectedPodcast {
 }
 
 function SEOHead() {
-  const title = "Get Free Daily Podcast Summaries & Recaps | PodCap";
+  const title = "Get Free Daily Podcast Summaries & Recaps | PodRise";
   const description = "Pick your favorite podcasts and get free daily summaries with key insights, notable quotes, and takeaways delivered to your inbox every morning.";
 
   if (typeof document !== "undefined") {
@@ -104,7 +104,7 @@ export default function GetStarted() {
       <SEOHead />
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
         <a href="/" className="flex items-center" data-testid="link-home">
-          <PodCapWordmark />
+          <PodRiseWordmark />
         </a>
         <div className="flex items-center gap-3">
           <button

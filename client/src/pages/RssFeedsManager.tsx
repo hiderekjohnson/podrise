@@ -12,7 +12,7 @@ interface RssFeed {
   createdAt: string;
 }
 
-const DOMAIN = "https://podcap.io";
+const DOMAIN = "https://podrise.com";
 
 const AVAILABLE_PODCASTS: { slug: string; name: string }[] = [
   { slug: "myfirstmillion", name: "My First Million" },
@@ -529,7 +529,7 @@ export default function RssFeedsManager() {
           <div><span className="font-semibold text-foreground">title</span> <span className="text-muted-foreground">- Podcast Name + Episode Title</span></div>
           <div><span className="font-semibold text-foreground">description</span> <span className="text-muted-foreground">- Short TL;DL summary (tweetable)</span></div>
           <div><span className="font-semibold text-foreground">content:encoded</span> <span className="text-muted-foreground">- Full recap with insights, quotes</span></div>
-          <div><span className="font-semibold text-foreground">link</span> <span className="text-muted-foreground">- Direct URL to recap on PodCap</span></div>
+          <div><span className="font-semibold text-foreground">link</span> <span className="text-muted-foreground">- Direct URL to recap on PodRise</span></div>
           <div><span className="font-semibold text-foreground">dc:creator</span> <span className="text-muted-foreground">- Podcast name</span></div>
           <div><span className="font-semibold text-foreground">category</span> <span className="text-muted-foreground">- Podcast name</span></div>
           <div><span className="font-semibold text-foreground">pubDate</span> <span className="text-muted-foreground">- Episode publish date</span></div>

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { PodRiseWordmark } from "@/components/PodRiseHeader";
 
 const FREE_FEATURES = [
   "Follow as many podcasts as you want",
@@ -72,7 +72,7 @@ export default function Upgrade() {
       <div className="min-h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#09090B]">
         <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
           <a href="/" className="flex items-center">
-            <PodCapWordmark />
+            <PodRiseWordmark />
           </a>
           <button
             data-testid="link-back"
@@ -114,7 +114,7 @@ export default function Upgrade() {
     <div className="min-h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#09090B]">
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
         <a href="/" className="flex items-center">
-          <PodCapWordmark />
+          <PodRiseWordmark />
         </a>
         <button
           data-testid="link-back"
@@ -136,7 +136,7 @@ export default function Upgrade() {
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#6366F1]/10 text-[#6366F1] text-sm font-semibold mb-4">
               <Zap className="w-4 h-4" />
-              Pulse by PodCap
+              Pulse by PodRise
             </div>
             <h1 className="text-3xl sm:text-4xl font-display font-extrabold text-foreground mb-3" data-testid="text-pricing-title">
               Your career intelligence, delivered daily

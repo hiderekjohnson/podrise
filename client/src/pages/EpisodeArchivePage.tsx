@@ -306,12 +306,12 @@ export default function EpisodeArchivePage() {
 
   useEffect(() => {
     if (!config) {
-      document.title = "Podcast Not Found | PodCap";
+      document.title = "Podcast Not Found | PodRise";
       return;
     }
-    const pageTitle = `${config.name} All Episodes — Complete Episode Guide & Archive | PodCap`;
+    const pageTitle = `${config.name} All Episodes — Complete Episode Guide & Archive | PodRise`;
     const pageDescription = `Browse every ${config.name} episode with AI-powered recaps. Search by keyword, filter by guest, topic, or year to find exactly what you need.`;
-    const canonicalUrl = `https://podcap.io/podcasts/${slug}/episodes`;
+    const canonicalUrl = `https://podrise.com/podcasts/${slug}/episodes`;
 
     document.title = pageTitle;
 
@@ -345,7 +345,7 @@ export default function EpisodeArchivePage() {
     canonical.href = canonicalUrl;
 
     return () => {
-      document.title = "PodCap | Daily Podcast Recaps from Your Favorite Shows";
+      document.title = "PodRise | Daily Podcast Recaps from Your Favorite Shows";
       if (canonical) canonical.remove();
     };
   }, [config, slug]);

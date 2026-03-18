@@ -14,7 +14,7 @@ import {
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { PodCapIcon } from "@/components/PodCapHeader";
+import { PodRiseIcon } from "@/components/PodRiseHeader";
 
 export default function SettingsPage() {
   const { data: user } = useAuth();
@@ -78,7 +78,7 @@ export default function SettingsPage() {
         <div className="bg-white dark:bg-[#111114] border-b border-[#F0F0F2] dark:border-[#1C1C22]">
           <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#6366F1] to-[#818CF8] flex items-center justify-center flex-shrink-0">
-              <PodCapIcon size={40} />
+              <PodRiseIcon size={40} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[18px] md:text-[20px] font-bold text-[#09090B] dark:text-white truncate">

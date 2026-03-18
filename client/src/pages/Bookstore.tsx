@@ -123,7 +123,7 @@ const PAGE_SIZE = 36;
 
 function SEOHead() {
   useEffect(() => {
-    const title = "Podcast Shop — Books, Tools & Products Recommended on Top Podcasts | PodCap";
+    const title = "Podcast Shop — Books, Tools & Products Recommended on Top Podcasts | PodRise";
     const description = "Browse books, tools, and products recommended by top podcast hosts and guests. See which items come up most, who recommends them, and why — sourced from real conversations.";
     document.title = title;
     const setOrCreate = (attr: string, key: string, value: string) => {
@@ -139,9 +139,9 @@ function SEOHead() {
     setOrCreate("name", "description", description);
     setOrCreate("property", "og:title", title);
     setOrCreate("property", "og:description", description);
-    setOrCreate("property", "og:url", "https://podcap.io/shop");
+    setOrCreate("property", "og:url", "https://podrise.com/shop");
     setOrCreate("property", "og:type", "website");
-    setOrCreate("property", "og:image", "https://podcap.io/og/og-shop.png");
+    setOrCreate("property", "og:image", "https://podrise.com/og/og-shop.png");
     setOrCreate("name", "twitter:card", "summary_large_image");
     setOrCreate("name", "twitter:title", title);
     setOrCreate("name", "twitter:description", description);
@@ -152,7 +152,7 @@ function SEOHead() {
       canonical.setAttribute("rel", "canonical");
       document.head.appendChild(canonical);
     }
-    canonical.href = "https://podcap.io/shop";
+    canonical.href = "https://podrise.com/shop";
   }, []);
   return null;
 }
@@ -713,7 +713,7 @@ function AffiliateDisclosure() {
     <div className="w-full max-w-7xl mt-12" data-testid="affiliate-disclosure">
       <div className="bg-[#6366F1]/[0.03] dark:bg-[#6366F1]/[0.06] border border-[#6366F1]/[0.08] rounded-xl px-5 py-4 text-center">
         <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">
-          Some links are affiliate links — they help keep PodCap free, and we only feature products highly recommended by your favorite podcasters, never random picks.{" "}
+          Some links are affiliate links — they help keep PodRise free, and we only feature products highly recommended by your favorite podcasters, never random picks.{" "}
           <Link href="/disclosure" className="text-[#6366F1] hover:underline font-medium">Learn more</Link>
         </p>
       </div>

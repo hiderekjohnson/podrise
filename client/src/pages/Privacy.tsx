@@ -5,8 +5,8 @@ import { SiteHeader } from "@/components/SiteHeader";
 
 function SEOHead() {
   useEffect(() => {
-    const title = "Privacy Policy | PodCap";
-    const desc = "Read PodCap's privacy policy. Learn how we handle your data, protect your information, and respect your privacy.";
+    const title = "Privacy Policy | PodRise";
+    const desc = "Read PodRise's privacy policy. Learn how we handle your data, protect your information, and respect your privacy.";
     document.title = title;
     const setMeta = (attr: string, key: string, value: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
@@ -42,7 +42,7 @@ export default function Privacy() {
         <div className="prose prose-sm max-w-none space-y-6 text-[#52525B] dark:text-[#A1A1AA]">
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">1. Introduction</h2>
-            <p>PodCap ("we," "our," or "us") operates the website podcap.io (the "Service"). This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our Service. By using the Service, you agree to the collection and use of information in accordance with this policy.</p>
+            <p>PodRise ("we," "our," or "us") operates the website podrise.com (the "Service"). This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our Service. By using the Service, you agree to the collection and use of information in accordance with this policy.</p>
           </section>
 
           <section>

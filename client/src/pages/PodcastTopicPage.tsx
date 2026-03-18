@@ -20,10 +20,10 @@ function SEOHead({ topicName, categoryName, categorySlug, topicSlug, podcastName
   topicSlug: string;
   podcastNames: string[];
 }) {
-  const title = `Best ${topicName} Podcasts (2026) | PodCap`;
+  const title = `Best ${topicName} Podcasts (2026) | PodRise`;
   const top3 = podcastNames.slice(0, 3).join(", ");
   const description = `Discover the best ${topicName.toLowerCase()} podcasts in 2026, including ${top3}. Free AI-powered recaps delivered to your inbox.`;
-  const canonicalUrl = `https://podcap.io/podcasts/${categorySlug}/${topicSlug}`;
+  const canonicalUrl = `https://podrise.com/podcasts/${categorySlug}/${topicSlug}`;
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -59,7 +59,7 @@ function SEOHead({ topicName, categoryName, categorySlug, topicSlug, podcastName
     canonical.setAttribute("href", canonicalUrl);
 
     return () => {
-      document.title = "PodCap";
+      document.title = "PodRise";
     };
   }, [title, description, canonicalUrl]);
 
@@ -76,8 +76,8 @@ function JsonLdSchema({ topicName, categorySlug, topicSlug, podcasts }: {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: `Best ${topicName} Podcasts`,
-    description: `Top ${topicName.toLowerCase()} podcasts curated by PodCap`,
-    url: `https://podcap.io/podcasts/${categorySlug}/${topicSlug}`,
+    description: `Top ${topicName.toLowerCase()} podcasts curated by PodRise`,
+    url: `https://podrise.com/podcasts/${categorySlug}/${topicSlug}`,
     numberOfItems: podcasts.length,
     itemListElement: podcasts.map((p, i) => ({
       "@type": "ListItem",
@@ -85,7 +85,7 @@ function JsonLdSchema({ topicName, categorySlug, topicSlug, podcasts }: {
       item: {
         "@type": "PodcastSeries",
         name: p.name,
-        url: `https://podcap.io/podcasts/${p.slug}`,
+        url: `https://podrise.com/podcasts/${p.slug}`,
         image: p.artworkUrl,
       },
     })),
@@ -274,7 +274,7 @@ export default function PodcastTopicPage() {
                   className="inline-flex items-center gap-2 text-primary font-semibold text-[15px] hover:underline"
                   data-testid="link-topics-page"
                 >
-                  Explore {topic.name} on PodCap
+                  Explore {topic.name} on PodRise
                   <ArrowRight className="w-4 h-4" />
                 </a>
               </div>

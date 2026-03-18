@@ -193,7 +193,7 @@ export default function PersonDetailPage() {
 
   useEffect(() => {
     if (!person) return;
-    document.title = `${pageTitle} | PodCap`;
+    document.title = `${pageTitle} | PodRise`;
     const setOrCreate = (selector: string, attr: string, value: string) => {
       let el = document.querySelector(selector);
       if (!el) {
@@ -205,11 +205,11 @@ export default function PersonDetailPage() {
       el.setAttribute("content", value);
     };
     setOrCreate('meta[name="description"]', "name", pageDescription);
-    setOrCreate('meta[property="og:title"]', "property", `${pageTitle} | PodCap`);
+    setOrCreate('meta[property="og:title"]', "property", `${pageTitle} | PodRise`);
     setOrCreate('meta[property="og:description"]', "property", pageDescription);
     setOrCreate('meta[property="og:type"]', "property", "profile");
     setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
-    setOrCreate('meta[name="twitter:title"]', "name", `${pageTitle} | PodCap`);
+    setOrCreate('meta[name="twitter:title"]', "name", `${pageTitle} | PodRise`);
     setOrCreate('meta[name="twitter:description"]', "name", pageDescription);
 
     let schemaScript = document.getElementById("person-schema") as HTMLScriptElement | null;
@@ -226,10 +226,10 @@ export default function PersonDetailPage() {
       "@type": "Person",
       name: person.name,
       jobTitle: person.title,
-      url: `https://podcap.io/people/${slug}`,
+      url: `https://podrise.com/people/${slug}`,
       description: pageDescription,
     };
-    if (personData?.imageUrl) personSchema.image = `https://podcap.io${personData.imageUrl}`;
+    if (personData?.imageUrl) personSchema.image = `https://podrise.com${personData.imageUrl}`;
     if (sameAs.length > 0) personSchema.sameAs = sameAs;
     schemaScript.textContent = JSON.stringify(personSchema);
 
@@ -244,9 +244,9 @@ export default function PersonDetailPage() {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: "https://podcap.io/" },
-        { "@type": "ListItem", position: 2, name: "People", item: "https://podcap.io/people" },
-        { "@type": "ListItem", position: 3, name: person.name, item: `https://podcap.io/people/${slug}` },
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://podrise.com/" },
+        { "@type": "ListItem", position: 2, name: "People", item: "https://podrise.com/people" },
+        { "@type": "ListItem", position: 3, name: person.name, item: `https://podrise.com/people/${slug}` },
       ],
     });
 
@@ -340,12 +340,12 @@ export default function PersonDetailPage() {
     if (hasGuestAppearances) {
       items.push({
         q: `What podcasts has ${person.name} appeared on?`,
-        a: `PodCap tracks ${totalEpisodes} podcast episode${totalEpisodes !== 1 ? "s" : ""} related to ${person.name}, including ${person.guestCount} direct guest appearance${person.guestCount !== 1 ? "s" : ""} and ${person.mentionCount} mention${person.mentionCount !== 1 ? "s" : ""}. Featured podcasts include ${podcastNames.slice(0, 5).join(", ")}${podcastNames.length > 5 ? `, and ${podcastNames.length - 5} more` : ""}. On this page, you can browse the latest related episodes and recaps.`
+        a: `PodRise tracks ${totalEpisodes} podcast episode${totalEpisodes !== 1 ? "s" : ""} related to ${person.name}, including ${person.guestCount} direct guest appearance${person.guestCount !== 1 ? "s" : ""} and ${person.mentionCount} mention${person.mentionCount !== 1 ? "s" : ""}. Featured podcasts include ${podcastNames.slice(0, 5).join(", ")}${podcastNames.length > 5 ? `, and ${podcastNames.length - 5} more` : ""}. On this page, you can browse the latest related episodes and recaps.`
       });
     } else {
       items.push({
         q: `What podcasts discuss ${person.name}?`,
-        a: `PodCap tracks ${totalEpisodes} podcast episode${totalEpisodes !== 1 ? "s" : ""} that discuss or mention ${person.name} across ${podcastNames.length} podcast${podcastNames.length !== 1 ? "s" : ""}, including ${podcastNames.slice(0, 5).join(", ")}${podcastNames.length > 5 ? `, and ${podcastNames.length - 5} more` : ""}. Browse episode recaps and key themes on this page.`
+        a: `PodRise tracks ${totalEpisodes} podcast episode${totalEpisodes !== 1 ? "s" : ""} that discuss or mention ${person.name} across ${podcastNames.length} podcast${podcastNames.length !== 1 ? "s" : ""}, including ${podcastNames.slice(0, 5).join(", ")}${podcastNames.length > 5 ? `, and ${podcastNames.length - 5} more` : ""}. Browse episode recaps and key themes on this page.`
       });
     }
 
@@ -353,7 +353,7 @@ export default function PersonDetailPage() {
       const topicNames = broadTopics.slice(0, 5).map(t => t.topic);
       items.push({
         q: `What topics are associated with ${person.name} on podcasts?`,
-        a: `Across podcast episodes, ${person.name} is frequently associated with topics like ${topicNames.join(", ")}. These themes emerge from episode recaps tracked by PodCap. Explore individual episode recaps for detailed coverage of each topic.`
+        a: `Across podcast episodes, ${person.name} is frequently associated with topics like ${topicNames.join(", ")}. These themes emerge from episode recaps tracked by PodRise. Explore individual episode recaps for detailed coverage of each topic.`
       });
     }
 
@@ -369,7 +369,7 @@ export default function PersonDetailPage() {
     if (relatedCompanies.length > 0) {
       items.push({
         q: `What companies is ${person.name} associated with?`,
-        a: `${person.name} is associated with ${relatedCompanies.join(", ")}. These connections are tracked across podcast conversations on PodCap. Explore company pages and related episodes for deeper coverage of each organization.`
+        a: `${person.name} is associated with ${relatedCompanies.join(", ")}. These connections are tracked across podcast conversations on PodRise. Explore company pages and related episodes for deeper coverage of each organization.`
       });
     }
 

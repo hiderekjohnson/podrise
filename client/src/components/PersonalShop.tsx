@@ -414,7 +414,7 @@ export function PersonalShop() {
         <div className="mt-12" data-testid="personal-affiliate-disclosure">
           <div className="bg-[#F4F4F5] dark:bg-white/[0.03] rounded-xl px-5 py-4 text-center">
             <p className="text-[13px] text-[#71717A] dark:text-[#A1A1AA] leading-relaxed">
-              Some links are affiliate links — they help keep PodCap free.{" "}
+              Some links are affiliate links — they help keep PodRise free.{" "}
               <Link href="/disclosure" className="text-[#6366F1] hover:underline font-medium">Learn more</Link>
             </p>
           </div>

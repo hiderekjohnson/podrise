@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { PodCapWordmark } from "./PodCapHeader";
+import { PodRiseWordmark } from "./PodRiseHeader";
 import { INDUSTRIES, INTERESTS, ROLES } from "@/data/topicData";
 
 export function Footer() {
@@ -156,9 +156,9 @@ export function Footer() {
         <div className="flex flex-col items-center">
           <div className="w-full h-px bg-black/[0.06] dark:bg-white/[0.06] mb-6" />
 
-          <PodCapWordmark />
+          <PodRiseWordmark />
           <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] mt-3">
-            &copy; {new Date().getFullYear()} PodCap, Inc. All rights reserved.
+            &copy; {new Date().getFullYear()} PodRise, Inc. All rights reserved.
           </p>
         </div>
       </div>

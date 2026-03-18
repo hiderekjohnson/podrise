@@ -184,9 +184,9 @@ async function sendNewUserNotification(user: any, req: any, signupSource?: strin
 
   const { client, fromEmail } = await getUncachableResendClient();
   await client.emails.send({
-    from: `PodCap Alerts <${fromEmail}>`,
+    from: `PodRise Alerts <${fromEmail}>`,
     to: "hiderekjohnson@gmail.com",
-    subject: `🚀 New PodCap User: ${user.email}`,
+    subject: `🚀 New PodRise User: ${user.email}`,
     html: `<!DOCTYPE html>
 <html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;margin:0;padding:0;background:#f8f9fa;">
 <div style="max-width:520px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
@@ -204,7 +204,7 @@ async function sendNewUserNotification(user: any, req: any, signupSource?: strin
 </table>
 </div>
 <div style="padding:16px 32px;background:#f8f9fa;text-align:center;">
-<span style="font-size:12px;color:#aaa;">PodCap User Alert</span>
+<span style="font-size:12px;color:#aaa;">PodRise User Alert</span>
 </div>
 </div>
 </body></html>`,
@@ -245,7 +245,7 @@ async function checkAndRecordTierHit(referrerId: number) {
         try {
           const { client, fromEmail } = await getUncachableResendClient();
           await client.emails.send({
-            from: `PodCap Alerts <${fromEmail}>`,
+            from: `PodRise Alerts <${fromEmail}>`,
             to: "hiderekjohnson@gmail.com",
             subject: `🎁 Referral Tier Reached: ${referrer.email} hit ${tier.threshold} referrals!`,
             html: `<!DOCTYPE html>
@@ -262,7 +262,7 @@ async function checkAndRecordTierHit(referrerId: number) {
 <tr><td style="padding:10px 0;color:#888;font-size:13px;">Tier Reached</td><td style="padding:10px 0;font-size:14px;font-weight:700;color:#1a1a1a;">${tier.reward_name} (${tier.threshold} referrals)</td></tr>
 </table>
 <div style="margin-top:20px;padding:16px;background:#f0f0ff;border-radius:8px;text-align:center;">
-<a href="https://podcap.io/admin" style="color:#6366F1;font-weight:600;font-size:14px;text-decoration:none;">View in Admin Panel →</a>
+<a href="https://podrise.com/admin" style="color:#6366F1;font-weight:600;font-size:14px;text-decoration:none;">View in Admin Panel →</a>
 </div>
 </div>
 </div>
@@ -288,11 +288,11 @@ async function sendVerificationEmail(user: { id: number; email: string }) {
     [user.id, token, expiresAt]
   );
 
-  const verifyUrl = `https://podcap.io/verify-email?token=${token}`;
+  const verifyUrl = `https://podrise.com/verify-email?token=${token}`;
 
   const { client, fromEmail } = await getUncachableResendClient();
   await client.emails.send({
-    from: `PodCap <${fromEmail}>`,
+    from: `PodRise <${fromEmail}>`,
     to: user.email,
     subject: "Confirm your email address",
     html: `<!DOCTYPE html>
@@ -301,16 +301,16 @@ async function sendVerificationEmail(user: { id: number; email: string }) {
 <body style="margin:0;padding:0;background-color:#f3f4f6;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
 <div style="max-width:520px;margin:40px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
 <div style="background:linear-gradient(135deg,#6366F1,#8B5CF6);padding:32px 24px;text-align:center;">
-<h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">PodCap</h1>
+<h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">PodRise</h1>
 </div>
 <div style="padding:32px 28px;text-align:center;">
 <h2 style="margin:0 0 12px;color:#09090B;font-size:22px;font-weight:700;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Confirm your email</h2>
-<p style="margin:0 0 24px;color:#52525B;font-size:15px;line-height:1.6;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Tap the button below to verify your email address and activate your PodCap account.</p>
+<p style="margin:0 0 24px;color:#52525B;font-size:15px;line-height:1.6;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Tap the button below to verify your email address and activate your PodRise account.</p>
 <a href="${verifyUrl}" style="display:inline-block;background:#6366F1;color:#ffffff;text-decoration:none;padding:14px 40px;border-radius:10px;font-size:16px;font-weight:700;letter-spacing:-0.01em;box-shadow:0 4px 12px rgba(99,102,241,0.3);font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Verify Email Address</a>
-<p style="margin:24px 0 0;color:#a1a1aa;font-size:13px;line-height:1.5;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">This link expires in 24 hours.<br/>If you didn't create a PodCap account, you can ignore this email.</p>
+<p style="margin:24px 0 0;color:#a1a1aa;font-size:13px;line-height:1.5;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">This link expires in 24 hours.<br/>If you didn't create a PodRise account, you can ignore this email.</p>
 </div>
 <div style="padding:16px 28px;background:#f7f7fc;text-align:center;border-top:1px solid #F0F0F2;">
-<span style="font-size:13px;color:#52525B;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">PodCap — The intelligence layer on top of podcasts</span>
+<span style="font-size:13px;color:#52525B;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">PodRise — The intelligence layer on top of podcasts</span>
 </div>
 </div>
 </body>
@@ -320,7 +320,7 @@ async function sendVerificationEmail(user: { id: number; email: string }) {
   console.log(`[VerifyEmail] Verification email sent to ${user.email}`);
 }
 
-const DOMAIN = "https://podcap.io";
+const DOMAIN = "https://podrise.com";
 
 const STATIC_PAGES = [
   { path: "/", priority: "1.0", changefreq: "daily" },
@@ -832,8 +832,8 @@ export async function registerRoutes(
 
   app.use((req, res, next) => {
     const host = req.hostname || req.headers.host?.split(":")[0];
-    if (host === "www.podcap.io") {
-      return res.redirect(301, `https://podcap.io${req.originalUrl}`);
+    if (host === "www.podrise.com") {
+      return res.redirect(301, `https://podrise.com${req.originalUrl}`);
     }
     next();
   });
@@ -844,8 +844,8 @@ export async function registerRoutes(
       const allowedOrigins = [
         /^https?:\/\/localhost(:\d+)?$/,
         /^https?:\/\/.*\.replit\.dev$/,
-        /^https:\/\/podcap\.io$/,
-        /^https:\/\/.*\.podcap\.io$/,
+        /^https:\/\/podrise\.com$/,
+        /^https:\/\/.*\.podrise\.com$/,
         /^capacitor:\/\//,
         /^ionic:\/\//,
       ];
@@ -919,12 +919,12 @@ export async function registerRoutes(
     res.json({ status: "ok", uptime: process.uptime() });
   });
 
-  app.get("/podcap-logo.png", (_req, res) => {
-    res.sendFile("Podcap_logo_1772731738179.png", { root: "attached_assets", maxAge: "30d" });
+  app.get("/podrise-logo.png", (_req, res) => {
+    res.sendFile("PodRise_Favicon_1773834313134.png", { root: "attached_assets", maxAge: "30d" });
   });
 
-  app.get("/podcap-logo.svg", (_req, res) => {
-    res.sendFile("podcap-logo.svg", { root: "client/public", maxAge: "30d" });
+  app.get("/podrise-logo.svg", (_req, res) => {
+    res.sendFile("podrise-logo.svg", { root: "client/public", maxAge: "30d" });
   });
 
   app.get("/sitemap.xml", async (_req, res) => {
@@ -954,7 +954,7 @@ export async function registerRoutes(
   }
 
   function buildRssXml(recaps: any[], feedTitle: string, feedDescription: string, feedLink: string): string {
-    const DOMAIN = "https://podcap.io";
+    const DOMAIN = "https://podrise.com";
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
     xml += `<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom">\n`;
     xml += `<channel>\n`;
@@ -965,7 +965,7 @@ export async function registerRoutes(
     xml += `  <language>en-us</language>\n`;
     xml += `  <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>\n`;
     xml += `  <image>\n`;
-    xml += `    <url>${DOMAIN}/podcap-logo.png</url>\n`;
+    xml += `    <url>${DOMAIN}/podrise-logo.png</url>\n`;
     xml += `    <title>${escapeXml(feedTitle)}</title>\n`;
     xml += `    <link>${DOMAIN}</link>\n`;
     xml += `  </image>\n`;
@@ -992,7 +992,7 @@ export async function registerRoutes(
         `<h3>What Happened</h3><p>${escapeXml(recap.whatHappened)}</p>` +
         insightsHtml +
         quoteHtml +
-        `<p><a href="${episodeUrl}">Read full recap on PodCap</a></p>` +
+        `<p><a href="${episodeUrl}">Read full recap on PodRise</a></p>` +
         (recap.appleEpisodeUrl ? `<p><a href="${escapeXml(recap.appleEpisodeUrl)}">Listen on Apple Podcasts</a></p>` : "");
 
       xml += `  <item>\n`;
@@ -1017,10 +1017,10 @@ export async function registerRoutes(
   app.get("/rss/all", async (_req, res) => {
     try {
       const recaps = await storage.getRecentRecapsForRss(null, 200);
-      const DOMAIN = "https://podcap.io";
+      const DOMAIN = "https://podrise.com";
       const xml = buildRssXml(
         recaps,
-        "PodCap - All Podcast Recaps",
+        "PodRise - All Podcast Recaps",
         "AI-generated recaps of the latest episodes from top podcasts, delivered daily.",
         `${DOMAIN}/rss/all`
       );
@@ -1040,10 +1040,10 @@ export async function registerRoutes(
         return res.status(404).send("Feed not found");
       }
       const recaps = await storage.getRecentRecapsForRss(feed.podcastSlugs, 200);
-      const DOMAIN = "https://podcap.io";
+      const DOMAIN = "https://podrise.com";
       const xml = buildRssXml(
         recaps,
-        `PodCap - ${feed.name}`,
+        `PodRise - ${feed.name}`,
         `Custom podcast recap feed: ${feed.name}`,
         `${DOMAIN}/rss/feed/${feed.slugKey}`
       );
@@ -1070,7 +1070,7 @@ export async function registerRoutes(
     try {
       const { client, fromEmail } = await getUncachableResendClient();
       await client.emails.send({
-        from: `PodCap Support <${fromEmail}>`,
+        from: `PodRise Support <${fromEmail}>`,
         to: "hiderekjohnson@gmail.com",
         replyTo: email,
         subject: `Support Request from ${email}`,
@@ -1137,14 +1137,14 @@ export async function registerRoutes(
         }
       }
 
-      const systemPrompt = `You are PodCap's friendly and knowledgeable AI support assistant. You help users understand how PodCap works and troubleshoot any issues they have. You also accept feature requests from users. Keep your answers concise, helpful, and conversational.
+      const systemPrompt = `You are PodRise's friendly and knowledgeable AI support assistant. You help users understand how PodRise works and troubleshoot any issues they have. You also accept feature requests from users. Keep your answers concise, helpful, and conversational.
 
-Here is your knowledge base about PodCap:
+Here is your knowledge base about PodRise:
 ${knowledgeBase}
-If you don't know the answer to something, be honest about it and suggest the user contact hello@podcap.io for further help. Do not make up features that don't exist.
+If you don't know the answer to something, be honest about it and suggest the user contact hello@podrise.com for further help. Do not make up features that don't exist.
 
 FEATURE REQUEST HANDLING:
-When a user suggests a feature, requests a new feature, or describes something they wish PodCap could do:
+When a user suggests a feature, requests a new feature, or describes something they wish PodRise could do:
 1. Acknowledge their suggestion warmly and thank them for the feedback.
 2. At the very end of your response, on a new line, include exactly this marker (the user will NOT see this):
 [FEATURE_REQUEST: <a brief summary of the feature request>]
@@ -1183,7 +1183,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
           await client.emails.send({
             from: fromEmail,
             to: "hiderekjohnson@gmail.com",
-            subject: `PodCap Feature Request from ${user?.email || `User #${userId}`}`,
+            subject: `PodRise Feature Request from ${user?.email || `User #${userId}`}`,
             html: `
               <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <h2 style="color: #6366F1; margin-bottom: 16px;">New Feature Request</h2>
@@ -1217,7 +1217,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     try {
       const { client, fromEmail } = await getUncachableResendClient();
       await client.emails.send({
-        from: `PodCap <${fromEmail}>`,
+        from: `PodRise <${fromEmail}>`,
         to: "hiderekjohnson@gmail.com",
         replyTo: email || undefined,
         subject: `Podcast Request: ${podcastName}`,
@@ -1467,7 +1467,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
       res.json({
         referralCode: code,
-        referralLink: `https://podcap.io/r/${code}`,
+        referralLink: `https://podrise.com/r/${code}`,
         count,
         pendingCount,
         currentTier,
@@ -1510,28 +1510,28 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       if (!user) return res.status(404).json({ message: "User not found" });
 
       const code = await ensureReferralCode(userId);
-      const referralLink = `https://podcap.io/r/${code}`;
+      const referralLink = `https://podrise.com/r/${code}`;
       const rawName = user.displayName || user.email.split("@")[0];
       const senderName = rawName.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
       const { client, fromEmail } = await getUncachableResendClient();
       await client.emails.send({
-        from: `PodCap <${fromEmail}>`,
+        from: `PodRise <${fromEmail}>`,
         to: inviteeEmail,
-        subject: `${rawName} invited you to PodCap`,
+        subject: `${rawName} invited you to PodRise`,
         html: `<!DOCTYPE html>
 <html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;margin:0;padding:0;background:#f8f9fa;">
 <div style="max-width:520px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
 <div style="padding:40px 32px 24px;text-align:center;background:linear-gradient(145deg,#6366F1,#8B5CF6);">
 <h1 style="margin:0 0 8px;color:#fff;font-size:22px;font-weight:800;">You're Invited to The Pod Squad</h1>
-<p style="margin:0;color:rgba(255,255,255,0.85);font-size:15px;line-height:1.5;">${senderName} thinks you'd love PodCap — AI-powered podcast intelligence.</p>
+<p style="margin:0;color:rgba(255,255,255,0.85);font-size:15px;line-height:1.5;">${senderName} thinks you'd love PodRise — AI-powered podcast intelligence.</p>
 </div>
 <div style="padding:24px 32px 32px;text-align:center;">
 <p style="color:#52525B;font-size:15px;line-height:1.6;margin:0 0 20px;">Get smart summaries, key insights, and episode recaps from your favorite podcasts — delivered right to your inbox.</p>
-<a href="${referralLink}" style="display:inline-block;background:#6366F1;color:#fff;text-decoration:none;padding:14px 40px;border-radius:10px;font-size:16px;font-weight:700;">Join PodCap Free</a>
+<a href="${referralLink}" style="display:inline-block;background:#6366F1;color:#fff;text-decoration:none;padding:14px 40px;border-radius:10px;font-size:16px;font-weight:700;">Join PodRise Free</a>
 </div>
 <div style="padding:16px 32px;background:#f8f9fa;text-align:center;">
-<span style="font-size:12px;color:#a1a1aa;">PodCap — The intelligence layer on top of podcasts</span>
+<span style="font-size:12px;color:#a1a1aa;">PodRise — The intelligence layer on top of podcasts</span>
 </div>
 </div>
 </body></html>`,
@@ -1857,9 +1857,9 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
       const { client, fromEmail } = await getUncachableResendClient();
       const sendResult = await client.emails.send({
-        from: `PodCap <${fromEmail}>`,
+        from: `PodRise <${fromEmail}>`,
         to: user.email,
-        subject: `Log in to PodCap (#${loginCode})`,
+        subject: `Log in to PodRise (#${loginCode})`,
         headers: {
           "X-Entity-Ref-ID": crypto.randomUUID(),
         },
@@ -1869,16 +1869,16 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 <body style="margin:0;padding:0;background-color:#f3f4f6;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
   <div style="max-width:520px;margin:40px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
     <div style="background:linear-gradient(135deg,#6366F1,#8B5CF6);padding:32px 24px;text-align:center;">
-      <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">PodCap</h1>
+      <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">PodRise</h1>
     </div>
     <div style="padding:32px 28px;text-align:center;">
-      <h2 style="color:#09090B;font-size:20px;font-weight:700;margin:0 0 12px 0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Log in to PodCap</h2>
+      <h2 style="color:#09090B;font-size:20px;font-weight:700;margin:0 0 12px 0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Log in to PodRise</h2>
       <p style="color:#52525B;font-size:15px;line-height:1.6;margin:0 0 24px 0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Click the button below to securely log in. This link expires in 15 minutes.</p>
-      <a href="${magicUrl}" style="display:inline-block;padding:14px 32px;background:#6366F1;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(99,102,241,0.3);font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Log in to PodCap</a>
+      <a href="${magicUrl}" style="display:inline-block;padding:14px 32px;background:#6366F1;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:10px;box-shadow:0 4px 12px rgba(99,102,241,0.3);font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Log in to PodRise</a>
       <p style="color:#a1a1aa;font-size:13px;margin:24px 0 0 0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">If you didn't request this, you can safely ignore this email.</p>
     </div>
     <div style="padding:16px 28px;background:#f7f7fc;text-align:center;border-top:1px solid #F0F0F2;">
-      <span style="font-size:13px;color:#52525B;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">PodCap — The intelligence layer on top of podcasts</span>
+      <span style="font-size:13px;color:#52525B;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">PodRise — The intelligence layer on top of podcasts</span>
     </div>
   </div>
 </body>
@@ -2227,7 +2227,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
   });
 
   function wrapLinksWithClickTracking(html: string, emailId: number): string {
-    const baseUrl = "https://podcap.io";
+    const baseUrl = "https://podrise.com";
     return html.replace(/href="(https?:\/\/[^"]+)"/g, (_match, url) => {
       if (url.includes("/api/track/")) return `href="${url}"`;
       if (url.includes("unsubscribe")) return `href="${url}"`;
@@ -4393,7 +4393,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     if (!url || isAmazonUrl(url)) return url;
     try {
       const u = new URL(url);
-      u.searchParams.set("utm_source", "podcap");
+      u.searchParams.set("utm_source", "podrise");
       u.searchParams.set("utm_medium", "podcast_recap");
       return u.toString();
     } catch {
@@ -7566,7 +7566,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       });
       pendingRecordId = pendingRecord.id;
 
-      const baseUrl = "https://podcap.io";
+      const baseUrl = "https://podrise.com";
       const htmlWithClickTracking = wrapLinksWithClickTracking(emailHtml, pendingRecord.id);
       const trackingPixel = `<img src="${baseUrl}/api/track/open/${pendingRecord.id}" width="1" height="1" style="display:block;width:1px;height:1px;border:0;" alt="" />`;
       const htmlWithTracking = htmlWithClickTracking.replace(/<\/body>/i, `${trackingPixel}</body>`) !== htmlWithClickTracking
@@ -7576,7 +7576,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const { client, fromEmail } = await getUncachableResendClient();
 
       const result = await client.emails.send({
-        from: `PodCap <${fromEmail}>`,
+        from: `PodRise <${fromEmail}>`,
         to: user.email,
         subject: emailCopyForSend.subject,
         html: htmlWithTracking,
@@ -7803,26 +7803,26 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     );
 
     const baseUrl = process.env.REPLIT_DEPLOYMENT === "1"
-      ? "https://podcap.io"
+      ? "https://podrise.com"
       : process.env.REPLIT_DEV_DOMAIN
         ? `https://${process.env.REPLIT_DEV_DOMAIN}`
-        : "https://podcap.io";
+        : "https://podrise.com";
     const setupUrl = `${baseUrl}/admin/setup?token=${token}`;
 
     try {
       const { getUncachableResendClient } = await import("./resendClient");
       const { client, fromEmail } = await getUncachableResendClient();
       await client.emails.send({
-        from: `PodCap <${fromEmail}>`,
+        from: `PodRise <${fromEmail}>`,
         to: user.email,
-        subject: "You've been invited to PodCap Admin",
+        subject: "You've been invited to PodRise Admin",
         html: `
           <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:480px;margin:0 auto;padding:40px 20px;">
             <div style="text-align:center;margin-bottom:32px;">
-              <h1 style="font-size:24px;font-weight:700;color:#18181B;margin:0;">Welcome to PodCap Admin</h1>
+              <h1 style="font-size:24px;font-weight:700;color:#18181B;margin:0;">Welcome to PodRise Admin</h1>
             </div>
             <p style="color:#52525B;font-size:15px;line-height:1.6;margin:0 0 16px;">Hi${user.name ? ` ${user.name}` : ''},</p>
-            <p style="color:#52525B;font-size:15px;line-height:1.6;margin:0 0 24px;">You've been invited as an <strong>${user.role}</strong> on PodCap. Click the button below to set up your password and activate your admin account.</p>
+            <p style="color:#52525B;font-size:15px;line-height:1.6;margin:0 0 24px;">You've been invited as an <strong>${user.role}</strong> on PodRise. Click the button below to set up your password and activate your admin account.</p>
             <div style="text-align:center;margin:32px 0;">
               <a href="${setupUrl}" style="display:inline-block;padding:14px 32px;background:#6366F1;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:10px;">Set Up Your Account</a>
             </div>
@@ -8220,14 +8220,14 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const reorderedSendNow = reorderMarkdownLeadFirst(pending.summary, emailCopy.leadEpisodePodcast);
       const freshSubject = emailCopy.subject;
       const freshHtml = markdownToEmailHtml(reorderedSendNow, pending.recipientEmail, epMeta2, emailCopy);
-      const baseUrl = "https://podcap.io";
+      const baseUrl = "https://podrise.com";
       const htmlWithClickTracking = wrapLinksWithClickTracking(freshHtml, pending.id);
       const trackingPixel = `<img src="${baseUrl}/api/track/open/${pending.id}" width="1" height="1" style="display:block;width:1px;height:1px;border:0;" alt="" />`;
       const htmlWithTracking = htmlWithClickTracking.replace("</body>", `${trackingPixel}</body>`);
 
       const { client, fromEmail } = await getUncachableResendClient();
       const sendResult = await client.emails.send({
-        from: `PodCap <${fromEmail}>`,
+        from: `PodRise <${fromEmail}>`,
         to: pending.recipientEmail,
         subject: freshSubject,
         html: htmlWithTracking,
@@ -12994,12 +12994,12 @@ Rules:
         customerId = customer.id;
       }
 
-      let products = await stripe.products.search({ query: "name:'PodCap Pulse Pro'" });
+      let products = await stripe.products.search({ query: "name:'PodRise Pulse Pro'" });
       let proProduct = products.data.find(p => p.active);
 
       if (!proProduct) {
         proProduct = await stripe.products.create({
-          name: "PodCap Pulse Pro",
+          name: "PodRise Pulse Pro",
           description: "Daily topic briefings personalized by industry, interest, and role.",
         });
       }
@@ -13211,7 +13211,7 @@ Rules:
         limit: 10,
       });
 
-      const products = await stripe.products.search({ query: "name:'PodCap Pulse Pro'" });
+      const products = await stripe.products.search({ query: "name:'PodRise Pulse Pro'" });
       const proProductId = products.data.find(p => p.active)?.id;
 
       const activeSub = subscriptions.data.find(sub =>
@@ -14701,7 +14701,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       try {
         const { client, fromEmail } = await getUncachableResendClient();
         await client.emails.send({
-          from: `PodCap <${fromEmail}>`,
+          from: `PodRise <${fromEmail}>`,
           to: "hiderekjohnson@gmail.com",
           subject: `🎙️ New Podcaster Claim: ${data.podcastSlug}`,
           html: `<p><strong>${data.name}</strong> (${data.email}) wants to claim <strong>${data.podcastSlug}</strong>.</p><p>Verify in the admin panel.</p>`,
@@ -14761,9 +14761,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       try {
         const { client, fromEmail } = await getUncachableResendClient();
         await client.emails.send({
-          from: `PodCap <${fromEmail}>`,
+          from: `PodRise <${fromEmail}>`,
           to: email,
-          subject: "Your PodCap Podcaster Login Link",
+          subject: "Your PodRise Podcaster Login Link",
           html: `<p>Click below to access your podcaster dashboard:</p><p><a href="${loginUrl}" style="display:inline-block;background:#2563eb;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Open Dashboard</a></p><p style="color:#666;font-size:13px;">This link expires in 15 minutes.</p>`,
         });
       } catch (emailErr) {
@@ -14995,7 +14995,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       }
 
       const hasTranscript = transcript.length > 0;
-      const systemPrompt = `You are PodCap's AI assistant. You help users understand podcast episodes better. You have access to ${hasTranscript ? "the full transcript and a detailed recap" : "a detailed recap"} of this episode. Answer questions based on what was actually discussed in the episode. Be conversational, specific, and reference actual points from the episode. Keep answers concise (2-4 sentences for simple questions, up to a short paragraph for complex ones).${entityFocus}
+      const systemPrompt = `You are PodRise's AI assistant. You help users understand podcast episodes better. You have access to ${hasTranscript ? "the full transcript and a detailed recap" : "a detailed recap"} of this episode. Answer questions based on what was actually discussed in the episode. Be conversational, specific, and reference actual points from the episode. Keep answers concise (2-4 sentences for simple questions, up to a short paragraph for complex ones).${entityFocus}
 
 Episode context:
 ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` : ""}`;
@@ -15040,7 +15040,7 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
         method: "HEAD",
         signal: controller.signal,
         redirect: "follow",
-        headers: { "User-Agent": "Mozilla/5.0 (compatible; PodCap/1.0)" },
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; PodRise/1.0)" },
       });
       clearTimeout(timeout);
       if (res.ok) return true;
@@ -15049,7 +15049,7 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
           method: "GET",
           signal: AbortSignal.timeout(5000),
           redirect: "follow",
-          headers: { "User-Agent": "Mozilla/5.0 (compatible; PodCap/1.0)" },
+          headers: { "User-Agent": "Mozilla/5.0 (compatible; PodRise/1.0)" },
         });
         return getRes.ok;
       }
@@ -16449,7 +16449,7 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
           const resp = await fetch(normalizedUrl, {
             signal: controller.signal,
             redirect: "follow",
-            headers: { "User-Agent": "Mozilla/5.0 (compatible; PodCap/1.0)" },
+            headers: { "User-Agent": "Mozilla/5.0 (compatible; PodRise/1.0)" },
           });
           clearTimeout(timeout);
 
@@ -17539,10 +17539,10 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     try {
       console.log("[ReferralSeed] Syncing referral tiers to 5-tier structure...");
       const defaultTiers = [
-        { threshold: 3, rewardName: "Stickers", rewardDescription: "A fresh set of PodCap stickers for your laptop, water bottle, you name it.", sortOrder: 1 },
-        { threshold: 5, rewardName: "T-Shirt", rewardDescription: "Rep the pod life with a soft-cotton PodCap crew tee.", sortOrder: 2 },
-        { threshold: 10, rewardName: "Socks", rewardDescription: "Cozy PodCap-branded socks to keep your feet as happy as your ears.", sortOrder: 3 },
-        { threshold: 15, rewardName: "Mystery Item", rewardDescription: "A surprise reward hand-picked by the PodCap team. What could it be?", sortOrder: 4 },
+        { threshold: 3, rewardName: "Stickers", rewardDescription: "A fresh set of PodRise stickers for your laptop, water bottle, you name it.", sortOrder: 1 },
+        { threshold: 5, rewardName: "T-Shirt", rewardDescription: "Rep the pod life with a soft-cotton PodRise crew tee.", sortOrder: 2 },
+        { threshold: 10, rewardName: "Socks", rewardDescription: "Cozy PodRise-branded socks to keep your feet as happy as your ears.", sortOrder: 3 },
+        { threshold: 15, rewardName: "Mystery Item", rewardDescription: "A surprise reward hand-picked by the PodRise team. What could it be?", sortOrder: 4 },
         { threshold: 25, rewardName: "AirPods", rewardDescription: "Top-tier audio for a top-tier referrer.", sortOrder: 5 },
       ];
       const validThresholds = defaultTiers.map(t => t.threshold);
@@ -17565,14 +17565,14 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       if (kbCount[0].count === 0) {
         console.log("[SupportKB] No support articles found — seeding defaults...");
         const defaultArticles = [
-          { title: "What is PodCap?", category: "About", body: "PodCap generates AI-powered recaps of your favorite podcasts. Follow the podcasts you care about, and PodCap delivers concise summaries of new episodes to your inbox and feed.", sortOrder: 0 },
+          { title: "What is PodRise?", category: "About", body: "PodRise generates AI-powered recaps of your favorite podcasts. Follow the podcasts you care about, and PodRise delivers concise summaries of new episodes to your inbox and feed.", sortOrder: 0 },
           { title: "Following Podcasts", category: "Getting Started", body: "- To follow a podcast: Go to the Discover page and search for a podcast, or browse curated lists. Click the \"Follow\" button next to any podcast.\n- Email recaps are sent daily at your configured delivery time. You can change your delivery time and timezone in Settings.\n- You can pause email delivery in Settings by setting a \"Pause emails until\" date. Your feed will still update while emails are paused.", sortOrder: 1 },
           { title: "Account Management", category: "Account", body: "- To change your email: Go to Settings and update your email address in the Account section. Click Save.\n- To log out: Go to Settings and scroll to the bottom. Click \"Log out.\"\n- To update your profile: Go to Settings > Account Settings. You can update display name, location, language, and more.\n- To delete your account: Go to Settings and follow the account deletion option. This is permanent and removes all data.", sortOrder: 2 },
           { title: "Feed & Content", category: "Feed & Content", body: "- \"For You\" tab shows recaps from all podcasts that might interest you. \"Following\" shows only recaps from podcasts you explicitly follow.\n- Bookmarks: Click the bookmark icon on any recap card to save it. Access saved episodes from the Bookmarks page in the sidebar.\n- Sharing: Each recap card has a share button. On mobile it uses native share. On desktop it copies the link.", sortOrder: 3 },
-          { title: "How Recaps Work", category: "How Recaps Work", body: "- PodCap checks for new episodes released the previous calendar day in your timezone.\n- If no podcasts released a new episode, no email is sent that day — no empty digests.\n- Recaps are generated using advanced AI that analyzes episode content for accurate summaries.\n- Your daily recap is delivered at your chosen time each day.", sortOrder: 4 },
-          { title: "Subscriptions & Pricing", category: "Subscriptions & Pricing", body: "- PodCap is free to use. You can follow as many podcasts as you want.\n- PodCap Pro offers additional features. Pro plans can be managed from Settings.", sortOrder: 5 },
-          { title: "Troubleshooting", category: "Troubleshooting", body: "- Not receiving emails? Check your spam/junk folder first. Verify your email address in Settings. If emails are in spam, mark them as \"not spam.\"\n- Still having issues? Users can contact support at hello@podcap.io or use the Support page.", sortOrder: 6 },
-          { title: "Data & Privacy", category: "Data & Privacy", body: "- PodCap only collects your email and podcast preferences. Data is never sold.\n- Payment processing is handled by Stripe — PodCap never sees or stores credit card details.", sortOrder: 7 },
+          { title: "How Recaps Work", category: "How Recaps Work", body: "- PodRise checks for new episodes released the previous calendar day in your timezone.\n- If no podcasts released a new episode, no email is sent that day — no empty digests.\n- Recaps are generated using advanced AI that analyzes episode content for accurate summaries.\n- Your daily recap is delivered at your chosen time each day.", sortOrder: 4 },
+          { title: "Subscriptions & Pricing", category: "Subscriptions & Pricing", body: "- PodRise is free to use. You can follow as many podcasts as you want.\n- PodRise Pro offers additional features. Pro plans can be managed from Settings.", sortOrder: 5 },
+          { title: "Troubleshooting", category: "Troubleshooting", body: "- Not receiving emails? Check your spam/junk folder first. Verify your email address in Settings. If emails are in spam, mark them as \"not spam.\"\n- Still having issues? Users can contact support at hello@podrise.com or use the Support page.", sortOrder: 6 },
+          { title: "Data & Privacy", category: "Data & Privacy", body: "- PodRise only collects your email and podcast preferences. Data is never sold.\n- Payment processing is handled by Stripe — PodRise never sees or stores credit card details.", sortOrder: 7 },
         ];
         for (const a of defaultArticles) {
           await pool.query(
@@ -17634,7 +17634,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
           { type: "podcast", title: "The Daily", description: "The biggest stories of our time, told by the best journalists in the world. 20 minutes a day is all you need to stay informed.", imageUrl: "", destinationUrl: "", podcastSlug: "thedaily", weight: 3 },
           { type: "regular", title: "AG1", description: "This is an amazing product, the best product in the world. Click here to save 50% off today on your first order www.ag1.com/podrise", imageUrl: "https://images.unsplash.com/photo-1622484212850-eb596d769edc?w=200&h=200&fit=crop", destinationUrl: "https://www.ag1.com/podrise", podcastSlug: null, weight: 3 },
           { type: "regular", title: "Notion", description: "The all-in-one workspace for your notes, tasks, wikis, and databases. Try it free — over 30 million people already have.", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png", destinationUrl: "https://www.notion.so", podcastSlug: null, weight: 3 },
-          { type: "regular", title: "Riverside.fm", description: "Record podcasts and videos in studio quality from anywhere. Used by top podcasters worldwide. Get 20% off with code PODCAP.", imageUrl: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=200&h=200&fit=crop", destinationUrl: "https://riverside.fm", podcastSlug: null, weight: 3 },
+          { type: "regular", title: "Riverside.fm", description: "Record podcasts and videos in studio quality from anywhere. Used by top podcasters worldwide. Get 20% off with code PODRISE.", imageUrl: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=200&h=200&fit=crop", destinationUrl: "https://riverside.fm", podcastSlug: null, weight: 3 },
           { type: "regular", title: "Linear", description: "The issue tracker built for modern software teams. Fast, beautiful, and designed to keep your team in flow.", imageUrl: "https://asset.brandfetch.io/iduDa181eM/id9wLqBTfn.png", destinationUrl: "https://linear.app", podcastSlug: null, weight: 3 },
           { type: "regular", title: "Superhuman", description: "The fastest email experience ever made. Get through your inbox twice as fast. Try it free for 30 days.", imageUrl: "https://asset.brandfetch.io/idZAb_dELm/idPJJfnOlY.png", destinationUrl: "https://superhuman.com", podcastSlug: null, weight: 3 },
         ];

@@ -80,13 +80,13 @@ const changelog: ChangelogEntry[] = [
   },
   {
     title: "Enterprise — podcast intelligence for teams",
-    description: "If you're in VC, consulting, PR, or corporate strategy, you know podcasts are where founders and executives speak most candidly. Our Enterprise offering packages PodCap's intelligence layer for teams — competitive monitoring, market signal tracking, and structured data feeds so your whole organization benefits from podcast knowledge.",
-    link: { url: "/enterprise", label: "Learn about PodCap for teams" },
+    description: "If you're in VC, consulting, PR, or corporate strategy, you know podcasts are where founders and executives speak most candidly. Our Enterprise offering packages PodRise's intelligence layer for teams — competitive monitoring, market signal tracking, and structured data feeds so your whole organization benefits from podcast knowledge.",
+    link: { url: "/enterprise", label: "Learn about PodRise for teams" },
     emoji: "🏛️",
     date: "Feb 25, 2026",
   },
   {
-    title: "Advertise on PodCap",
+    title: "Advertise on PodRise",
     description: "We opened up advertising for brands that want to reach an engaged audience of podcast enthusiasts, professionals, and curious minds. Choose from multiple ad formats, target by topic or audience interest, and connect with listeners who are actively seeking knowledge. Everything is transparent — no hidden placements.",
     link: { url: "/advertise", label: "See advertising options" },
     emoji: "📣",
@@ -94,14 +94,14 @@ const changelog: ChangelogEntry[] = [
   },
   {
     title: "Podcasters can now claim their show",
-    description: "If you host a podcast, you can now officially claim your show on PodCap. Once verified, you can set a custom byline, manage how your sponsors appear, and control your show's presence on the platform. It takes about 30 seconds and gives you full ownership of your PodCap page.",
+    description: "If you host a podcast, you can now officially claim your show on PodRise. Once verified, you can set a custom byline, manage how your sponsors appear, and control your show's presence on the platform. It takes about 30 seconds and gives you full ownership of your PodRise page.",
     link: { url: "/podcaster/claim", label: "Claim your podcast" },
     emoji: "✅",
     date: "Feb 21, 2026",
   },
   {
     title: "Mobile layout improvements across the entire site",
-    description: "We spent a full week reworking layouts, tap targets, and typography to make PodCap feel truly native on phones and tablets. Episode recaps, podcast pages, the Shop, and every other section now adapt beautifully to smaller screens. If you've been using PodCap on desktop, give it a try on your phone — it's a much better experience now.",
+    description: "We spent a full week reworking layouts, tap targets, and typography to make PodRise feel truly native on phones and tablets. Episode recaps, podcast pages, the Shop, and every other section now adapt beautifully to smaller screens. If you've been using PodRise on desktop, give it a try on your phone — it's a much better experience now.",
     link: { url: "/podcasts", label: "Try it on your phone" },
     emoji: "📱",
     date: "Feb 19, 2026",
@@ -129,7 +129,7 @@ const changelog: ChangelogEntry[] = [
   },
   {
     title: "Higher quality episode recaps with better insights",
-    description: "We completely rebuilt our AI recap engine from the ground up for clarity and accuracy. Recaps now feature better-structured key insights, smarter guest detection from episode titles, and cleaner formatting so the important details stand out. If you tried PodCap early on and found recaps hit-or-miss, give them another look — the difference is night and day.",
+    description: "We completely rebuilt our AI recap engine from the ground up for clarity and accuracy. Recaps now feature better-structured key insights, smarter guest detection from episode titles, and cleaner formatting so the important details stand out. If you tried PodRise early on and found recaps hit-or-miss, give them another look — the difference is night and day.",
     link: { url: "/podcasts", label: "Read improved recaps" },
     emoji: "✨",
     date: "Feb 11, 2026",
@@ -164,56 +164,56 @@ const changelog: ChangelogEntry[] = [
   },
   {
     title: "Listen to the full episode from any recap",
-    description: "Every episode recap now includes direct links to Apple Podcasts and Spotify so you can jump straight to the full episode whenever a summary catches your ear. We built PodCap to help you discover great podcast content, not replace it — and now it's one tap from recap to full listen.",
+    description: "Every episode recap now includes direct links to Apple Podcasts and Spotify so you can jump straight to the full episode whenever a summary catches your ear. We built PodRise to help you discover great podcast content, not replace it — and now it's one tap from recap to full listen.",
     link: { url: "/podcasts", label: "Find an episode to listen to" },
     emoji: "🎧",
     date: "Jan 31, 2026",
   },
   {
     title: "Delete your account and all your data",
-    description: "Free-tier users can now permanently delete their account and all associated data from the Settings tab in the dashboard. Your data is yours — and if you ever decide PodCap isn't for you, we make it painless to leave. No hoops, no retention dark patterns, just a clean exit.",
+    description: "Free-tier users can now permanently delete their account and all associated data from the Settings tab in the dashboard. Your data is yours — and if you ever decide PodRise isn't for you, we make it painless to leave. No hoops, no retention dark patterns, just a clean exit.",
     link: { url: "/dashboard", label: "Manage your account settings" },
     emoji: "🗑️",
     date: "Jan 29, 2026",
   },
   {
     title: "Account management in your dashboard",
-    description: "You can now manage your account settings, update your email, adjust delivery preferences, and view your recap history all from your dashboard. We want managing PodCap to be as smooth as using it.",
+    description: "You can now manage your account settings, update your email, adjust delivery preferences, and view your recap history all from your dashboard. We want managing PodRise to be as smooth as using it.",
     link: { url: "/dashboard", label: "Manage your account" },
     emoji: "💳",
     date: "Jan 27, 2026",
   },
   {
-    title: "About Us — the story behind PodCap",
-    description: "A lot of people were asking who built PodCap and why, so we put together a proper About page with the story behind the project. We're a small team that believes podcast knowledge shouldn't be locked behind hours of listening — and we wanted to share that mission more clearly.",
+    title: "About Us — the story behind PodRise",
+    description: "A lot of people were asking who built PodRise and why, so we put together a proper About page with the story behind the project. We're a small team that believes podcast knowledge shouldn't be locked behind hours of listening — and we wanted to share that mission more clearly.",
     link: { url: "/about", label: "Read our story" },
     emoji: "👋",
     date: "Jan 25, 2026",
   },
   {
-    title: "PodCap is now on X",
-    description: "We created an X account where we post our top episode recaps daily. If you want a low-commitment way to discover great podcast episodes and stay in the loop on new PodCap features, give us a follow. We're posting the good stuff, not just announcements.",
-    link: { url: "https://x.com/podcap_io", label: "Follow @podcap_io on X" },
+    title: "PodRise is now on X",
+    description: "We created an X account where we post our top episode recaps daily. If you want a low-commitment way to discover great podcast episodes and stay in the loop on new PodRise features, give us a follow. We're posting the good stuff, not just announcements.",
+    link: { url: "https://x.com/podrise_hq", label: "Follow @podrise_hq on X" },
     emoji: "𝕏",
     date: "Jan 23, 2026",
   },
   {
     title: "For Podcasters — we're here to help, not hurt",
-    description: "Some podcasters worried that PodCap might lower their listen counts. The opposite is true. We built a dedicated page explaining how PodCap actually helps creators — by keeping superfans engaged between episodes, boosting completion rates for listeners who preview first, and improving algorithm performance through consistent engagement. This service is completely free for creators, and we love the people who make podcasts.",
+    description: "Some podcasters worried that PodRise might lower their listen counts. The opposite is true. We built a dedicated page explaining how PodRise actually helps creators — by keeping superfans engaged between episodes, boosting completion rates for listeners who preview first, and improving algorithm performance through consistent engagement. This service is completely free for creators, and we love the people who make podcasts.",
     link: { url: "/we-heart-podcasters", label: "Read our message to podcasters" },
     emoji: "❤️",
     date: "Jan 21, 2026",
   },
   {
     title: "AI-generated episode recaps on every podcast page",
-    description: "Each podcast page now features a real AI-powered episode summary so you can preview exactly what your daily recap looks like before signing up. No more guessing whether PodCap is worth it — just visit any podcast page and read the latest recap for yourself. It's the best way to see the quality before you commit.",
+    description: "Each podcast page now features a real AI-powered episode summary so you can preview exactly what your daily recap looks like before signing up. No more guessing whether PodRise is worth it — just visit any podcast page and read the latest recap for yourself. It's the best way to see the quality before you commit.",
     link: { url: "/podcasts/joerogan", label: "Read Joe Rogan's latest episode summary" },
     emoji: "📝",
     date: "Jan 19, 2026",
   },
   {
     title: "Dedicated podcast pages for individual shows",
-    description: "Every podcast on PodCap now has its own dedicated page — a hub for daily recaps, episode summaries, show info, and one-click sign-up. Podcasters asked for this so they could share a clean link with their audience, and listeners love having a single place to catch up on their favorite show.",
+    description: "Every podcast on PodRise now has its own dedicated page — a hub for daily recaps, episode summaries, show info, and one-click sign-up. Podcasters asked for this so they could share a clean link with their audience, and listeners love having a single place to catch up on their favorite show.",
     link: { url: "/podcasts/myfirstmillion", label: "See the My First Million page" },
     emoji: "🎙️",
     date: "Jan 17, 2026",
@@ -227,14 +227,14 @@ const changelog: ChangelogEntry[] = [
   },
   {
     title: "Unlimited podcast summaries for everyone",
-    description: "PodCap is now completely free with no limits on how many podcasts you can follow. Add as many shows as you want and get unlimited AI-powered podcast recaps and episode summaries delivered to your inbox daily.",
+    description: "PodRise is now completely free with no limits on how many podcasts you can follow. Add as many shows as you want and get unlimited AI-powered podcast recaps and episode summaries delivered to your inbox daily.",
     link: { url: "/register", label: "Get started for free" },
     emoji: "⭐",
     date: "Jan 13, 2026",
   },
   {
     title: "Top podcasts directory",
-    description: "We launched a browsable directory of the top podcasts on PodCap. Each show has its own page with episode summaries, show details, and one-click sign-up for daily recaps. It's the easiest way to discover new shows and see what other PodCap users are following.",
+    description: "We launched a browsable directory of the top podcasts on PodRise. Each show has its own page with episode summaries, show details, and one-click sign-up for daily recaps. It's the easiest way to discover new shows and see what other PodRise users are following.",
     link: { url: "/podcasts", label: "Browse top podcasts" },
     emoji: "📊",
     date: "Jan 11, 2026",
@@ -261,9 +261,9 @@ const changelog: ChangelogEntry[] = [
     date: "Jan 3, 2026",
   },
   {
-    title: "PodCap is live — your daily AI podcast recap starts now",
-    description: "Today we're launching PodCap, the easiest way to stay on top of your favorite podcasts without listening to every episode. Sign up, pick your shows, and get a concise AI-powered recap delivered to your inbox every morning. We built this because we love podcasts but can't listen to everything — and we think you'll love it too. Welcome aboard.",
-    link: { url: "/", label: "Get started with PodCap" },
+    title: "PodRise is live — your daily AI podcast recap starts now",
+    description: "Today we're launching PodRise, the easiest way to stay on top of your favorite podcasts without listening to every episode. Sign up, pick your shows, and get a concise AI-powered recap delivered to your inbox every morning. We built this because we love podcasts but can't listen to everything — and we think you'll love it too. Welcome aboard.",
+    link: { url: "/", label: "Get started with PodRise" },
     emoji: "🚀",
     date: "Jan 1, 2026",
   },
@@ -278,7 +278,7 @@ export default function FeatureRequests() {
   const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    document.title = "What's New — PodCap Updates, Features & Product Changelog | PodCap";
+    document.title = "What's New — PodRise Updates, Features & Product Changelog | PodRise";
 
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`);
@@ -286,31 +286,31 @@ export default function FeatureRequests() {
       el.setAttribute("content", content);
     };
 
-    const desc = "See what we've shipped — AI podcast recaps, episode summaries, topic intelligence, and more. Follow PodCap's product journey and request features.";
+    const desc = "See what we've shipped — AI podcast recaps, episode summaries, topic intelligence, and more. Follow PodRise's product journey and request features.";
     setMeta("name", "description", desc);
-    setMeta("name", "keywords", "podcast recap updates, podcast summary features, PodCap changelog, AI podcast knowledge, episode recap platform");
-    setMeta("property", "og:title", "What's New — PodCap Updates, Features & Product Changelog | PodCap");
+    setMeta("name", "keywords", "podcast recap updates, podcast summary features, PodRise changelog, AI podcast knowledge, episode recap platform");
+    setMeta("property", "og:title", "What's New — PodRise Updates, Features & Product Changelog | PodRise");
     setMeta("property", "og:description", desc);
-    setMeta("property", "og:url", "https://podcap.io/updates");
+    setMeta("property", "og:url", "https://podrise.com/updates");
     setMeta("property", "og:type", "website");
-    setMeta("property", "og:site_name", "PodCap");
+    setMeta("property", "og:site_name", "PodRise");
     setMeta("name", "twitter:card", "summary_large_image");
-    setMeta("name", "twitter:title", "What's New — PodCap Updates, Features & Product Changelog | PodCap");
+    setMeta("name", "twitter:title", "What's New — PodRise Updates, Features & Product Changelog | PodRise");
     setMeta("name", "twitter:description", desc);
 
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!canonical) { canonical = document.createElement("link"); canonical.setAttribute("rel", "canonical"); document.head.appendChild(canonical); }
-    canonical.setAttribute("href", "https://podcap.io/updates");
+    canonical.setAttribute("href", "https://podrise.com/updates");
 
     let jsonLd = document.querySelector('script[data-seo="updates"]');
     if (!jsonLd) { jsonLd = document.createElement("script"); jsonLd.setAttribute("type", "application/ld+json"); jsonLd.setAttribute("data-seo", "updates"); document.head.appendChild(jsonLd); }
     jsonLd.textContent = JSON.stringify({
       "@context": "https://schema.org",
       "@type": "WebPage",
-      "name": "What's New - PodCap Updates, Features & Changelog",
-      "description": "See what we've shipped - AI-powered podcast recaps, podcast summaries, and more. Follow PodCap's journey building the world's searchable library of podcast knowledge.",
-      "url": "https://podcap.io/updates",
-      "publisher": { "@type": "Organization", "name": "PodCap", "url": "https://podcap.io" },
+      "name": "What's New - PodRise Updates, Features & Changelog",
+      "description": "See what we've shipped - AI-powered podcast recaps, podcast summaries, and more. Follow PodRise's journey building the world's searchable library of podcast knowledge.",
+      "url": "https://podrise.com/updates",
+      "publisher": { "@type": "Organization", "name": "PodRise", "url": "https://podrise.com" },
     });
 
     return () => {
@@ -362,7 +362,7 @@ export default function FeatureRequests() {
               <Sparkles className="w-5 h-5" />
               What's New
             </div>
-            <h1 className="sr-only">What's New at PodCap</h1>
+            <h1 className="sr-only">What's New at PodRise</h1>
             <p className="text-base text-muted-foreground max-w-md mx-auto leading-relaxed">
               Everything we've shipped to build the world's searchable library of podcast knowledge.
             </p>
@@ -423,7 +423,7 @@ export default function FeatureRequests() {
               </div>
               <div>
                 <h2 className="text-base font-display font-bold text-foreground">What should we build next?</h2>
-                <p className="text-[15px] text-muted-foreground">We read every suggestion - your ideas shape PodCap.</p>
+                <p className="text-[15px] text-muted-foreground">We read every suggestion - your ideas shape PodRise.</p>
               </div>
             </div>
 
@@ -448,7 +448,7 @@ export default function FeatureRequests() {
                   <textarea
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder="I'd love it if PodCap could..."
+                    placeholder="I'd love it if PodRise could..."
                     rows={3}
                     className="w-full px-4 py-3 bg-white border border-black/[0.08] rounded-xl text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all resize-none"
                     data-testid="textarea-feature-request"

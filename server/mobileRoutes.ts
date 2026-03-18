@@ -97,20 +97,20 @@ export function registerMobileRoutes(app: Express) {
 
       const { client, fromEmail } = await getUncachableResendClient();
       await client.emails.send({
-        from: `PodCap <${fromEmail}>`,
+        from: `PodRise <${fromEmail}>`,
         to: user.email,
-        subject: "Log in to PodCap",
+        subject: "Log in to PodRise",
         headers: { "X-Entity-Ref-ID": crypto.randomUUID() },
         html: `<!DOCTYPE html>
 <html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;margin:0;padding:0;background:#f3f4f6;">
 <div style="max-width:480px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
 <div style="background:linear-gradient(135deg,#1d4ed8,#2563eb);padding:32px 24px;text-align:center;">
-<h1 style="color:#fff;font-size:24px;font-weight:800;margin:0;">PodCap</h1>
+<h1 style="color:#fff;font-size:24px;font-weight:800;margin:0;">PodRise</h1>
 </div>
 <div style="padding:32px 28px;text-align:center;">
-<h2 style="color:#1a1a1a;font-size:20px;font-weight:700;margin:0 0 12px;">Log in to PodCap</h2>
+<h2 style="color:#1a1a1a;font-size:20px;font-weight:700;margin:0 0 12px;">Log in to PodRise</h2>
 <p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 24px;">Tap the button below to log in from your iPhone. This link expires in 15 minutes.</p>
-<a href="${magicUrl}" style="display:inline-block;padding:14px 32px;background:#2563eb;color:#fff;font-size:16px;font-weight:700;text-decoration:none;border-radius:10px;">Log in to PodCap</a>
+<a href="${magicUrl}" style="display:inline-block;padding:14px 32px;background:#2563eb;color:#fff;font-size:16px;font-weight:700;text-decoration:none;border-radius:10px;">Log in to PodRise</a>
 <p style="color:#9ca3af;font-size:12px;margin:24px 0 0;">If you didn't request this, you can safely ignore this email.</p>
 </div>
 </div>

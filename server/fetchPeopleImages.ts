@@ -43,7 +43,7 @@ function fetchUrl(url: string, redirectCount = 0): Promise<Buffer> {
       };
 
       const mod = url.startsWith("https") ? https : http;
-      const req = mod.get(url, { headers: { "User-Agent": "PodCap/1.0 (podcap.io; profile-image-pipeline)" }, timeout: 8000 }, handler);
+      const req = mod.get(url, { headers: { "User-Agent": "PodRise/1.0 (podrise.com; profile-image-pipeline)" }, timeout: 8000 }, handler);
       req.on("error", reject);
       req.on("timeout", () => { req.destroy(); reject(new Error("Timeout")); });
     } catch (err) {

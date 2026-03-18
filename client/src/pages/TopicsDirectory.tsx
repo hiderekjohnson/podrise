@@ -24,7 +24,7 @@ const CATEGORIES: { key: string; label: string; slugs: string[] }[] = [
 ];
 
 function SEOHead() {
-  const title = "Podcast Topics — AI, Business, Finance, Leadership & More | PodCap";
+  const title = "Podcast Topics — AI, Business, Finance, Leadership & More | PodRise";
   const description = "Explore 30+ topics covered by the world's top podcasts. Get daily insights, takeaways, and expert opinions on AI, business, finance, leadership, and more.";
 
   if (typeof document !== "undefined") {
@@ -42,7 +42,7 @@ function SEOHead() {
     setOrCreate('meta[name="description"]', "name", description);
     setOrCreate('meta[property="og:title"]', "property", title);
     setOrCreate('meta[property="og:description"]', "property", description);
-    setOrCreate('meta[property="og:image"]', "property", "https://podcap.io/og/og-topics.png");
+    setOrCreate('meta[property="og:image"]', "property", "https://podrise.com/og/og-topics.png");
     setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
     setOrCreate('meta[name="twitter:title"]', "name", title);
     setOrCreate('meta[name="twitter:description"]', "name", description);

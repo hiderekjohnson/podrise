@@ -4,7 +4,7 @@ import { Loader2, Clock, Zap, Mail, Headphones, Sparkles, Search, TrendingUp, Ta
 import { motion } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { PodCapWordmark } from "@/components/PodCapHeader";
+import { PodRiseWordmark } from "@/components/PodRiseHeader";
 import { LANDING_PAGES, getLandingPageBySlug, type LandingPageConfig } from "@/data/landingPageConfig";
 import { apiRequest } from "@/lib/queryClient";
 import NotFound from "./not-found";
@@ -46,14 +46,14 @@ function LandingPageContent({ config }: { config: LandingPageConfig }) {
 
   useEffect(() => {
     trackVisit(config.slug);
-    document.title = `${config.headline} | PodCap`;
+    document.title = `${config.headline} | PodRise`;
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`);
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.setAttribute("content", content);
     };
     setMeta("name", "description", config.subheadline);
-    setMeta("property", "og:title", `${config.headline} | PodCap`);
+    setMeta("property", "og:title", `${config.headline} | PodRise`);
     setMeta("property", "og:description", config.subheadline);
   }, [config.slug]);
 
@@ -97,7 +97,7 @@ function LandingPageContent({ config }: { config: LandingPageConfig }) {
     <div className="min-h-screen flex flex-col bg-white dark:bg-zinc-950">
       <header className="w-full px-6 py-5 flex items-center justify-center">
         <Link href="/" data-testid="link-lp-home">
-          <PodCapWordmark />
+          <PodRiseWordmark />
         </Link>
       </header>
 
@@ -223,7 +223,7 @@ function LandingPageContent({ config }: { config: LandingPageConfig }) {
               Ready to get started?
             </h2>
             <p className="text-white/80 mb-6 text-lg">
-              Join PodCap for free and start getting smarter about podcasts today.
+              Join PodRise for free and start getting smarter about podcasts today.
             </p>
             <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 justify-center items-center max-w-md mx-auto">
               <input
@@ -269,7 +269,7 @@ function LandingPageContent({ config }: { config: LandingPageConfig }) {
       <footer className="w-full px-6 py-8 border-t border-black/[0.06] dark:border-white/[0.08]">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <Link href="/" data-testid="link-lp-footer-home">
-            <PodCapWordmark />
+            <PodRiseWordmark />
           </Link>
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
             <Link href="/privacy" className="hover:text-foreground transition-colors" data-testid="link-lp-privacy">Privacy</Link>

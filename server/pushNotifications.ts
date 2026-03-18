@@ -49,7 +49,7 @@ async function sendApnsPush(deviceToken: string, payload: PushPayload): Promise<
   const apnsKeyId = process.env.APNS_KEY_ID;
   const apnsTeamId = process.env.APNS_TEAM_ID;
   const apnsKey = process.env.APNS_KEY;
-  const apnsBundleId = process.env.APNS_BUNDLE_ID || "io.podcap.app";
+  const apnsBundleId = process.env.APNS_BUNDLE_ID || "com.podrise.app";
 
   if (!apnsKeyId || !apnsTeamId || !apnsKey) {
     console.log(`[Push] APNs not configured — skipping push to ${deviceToken.slice(0, 8)}...`);

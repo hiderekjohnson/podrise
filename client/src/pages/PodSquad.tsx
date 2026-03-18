@@ -40,7 +40,7 @@ interface LeaderboardEntry {
 
 const TIER_ICONS = [Star, Zap, Award, Crown, Trophy];
 
-const DEFAULT_INVITE_MESSAGE = `Thought you'd find this useful. PodCap tracks your favorite podcasts and pulls out the key takeaways, so you always know what's going on without sitting through hours of audio. Free:`;
+const DEFAULT_INVITE_MESSAGE = `Thought you'd find this useful. PodRise tracks your favorite podcasts and pulls out the key takeaways, so you always know what's going on without sitting through hours of audio. Free:`;
 
 export default function PodSquad() {
   const { data: user } = useAuth();
@@ -51,20 +51,20 @@ export default function PodSquad() {
   const [showContactsPicker, setShowContactsPicker] = useState(false);
 
   useEffect(() => {
-    document.title = "The Pod Squad — Referrals Get Rewarded | PodCap";
+    document.title = "The Pod Squad — Referrals Get Rewarded | PodRise";
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`);
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
       el.setAttribute("content", content);
     };
-    setMeta("property", "og:title", "The Pod Squad — Referrals Get Rewarded | PodCap");
-    setMeta("property", "og:description", "Join The Pod Squad! Share PodCap with friends and unlock exclusive rewards as they sign up.");
-    setMeta("property", "og:image", "https://podcap.io/podcap-og-image.png");
-    setMeta("property", "og:url", "https://podcap.io/pod-squad");
+    setMeta("property", "og:title", "The Pod Squad — Referrals Get Rewarded | PodRise");
+    setMeta("property", "og:description", "Join The Pod Squad! Share PodRise with friends and unlock exclusive rewards as they sign up.");
+    setMeta("property", "og:image", "https://podrise.com/podrise-og-image.png");
+    setMeta("property", "og:url", "https://podrise.com/pod-squad");
     setMeta("name", "twitter:card", "summary_large_image");
-    setMeta("name", "twitter:title", "The Pod Squad — Referrals Get Rewarded | PodCap");
-    setMeta("name", "twitter:description", "Join The Pod Squad! Share PodCap with friends and unlock exclusive rewards.");
-    setMeta("name", "twitter:image", "https://podcap.io/podcap-og-image.png");
+    setMeta("name", "twitter:title", "The Pod Squad — Referrals Get Rewarded | PodRise");
+    setMeta("name", "twitter:description", "Join The Pod Squad! Share PodRise with friends and unlock exclusive rewards.");
+    setMeta("name", "twitter:image", "https://podrise.com/podrise-og-image.png");
   }, []);
 
   const { data: stats, isLoading: statsLoading } = useQuery<ReferralStats>({
@@ -125,7 +125,7 @@ export default function PodSquad() {
   };
 
   const smsShareText = `Have you seen this? Tracks your favorite podcasts and sends you the key takeaways without listening. Free:`;
-  const linkedInShareText = `Been using PodCap to keep up with the podcasts in my space without actually listening. It tracks your favorite shows and delivers the key takeaways. Free:`;
+  const linkedInShareText = `Been using PodRise to keep up with the podcasts in my space without actually listening. It tracks your favorite shows and delivers the key takeaways. Free:`;
   const twitterShareText = `Have you seen this? Tracks your favorite podcasts and sends you the key takeaways without listening. Free:`;
 
   if (!user) {
@@ -136,7 +136,7 @@ export default function PodSquad() {
             <Trophy className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-foreground mb-2" data-testid="heading-pod-squad">The Pod Squad</h1>
-          <p className="text-[#52525B] dark:text-[#A1A1AA] mb-6">Sign up or log in to start earning rewards by sharing PodCap with friends.</p>
+          <p className="text-[#52525B] dark:text-[#A1A1AA] mb-6">Sign up or log in to start earning rewards by sharing PodRise with friends.</p>
           <div className="flex gap-3 justify-center">
             <Link href="/register" className="px-6 py-3 bg-[#6366F1] text-white rounded-xl font-semibold hover:bg-[#4F46E5] transition-colors" data-testid="link-register">Sign Up</Link>
             <Link href="/login" className="px-6 py-3 border border-[#D4D4D8] dark:border-[#27272A] rounded-xl font-semibold text-foreground hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-colors" data-testid="link-login">Log In</Link>
@@ -169,7 +169,7 @@ export default function PodSquad() {
               Referrals Get Rewarded
             </h1>
             <p className="text-[15px] md:text-[17px] text-white/80 max-w-lg mx-auto mb-8">
-              Share PodCap with friends. As they sign up, you'll unlock exclusive rewards.
+              Share PodRise with friends. As they sign up, you'll unlock exclusive rewards.
             </p>
 
             {!statsLoading && stats?.tiers && stats.tiers.length > 0 && (
@@ -337,7 +337,7 @@ export default function PodSquad() {
               <section data-testid="email-invite-section">
                 <h2 className="text-[18px] font-bold text-foreground mb-1">Share via email</h2>
                 <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] mb-4">
-                  Invite people to subscribe to PodCap by entering their emails. (We'll automatically add your referral link!)
+                  Invite people to subscribe to PodRise by entering their emails. (We'll automatically add your referral link!)
                 </p>
                 <div className="rounded-2xl bg-white dark:bg-[#111114] border border-[#ECECEE] dark:border-[#1C1C22] p-5 space-y-4">
                   <div className="flex gap-2">

@@ -53,7 +53,7 @@ export default function CompanyDetailPage() {
   });
 
   if (typeof document !== "undefined" && company) {
-    const title = `${company.name} Podcast Mentions, Analysis & Trends | PodCap`;
+    const title = `${company.name} Podcast Mentions, Analysis & Trends | PodRise`;
     const desc = `What top podcasts say about ${company.name}. ${company.mentionCount} mentions across leading shows — explore episodes, trends, and key discussions.`;
     document.title = title;
     const setOrCreate = (selector: string, attr: string, value: string) => {

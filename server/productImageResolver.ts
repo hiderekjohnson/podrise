@@ -8,7 +8,7 @@ export async function resolveProductImage(purchaseUrl: string): Promise<string |
     const resp = await fetch(normalizedUrl, {
       signal: controller.signal,
       redirect: "follow",
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; PodCap/1.0)" },
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; PodRise/1.0)" },
     });
     clearTimeout(timeout);
 

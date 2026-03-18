@@ -1,4 +1,4 @@
-# PodCap Brand Guide
+# PodRise Brand Guide
 
 Every new page, component, and email template must reference this file before any styling decisions are made. This is the single source of truth for all design and accessibility decisions. No exceptions.
 

@@ -140,12 +140,12 @@ export function PodcastSearch({ selectedPodcasts, onAdd }: PodcastSearchProps) {
                             {podcast.name}
                           </p>
                           <p className="text-[16px] text-[#52525B] dark:text-[#A1A1AA] truncate mt-0.5">
-                            {podcast.onPlatform ? (podcast.artistName || "On PodCap") : (podcast.artistName || podcast.genre || "")}
+                            {podcast.onPlatform ? (podcast.artistName || "On PodRise") : (podcast.artistName || podcast.genre || "")}
                           </p>
                         </div>
                         {podcast.onPlatform && (
                           <span className="text-[10px] font-bold text-[#6366F1] bg-[#EEF2FF] dark:bg-[#1E1B4B] px-2 py-0.5 rounded-full flex-shrink-0 mr-1">
-                            On PodCap
+                            On PodRise
                           </span>
                         )}
                         <Plus className="w-5 h-5 text-[#52525B] dark:text-[#A1A1AA] shrink-0 transition-colors group-hover/row:text-primary" />

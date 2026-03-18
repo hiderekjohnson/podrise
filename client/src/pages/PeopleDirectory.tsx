@@ -58,7 +58,7 @@ const PIE_COLORS = [
 ];
 
 function SEOHead() {
-  const title = "People Mentioned on Podcasts — Founders, Investors & Leaders | PodCap";
+  const title = "People Mentioned on Podcasts — Founders, Investors & Leaders | PodRise";
   const description = "See which founders, investors, and thought leaders are most discussed on top podcasts. Track trending mentions, rising voices, and explore every appearance.";
 
   if (typeof document !== "undefined") {
@@ -76,7 +76,7 @@ function SEOHead() {
     setOrCreate('meta[name="description"]', "name", description);
     setOrCreate('meta[property="og:title"]', "property", title);
     setOrCreate('meta[property="og:description"]', "property", description);
-    setOrCreate('meta[property="og:image"]', "property", "https://podcap.io/og/og-people.png");
+    setOrCreate('meta[property="og:image"]', "property", "https://podrise.com/og/og-people.png");
     setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
     setOrCreate('meta[name="twitter:title"]', "name", title);
     setOrCreate('meta[name="twitter:description"]', "name", description);
