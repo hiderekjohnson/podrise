@@ -188,15 +188,15 @@ async function runBatch() {
   try {
     const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
     const cutoffTimestamp = Math.floor(threeDaysAgo.getTime() / 1000);
-    const cutoffFetchedAt = threeDaysAgo.toISOString();
     const { rows: episodes } = await pool.query(
       `WITH ranked AS (
          SELECT et.id, et.podcast_id, et.episode_title, et.transcript, et.description,
                 et.date_published, et.duration, et.audio_url, et.image_url, et.fetched_at,
-                ROW_NUMBER() OVER (PARTITION BY et.podcast_id ORDER BY COALESCE(et.date_published, EXTRACT(EPOCH FROM et.fetched_at)::int) DESC) AS rn
+                ROW_NUMBER() OVER (PARTITION BY et.podcast_id ORDER BY et.date_published DESC) AS rn
          FROM episode_transcripts et
          WHERE et.transcript IS NOT NULL AND et.transcript != ''
-           AND (et.date_published >= $3 OR (et.date_published IS NULL AND et.fetched_at >= $4))
+           AND et.date_published IS NOT NULL
+           AND et.date_published >= $3
            AND NOT EXISTS (
              SELECT 1 FROM landing_page_recaps lpr
              WHERE lpr.itunes_id = et.podcast_id
@@ -208,9 +208,9 @@ async function runBatch() {
               date_published, duration, audio_url, image_url, fetched_at
        FROM ranked
        WHERE rn <= $1
-       ORDER BY COALESCE(date_published, EXTRACT(EPOCH FROM fetched_at)::int) DESC NULLS LAST
+       ORDER BY date_published DESC
        LIMIT $2`,
-      [PER_PODCAST, BATCH_SIZE, cutoffTimestamp, cutoffFetchedAt]
+      [PER_PODCAST, BATCH_SIZE, cutoffTimestamp]
     );
 
     if (episodes.length === 0) {
@@ -285,6 +285,28 @@ async function cleanupDuplicateRecaps() {
     }
   } catch (err: any) {
     console.error(`[ProdRecap] Duplicate cleanup error: ${err.message}`);
+  }
+
+  try {
+    const { rows: nullDateRows } = await pool.query(`
+      DELETE FROM landing_page_recaps
+      WHERE id IN (
+        SELECT lpr.id FROM landing_page_recaps lpr
+        JOIN episode_transcripts et
+          ON et.podcast_id = lpr.itunes_id
+          AND lower(trim(et.episode_title)) = lower(trim(lpr.episode_title))
+        WHERE lpr.created_at >= NOW() - INTERVAL '7 days'
+          AND et.date_published IS NULL
+      )
+      RETURNING id, episode_title
+    `);
+    if (nullDateRows.length > 0) {
+      console.log(`[ProdRecap] Removed ${nullDateRows.length} recap(s) created from episodes with no real publish date`);
+    } else {
+      console.log(`[ProdRecap] No null-date recaps to clean`);
+    }
+  } catch (err: any) {
+    console.error(`[ProdRecap] Null-date cleanup error: ${err.message}`);
   }
 }
 
