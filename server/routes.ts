@@ -835,6 +835,9 @@ export async function registerRoutes(
     if (host === "www.podrise.com") {
       return res.redirect(301, `https://podrise.com${req.originalUrl}`);
     }
+    if (host === "podcap.io" || host === "www.podcap.io") {
+      return res.redirect(301, `https://podrise.com${req.originalUrl}`);
+    }
     next();
   });
 
@@ -846,6 +849,7 @@ export async function registerRoutes(
         /^https?:\/\/.*\.replit\.dev$/,
         /^https:\/\/podrise\.com$/,
         /^https:\/\/.*\.podrise\.com$/,
+        /^https:\/\/(www\.)?podcap\.io$/,
         /^capacitor:\/\//,
         /^ionic:\/\//,
       ];
