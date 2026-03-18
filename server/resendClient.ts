@@ -31,9 +31,9 @@ async function getCredentials() {
 }
 
 export async function getUncachableResendClient() {
-  const { apiKey } = await getCredentials();
+  const { apiKey, fromEmail } = await getCredentials();
   return {
     client: new Resend(apiKey),
-    fromEmail: 'digest@podrise.com',
+    fromEmail: fromEmail || 'digest@podrise.com',
   };
 }
