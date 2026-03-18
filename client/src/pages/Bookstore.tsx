@@ -634,8 +634,8 @@ function ShelfRow({ books, keyPrefix }: { books: ShopBook[]; keyPrefix: string }
       <div ref={scrollRef} className="flex gap-5 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-hide">
         {books.slice(0, 10).map((book, i) => {
           const inner = (
-            <div className="w-[160px] shrink-0 group/shelf">
-              <div className="w-[160px] h-[216px] sm:h-[264px] rounded-xl mb-2.5 overflow-hidden flex items-center justify-center bg-[#FAFAFA] dark:bg-white/[0.02] p-3">
+            <div className="w-[160px] sm:w-[184px] shrink-0 group/shelf">
+              <div className="w-[160px] h-[232px] sm:w-[184px] sm:h-[280px] rounded-xl mb-2.5 overflow-hidden flex items-center justify-center bg-[#FAFAFA] dark:bg-white/[0.02] [&>img]:max-w-[calc(100%-0.75rem)] [&>img]:max-h-[calc(100%-0.75rem)] [&>div:first-child]:max-w-[calc(100%-0.75rem)] [&>div:first-child]:max-h-[calc(100%-0.75rem)]">
                 <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} size="xl" />
               </div>
               <p className="text-[15px] font-semibold text-[#09090B] dark:text-white leading-snug line-clamp-2 group-hover/shelf:text-[#6366F1] transition-colors">
@@ -682,10 +682,10 @@ function ProductShelfRow({ products, keyPrefix }: { products: ShopProduct[]; key
           const hasImage = product.imageUrl && !imgErrors.has(i);
           return (
             <Link href={`/shop/${product.slug}`} className="block shrink-0" key={`${keyPrefix}-${product.name}-${i}`} data-testid={`shelf-${keyPrefix}-${product.slug}-${i}`}>
-              <div className="w-[160px] shrink-0 group/shelf">
-                <div className={`w-[160px] h-[216px] sm:h-[264px] rounded-xl mb-2.5 overflow-hidden flex items-center justify-center p-3 ${hasImage ? "bg-[#FAFAFA] dark:bg-white/[0.02]" : "bg-[#FAFAFA] dark:bg-white/[0.02]"}`}>
+              <div className="w-[160px] sm:w-[184px] shrink-0 group/shelf">
+                <div className={`w-[160px] h-[232px] sm:w-[184px] sm:h-[280px] rounded-xl mb-2.5 overflow-hidden flex items-center justify-center ${hasImage ? "bg-[#FAFAFA] dark:bg-white/[0.02]" : "bg-[#FAFAFA] dark:bg-white/[0.02]"}`}>
                   {hasImage ? (
-                    <img src={product.imageUrl!} alt={product.name} className="max-w-full max-h-full object-contain" loading="lazy" onError={() => setImgErrors(prev => new Set(prev).add(i))} />
+                    <img src={product.imageUrl!} alt={product.name} className="max-w-[calc(100%-0.75rem)] max-h-[calc(100%-0.75rem)] object-contain" loading="lazy" onError={() => setImgErrors(prev => new Set(prev).add(i))} />
                   ) : (
                     <ShoppingBag className="w-10 h-10 text-[#A1A1AA]/30" />
                   )}

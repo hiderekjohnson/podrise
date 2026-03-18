@@ -96,9 +96,6 @@ function PersonalBookCard({ book, index }: { book: ShopBook; index: number }) {
     >
       <div className="h-[232px] sm:h-[280px] relative overflow-hidden bg-[#FAFAFA] dark:bg-white/[0.02] flex items-center justify-center [&>img]:max-w-[calc(100%-1rem)] [&>img]:max-h-[calc(100%-1rem)] [&>div:first-child]:max-w-[calc(100%-1rem)] [&>div:first-child]:max-h-[calc(100%-1rem)]">
         <BookCover title={book.name} slug={book.slug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} size="xl" />
-        <div className="absolute top-2.5 left-2.5">
-          <PodcastMicBadge count={book.podcastCount} size="sm" />
-        </div>
       </div>
       <div className="p-3.5">
         <h3 className="text-[15px] font-bold text-[#09090B] dark:text-white leading-snug line-clamp-2 min-h-[2.5em] group-hover:text-[#6366F1] transition-colors" data-testid={`personal-item-title-${index}`}>
@@ -112,6 +109,7 @@ function PersonalBookCard({ book, index }: { book: ShopBook; index: number }) {
           )}
         </div>
         <div className="flex items-center gap-1.5 mt-2">
+          <PodcastMicBadge count={book.podcastCount} size="sm" />
           <span className="text-[12px] text-[#A1A1AA] dark:text-[#71717A]">
             {book.mentionCount} mention{book.mentionCount !== 1 ? "s" : ""}
           </span>
@@ -155,9 +153,6 @@ function PersonalProductCard({ product, index }: { product: ShopProduct; index: 
           ) : (
             <ShoppingBag className="w-12 h-12 text-[#A1A1AA]/20" />
           )}
-          <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-            <PodcastMicBadge count={product.podcastCount} size="sm" />
-          </div>
           <div className="absolute top-2.5 right-2.5">
             <span className={`text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${getTypeColor(product.type)}`}>
               {getTypeLabel(product.type)}
@@ -176,6 +171,7 @@ function PersonalProductCard({ product, index }: { product: ShopProduct; index: 
             )}
           </div>
           <div className="flex items-center gap-1.5 mt-2">
+            <PodcastMicBadge count={product.podcastCount} size="sm" />
             <span className="text-[12px] text-[#A1A1AA] dark:text-[#71717A]">
               {product.mentionCount} mention{product.mentionCount !== 1 ? "s" : ""}
             </span>
