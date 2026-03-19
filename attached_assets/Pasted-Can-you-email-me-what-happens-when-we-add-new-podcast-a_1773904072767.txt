@@ -1,0 +1,23 @@
+Can you email me what happens when we add new podcast, and how all the data gets inputted, processed, etc.
+
+
+Can you email me the entire process when a new episode gets released how the whole thing happens from taddy to seeing it on the website?
+
+
+"Should we only search Taddy via iTunes ID?"
+Yes, that would be more reliable. The name search has fuzzy matching (partial string comparison) which can match the wrong podcast. Since every podcast in your podcast_directory already has an iTunes ID (it's a required notNull field), you can safely default to iTunes ID lookup and skip the name fallback. The name fallback was just a safety net but it's causing more harm than good if it's matching wrong podcasts.
+K, do this ^^^
+
+Phase 2 — "Do we need transcript segments?"
+You're right to question this. The transcript_segments table is used by the EpisodeTranscriptPage.tsx — a page at /{podcast}/{episode}/transcript that shows the full interactive transcript with speaker labels, timestamps, and a search/filter feature.
+If you're not showing users the transcript anywhere, then yes, parsing and saving transcript segments is an extra step you can skip. It won't save much processing time (it's just text parsing, no API calls), but it does save database writes and simplifies the pipeline. However, if you plan to show transcripts in the future, you'd want to keep it.
+No, we’ll never show transcripts in the future, so remove this step.
+
+"Is chunking still needed after removing all those fields?"
+Yes, chunking is still needed. The issue isn't what you're extracting — it's the size of the transcript itself. GPT-4o has a context window limit, and long podcast transcripts (a 3-hour episode can be 100,000+ characters) simply won't fit in a single API call. The 28,000 character threshold exists because the transcript plus the prompt plus the expected output need to fit within the token limit. With a simpler prompt you might be able to bump that threshold up a bit (maybe to 35,000-40,000), but you can't eliminate chunking entirely for long episodes.
+No, don’t change this right now
+
+Phase 5 — "Do we even need the audio URL?"
+The audio_url is the direct link to the MP3 file for the episode. Looking at the frontend, it's only shown in the admin CMS as a "Listen to audio" link. It's not used in any audio player on the public-facing site. The public pages link users to Apple Podcasts and Spotify instead.
+If you're not building an in-app audio player, the audio URL is nice-to-have metadata but not critical. The validation step trying to fix missing audio URLs is harmless though — it just grabs the URL from the iTunes lookup response that's already happening anyway (no extra API call). So it's not costing you anything to keep.
+K, lets keep it as you never know down the road, maybe we’ll have our own podcast player.
