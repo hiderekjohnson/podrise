@@ -387,9 +387,7 @@ export function RightSidebar() {
           <span>·</span>
           <Link href="/privacy" className="hover:underline" data-testid="link-privacy">Privacy</Link>
           <span>·</span>
-          <Link href="/about" className="hover:underline" data-testid="link-about">About</Link>
-          <span>·</span>
-          <Link href="/help" className="hover:underline" data-testid="link-more">More</Link>
+          <Link href="/cookies" className="hover:underline" data-testid="link-cookies">Cookies</Link>
         </div>
         <p className="text-[11px] text-[#A1A1AA] px-1 mt-1">&copy; 2026 PodRise, Inc.</p>
       </div>
