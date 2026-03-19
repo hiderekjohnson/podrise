@@ -83,7 +83,7 @@ export default function Support() {
     },
     {
       question: "Is my data safe with PodRise?",
-      answer: "Absolutely. We only collect your email address and podcast preferences - the minimum needed to deliver your daily podcast summaries. We never sell your data to anyone. Payment processing is handled securely by Stripe, so we never see or store your credit card details.",
+      answer: "Absolutely. We only collect your email address and podcast preferences - the minimum needed to deliver your daily podcast summaries. We never sell your data to anyone.",
     },
     {
       question: "Can I delete my account?",

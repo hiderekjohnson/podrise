@@ -49,7 +49,6 @@ export default function Privacy() {
             <h2 className="text-lg font-semibold text-foreground mb-2">2. Information We Collect</h2>
             <p><strong>Personal Information:</strong> When you create an account, we collect your email address. This is used for authentication via magic link login and to deliver your daily podcast digest emails.</p>
             <p><strong>Usage Data:</strong> We automatically collect information about how you interact with our Service, including podcast preferences, pages visited, and features used.</p>
-            <p><strong>Payment Information:</strong> If you subscribe to our Pro plan, payment processing is handled by Stripe. We do not store your credit card details on our servers. Please refer to Stripe's privacy policy for information on how they handle your payment data.</p>
           </section>
 
           <section>
@@ -59,7 +58,6 @@ export default function Privacy() {
               <li>Provide, maintain, and improve the Service</li>
               <li>Send you daily podcast digest emails based on your preferences</li>
               <li>Authenticate your identity via magic link login</li>
-              <li>Process payments and manage subscriptions</li>
               <li>Communicate with you about service updates and changes</li>
               <li>Monitor and analyze usage patterns and trends</li>
             </ul>
@@ -69,7 +67,7 @@ export default function Privacy() {
             <h2 className="text-lg font-semibold text-foreground mb-2">4. Data Sharing and Disclosure</h2>
             <p>We do not sell, trade, or rent your personal information to third parties. We may share your information with:</p>
             <ul className="list-disc pl-5 space-y-1">
-              <li><strong>Service Providers:</strong> Third-party companies that assist us in operating our Service, such as Stripe (payments), Resend (email delivery), and hosting providers</li>
+              <li><strong>Service Providers:</strong> Third-party companies that assist us in operating our Service, such as Resend (email delivery) and hosting providers</li>
               <li><strong>Legal Requirements:</strong> When required by law, subpoena, or other legal process</li>
               <li><strong>Business Transfers:</strong> In connection with a merger, acquisition, or sale of assets</li>
             </ul>

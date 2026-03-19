@@ -56,18 +56,12 @@ export default function Terms() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">4. Free and Pro Plans</h2>
-            <p><strong>Free Plan:</strong> Provides access to a limited number of podcast summaries. Free plan features and limitations are subject to change at our discretion.</p>
-            <p><strong>Pro Plan:</strong> Available for $9.99 per month, the Pro plan offers unlimited podcast summaries and additional features as described on our website. Pro plan pricing and features are subject to change with reasonable notice.</p>
+            <h2 className="text-lg font-semibold text-foreground mb-2">4. Service Plans</h2>
+            <p>PodRise is free to use. All features are available to all users at no cost. Features and availability are subject to change at our discretion.</p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">5. Payments and Billing</h2>
-            <p>Pro plan subscriptions are billed monthly through Stripe. By subscribing, you authorize us to charge your payment method on a recurring basis. You may cancel your subscription at any time, and cancellation will take effect at the end of the current billing period. We do not offer refunds for partial billing periods.</p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">6. Acceptable Use</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-2">5. Acceptable Use</h2>
             <p>You agree not to:</p>
             <ul className="list-disc pl-5 space-y-1">
               <li>Use the Service for any unlawful purpose</li>

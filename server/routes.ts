@@ -8,7 +8,6 @@ import cors from "cors";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
-import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
 import { getUncachableResendClient } from "./resendClient";
 import { markdownToEmailHtml, recapHasContent, type EpisodeMetaForEmail } from "./emailTemplate";
 import { generateRecap } from "./recapGenerator";
@@ -20,7 +19,6 @@ import { readFileSync, writeFileSync, mkdirSync, copyFileSync, unlinkSync, exist
 import multer from "multer";
 import path from "path";
 import { authenticateRequest, getAuthUserId } from "./jwt";
-import { registerMobileRoutes } from "./mobileRoutes";
 
 declare module "express-session" {
   interface SessionData {
@@ -86,21 +84,6 @@ function parsePodcastName(raw: string): string {
   return raw;
 }
 
-async function getLocationFromIp(ip: string): Promise<string> {
-  try {
-    const cleanIp = ip.replace("::ffff:", "");
-    if (cleanIp === "127.0.0.1" || cleanIp === "::1" || cleanIp.startsWith("10.") || cleanIp.startsWith("192.168.")) {
-      return "Local / Development";
-    }
-    const res = await fetch(`http://ip-api.com/json/${cleanIp}?fields=city,regionName,country`);
-    if (res.ok) {
-      const data = await res.json() as { city?: string; regionName?: string; country?: string };
-      const parts = [data.city, data.regionName, data.country].filter(Boolean);
-      return parts.length > 0 ? parts.join(", ") : "Unknown";
-    }
-  } catch {}
-  return "Unknown";
-}
 
 function extractSignupMetadata(req: any, signupSource?: string, signupSourceDetail?: string) {
   const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.socket?.remoteAddress || null;
@@ -157,7 +140,7 @@ function extractSignupMetadata(req: any, signupSource?: string, signupSourceDeta
 
 async function sendNewUserNotification(user: any, req: any, signupSource?: string) {
   const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.socket.remoteAddress || "Unknown";
-  const location = await getLocationFromIp(ip);
+  const location = "Unknown";
   const podcastNames = (user.podcasts || []).map((p: string) => parsePodcastName(p));
   const rawSource = signupSource || req.headers["referer"] || "";
   const sourceLabels: Record<string, string> = {
@@ -911,8 +894,6 @@ export async function registerRoutes(
     } as any;
     next();
   });
-
-  registerMobileRoutes(app);
 
   app.get("/api/health", (_req, res) => {
     res.json({ status: "ok", uptime: process.uptime() });
@@ -13290,300 +13271,6 @@ Rules:
     }
   });
 
-  app.get("/api/stripe/publishable-key", async (_req, res) => {
-    try {
-      const key = await getStripePublishableKey();
-      res.json({ publishableKey: key });
-    } catch (err) {
-      console.error("Failed to get Stripe publishable key:", err);
-      res.status(500).json({ message: "Stripe not configured" });
-    }
-  });
-
-  app.post("/api/stripe/create-checkout", async (req, res) => {
-    const checkoutUserId = getAuthUserId(req);
-    if (!checkoutUserId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    const user = await storage.getUserById(checkoutUserId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    const resolvedFlags = await storage.getResolvedFlagsForUser(checkoutUserId);
-    if (resolvedFlags.upgrade !== true) {
-      return res.status(403).json({ message: "Upgrade is not available at this time" });
-    }
-
-    const billingCycle = req.body?.billingCycle;
-    if (billingCycle && billingCycle !== "monthly" && billingCycle !== "annual") {
-      return res.status(400).json({ message: "billingCycle must be 'monthly' or 'annual'" });
-    }
-    const cycle = billingCycle || "annual";
-
-    try {
-      const stripe = await getUncachableStripeClient();
-
-      let customerId = user.stripeCustomerId;
-      if (!customerId) {
-        const customer = await stripe.customers.create({
-          email: user.email,
-          metadata: { userId: String(user.id) },
-        });
-        await storage.updateUserStripeInfo(user.id, { stripeCustomerId: customer.id });
-        customerId = customer.id;
-      }
-
-      let products = await stripe.products.search({ query: "name:'PodRise Pulse Pro'" });
-      let proProduct = products.data.find(p => p.active);
-
-      if (!proProduct) {
-        proProduct = await stripe.products.create({
-          name: "PodRise Pulse Pro",
-          description: "Daily topic briefings personalized by industry, interest, and role.",
-        });
-      }
-
-      const pricesResult = await stripe.prices.list({ product: proProduct.id, active: true, limit: 10 });
-
-      let targetPrice;
-      if (cycle === "monthly") {
-        targetPrice = pricesResult.data.find(p => p.recurring?.interval === "month" && p.unit_amount === 1500);
-        if (!targetPrice) {
-          targetPrice = await stripe.prices.create({
-            product: proProduct.id,
-            unit_amount: 1500,
-            currency: "usd",
-            recurring: { interval: "month" },
-          });
-        }
-      } else {
-        targetPrice = pricesResult.data.find(p => p.recurring?.interval === "year" && p.unit_amount === 15000);
-        if (!targetPrice) {
-          targetPrice = await stripe.prices.create({
-            product: proProduct.id,
-            unit_amount: 15000,
-            currency: "usd",
-            recurring: { interval: "year" },
-          });
-        }
-      }
-
-      const baseUrl = `${req.protocol}://${req.get("host")}`;
-      const session = await stripe.checkout.sessions.create({
-        customer: customerId,
-        payment_method_types: ["card"],
-        line_items: [{ price: targetPrice.id, quantity: 1 }],
-        mode: "subscription",
-        success_url: `${baseUrl}/dashboard?upgraded=true`,
-        cancel_url: `${baseUrl}/upgrade`,
-      });
-
-      res.json({ url: session.url });
-    } catch (err: any) {
-      console.error("Checkout error:", err);
-      res.status(500).json({ message: "Failed to create checkout session" });
-    }
-  });
-
-  app.get("/api/stripe/subscription", async (req, res) => {
-    const subUserId = getAuthUserId(req);
-    if (!subUserId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    const user = await storage.getUserById(subUserId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    if (!user.stripeSubscriptionId) {
-      return res.json({ subscription: null, plan: user.plan || "free" });
-    }
-
-    try {
-      const subscription = await storage.getSubscription(user.stripeSubscriptionId);
-      res.json({ subscription, plan: user.plan || "free" });
-    } catch {
-      res.json({ subscription: null, plan: user.plan || "free" });
-    }
-  });
-
-  app.post("/api/stripe/portal", async (req, res) => {
-    const portalUserId = getAuthUserId(req);
-    if (!portalUserId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    const user = await storage.getUserById(portalUserId);
-    if (!user || !user.stripeCustomerId) {
-      return res.status(400).json({ message: "No billing account found" });
-    }
-
-    try {
-      const stripe = await getUncachableStripeClient();
-      const baseUrl = `${req.protocol}://${req.get("host")}`;
-      const portalSession = await stripe.billingPortal.sessions.create({
-        customer: user.stripeCustomerId,
-        return_url: `${baseUrl}/dashboard`,
-      });
-      res.json({ url: portalSession.url });
-    } catch (err: any) {
-      console.error("Portal error:", err);
-      res.status(500).json({ message: "Failed to create billing portal session" });
-    }
-  });
-
-  app.post("/api/stripe/cancel-subscription", async (req, res) => {
-    const cancelUserId = getAuthUserId(req);
-    if (!cancelUserId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    const user = await storage.getUserById(cancelUserId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    if (!user.stripeSubscriptionId) {
-      if (user.plan === "pro") {
-        await storage.updateUserStripeInfo(user.id, { plan: "free", stripeSubscriptionId: undefined });
-        return res.json({ success: true, message: "Subscription canceled" });
-      }
-      return res.status(400).json({ message: "No active subscription found" });
-    }
-
-    try {
-      const stripe = await getUncachableStripeClient();
-      await stripe.subscriptions.cancel(user.stripeSubscriptionId);
-      await storage.updateUserStripeInfo(user.id, {
-        stripeSubscriptionId: undefined,
-        plan: "free",
-      });
-      const updatedUser = await storage.getUserById(user.id);
-      res.json({ success: true, user: updatedUser });
-    } catch (err: any) {
-      console.error("Cancel subscription error:", err);
-      res.status(500).json({ message: "Failed to cancel subscription" });
-    }
-  });
-
-  app.get("/api/stripe/payment-method", async (req, res) => {
-    const pmUserId = getAuthUserId(req);
-    if (!pmUserId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-    const user = await storage.getUserById(pmUserId);
-    if (!user || !user.stripeCustomerId) {
-      return res.json({ paymentMethod: null });
-    }
-    try {
-      const stripe = await getUncachableStripeClient();
-      const paymentMethods = await stripe.paymentMethods.list({
-        customer: user.stripeCustomerId,
-        type: "card",
-        limit: 1,
-      });
-      const pm = paymentMethods.data[0];
-      if (!pm || !pm.card) {
-        return res.json({ paymentMethod: null });
-      }
-      res.json({
-        paymentMethod: {
-          brand: pm.card.brand,
-          last4: pm.card.last4,
-          expMonth: pm.card.exp_month,
-          expYear: pm.card.exp_year,
-        },
-      });
-    } catch (err: any) {
-      console.error("Payment method error:", err);
-      res.json({ paymentMethod: null });
-    }
-  });
-
-  app.get("/api/stripe/invoices", async (req, res) => {
-    const invUserId = getAuthUserId(req);
-    if (!invUserId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-    const user = await storage.getUserById(invUserId);
-    if (!user || !user.stripeCustomerId) {
-      return res.json({ invoices: [] });
-    }
-    try {
-      const stripe = await getUncachableStripeClient();
-      const invoices = await stripe.invoices.list({
-        customer: user.stripeCustomerId,
-        limit: 12,
-      });
-      res.json({
-        invoices: invoices.data.map((inv) => ({
-          id: inv.id,
-          date: inv.created,
-          amount: inv.amount_paid,
-          currency: inv.currency,
-          status: inv.status,
-          invoiceUrl: inv.hosted_invoice_url,
-        })),
-      });
-    } catch (err: any) {
-      console.error("Invoices error:", err);
-      res.json({ invoices: [] });
-    }
-  });
-
-  app.post("/api/stripe/sync-subscription", async (req, res) => {
-    if (!req.session.userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
-    const user = await storage.getUserById(req.session.userId);
-    if (!user || !user.stripeCustomerId) {
-      return res.json({ plan: "free" });
-    }
-
-    try {
-      const stripe = await getUncachableStripeClient();
-      const subscriptions = await stripe.subscriptions.list({
-        customer: user.stripeCustomerId,
-        status: "active",
-        limit: 10,
-      });
-
-      const products = await stripe.products.search({ query: "name:'PodRise Pulse Pro'" });
-      const proProductId = products.data.find(p => p.active)?.id;
-
-      const activeSub = subscriptions.data.find(sub =>
-        sub.items.data.some(item => {
-          const price = item.price;
-          return price.product === proProductId;
-        })
-      );
-
-      if (activeSub) {
-        await storage.updateUserStripeInfo(user.id, {
-          stripeSubscriptionId: activeSub.id,
-          plan: "pro",
-        });
-        const updatedUser = await storage.getUserById(user.id);
-        return res.json({ plan: "pro", user: updatedUser });
-      } else {
-        if (user.plan === "pro") {
-          await storage.updateUserStripeInfo(user.id, {
-            stripeSubscriptionId: undefined,
-            plan: "free",
-          });
-        }
-        return res.json({ plan: "free" });
-      }
-    } catch (err) {
-      console.error("Sync subscription error:", err);
-      res.json({ plan: user.plan || "free" });
-    }
-  });
-
   app.get("/api/pulse/subscriptions", async (req, res) => {
     const userId = getAuthUserId(req);
     if (!userId) {
@@ -18459,9 +18146,9 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
         { title: "Language Settings", category: "Display & Preferences", body: "You can set your preferred language in PodRise:\n\n1. Go to Settings.\n2. Under Account Settings, find \"Language.\"\n3. Select your preferred language from the dropdown.\n\nPodRise currently supports English, Spanish, French, German, Portuguese, Japanese, Korean, Chinese, Hindi, and Arabic.", sortOrder: 12 },
         { title: "Account Deletion", category: "Account", body: "If you want to delete your PodRise account:\n\n1. Go to Settings.\n2. Look for the account deletion option.\n3. Confirm the deletion.\n\nPlease note: Account deletion is permanent. All your data — including your followed podcasts, saved episodes, email preferences, and profile information — will be permanently removed. This action cannot be undone.\n\nIf you're having issues and considering deleting your account, we'd love to help first. Reach out to hello@podrise.com before you go.", sortOrder: 13 },
         { title: "Account Management", category: "Account", body: "From the Settings page, you can manage your account:\n\n- **Email**: Update your email address in the Account section.\n- **Display Name**: Set how your name appears.\n- **Birthday, Gender, Location**: Optional profile details you can add or update.\n- **Log out**: Scroll to the bottom of Settings and click \"Log out.\"\n\nAll changes are saved immediately when you click Save.", sortOrder: 14 },
-        { title: "Subscriptions & Pricing", category: "Subscriptions & Pricing", body: "PodRise is free to use. You can follow as many podcasts as you want at no cost — no limits, no trial periods.\n\nPodRise Pro is available for users who want extra features, including personalized daily topic briefings (Pulse). Pro plans can be managed from the Subscription section in Settings, where you can also manage billing through Stripe.", sortOrder: 15 },
+        { title: "Subscriptions & Pricing", category: "Subscriptions & Pricing", body: "PodRise is free to use. You can follow as many podcasts as you want at no cost — no limits, no trial periods. All features, including personalized daily topic briefings (Pulse), are available to all users.", sortOrder: 15 },
         { title: "Troubleshooting — Not Receiving Emails", category: "Troubleshooting", body: "If you're not receiving your daily recap emails:\n\n1. Check your spam/junk folder first. Sometimes email providers are overzealous.\n2. If you find PodRise emails in spam, mark them as \"not spam\" to train your email provider.\n3. Verify your email address is correct in Settings.\n4. Make sure you haven't set a \"Pause emails until\" date in Settings.\n5. Remember: if none of your followed podcasts released new episodes yesterday, no email is sent — that's by design.\n\nStill having issues? Contact hello@podrise.com and we'll sort it out.", sortOrder: 16 },
-        { title: "Data & Privacy", category: "Data & Privacy", body: "PodRise takes your privacy seriously:\n\n- We only collect your email address and podcast preferences.\n- Your data is never sold to third parties.\n- Payment processing is handled entirely by Stripe — PodRise never sees or stores your credit card details.\n- You can delete your account and all associated data at any time from Settings.", sortOrder: 17 },
+        { title: "Data & Privacy", category: "Data & Privacy", body: "PodRise takes your privacy seriously:\n\n- We only collect your email address and podcast preferences.\n- Your data is never sold to third parties.\n- You can delete your account and all associated data at any time from Settings.", sortOrder: 17 },
         { title: "Contact & Business Inquiries", category: "Contact", body: "For any questions, feedback, or business inquiries, reach out to hello@podrise.com. This includes:\n\n- General support questions\n- Podcasters with questions about their show on PodRise\n- Brands or advertisers interested in partnerships\n- Enterprise inquiries (PodRise for your company or employees)\n- Investment inquiries\n- Press and media requests\n\nWe read every email and try to respond promptly.", sortOrder: 18 },
         { title: "Enterprise", category: "Enterprise", body: "Yes! PodRise offers enterprise rollouts for companies that want to provide podcast intelligence to their employees. If you're interested in bringing PodRise to your team or organization, contact us at hello@podrise.com and we'll get you set up.", sortOrder: 19 },
       ];

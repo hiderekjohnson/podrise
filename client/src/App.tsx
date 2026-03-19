@@ -56,7 +56,6 @@ const CategoryDirectory = lazy(() => import("./pages/CategoryDirectory"));
 const Advertise = lazy(() => import("./pages/Advertise"));
 const Disclosure = lazy(() => import("./pages/Disclosure"));
 const PodSquad = lazy(() => import("./pages/PodSquad"));
-const Upgrade = lazy(() => import("./pages/Upgrade"));
 const MyPulsePage = lazy(() => import("./pages/MyPulsePage"));
 const MyPodcastsPage = lazy(() => import("./pages/MyPodcastsPage"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
@@ -86,9 +85,6 @@ function PulseGatedMyPulsePage() {
   return <FeatureFlagGuard flag="pulse"><MyPulsePage /></FeatureFlagGuard>;
 }
 
-function UpgradeGatedPage() {
-  return <FeatureFlagGuard flag="upgrade"><Upgrade /></FeatureFlagGuard>;
-}
 
 function MetaPixelEvents() {
   useMetaPixelEvents();
@@ -163,7 +159,7 @@ function Router() {
         <Route path="/topics/:slug/pulse">{() => { window.location.replace("/"); return null; }}</Route>
         <Route path="/topics/:slug">{() => { window.location.replace("/"); return null; }}</Route>
         <Route path="/topics">{() => { window.location.replace("/"); return null; }}</Route>
-        <Route path="/upgrade" component={UpgradeGatedPage} />
+        <Route path="/upgrade">{() => { window.location.replace("/dashboard"); return null; }}</Route>
         <Route path="/pulse">{() => { window.location.replace("/"); return null; }}</Route>
         <Route path="/podcaster/claim" component={PodcasterClaim} />
         <Route path="/podcaster/verify" component={PodcasterDashboard} />

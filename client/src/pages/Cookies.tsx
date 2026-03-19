@@ -85,7 +85,7 @@ export default function Cookies() {
             <h2 className="text-lg font-semibold text-foreground mb-2">6. Third-Party Cookies</h2>
             <p>We may use third-party services that set their own cookies. These include:</p>
             <ul className="list-disc pl-5 space-y-1">
-              <li><strong>Stripe:</strong> Our payment processor may set cookies to facilitate secure payment transactions and fraud prevention when you interact with the Pro subscription checkout.</li>
+              <li><strong>Analytics:</strong> We may use analytics services that set cookies to help us understand how users interact with our Service.</li>
             </ul>
             <p>We do not use advertising or third-party tracking cookies. We do not allow third parties to use cookies on our Service for their own advertising purposes.</p>
           </section>

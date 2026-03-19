@@ -8,12 +8,9 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<UserResponse | undefined>;
   getUserById(id: number): Promise<UserResponse | undefined>;
   updateUser(id: number, updates: UpdateUserRequest): Promise<UserResponse>;
-  updateUserStripeInfo(id: number, info: { stripeCustomerId?: string; stripeSubscriptionId?: string; plan?: string }): Promise<UserResponse>;
-  getUserByStripeCustomerId(customerId: string): Promise<UserResponse | undefined>;
   getRecapsByUserId(userId: number): Promise<Recap[]>;
   createRecap(recap: InsertRecap): Promise<Recap>;
   getAllUsers(): Promise<UserResponse[]>;
-  getSubscription(subscriptionId: string): Promise<any>;
   getTranscriptByEpisodeGuid(episodeGuid: string): Promise<EpisodeTranscript | undefined>;
   saveTranscript(data: { podcastId: string; episodeGuid: string; episodeTitle: string; transcript: string; description?: string; subtitle?: string; datePublished?: number; duration?: number; audioUrl?: string; imageUrl?: string; seasonNumber?: number; episodeNumber?: number; episodeType?: string }): Promise<EpisodeTranscript>;
   logEmail(data: InsertEmailLog): Promise<EmailLog>;
@@ -184,30 +181,6 @@ export class DatabaseStorage implements IStorage {
       .values(recap)
       .returning();
     return created;
-  }
-
-  async updateUserStripeInfo(id: number, info: { stripeCustomerId?: string; stripeSubscriptionId?: string; plan?: string }): Promise<UserResponse> {
-    const [updated] = await db
-      .update(users)
-      .set(info)
-      .where(eq(users.id, id))
-      .returning();
-    return updated;
-  }
-
-  async getUserByStripeCustomerId(customerId: string): Promise<UserResponse | undefined> {
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.stripeCustomerId, customerId));
-    return user ?? undefined;
-  }
-
-  async getSubscription(subscriptionId: string): Promise<any> {
-    const result = await db.execute(
-      sql`SELECT * FROM stripe.subscriptions WHERE id = ${subscriptionId}`
-    );
-    return result.rows[0] || null;
   }
 
   async getTranscriptByEpisodeGuid(episodeGuid: string): Promise<EpisodeTranscript | undefined> {
