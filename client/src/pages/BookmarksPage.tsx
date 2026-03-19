@@ -119,7 +119,6 @@ export default function BookmarksPage() {
                     isFollowing={followedSlugs.has(bm.podcastSlug)}
                     onFollowToggle={(slug, follow) => followMutation.mutate({ slug, follow })}
                     onBookmarkRemove={(podcastSlug, episodeSlug) => removeBookmark.mutate({ podcastSlug, episodeSlug })}
-                    showFullRecapLink
                     toast={toast}
                     testIdPrefix="bookmark"
                     className=""
