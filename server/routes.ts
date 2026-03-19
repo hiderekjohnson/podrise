@@ -11473,7 +11473,9 @@ Rules:
         params.push(`%${search}%`);
         where += ` AND (lpr.episode_title ILIKE $${params.length} OR lpr.podcast_name ILIKE $${params.length})`;
       }
-      const enrichmentFields = EPISODE_ENRICHMENT_FIELDS.map(f => `lpr.${f.key}`).join(', ');
+      const safeEnrichmentFields = EPISODE_ENRICHMENT_FIELDS.filter(f => f.key !== "transcript");
+      const enrichmentCols = safeEnrichmentFields.map(f => `lpr.${f.key}`).join(', ');
+      const transcriptSubquery = `(EXISTS(SELECT 1 FROM episode_transcripts et WHERE et.podcast_id = lpr.slug AND et.episode_title = lpr.episode_title))::boolean AS has_transcript`;
 
       let orderBy = "lpr.publish_date DESC NULLS LAST";
       if (sort === "title") orderBy = `lpr.episode_title ${order === "desc" ? "DESC" : "ASC"}`;
@@ -11483,19 +11485,24 @@ Rules:
       const { rows: countRows } = await pool.query(`SELECT count(*)::int as total FROM landing_page_recaps lpr ${where}`, params);
       const total = countRows[0]?.total || 0;
 
-      if (sortByEnrichment) {
-        const { rows: allRows } = await pool.query(
-          `SELECT lpr.id, lpr.slug, lpr.podcast_name, lpr.episode_title, lpr.episode_slug, lpr.publish_date, lpr.duration, lpr.status, lpr.artwork_url,
-           ${enrichmentFields}
-           FROM landing_page_recaps lpr ${where} ORDER BY lpr.id DESC`,
-          params
-        );
-        const enriched = allRows.map((r: any) => ({
+      const enrichRow = (r: any) => {
+        const enrichRecord = { ...r, transcript: r.has_transcript ? "yes" : null };
+        return {
           id: r.id, slug: r.slug, podcast_name: r.podcast_name, episode_title: r.episode_title,
           episode_slug: r.episode_slug, publish_date: r.publish_date, duration: r.duration,
           status: r.status, artwork_url: r.artwork_url,
-          enrichment_score: computeEnrichmentFromRecord(r, EPISODE_ENRICHMENT_FIELDS).score,
-        }));
+          enrichment_score: computeEnrichmentFromRecord(enrichRecord, EPISODE_ENRICHMENT_FIELDS).score,
+        };
+      };
+
+      if (sortByEnrichment) {
+        const { rows: allRows } = await pool.query(
+          `SELECT lpr.id, lpr.slug, lpr.podcast_name, lpr.episode_title, lpr.episode_slug, lpr.publish_date, lpr.duration, lpr.status, lpr.artwork_url,
+           ${enrichmentCols}, ${transcriptSubquery}
+           FROM landing_page_recaps lpr ${where} ORDER BY lpr.id DESC`,
+          params
+        );
+        const enriched = allRows.map(enrichRow);
         enriched.sort((a: any, b: any) => order === "asc" ? a.enrichment_score - b.enrichment_score : b.enrichment_score - a.enrichment_score);
         res.json({ episodes: enriched.slice(offset, offset + limit), total });
       } else {
@@ -11503,20 +11510,11 @@ Rules:
         params.push(offset);
         const { rows } = await pool.query(
           `SELECT lpr.id, lpr.slug, lpr.podcast_name, lpr.episode_title, lpr.episode_slug, lpr.publish_date, lpr.duration, lpr.status, lpr.artwork_url,
-           ${enrichmentFields}
+           ${enrichmentCols}, ${transcriptSubquery}
            FROM landing_page_recaps lpr ${where} ORDER BY ${orderBy}, lpr.id DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
           params
         );
-        const enrichedEpisodes = rows.map((r: any) => {
-          const score = computeEnrichmentFromRecord(r, EPISODE_ENRICHMENT_FIELDS).score;
-          return {
-            id: r.id, slug: r.slug, podcast_name: r.podcast_name, episode_title: r.episode_title,
-            episode_slug: r.episode_slug, publish_date: r.publish_date, duration: r.duration,
-            status: r.status, artwork_url: r.artwork_url,
-            enrichment_score: score,
-          };
-        });
-        res.json({ episodes: enrichedEpisodes, total });
+        res.json({ episodes: rows.map(enrichRow), total });
       }
     } catch (err: any) {
       console.error("[CMS] All episodes error:", err);
