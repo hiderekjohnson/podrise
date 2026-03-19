@@ -449,6 +449,69 @@ process.on("uncaughtException", (err) => {
           console.warn("New podcasts seed skipped:", err);
         }
 
+        setTimeout(async () => {
+          try {
+            const missingArtwork = await pool.query(
+              `SELECT slug, itunes_id FROM podcast_directory WHERE (artwork_url IS NULL OR artwork_url = '') AND slug IS NOT NULL`
+            );
+            if (missingArtwork.rows.length === 0) return;
+            console.log(`[ArtworkBackfill] Found ${missingArtwork.rows.length} podcasts missing artwork`);
+
+            const withIds = missingArtwork.rows.filter((r: any) => r.itunes_id);
+            const withoutIds = missingArtwork.rows.filter((r: any) => !r.itunes_id);
+
+            let fixed = 0;
+            if (withIds.length > 0) {
+              const ids = withIds.map((r: any) => r.itunes_id);
+              const batchSize = 50;
+              for (let i = 0; i < ids.length; i += batchSize) {
+                const batch = ids.slice(i, i + batchSize);
+                try {
+                  const resp = await fetch(`https://itunes.apple.com/lookup?id=${batch.join(",")}`);
+                  const data = await resp.json();
+                  const found = new Map<string, string>();
+                  for (const r of (data.results || [])) {
+                    const art = (r.artworkUrl600 || r.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb");
+                    if (art) found.set(String(r.collectionId), art);
+                  }
+                  for (const row of withIds.filter((r: any) => found.has(r.itunes_id))) {
+                    await pool.query(`UPDATE podcast_directory SET artwork_url = $1 WHERE slug = $2`, [found.get(row.itunes_id), row.slug]);
+                    fixed++;
+                  }
+                } catch (e: any) {
+                  console.warn(`[ArtworkBackfill] Batch lookup failed:`, e.message);
+                }
+                if (i + batchSize < ids.length) await new Promise(r => setTimeout(r, 1000));
+              }
+            }
+
+            for (const row of withoutIds) {
+              try {
+                const term = row.slug.replace(/-/g, " ");
+                const resp = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=podcast&limit=1`);
+                const data = await resp.json();
+                if (data.results?.[0]) {
+                  const r = data.results[0];
+                  const art = (r.artworkUrl600 || r.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb");
+                  if (art) {
+                    await pool.query(
+                      `UPDATE podcast_directory SET artwork_url = $1, itunes_id = COALESCE(NULLIF(itunes_id, ''), $2) WHERE slug = $3`,
+                      [art, String(r.collectionId), row.slug]
+                    );
+                    fixed++;
+                  }
+                }
+                await new Promise(r => setTimeout(r, 600));
+              } catch (e: any) {
+                console.warn(`[ArtworkBackfill] Search failed for ${row.slug}:`, e.message);
+              }
+            }
+            if (fixed > 0) console.log(`[ArtworkBackfill] Fixed artwork for ${fixed}/${missingArtwork.rows.length} podcasts`);
+          } catch (err) {
+            console.warn("[ArtworkBackfill] skipped:", err);
+          }
+        }, 15000);
+
         try {
           const existingHosts = await pool.query(`SELECT COUNT(*) FROM podcast_hosts WHERE podcast_slug = 'myfirstmillion'`);
           if (parseInt(existingHosts.rows[0].count) === 0) {
