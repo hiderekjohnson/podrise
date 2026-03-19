@@ -2216,15 +2216,12 @@ async function ensureLandingPageDirectoryEntries() {
   let updated = 0;
   for (const [slug, itunesId] of Object.entries(SLUG_TO_ITUNES_ID)) {
     const existing = existingByItunes.get(itunesId);
-    if (existing) {
-      if (!existing.hasLandingPage || existing.slug !== slug) {
-        await storage.upsertPodcastDirectoryEntry({
-          ...existing,
-          slug,
-          hasLandingPage: true,
-        });
-        updated++;
-      }
+    if (existing && !existing.hasLandingPage) {
+      await storage.upsertPodcastDirectoryEntry({
+        ...existing,
+        hasLandingPage: true,
+      });
+      updated++;
     }
   }
   if (updated > 0) {
