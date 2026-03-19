@@ -128,7 +128,7 @@ export function Footer() {
         <div className="flex flex-col items-center">
           <div className="w-full h-px bg-black/[0.06] dark:bg-white/[0.06] mb-6" />
 
-          <PodRiseWordmark />
+          <PodRiseWordmark height={60} />
           <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] mt-3">
             &copy; {new Date().getFullYear()} PodRise, Inc. All rights reserved.
           </p>

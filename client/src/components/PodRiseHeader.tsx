@@ -5,7 +5,7 @@ interface PodRiseHeaderProps {
   rightContent?: React.ReactNode;
 }
 
-function PodRiseIcon({ size = 36 }: { size?: number }) {
+function PodRiseIcon({ size = 52 }: { size?: number }) {
   return (
     <img
       src={logoTransparent}
@@ -19,7 +19,7 @@ function PodRiseIcon({ size = 36 }: { size?: number }) {
   );
 }
 
-function PodRiseWordmark({ variant = "light", height = 34 }: { variant?: "light" | "dark" | "color"; height?: number }) {
+function PodRiseWordmark({ variant = "light", height = 72 }: { variant?: "light" | "dark" | "color"; height?: number }) {
   return (
     <img
       src="/logo-transparent.svg"

@@ -157,9 +157,9 @@ export function DashboardLayout({ children, hideRightSidebar }: DashboardLayoutP
           <img
             src="/favicon.png"
             alt="PodRise"
-            width={36}
-            height={36}
-            className="w-9 h-9 rounded-[10px] object-contain mb-6"
+            width={48}
+            height={48}
+            className="w-12 h-12 rounded-[10px] object-contain mb-6"
           />
         </Link>
 

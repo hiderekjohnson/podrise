@@ -11,7 +11,7 @@ export function FeedHeader() {
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-[#F0F0F2]" data-testid="feed-header">
-      <div className="max-w-[600px] mx-auto px-4 h-[52px] flex items-center justify-between">
+      <div className="max-w-[600px] mx-auto px-4 h-[60px] flex items-center justify-between">
         <button
           onClick={() => navigate("/settings")}
           className="w-9 h-9 rounded-full bg-gradient-to-br from-[#6366F1] to-[#818CF8] flex items-center justify-center flex-shrink-0"
@@ -22,7 +22,7 @@ export function FeedHeader() {
         </button>
 
         <Link href="/" className="flex items-center absolute left-1/2 -translate-x-1/2" data-testid="feed-logo">
-          <PodRiseWordmark />
+          <PodRiseWordmark height={56} />
         </Link>
 
         <div className="flex items-center gap-1">
