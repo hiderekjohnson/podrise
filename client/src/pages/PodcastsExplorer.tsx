@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Footer } from "@/components/Footer";
 import { PODCAST_LANDINGS, type PodcastLandingConfig } from "@/data/podcastLandingData";
 import { SiteHeader } from "@/components/SiteHeader";
+import { RequestPodcastDialog } from "@/components/RequestPodcastDialog";
 
 interface PodcastStat {
   slug: string;
@@ -277,6 +278,7 @@ export default function PodcastsExplorer() {
   const [activeCategory, setActiveCategory] = useState<CategoryKey>("all");
   const [activePromptIdx, setActivePromptIdx] = useState<number | null>(null);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [requestDialogOpen, setRequestDialogOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const [isSticky, setIsSticky] = useState(false);
@@ -412,6 +414,7 @@ export default function PodcastsExplorer() {
   const recentEpisodes = discoveryData?.recentEpisodes || [];
 
   return (
+    <>
     <div className="min-h-screen bg-background">
       <SEOHead />
       <SiteHeader />
@@ -776,11 +779,21 @@ export default function PodcastsExplorer() {
             <p className="text-[14px] text-muted-foreground mb-4">
               {isSearching ? (
                 user
-                  ? "We don't have this podcast in our library yet. Try another search!"
-                  : <>To see this podcast, you must log in. To create a free account, <Link href="/register" className="text-[#6366F1] font-semibold hover:underline" data-testid="link-register-prompt">click here</Link>.</>
+                  ? "We don't have this podcast in our library yet."
+                  : <>We don't have this podcast yet. <Link href="/register" className="text-[#6366F1] font-semibold hover:underline" data-testid="link-register-prompt">Create a free account</Link> to follow podcasts.</>
               ) : "Try a different filter."}
             </p>
             <div className="flex items-center justify-center gap-3">
+              {isSearching && (
+                <button
+                  onClick={() => setRequestDialogOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 text-[14px] font-semibold text-white bg-[#6366F1] hover:bg-[#6366F1]/90 rounded-xl transition-colors active:scale-[0.98]"
+                  data-testid="button-request-podcast"
+                >
+                  <Mic className="w-4 h-4" />
+                  Request this podcast
+                </button>
+              )}
               <button
                 onClick={clearFilters}
                 className="inline-flex items-center gap-2 px-4 py-2.5 text-[14px] font-semibold text-primary hover:bg-primary/[0.06] rounded-xl transition-colors"
@@ -801,5 +814,12 @@ export default function PodcastsExplorer() {
 
       <Footer />
     </div>
+    <RequestPodcastDialog
+      key={searchQuery}
+      open={requestDialogOpen}
+      onClose={() => setRequestDialogOpen(false)}
+      searchQuery={searchQuery}
+    />
+    </>
   );
 }

@@ -3,9 +3,10 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Loader2, X, ArrowLeft, ChevronRight, ListIcon, Brain, Rocket, BarChart3, Coins, Heart, BookOpen, Zap, Globe } from "lucide-react";
+import { Search, Loader2, X, ArrowLeft, ChevronRight, ListIcon, Brain, Rocket, BarChart3, Coins, Heart, BookOpen, Zap, Globe, Mic } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Link } from "wouter";
+import { RequestPodcastDialog } from "@/components/RequestPodcastDialog";
 
 interface PodcastList {
   id: number;
@@ -318,6 +319,8 @@ export default function DiscoverPage() {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedList, setSelectedList] = useState<PodcastList | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [requestDialogOpen, setRequestDialogOpen] = useState(false);
+  const [requestPodcastName, setRequestPodcastName] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -504,6 +507,7 @@ export default function DiscoverPage() {
   }
 
   return (
+    <>
     <DashboardLayout>
       <div className="min-h-screen bg-white dark:bg-[#09090B]" data-testid="discover-page">
         <div className="max-w-5xl mx-auto px-4 md:px-8 pt-6 pb-3">
@@ -602,7 +606,13 @@ export default function DiscoverPage() {
                               )}
                             </Link>
                           ) : (
-                            <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#F4F4F5] dark:bg-[#1C1C22] flex-shrink-0 ring-[0.5px] ring-black/5">
+                            <button
+                              type="button"
+                              className="w-12 h-12 rounded-xl overflow-hidden bg-[#F4F4F5] dark:bg-[#1C1C22] flex-shrink-0 ring-[0.5px] ring-black/5 cursor-pointer"
+                              onClick={() => { setRequestPodcastName(item.name); setRequestDialogOpen(true); }}
+                              aria-label={`Request ${item.name}`}
+                              data-testid={`itunes-artwork-${item.raw.id}`}
+                            >
                               {item.artworkUrl ? (
                                 <img src={item.artworkUrl} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
                               ) : (
@@ -610,7 +620,7 @@ export default function DiscoverPage() {
                                   <Search className="w-4 h-4 text-[#A1A1AA]" />
                                 </div>
                               )}
-                            </div>
+                            </button>
                           )}
                           <div className="flex-1 min-w-0">
                             {item.onPlatform && item.slug ? (
@@ -618,7 +628,18 @@ export default function DiscoverPage() {
                                 <p className="text-[15px] md:text-[16px] font-semibold text-[#09090B] dark:text-white truncate hover:text-[#6366F1] transition-colors" data-testid={`search-podcast-name-${item.slug}`}>{item.name}</p>
                               </Link>
                             ) : (
-                              <p className="text-[15px] md:text-[16px] font-semibold text-[#09090B] dark:text-white truncate">{item.name}</p>
+                              <div className="group relative">
+                                <button
+                                  type="button"
+                                  className="text-[15px] md:text-[16px] font-semibold text-[#09090B] dark:text-white truncate cursor-pointer hover:text-[#6366F1] transition-colors text-left w-full"
+                                  onClick={() => { setRequestPodcastName(item.name); setRequestDialogOpen(true); }}
+                                  data-testid={`itunes-name-${item.raw.id}`}
+                                >{item.name}</button>
+                                <div className="absolute bottom-full left-0 mb-1.5 px-3 py-1.5 bg-[#18181B] dark:bg-[#27272A] text-white text-[12px] rounded-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-lg" data-testid={`tooltip-itunes-${item.raw.id}`}>
+                                  <Mic className="w-3 h-3 inline mr-1 -mt-0.5" />
+                                  We don't have this podcast yet — click to request it
+                                </div>
+                              </div>
                             )}
                             {item.subtitle && <p className="text-[12px] text-[#A1A1AA] mt-0.5 truncate">{item.subtitle}</p>}
                           </div>
@@ -652,7 +673,16 @@ export default function DiscoverPage() {
 
               {!isItunesSearching && searchedLists.length === 0 && filteredPodcasts.length === 0 && itunesSearchResults.length === 0 && (
                 <div className="text-center py-12">
-                  <p className="text-[15px] text-[#71717A] dark:text-[#A1A1AA]">No results for "{searchQuery}"</p>
+                  <Mic className="w-8 h-8 text-[#A1A1AA]/40 mx-auto mb-2" />
+                  <p className="text-[15px] text-[#71717A] dark:text-[#A1A1AA] mb-3">No results for "{searchQuery}"</p>
+                  <button
+                    onClick={() => { setRequestPodcastName(searchQuery); setRequestDialogOpen(true); }}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-[#6366F1] hover:bg-[#6366F1]/[0.06] rounded-xl transition-colors"
+                    data-testid="button-request-podcast-no-results"
+                  >
+                    <Mic className="w-3.5 h-3.5" />
+                    Request this podcast
+                  </button>
                 </div>
               )}
             </div>
@@ -719,5 +749,12 @@ export default function DiscoverPage() {
         </div>
       </div>
     </DashboardLayout>
+    <RequestPodcastDialog
+      key={requestPodcastName}
+      open={requestDialogOpen}
+      onClose={() => setRequestDialogOpen(false)}
+      searchQuery={requestPodcastName}
+    />
+    </>
   );
 }
