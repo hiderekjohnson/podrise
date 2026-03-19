@@ -371,6 +371,7 @@ export const podcastDirectory = pgTable("podcast_directory", {
   hostBios: jsonb("host_bios"),
   relatedSlugs: text("related_slugs").array(),
   aboutPodcast: text("about_podcast"),
+  feedUrl: text("feed_url"),
   taddyUuid: text("taddy_uuid"),
   appleRating: text("apple_rating"),
   appleRatingCount: integer("apple_rating_count"),

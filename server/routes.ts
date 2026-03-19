@@ -632,6 +632,7 @@ export async function registerRoutes(
       ALTER TABLE podcast_directory ADD COLUMN IF NOT EXISTS youtube_url TEXT;
       ALTER TABLE podcast_directory ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'published';
       ALTER TABLE podcast_directory ADD COLUMN IF NOT EXISTS followers_count INTEGER DEFAULT 0;
+      ALTER TABLE podcast_directory ADD COLUMN IF NOT EXISTS feed_url TEXT;
     `);
     // Backfill landing_page_recaps: unpublished episodes get status='hidden'
     await migrationPool.query(`
@@ -10796,7 +10797,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const { rows } = await pool.query(
         `SELECT id, slug, name, itunes_id, artwork_url, apple_url, spotify_url, description, category,
                 youtube_url, website_url, twitter_handle, instagram_url, tiktok_url, facebook_url,
-                hosts, frequency, avg_episode_length, year_started
+                hosts, frequency, avg_episode_length, year_started, about_podcast, total_episodes, feed_url
          FROM podcast_directory WHERE slug = $1`, [slug]
       );
       if (rows.length === 0) return res.status(404).json({ message: "Podcast not found" });
@@ -10832,11 +10833,18 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         const { searchSpotifyShow } = await import("./spotifyClient");
         const spotifyUrl = await searchSpotifyShow(podcastName);
         if (spotifyUrl) { updates.spotify_url = spotifyUrl; log.push("spotify_url"); }
-      } catch (e: any) { errors.push(`Spotify: ${e.message}`); }
+      } catch (e: any) {
+        console.error(`[CMS] Spotify lookup failed for "${podcastName}":`, e.message);
+        errors.push(`Spotify: ${e.message}`);
+      }
 
-      if (updates.feed_url && typeof updates.feed_url === "string" && updates.feed_url.startsWith("http")) {
+      const feedUrl = updates.feed_url || podcast.feed_url;
+      if (!updates.feed_url && feedUrl) {
+        updates.feed_url = feedUrl;
+      }
+      if (feedUrl && typeof feedUrl === "string" && feedUrl.startsWith("http")) {
         try {
-          const feedResp = await fetch(updates.feed_url, {
+          const feedResp = await fetch(feedUrl, {
             headers: { "User-Agent": "PodRise/1.0" },
             signal: AbortSignal.timeout(8000),
           });
@@ -10846,39 +10854,96 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
               const m = feedXml.match(new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]></${tag}>|<${tag}[^>]*>([^<]*)</${tag}>`));
               return m ? (m[1] || m[2] || "").trim() : null;
             };
-            const extractAttr = (tag: string, attr: string) => {
-              const m = feedXml.match(new RegExp(`<${tag}[^>]*${attr}="([^"]*)"`, 'i'));
-              return m ? m[1].trim() : null;
-            };
 
-            if (!podcast.description && !updates.description) {
-              const desc = extract("description") || extract("itunes:summary");
-              if (desc && desc.length > 10) { updates.description = desc.slice(0, 2000); log.push("description"); }
+            const desc = extract("description") || extract("itunes:summary");
+            if (desc && desc.length > 10) {
+              updates.description = desc.slice(0, 2000); log.push("description");
+              updates.about_podcast = desc.slice(0, 5000); log.push("about_podcast");
             }
-            if (!podcast.website_url) {
-              const link = extract("link");
-              if (link && link.startsWith("http") && !link.includes("apple.com") && !link.includes("spotify.com")) {
-                updates.website_url = link; log.push("website_url");
-              }
+
+            const link = extract("link");
+            if (link && link.startsWith("http") && !link.includes("apple.com") && !link.includes("spotify.com")) {
+              updates.website_url = link; log.push("website_url");
             }
-            const ownerEmail = extract("itunes:email");
+
             const author = extract("itunes:author");
-            if (!podcast.hosts && author) { updates.hosts = author; log.push("hosts"); }
+            if (author) { updates.hosts = author; log.push("hosts"); }
 
             const socialLinks = feedXml.match(/https?:\/\/(www\.)?(twitter\.com|x\.com|instagram\.com|facebook\.com|youtube\.com|tiktok\.com|discord\.gg)[^\s<"']*/gi) || [];
             for (const link of socialLinks) {
-              if (!podcast.twitter_handle && !updates.twitter_handle && (link.includes("twitter.com/") || link.includes("x.com/"))) {
+              if (!updates.twitter_handle && (link.includes("twitter.com/") || link.includes("x.com/"))) {
                 const handle = link.split("/").filter(Boolean).pop()?.replace(/[?#].*/, "");
                 if (handle && handle.length > 1 && handle.length < 50) { updates.twitter_handle = handle; log.push("twitter"); }
               }
-              if (!podcast.instagram_url && !updates.instagram_url && link.includes("instagram.com/")) { updates.instagram_url = link.replace(/[?#].*/, ""); log.push("instagram"); }
-              if (!podcast.facebook_url && !updates.facebook_url && link.includes("facebook.com/")) { updates.facebook_url = link.replace(/[?#].*/, ""); log.push("facebook"); }
-              if (!podcast.youtube_url && !updates.youtube_url && link.includes("youtube.com/")) { updates.youtube_url = link.replace(/[?#].*/, ""); log.push("youtube"); }
-              if (!podcast.tiktok_url && !updates.tiktok_url && link.includes("tiktok.com/")) { updates.tiktok_url = link.replace(/[?#].*/, ""); log.push("tiktok"); }
+              if (!updates.instagram_url && link.includes("instagram.com/")) { updates.instagram_url = link.replace(/[?#].*/, ""); log.push("instagram"); }
+              if (!updates.facebook_url && link.includes("facebook.com/")) { updates.facebook_url = link.replace(/[?#].*/, ""); log.push("facebook"); }
+              if (!updates.youtube_url && link.includes("youtube.com/")) { updates.youtube_url = link.replace(/[?#].*/, ""); log.push("youtube"); }
+              if (!updates.tiktok_url && link.includes("tiktok.com/")) { updates.tiktok_url = link.replace(/[?#].*/, ""); log.push("tiktok"); }
+            }
+
+            const itemMatches = feedXml.match(/<item[\s>]/gi);
+            const itemCount = itemMatches ? itemMatches.length : 0;
+            if (itemCount > 0 && !updates.total_episodes) {
+              updates.total_episodes = itemCount;
+              log.push("total_episodes");
+            }
+
+            const pubDateMatches = [...feedXml.matchAll(/<item[\s\S]*?<pubDate>([^<]+)<\/pubDate>/gi)];
+            const episodeDates: Date[] = [];
+            for (const pm of pubDateMatches) {
+              const d = new Date(pm[1].trim());
+              if (!isNaN(d.getTime())) episodeDates.push(d);
+            }
+            episodeDates.sort((a, b) => b.getTime() - a.getTime());
+
+            if (episodeDates.length >= 2) {
+              const recentDates = episodeDates.slice(0, Math.min(20, episodeDates.length));
+              const gaps: number[] = [];
+              for (let i = 0; i < recentDates.length - 1; i++) {
+                gaps.push((recentDates[i].getTime() - recentDates[i + 1].getTime()) / (1000 * 60 * 60 * 24));
+              }
+              const avgGap = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+              let frequency = "Weekly";
+              if (avgGap <= 1.5) frequency = "Daily";
+              else if (avgGap <= 4) frequency = "Multiple times a week";
+              else if (avgGap <= 10) frequency = "Weekly";
+              else if (avgGap <= 18) frequency = "Bi-weekly";
+              else if (avgGap <= 45) frequency = "Monthly";
+              else frequency = "Occasionally";
+              updates.frequency = frequency;
+              log.push("frequency");
+            }
+
+            if (episodeDates.length > 0) {
+              const earliest = episodeDates[episodeDates.length - 1];
+              updates.year_started = earliest.getFullYear();
+              log.push("year_started");
+            }
+
+            const durationMatches = [...feedXml.matchAll(/<itunes:duration>([^<]+)<\/itunes:duration>/gi)];
+            if (durationMatches.length > 0) {
+              let totalMinutes = 0;
+              let validCount = 0;
+              for (const dm of durationMatches) {
+                const raw = dm[1].trim();
+                let minutes = 0;
+                if (raw.includes(":")) {
+                  const parts = raw.split(":").map(Number);
+                  if (parts.length === 3) minutes = parts[0] * 60 + parts[1] + parts[2] / 60;
+                  else if (parts.length === 2) minutes = parts[0] + parts[1] / 60;
+                } else {
+                  const sec = parseInt(raw, 10);
+                  if (!isNaN(sec)) minutes = sec / 60;
+                }
+                if (minutes > 0) { totalMinutes += minutes; validCount++; }
+              }
+              if (validCount > 0) {
+                updates.avg_episode_length = Math.round(totalMinutes / validCount);
+                log.push("avg_episode_length");
+              }
             }
           }
         } catch (e: any) { errors.push(`RSS feed: ${e.message}`); }
-        delete updates.feed_url;
       }
 
       if (Object.keys(updates).length > 0) {
