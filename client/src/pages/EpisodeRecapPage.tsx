@@ -1023,6 +1023,28 @@ export default function EpisodeRecapPage() {
           </nav>
         )}
 
+        {!authUser && episode.keyInsights?.length > 0 && (
+          <section id="section-key-insights" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-key-insights">
+            <div className="px-5 sm:px-6 py-4 border-b border-[#F0F0F2] dark:border-white/[0.06]">
+              <span className="text-[11px] font-medium tracking-[0.15em] uppercase text-[#A1A1AA]" style={{ fontFamily: "var(--font-mono)" }}>
+                KEY TAKEAWAYS
+              </span>
+            </div>
+            <div className="px-5 sm:px-6 py-[22px] space-y-4">
+              {episode.keyInsights.map((insight: string, i: number) => (
+                <div
+                  key={i}
+                  className="flex gap-3 items-start"
+                  data-testid={`insight-${i}`}
+                >
+                  <span className="w-[8px] h-[8px] rounded-full bg-[#6366F1] shrink-0 mt-[9px]" />
+                  <p className="text-[15px] leading-[1.75] text-[#52525B] dark:text-[#A1A1AA] flex-1">{insight.replace(/\[([^\]]+)\]/g, '$1')}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         <section id="section-what-happened" className="bg-white dark:bg-white/[0.03] border border-[#E4E4E7] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.05)]" data-testid="section-what-happened">
           <div className="px-5 sm:px-6 pt-5 pb-[18px] border-b border-[#F0F0F2] dark:border-white/[0.06]">
             <div className="flex items-center gap-2.5 mb-[9px]">
