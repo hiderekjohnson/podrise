@@ -442,7 +442,7 @@ export function PersonalShop() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-[#09090B] dark:text-white tracking-tight" data-testid="heading-personal-shop">
-              Shop
+              Pod Shop
             </h1>
             <p className="text-[14px] text-[#71717A] dark:text-[#A1A1AA] mt-0.5">
               Curated from your favorite podcasts

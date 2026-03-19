@@ -893,7 +893,7 @@ export default function PersonDetailPage() {
                         className="text-[16px] font-semibold text-amber-700 dark:text-amber-400 hover:underline underline-offset-2 flex items-center gap-1"
                         data-testid="link-browse-shop"
                       >
-                        Browse Shop <ArrowRight className="w-3 h-3" />
+                        Browse Pod Shop <ArrowRight className="w-3 h-3" />
                       </Link>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -1440,7 +1440,7 @@ export default function PersonDetailPage() {
                       className="text-[16px] font-semibold text-amber-700 dark:text-amber-400 hover:underline underline-offset-2 flex items-center gap-1"
                       data-testid="link-browse-shop"
                     >
-                      Browse Shop <ArrowRight className="w-3 h-3" />
+                      Browse Pod Shop <ArrowRight className="w-3 h-3" />
                     </Link>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">

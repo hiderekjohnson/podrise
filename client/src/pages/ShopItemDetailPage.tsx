@@ -569,7 +569,7 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData, is
         <div className="flex-1 flex flex-col items-center justify-center gap-4">
           {isBook ? <BookOpen className="w-12 h-12 text-[#A1A1AA]/30" /> : <ShoppingBag className="w-12 h-12 text-[#A1A1AA]/30" />}
           <h1 className="text-xl font-bold text-[#09090B] dark:text-white">{isBook ? "Book" : "Product"} not found</h1>
-          <Link href="/shop" className="text-[#6366F1] hover:text-[#6366F1]/80 font-medium" data-testid="link-back-shop">Back to Shop</Link>
+          <Link href="/shop" className="text-[#6366F1] hover:text-[#6366F1]/80 font-medium" data-testid="link-back-shop">Back to Pod Shop</Link>
         </div>
         {!isLoggedIn && <Footer />}
       </div>
@@ -701,7 +701,7 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData, is
           <div className="text-[13px] text-[#A1A1AA] mb-6 flex items-center gap-2" data-testid="breadcrumb">
             <Link href="/" className="text-[#52525B] hover:text-[#6366F1] transition-colors">Home</Link>
             <span>›</span>
-            <Link href="/shop" className="text-[#52525B] hover:text-[#6366F1] transition-colors">Shop</Link>
+            <Link href="/shop" className="text-[#52525B] hover:text-[#6366F1] transition-colors">Pod Shop</Link>
             <span>›</span>
             <span>{item.name}</span>
           </div>

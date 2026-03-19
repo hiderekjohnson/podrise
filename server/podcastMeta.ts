@@ -24,7 +24,7 @@ const STATIC_PAGES: Record<string, PageMeta | (() => PageMeta)> = {
       url: "https://podrise.com",
       twitterCard: "summary",
       replaceFavicon: false,
-      ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodRise - Podcast Intelligence Platform</h1><p>AI-powered daily recaps for ${PODCAST_SEO.length}+ top podcasts. Get episode summaries, key insights, notable quotes, and trending topics.</p><nav><ul style="display:flex;gap:16px;list-style:none;padding:0;"><li><a href="/podcasts">All Podcasts</a></li><li><a href="/people">People</a></li><li><a href="/companies">Companies</a></li><li><a href="/insights">Insights</a></li><li><a href="/shop">Shop</a></li></ul></nav><h2>Featured Podcasts</h2><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${podcastLinks}</ul></div>`,
+      ssrHtml: `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodRise - Podcast Intelligence Platform</h1><p>AI-powered daily recaps for ${PODCAST_SEO.length}+ top podcasts. Get episode summaries, key insights, notable quotes, and trending topics.</p><nav><ul style="display:flex;gap:16px;list-style:none;padding:0;"><li><a href="/podcasts">All Podcasts</a></li><li><a href="/people">People</a></li><li><a href="/companies">Companies</a></li><li><a href="/insights">Insights</a></li><li><a href="/shop">Pod Shop</a></li></ul></nav><h2>Featured Podcasts</h2><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${podcastLinks}</ul></div>`,
     };
   },
   "/contact": {
@@ -512,14 +512,14 @@ export async function injectPodcastMeta(html: string, url: string): Promise<stri
         const pSlug = parts.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
         return `<li><a href="/shop/${escapeAttr(pSlug)}">${escapeAttr(p.name)}</a> <small>(${escapeAttr(p.category || "product")})</small></li>`;
       }).join("");
-      ssrHtml = `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Podcast Shop</h1><p>Books, tools, and products recommended on the world's top podcasts.</p>`;
+      ssrHtml = `<div style="max-width:900px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>Pod Shop</h1><p>Books, tools, and products recommended on the world's top podcasts.</p>`;
       if (bookLinks) ssrHtml += `<h2>Books</h2><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${bookLinks}</ul>`;
       if (productLinks) ssrHtml += `<h2>Tools &amp; Products</h2><ul style="column-count:2;column-gap:24px;list-style:none;padding:0;">${productLinks}</ul>`;
       ssrHtml += `<a href="/">Back to Home</a></div>`;
     } catch (err) { console.error("[SSR] shop listing error:", err); }
     return replaceMetaTags(html, {
-      title: "Podcast Shop — Books, Tools & Products Recommended on Top Podcasts | PodRise",
-      description: "Browse books, tools, and products recommended by top podcast hosts and guests. See which items come up most, who recommends them, and why.",
+      title: "Pod Shop — Books, Tools & Products Recommended on Top Podcasts | PodRise",
+      description: "Browse the Pod Shop for books, tools, and products recommended by top podcast hosts and guests. See which items come up most, who recommends them, and why.",
       image: "https://podrise.com/favicon.png",
       url: "https://podrise.com/shop",
       twitterCard: "summary",

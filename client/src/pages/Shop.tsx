@@ -105,8 +105,8 @@ const PAGE_SIZE = 36;
 
 function SEOHead() {
   useEffect(() => {
-    const title = "Podcast Shop — Books, Tools & Products Recommended on Top Podcasts | PodRise";
-    const description = "Browse books, tools, and products recommended by top podcast hosts and guests. See which items come up most, who recommends them, and why — sourced from real conversations.";
+    const title = "Pod Shop — Books, Tools & Products Recommended on Top Podcasts | PodRise";
+    const description = "Browse the Pod Shop for books, tools, and products recommended by top podcast hosts and guests. See which items come up most, who recommends them, and why — sourced from real conversations.";
     document.title = title;
     const setOrCreate = (attr: string, key: string, value: string) => {
       const selector = `meta[${attr}="${key}"]`;

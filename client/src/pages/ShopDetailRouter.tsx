@@ -59,7 +59,7 @@ export default function ShopDetailRouter() {
           <AlertCircle className="w-12 h-12 text-red-400/60" />
           <h1 className="text-xl font-bold text-[#09090B] dark:text-white" data-testid="heading-error">Something went wrong</h1>
           <p className="text-[#A1A1AA] text-sm">Please try refreshing the page.</p>
-          <Link href="/shop" className="text-[#6366F1] hover:text-[#6366F1]/80 font-medium" data-testid="link-back-shop">Back to Shop</Link>
+          <Link href="/shop" className="text-[#6366F1] hover:text-[#6366F1]/80 font-medium" data-testid="link-back-shop">Back to Pod Shop</Link>
         </div>
         {!isLoggedIn && <Footer />}
       </div>
@@ -132,7 +132,7 @@ export default function ShopDetailRouter() {
       <div className="flex-1 flex flex-col items-center justify-center gap-4">
         <ShoppingBag className="w-12 h-12 text-[#A1A1AA]/30" />
         <h1 className="text-xl font-bold text-[#09090B] dark:text-white" data-testid="heading-not-found">Item not found</h1>
-        <Link href="/shop" className="text-[#6366F1] hover:text-[#6366F1]/80 font-medium" data-testid="link-back-shop">Back to Shop</Link>
+        <Link href="/shop" className="text-[#6366F1] hover:text-[#6366F1]/80 font-medium" data-testid="link-back-shop">Back to Pod Shop</Link>
       </div>
       {!isLoggedIn && <Footer />}
     </div>

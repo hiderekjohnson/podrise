@@ -9,7 +9,7 @@ import { DollarSign, BookOpen, ShoppingBag, Megaphone, CreditCard, Scale, Messag
 export default function Disclosure() {
   useEffect(() => {
     const title = "How PodRise Makes Money — Affiliate Disclosure & Advertising Transparency | PodRise";
-    const desc = "PodRise earns revenue through affiliate links, paid advertising, and subscriptions. Nothing in the Shop can be paid for. Here is exactly how it works.";
+    const desc = "PodRise earns revenue through affiliate links, paid advertising, and subscriptions. Nothing in the Pod Shop can be paid for. Here is exactly how it works.";
     document.title = title;
     const setMeta = (attr: string, key: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
@@ -59,7 +59,7 @@ export default function Disclosure() {
           </p>
         </motion.section>
 
-        {/* Section 2: The Shop — Nothing Here Can Be Bought */}
+        {/* Section 2: The Pod Shop — Nothing Here Can Be Bought */}
         <motion.section
           className="max-w-3xl mx-auto px-4 sm:px-6 pb-16"
           initial={{ opacity: 0, y: 20 }}
@@ -69,21 +69,21 @@ export default function Disclosure() {
         >
           <div className="flex items-center gap-3 mb-8">
             <BookOpen className="w-5 h-5 text-primary" />
-            <h2 className="text-xl sm:text-2xl font-display font-bold" data-testid="text-shop-heading">The Shop — Nothing Here Can Be Bought</h2>
+            <h2 className="text-xl sm:text-2xl font-display font-bold" data-testid="text-shop-heading">The Pod Shop — Nothing Here Can Be Bought</h2>
           </div>
 
           <div className="space-y-5 text-[17px] leading-[1.85] text-[#52525B] max-w-2xl">
             <p>
-              Every book in the <Link href="/shop" className="text-primary font-medium hover:underline" data-testid="link-shop-inline">Shop</Link> and every product was mentioned or recommended by a real host or guest on a real podcast episode. That is the only way anything gets in.
+              Every book in the <Link href="/shop" className="text-primary font-medium hover:underline" data-testid="link-shop-inline">Pod Shop</Link> and every product was mentioned or recommended by a real host or guest on a real podcast episode. That is the only way anything gets in.
             </p>
           </div>
 
           <div className="mt-6 bg-[#F7F7FC] border-l-[3px] border-l-[#6366F1] rounded-r-lg p-5 sm:p-6" data-testid="callout-shop-integrity">
             <p className="text-[17px] leading-[1.85] text-foreground font-semibold mb-3">
-              No brand, publisher, author, or PR firm can pay to appear in the Shop. There is no price. We do not offer it. We would never accept it.
+              No brand, publisher, author, or PR firm can pay to appear in the Pod Shop. There is no price. We do not offer it. We would never accept it.
             </p>
             <p className="text-[16px] leading-[1.85] text-[#52525B]">
-              Rankings are determined by mention frequency across episodes and shows — not by commercial relationships. When a book appears at the top of the <Link href="/shop" className="text-primary font-medium hover:underline" data-testid="link-shop-callout">Shop</Link>, it is because dozens of <Link href="/podcasts" className="text-primary font-medium hover:underline" data-testid="link-podcasts-callout">podcast</Link> guests recommended it. The recommendation belongs to your favorite podcasters, not to us.
+              Rankings are determined by mention frequency across episodes and shows — not by commercial relationships. When a book appears at the top of the <Link href="/shop" className="text-primary font-medium hover:underline" data-testid="link-shop-callout">Pod Shop</Link>, it is because dozens of <Link href="/podcasts" className="text-primary font-medium hover:underline" data-testid="link-podcasts-callout">podcast</Link> guests recommended it. The recommendation belongs to your favorite podcasters, not to us.
             </p>
           </div>
         </motion.section>
@@ -103,7 +103,7 @@ export default function Disclosure() {
 
           <div className="space-y-5 text-[17px] leading-[1.85] text-[#52525B] max-w-2xl">
             <p>
-              When you click a link in the <Link href="/shop" className="text-primary font-medium hover:underline" data-testid="link-shop-affiliate">Shop</Link> and make a purchase, PodRise may earn a small commission through Amazon Associates or other affiliate programs.
+              When you click a link in the <Link href="/shop" className="text-primary font-medium hover:underline" data-testid="link-shop-affiliate">Pod Shop</Link> and make a purchase, PodRise may earn a small commission through Amazon Associates or other affiliate programs.
             </p>
             <p>
               The price you pay is identical to what you would pay going directly. We never mark anything up.
@@ -146,7 +146,7 @@ export default function Disclosure() {
               PodRise runs paid advertisements. Brands can pay to have their products and services promoted to our audience. You can learn more on our <Link href="/advertise" className="text-primary font-medium hover:underline" data-testid="link-advertise-inline">advertising page</Link>.
             </p>
             <p>
-              These paid ads appear in the newsletter, on podcast pages, and in personalized briefings — never in the <Link href="/shop" className="text-primary font-medium hover:underline" data-testid="link-shop-advertising">Shop</Link>.
+              These paid ads appear in the newsletter, on podcast pages, and in personalized briefings — never in the <Link href="/shop" className="text-primary font-medium hover:underline" data-testid="link-shop-advertising">Pod Shop</Link>.
             </p>
             <p>
               Every paid ad is written by PodRise in our voice, but it is always clearly labeled as sponsored. There is no ambiguity about what is an ad and what is not.

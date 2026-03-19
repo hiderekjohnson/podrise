@@ -91,7 +91,7 @@ export function PodcastPageLayout({
   const navItems: { id: string; label: string; icon: typeof Mic; accent?: boolean; action?: () => void; beta?: boolean }[] = [
     { id: "section-episodes", label: "Episode Recaps", icon: Mic },
     { id: "section-discover", label: "Discover", icon: Compass },
-    { id: "section-shop", label: "Shop", icon: ShoppingBag, beta: true },
+    { id: "section-shop", label: "Pod Shop", icon: ShoppingBag, beta: true },
     ...(isLoggedIn
       ? []
       : [{ id: "get-recaps-modal", label: "Get Recaps", icon: Mail, accent: true, action: () => setShowRecapsModal(true) }]

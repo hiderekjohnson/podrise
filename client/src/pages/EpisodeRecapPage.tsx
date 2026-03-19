@@ -1098,7 +1098,7 @@ export default function EpisodeRecapPage() {
             <div className="px-4 sm:px-6 py-4 bg-[#6366F1]/[0.04] border-b border-[#6366F1]/[0.08]">
               <div className="flex items-center gap-2.5">
                 <ShoppingBag className="w-4 h-4 text-[#6366F1] shrink-0" />
-                <h2 className="text-base font-bold text-[#6366F1] dark:text-[#A5B4FC] uppercase tracking-wider m-0">Shop</h2>
+                <h2 className="text-base font-bold text-[#6366F1] dark:text-[#A5B4FC] uppercase tracking-wider m-0">Pod Shop</h2>
                 <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#6366F1]/10 text-[#6366F1] border border-[#6366F1]/20">Beta</span>
               </div>
             </div>

@@ -16,22 +16,22 @@ interface ChangelogEntry {
 
 const changelog: ChangelogEntry[] = [
   {
-    title: "AI-powered sponsor filtering keeps the Shop honest",
-    description: "We built an AI algorithm that automatically detects and filters out sponsored ads, paid placements, and affiliate pitches from the Shop — so only genuine host recommendations make the cut. If a host truly loves a product and talks about it organically, it stays. If it's a read-from-a-script ad spot, it's gone. Sorry, AG1.",
+    title: "AI-powered sponsor filtering keeps the Pod Shop honest",
+    description: "We built an AI algorithm that automatically detects and filters out sponsored ads, paid placements, and affiliate pitches from the Pod Shop — so only genuine host recommendations make the cut. If a host truly loves a product and talks about it organically, it stays. If it's a read-from-a-script ad spot, it's gone. Sorry, AG1.",
     link: { url: "/shop", label: "See what hosts actually recommend" },
     emoji: "🛡️",
     date: "Mar 15, 2026",
   },
   {
-    title: "Shop — discover what podcast hosts genuinely recommend",
-    description: "Ever heard a host rave about a product and wanted to find it later? The Shop collects every tool, book, service, and product that podcast hosts organically recommend — not the paid ads, just the stuff they actually use. Filter by podcast, browse by category, or search for something specific. It's like a curated marketplace powered by real host enthusiasm.",
-    link: { url: "/shop", label: "Browse the Shop" },
+    title: "Pod Shop — discover what podcast hosts genuinely recommend",
+    description: "Ever heard a host rave about a product and wanted to find it later? The Pod Shop collects every tool, book, service, and product that podcast hosts organically recommend — not the paid ads, just the stuff they actually use. Filter by podcast, browse by category, or search for something specific. It's like a curated marketplace powered by real host enthusiasm.",
+    link: { url: "/shop", label: "Browse the Pod Shop" },
     emoji: "🛍️",
     date: "Mar 13, 2026",
   },
   {
-    title: "Shop search by podcast",
-    description: "Wondering which books your favorite podcast has recommended over the years? You can now search the Shop by podcast name to see every book mentioned across all episodes of a specific show. It's a great way to build a reading list curated by hosts you trust.",
+    title: "Pod Shop search by podcast",
+    description: "Wondering which books your favorite podcast has recommended over the years? You can now search the Pod Shop by podcast name to see every book mentioned across all episodes of a specific show. It's a great way to build a reading list curated by hosts you trust.",
     link: { url: "/shop", label: "Search books by podcast" },
     emoji: "📖",
     date: "Feb 27, 2026",
@@ -52,15 +52,15 @@ const changelog: ChangelogEntry[] = [
   },
   {
     title: "Mobile layout improvements across the entire site",
-    description: "We spent a full week reworking layouts, tap targets, and typography to make PodRise feel truly native on phones and tablets. Episode recaps, podcast pages, the Shop, and every other section now adapt beautifully to smaller screens. If you've been using PodRise on desktop, give it a try on your phone — it's a much better experience now.",
+    description: "We spent a full week reworking layouts, tap targets, and typography to make PodRise feel truly native on phones and tablets. Episode recaps, podcast pages, the Pod Shop, and every other section now adapt beautifully to smaller screens. If you've been using PodRise on desktop, give it a try on your phone — it's a much better experience now.",
     link: { url: "/podcasts", label: "Try it on your phone" },
     emoji: "📱",
     date: "Feb 19, 2026",
   },
   {
     title: "Curated book recommendations from episodes",
-    description: "Every podcast page and episode recap now surfaces books mentioned by hosts and guests. We built a dedicated Shop with curated shelves, ratings, and host context so you can discover your next great read from the podcasts you already love — no more scrambling to remember that title someone mentioned at minute 47.",
-    link: { url: "/shop", label: "Browse the Shop" },
+    description: "Every podcast page and episode recap now surfaces books mentioned by hosts and guests. We built a dedicated Pod Shop with curated shelves, ratings, and host context so you can discover your next great read from the podcasts you already love — no more scrambling to remember that title someone mentioned at minute 47.",
+    link: { url: "/shop", label: "Browse the Pod Shop" },
     emoji: "📚",
     date: "Feb 15, 2026",
   },

@@ -14,7 +14,7 @@ interface DashboardLayoutProps {
 const ALL_NAV_ITEMS = [
   { key: "feed", path: "/dashboard", label: "Home", Icon: Home },
   { key: "discover", path: "/discover", label: "Discover", Icon: Compass },
-  { key: "shop", path: "/shop", label: "Shop", Icon: ShoppingBag },
+  { key: "shop", path: "/shop", label: "Pod Shop", Icon: ShoppingBag },
   { key: "bookmarks", path: "/bookmarks", label: "Saved Episodes", Icon: Bookmark },
   { key: "my-podcasts", path: "/my-podcasts", label: "My Podcasts", Icon: Radio },
   { key: "pod-squad", path: "/pod-squad", label: "Pod Squad", Icon: Users },

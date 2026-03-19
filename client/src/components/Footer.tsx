@@ -19,7 +19,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/shop" className={`inline-flex items-center gap-1.5 ${linkClass}`} data-testid="link-shop">
-                  Shop
+                  Pod Shop
                   <span className="text-[12px] font-bold uppercase tracking-wider bg-amber-500/[0.12] text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-full leading-none">Beta</span>
                 </Link>
               </li>
