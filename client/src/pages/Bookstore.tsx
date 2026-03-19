@@ -217,9 +217,6 @@ function BookCard({ book, index }: { book: ShopBook; index: number }) {
             )}
             <div className="flex flex-wrap items-center gap-2 mt-2">
               <PodcastMicBadge count={book.podcastCount} size="sm" />
-              <span className="inline-flex items-center gap-1 text-[13px] text-[#A1A1AA]">
-                {book.mentionCount} mention{book.mentionCount !== 1 ? "s" : ""}
-              </span>
             </div>
           </div>
         </div>
@@ -304,11 +301,6 @@ function ProductCard({ product, index }: { product: ShopProduct; index: number }
               )}
               <div className="flex flex-wrap items-center gap-2 mt-2">
                 <PodcastMicBadge count={product.podcastCount} size="sm" />
-                {product.mentionCount > 1 && (
-                  <span className="text-[13px] text-[#A1A1AA]">
-                    {product.mentionCount} mentions
-                  </span>
-                )}
               </div>
             </div>
           </div>

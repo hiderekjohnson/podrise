@@ -225,7 +225,7 @@ function SEOHead({ item }: { item: NormalizedItem }) {
     : `${item.name}${item.subtitle ? ` ${item.subtitle}` : ""} — Recommended on ${item.podcastCount} Podcast${item.podcastCount !== 1 ? "s" : ""} | PodRise`;
 
   const description = isBook
-    ? `${item.name} has been recommended ${item.mentionCount} times across ${item.podcastCount} podcasts including ${item.podcastNames.slice(0, 2).join(" and ")}${item.podcastNames.length > 2 ? " and more" : ""}. See who recommends it and what they say.`
+    ? `${item.name} has been featured on ${item.podcastCount} podcasts including ${item.podcastNames.slice(0, 2).join(" and ")}${item.podcastNames.length > 2 ? " and more" : ""}. See who recommends it and what they say.`
     : item.description
       ? `${item.description.slice(0, 130)}${item.description.length > 130 ? "..." : ""}`
       : `${item.name} has been recommended on ${item.podcastCount} podcast${item.podcastCount !== 1 ? "s" : ""} including ${item.podcastNames.slice(0, 2).join(" and ")}. See why podcasters love it.`;
@@ -806,7 +806,7 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData, is
                     className="text-sm text-[#6366F1] font-semibold hover:underline"
                     data-testid="button-see-more-mentions"
                   >
-                    See more podcast mentions ↓
+                    See more podcast appearances ↓
                   </button>
                 </div>
               )}

@@ -110,9 +110,6 @@ function PersonalBookCard({ book, index }: { book: ShopBook; index: number }) {
         </div>
         <div className="flex items-center gap-1.5 mt-2">
           <PodcastMicBadge count={book.podcastCount} size="sm" />
-          <span className="text-[12px] text-[#A1A1AA] dark:text-[#71717A]">
-            {book.mentionCount} mention{book.mentionCount !== 1 ? "s" : ""}
-          </span>
         </div>
       </div>
     </motion.div>
@@ -172,9 +169,6 @@ function PersonalProductCard({ product, index }: { product: ShopProduct; index: 
           </div>
           <div className="flex items-center gap-1.5 mt-2">
             <PodcastMicBadge count={product.podcastCount} size="sm" />
-            <span className="text-[12px] text-[#A1A1AA] dark:text-[#71717A]">
-              {product.mentionCount} mention{product.mentionCount !== 1 ? "s" : ""}
-            </span>
           </div>
         </div>
       </motion.div>
