@@ -239,7 +239,7 @@ export default function Disclosure() {
               If you ever want to know whether PodRise has a commercial relationship with something you see on the site, ask us directly. We will give you a straight answer.
             </p>
             <p>
-              Reach us through our <Link href="/contact" className="text-primary font-medium hover:underline" data-testid="link-contact-page">contact page</Link> or <Link href="/support" className="text-primary font-medium hover:underline" data-testid="link-support-page">support page</Link>.
+              Reach us through our <Link href="/contact" className="text-primary font-medium hover:underline" data-testid="link-contact-page">contact page</Link>.
             </p>
           </div>
         </motion.section>

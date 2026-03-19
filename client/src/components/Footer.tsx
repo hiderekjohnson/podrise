@@ -66,11 +66,6 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/support" className={linkClass} data-testid="link-support">
-                  Help & Support
-                </Link>
-              </li>
-              <li>
                 <Link href="/contact" className={linkClass} data-testid="link-contact">
                   Contact Us
                 </Link>

@@ -189,7 +189,7 @@ function LandingPageContent({ config }: { config: LandingPageConfig }) {
       <footer className="shrink-0 w-full px-5 pb-4 pt-2 sm:pb-5 flex items-center justify-center gap-5 text-[12px] text-[#A1A1AA]">
         <Link href="/privacy" className="hover:text-[#52525B] transition-colors" data-testid="link-lp-privacy">Privacy</Link>
         <Link href="/terms" className="hover:text-[#52525B] transition-colors" data-testid="link-lp-terms">Terms</Link>
-        <Link href="/support" className="hover:text-[#52525B] transition-colors" data-testid="link-lp-support">Support</Link>
+        <Link href="/contact" className="hover:text-[#52525B] transition-colors" data-testid="link-lp-support">Contact</Link>
       </footer>
     </div>
   );

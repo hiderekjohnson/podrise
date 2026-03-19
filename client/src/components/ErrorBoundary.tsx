@@ -66,7 +66,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
             <div className="border-t border-border pt-6">
               <a
-                href="/support"
+                href="/contact"
                 className="inline-flex items-center gap-2 text-sm text-primary hover:underline font-medium"
                 data-testid="link-error-support"
               >

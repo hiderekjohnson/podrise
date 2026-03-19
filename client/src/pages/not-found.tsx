@@ -32,7 +32,7 @@ export default function NotFound() {
         </p>
         <div className="mb-10 inline-flex items-center gap-2 text-sm text-primary hover:underline" data-testid="link-404-support">
           <HelpCircle className="w-4 h-4" />
-          <Link href="/support">Need help? Visit our support page</Link>
+          <Link href="/contact">Need help? Contact us</Link>
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-3" data-testid="nav-404-links">

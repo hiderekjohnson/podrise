@@ -121,15 +121,6 @@ const STATIC_PAGES: Record<string, PageMeta | (() => PageMeta)> = {
     replaceFavicon: false,
     ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodRise Enterprise</h1><p>Podcast intelligence for teams. Monitor industry trends, track competitors, and discover insights from hundreds of top podcasts.</p><a href="/">Back to Home</a></div>`,
   },
-  "/support": {
-    title: "Support - PodRise Help Center",
-    description: "Get help with PodRise. Find answers to common questions and get support for your podcast intelligence needs.",
-    image: "https://podrise.com/favicon.png",
-    url: "https://podrise.com/support",
-    twitterCard: "summary",
-    replaceFavicon: false,
-    ssrHtml: `<div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:sans-serif;"><h1>PodRise Support</h1><p>Need help? Contact us at <a href="mailto:hello@podrise.com">hello@podrise.com</a>.</p><a href="/">Back to Home</a></div>`,
-  },
   "/privacy": {
     title: "Privacy Policy - PodRise",
     description: "PodRise's privacy policy. Learn how we collect, use, and protect your personal information.",

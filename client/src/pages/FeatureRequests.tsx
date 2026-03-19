@@ -165,7 +165,7 @@ const changelog: ChangelogEntry[] = [
   {
     title: "Help & Support center",
     description: "Sorry we didn't think of this sooner — you can now reach us anytime with questions, issues, or feedback about your podcast summaries. Whether something looks off in a recap or you have an idea for a feature, the Support center is the fastest way to get our attention.",
-    link: { url: "/support", label: "Visit the support page" },
+    link: { url: "/contact", label: "Visit the contact page" },
     emoji: "🆘",
     date: "Jan 15, 2026",
   },
@@ -410,7 +410,7 @@ export default function FeatureRequests() {
                 </div>
                 <div className="flex items-center justify-between pt-1">
                   <a
-                    href="/support"
+                    href="/contact"
                     className="flex items-center gap-1.5 text-[15px] text-muted-foreground hover:text-foreground transition-colors"
                     data-testid="link-support"
                   >

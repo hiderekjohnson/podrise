@@ -80,7 +80,7 @@ export default function Privacy() {
 
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">6. Data Retention</h2>
-            <p>We retain your personal information for as long as your account is active or as needed to provide you with the Service. You may request deletion of your account and associated data by <a href="/support" className="text-primary hover:underline">contacting us</a>.</p>
+            <p>We retain your personal information for as long as your account is active or as needed to provide you with the Service. You may request deletion of your account and associated data by <a href="/contact" className="text-primary hover:underline">contacting us</a>.</p>
           </section>
 
           <section>
@@ -124,7 +124,7 @@ export default function Privacy() {
 
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">12. Contact Us</h2>
-            <p>If you have any questions about this Privacy Policy, please <a href="/support" className="text-primary hover:underline">contact us</a>.</p>
+            <p>If you have any questions about this Privacy Policy, please <a href="/contact" className="text-primary hover:underline">contact us</a>.</p>
           </section>
         </div>
       </main>

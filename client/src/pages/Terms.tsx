@@ -123,7 +123,7 @@ export default function Terms() {
 
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">15. Contact Us</h2>
-            <p>If you have any questions about these Terms, please <a href="/support" className="text-primary hover:underline">contact us</a>.</p>
+            <p>If you have any questions about these Terms, please <a href="/contact" className="text-primary hover:underline">contact us</a>.</p>
           </section>
         </div>
       </main>

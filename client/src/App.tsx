@@ -26,7 +26,6 @@ const EpisodeArchivePage = lazy(() => import("./pages/EpisodeArchivePage"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Cookies = lazy(() => import("./pages/Cookies"));
 const Terms = lazy(() => import("./pages/Terms"));
-const Support = lazy(() => import("./pages/Support"));
 const FeatureRequests = lazy(() => import("./pages/FeatureRequests"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
@@ -98,7 +97,7 @@ function Router() {
         <Route path="/privacy" component={Privacy} />
         <Route path="/cookies">{() => <AuthAwareLayout><Cookies /></AuthAwareLayout>}</Route>
         <Route path="/terms" component={Terms} />
-        <Route path="/support" component={Support} />
+        <Route path="/support">{() => { window.location.replace("/contact"); return null; }}</Route>
         <Route path="/updates" component={FeatureRequests} />
         <Route path="/about" component={About} />
         <Route path="/contact" component={Contact} />

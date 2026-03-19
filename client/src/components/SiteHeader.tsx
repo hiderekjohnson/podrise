@@ -35,7 +35,7 @@ export function SiteHeader() {
               </button>
               <button
                 onClick={() => navigate("/register")}
-                className="flex items-center gap-2 px-6 py-2.5 border-2 border-foreground text-foreground rounded-[10px] text-[15px] font-semibold hover:bg-foreground hover:text-background transition-all min-h-[44px] ml-1"
+                className="flex items-center gap-2 px-6 py-2.5 bg-[#6366F1] text-white rounded-[10px] text-[15px] font-semibold hover:bg-[#4F46E5] transition-all min-h-[44px] ml-1"
                 data-testid="nav-get-started"
               >
                 Get started <ArrowRight className="w-4 h-4" />

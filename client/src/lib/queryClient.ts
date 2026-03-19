@@ -8,7 +8,7 @@ async function throwIfResNotOk(res: Response) {
       const json = JSON.parse(text);
       parsed = json.message || text;
     } catch {}
-    const supportNudge = "\n\nIf this keeps happening, contact us at /support";
+    const supportNudge = "\n\nIf this keeps happening, contact us at /contact";
     throw new Error(`${res.status}: ${parsed}${supportNudge}`);
   }
 }

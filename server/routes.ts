@@ -321,7 +321,6 @@ const STATIC_PAGES = [
   { path: "/login", priority: "0.3", changefreq: "monthly" },
   { path: "/privacy", priority: "0.3", changefreq: "yearly" },
   { path: "/terms", priority: "0.3", changefreq: "yearly" },
-  { path: "/support", priority: "0.4", changefreq: "monthly" },
 ];
 
 const PODCAST_SLUGS = Object.values(ITUNES_ID_TO_SLUG);

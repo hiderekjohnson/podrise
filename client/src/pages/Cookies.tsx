@@ -110,7 +110,7 @@ export default function Cookies() {
 
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">9. Contact Us</h2>
-            <p>If you have any questions about our use of cookies or this Cookie Policy, please <a href="/support" className="text-primary hover:underline">contact us</a>.</p>
+            <p>If you have any questions about our use of cookies or this Cookie Policy, please <a href="/contact" className="text-primary hover:underline">contact us</a>.</p>
           </section>
         </div>
       </main>
