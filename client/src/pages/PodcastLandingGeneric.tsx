@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "wouter";
-import { Loader2, ArrowRight, ArrowLeft, Clock, Mic, Headphones, UserCircle, BookOpen, Mail, ShoppingBag, ExternalLink } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, Clock, Mic, Headphones, UserCircle, BookOpen, Mail, ShoppingBag, ExternalLink, Lock } from "lucide-react";
 import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { BookCoverFill } from "@/components/BookCover";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -122,6 +122,54 @@ function PodcastBooksTab({ slug, podcastName, isLoggedIn }: { slug: string; podc
           <BookOpen className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
           <p className="text-[16px] font-semibold text-foreground mb-1">No books found yet</p>
           <p className="text-[16px] text-muted-foreground">Book data is still being extracted for this podcast.</p>
+        </div>
+      ) : !isLoggedIn ? (
+        <div className="relative" data-testid="books-signup-teaser">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pointer-events-none select-none">
+            {sorted.slice(0, 3).map((book, i) => {
+              const bookSlug = book.slug;
+              return (
+                <div
+                  key={book.name}
+                  className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-5 flex flex-col"
+                  data-testid={`book-teaser-${i}`}
+                >
+                  <div className="flex gap-4">
+                    <div className="w-16 h-[88px] rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200/30 dark:border-amber-700/20 flex items-center justify-center shrink-0 overflow-hidden">
+                      <BookCoverFill title={book.name} slug={bookSlug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-[16px] font-bold text-foreground leading-snug">{book.name}</h3>
+                      {book.author && book.author !== "null" && (
+                        <p className="text-[16px] text-muted-foreground mt-0.5">by {book.author}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/70 to-white dark:via-zinc-950/70 dark:to-zinc-950 flex items-end justify-center pb-2">
+            <div className="text-center px-4 py-6 max-w-md">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-amber-500/10 mb-3">
+                <Lock className="w-5 h-5 text-amber-600" />
+              </div>
+              <p className="text-[16px] font-bold text-foreground mb-1.5" data-testid="text-teaser-headline">
+                Sign up free to see all {sorted.length} book{sorted.length !== 1 ? "s" : ""} recommended by {podcastName}
+              </p>
+              <p className="text-[14px] text-muted-foreground mb-4">
+                Discover which other podcasts mention these books too.
+              </p>
+              <Link
+                href="/register"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold text-[15px] transition-colors shadow-sm"
+                data-testid="button-signup-books"
+              >
+                Sign Up Free
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
         </div>
       ) : (
         <>

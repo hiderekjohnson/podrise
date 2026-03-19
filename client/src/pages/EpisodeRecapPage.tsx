@@ -1,7 +1,7 @@
 import { useParams } from "wouter";
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, ArrowUp, Clock, ShoppingBag, Bookmark, BookmarkCheck, Heart, ListChecks, ArrowRight, ArrowLeft } from "lucide-react";
+import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, ArrowUp, Clock, ShoppingBag, Bookmark, BookmarkCheck, Heart, ListChecks, ArrowRight, ArrowLeft, Lock } from "lucide-react";
 import { BookCover as SharedBookCover } from "@/components/BookCover";
 import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -1145,7 +1145,58 @@ export default function EpisodeRecapPage() {
               </div>
             </div>
             <div className="px-4 sm:px-6 py-5">
-              {hasBooks && (
+              {hasBooks && !isLoggedIn && (
+              <>
+              <div className="flex items-center gap-2.5 mb-5">
+                <BookOpen className="w-4 h-4 text-amber-600 shrink-0" />
+                <h3 className="text-base font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider m-0">Books Mentioned</h3>
+              </div>
+              <div className="relative" data-testid="episode-books-signup-teaser">
+                <div className="flex flex-col gap-5 pointer-events-none select-none">
+                  {books.slice(0, 2).map((book, i) => {
+                    const bookKey = book.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+                    const enrichment = bookSlugMap[bookKey];
+                    const displayAuthor = enrichment?.author || book.author;
+                    return (
+                      <div key={i} className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-5" data-testid={`book-teaser-${i}`}>
+                        <div className="flex gap-4">
+                          <BookCover title={book.name} asin={enrichment?.asin || extractAsin(book.url || "")} slug={enrichment?.slug} googleBooksId={enrichment?.googleBooksId} isbn={enrichment?.isbn} hasCover={enrichment?.hasCover} testId={`book-teaser-cover-${i}`} />
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-[16px] font-bold text-foreground leading-snug">{book.name}</h3>
+                            {displayAuthor && displayAuthor !== "null" && (
+                              <p className="text-[16px] text-muted-foreground mt-0.5">by {displayAuthor}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/70 to-white dark:via-zinc-950/70 dark:to-zinc-950 flex items-end justify-center pb-2">
+                  <div className="text-center px-4 py-6 max-w-md">
+                    <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-amber-500/10 mb-3">
+                      <Lock className="w-5 h-5 text-amber-600" />
+                    </div>
+                    <p className="text-[15px] font-bold text-foreground mb-1.5" data-testid="text-books-teaser-headline">
+                      Sign up free to see all {books.length} book{books.length !== 1 ? "s" : ""} from this episode
+                    </p>
+                    <p className="text-[13px] text-muted-foreground mb-4">
+                      Plus cross-podcast recommendations and deep dives.
+                    </p>
+                    <Link
+                      href="/register"
+                      className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold text-[14px] transition-colors shadow-sm"
+                      data-testid="button-signup-episode-books"
+                    >
+                      Sign Up Free
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </>
+            )}
+            {hasBooks && isLoggedIn && (
               <>
               <div className="flex items-center gap-2.5 mb-5">
                 <BookOpen className="w-4 h-4 text-amber-600 shrink-0" />
@@ -1239,7 +1290,55 @@ export default function EpisodeRecapPage() {
               )}
             </>
             )}
-            {hasShopProducts && (
+            {hasShopProducts && !isLoggedIn && (
+              <div className="mt-8 pt-6 border-t border-black/[0.06] dark:border-white/[0.08]">
+                <div className="flex items-center gap-2.5 mb-5">
+                  <ShoppingBag className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <h3 className="text-base font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider m-0">Products & Tools Mentioned</h3>
+                </div>
+                <div className="relative" data-testid="episode-products-signup-teaser">
+                  <div className="flex flex-col gap-5 pointer-events-none select-none">
+                    {shopProducts.slice(0, 2).map((product: any, i: number) => (
+                      <div key={i} className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-5" data-testid={`product-teaser-${i}`}>
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-emerald-500/[0.08] flex items-center justify-center shrink-0">
+                            <ShoppingBag className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-[16px] font-bold text-foreground leading-snug">{product.name}</h3>
+                            {product.company && product.company !== product.name && (
+                              <p className="text-[14px] text-muted-foreground mt-0.5">by {product.company}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/70 to-white dark:via-zinc-950/70 dark:to-zinc-950 flex items-end justify-center pb-2">
+                    <div className="text-center px-4 py-6 max-w-md">
+                      <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-emerald-500/10 mb-3">
+                        <Lock className="w-5 h-5 text-emerald-600" />
+                      </div>
+                      <p className="text-[15px] font-bold text-foreground mb-1.5" data-testid="text-products-teaser-headline">
+                        Sign up free to see all {shopProducts.length} product{shopProducts.length !== 1 ? "s" : ""} from this episode
+                      </p>
+                      <p className="text-[13px] text-muted-foreground mb-4">
+                        Get the full list of tools and products mentioned.
+                      </p>
+                      <Link
+                        href="/register"
+                        className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-[14px] transition-colors shadow-sm"
+                        data-testid="button-signup-episode-products"
+                      >
+                        Sign Up Free
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            {hasShopProducts && isLoggedIn && (
               <div className="mt-8 pt-6 border-t border-black/[0.06] dark:border-white/[0.08]">
                 <div className="flex items-center gap-2.5 mb-5">
                   <ShoppingBag className="w-4 h-4 text-emerald-600 shrink-0" />
