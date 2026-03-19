@@ -10201,176 +10201,183 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  async function refreshPodcastMetadataBySlug(slug: string): Promise<{ fieldsUpdated: string[]; errors: string[]; totalUpdated: number }> {
+    const { rows } = await pool.query(
+      `SELECT id, slug, name, itunes_id, artwork_url, apple_url, spotify_url, description, category,
+              youtube_url, website_url, twitter_handle, instagram_url, tiktok_url, facebook_url,
+              hosts, frequency, avg_episode_length, year_started, about_podcast, total_episodes, feed_url
+       FROM podcast_directory WHERE slug = $1`, [slug]
+    );
+    if (rows.length === 0) throw new Error(`Podcast not found for slug: ${slug}`);
+    const podcast = rows[0];
+    const updates: Record<string, any> = {};
+    const log: string[] = [];
+    const errors: string[] = [];
+
+    if (podcast.itunes_id) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        const itunesResp = await fetch(`https://itunes.apple.com/lookup?id=${podcast.itunes_id}`, { signal: controller.signal });
+        clearTimeout(timeout);
+        if (itunesResp.ok) {
+          const itunesData = await itunesResp.json();
+          const r = (itunesData.results || [])[0];
+          if (r) {
+            const art = (r.artworkUrl600 || r.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb");
+            if (art) { updates.artwork_url = art; log.push("artwork"); }
+            if (r.collectionName) { updates.name = r.collectionName; log.push("name"); }
+            if (r.collectionViewUrl) { updates.apple_url = r.collectionViewUrl; log.push("apple_url"); }
+            if (r.primaryGenreName) { updates.category = r.primaryGenreName; log.push("category"); }
+            if (r.trackCount) { updates.total_episodes = r.trackCount; log.push("total_episodes"); }
+            if (r.feedUrl) { updates.feed_url = r.feedUrl; }
+          }
+        }
+      } catch (e: any) { errors.push(`iTunes: ${e.message}`); }
+    }
+
+    const podcastName = updates.name || podcast.name;
+    try {
+      const { searchSpotifyShow } = await import("./spotifyClient");
+      const spotifyUrl = await searchSpotifyShow(podcastName);
+      if (spotifyUrl) { updates.spotify_url = spotifyUrl; log.push("spotify_url"); }
+    } catch (e: any) {
+      console.error(`[CMS] Spotify lookup failed for "${podcastName}":`, e.message);
+      errors.push(`Spotify: ${e.message}`);
+    }
+
+    const feedUrl = updates.feed_url || podcast.feed_url;
+    if (!updates.feed_url && feedUrl) {
+      updates.feed_url = feedUrl;
+    }
+    if (feedUrl && typeof feedUrl === "string" && feedUrl.startsWith("http")) {
+      try {
+        const feedResp = await fetch(feedUrl, {
+          headers: { "User-Agent": "PodRise/1.0" },
+          signal: AbortSignal.timeout(8000),
+        });
+        if (feedResp.ok) {
+          const feedXml = await feedResp.text();
+          const extract = (tag: string) => {
+            const m = feedXml.match(new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]></${tag}>|<${tag}[^>]*>([^<]*)</${tag}>`));
+            return m ? (m[1] || m[2] || "").trim() : null;
+          };
+
+          const desc = extract("description") || extract("itunes:summary");
+          if (desc && desc.length > 10) {
+            updates.description = desc.slice(0, 2000); log.push("description");
+            updates.about_podcast = desc.slice(0, 5000); log.push("about_podcast");
+          }
+
+          const link = extract("link");
+          if (link && link.startsWith("http") && !link.includes("apple.com") && !link.includes("spotify.com")) {
+            updates.website_url = link; log.push("website_url");
+          }
+
+          const author = extract("itunes:author");
+          if (author) { updates.hosts = author; log.push("hosts"); }
+
+          const socialLinks = feedXml.match(/https?:\/\/(www\.)?(twitter\.com|x\.com|instagram\.com|facebook\.com|youtube\.com|tiktok\.com|discord\.gg)[^\s<"']*/gi) || [];
+          for (const link of socialLinks) {
+            if (!updates.twitter_handle && (link.includes("twitter.com/") || link.includes("x.com/"))) {
+              const handle = link.split("/").filter(Boolean).pop()?.replace(/[?#].*/, "");
+              if (handle && handle.length > 1 && handle.length < 50) { updates.twitter_handle = handle; log.push("twitter"); }
+            }
+            if (!updates.instagram_url && link.includes("instagram.com/")) { updates.instagram_url = link.replace(/[?#].*/, ""); log.push("instagram"); }
+            if (!updates.facebook_url && link.includes("facebook.com/")) { updates.facebook_url = link.replace(/[?#].*/, ""); log.push("facebook"); }
+            if (!updates.youtube_url && link.includes("youtube.com/")) { updates.youtube_url = link.replace(/[?#].*/, ""); log.push("youtube"); }
+            if (!updates.tiktok_url && link.includes("tiktok.com/")) { updates.tiktok_url = link.replace(/[?#].*/, ""); log.push("tiktok"); }
+          }
+
+          const itemMatches = feedXml.match(/<item[\s>]/gi);
+          const itemCount = itemMatches ? itemMatches.length : 0;
+          if (itemCount > 0 && !updates.total_episodes) {
+            updates.total_episodes = itemCount;
+            log.push("total_episodes");
+          }
+
+          const pubDateMatches = [...feedXml.matchAll(/<item[\s\S]*?<pubDate>([^<]+)<\/pubDate>/gi)];
+          const episodeDates: Date[] = [];
+          for (const pm of pubDateMatches) {
+            const d = new Date(pm[1].trim());
+            if (!isNaN(d.getTime())) episodeDates.push(d);
+          }
+          episodeDates.sort((a, b) => b.getTime() - a.getTime());
+
+          if (episodeDates.length >= 2) {
+            const recentDates = episodeDates.slice(0, Math.min(20, episodeDates.length));
+            const gaps: number[] = [];
+            for (let i = 0; i < recentDates.length - 1; i++) {
+              gaps.push((recentDates[i].getTime() - recentDates[i + 1].getTime()) / (1000 * 60 * 60 * 24));
+            }
+            const avgGap = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+            let frequency = "Weekly";
+            if (avgGap <= 1.5) frequency = "Daily";
+            else if (avgGap <= 4) frequency = "Multiple times a week";
+            else if (avgGap <= 10) frequency = "Weekly";
+            else if (avgGap <= 18) frequency = "Bi-weekly";
+            else if (avgGap <= 45) frequency = "Monthly";
+            else frequency = "Occasionally";
+            updates.frequency = frequency;
+            log.push("frequency");
+          }
+
+          if (episodeDates.length > 0) {
+            const earliest = episodeDates[episodeDates.length - 1];
+            updates.year_started = earliest.getFullYear();
+            log.push("year_started");
+          }
+
+          const durationMatches = [...feedXml.matchAll(/<itunes:duration>([^<]+)<\/itunes:duration>/gi)];
+          if (durationMatches.length > 0) {
+            let totalMinutes = 0;
+            let validCount = 0;
+            for (const dm of durationMatches) {
+              const raw = dm[1].trim();
+              let minutes = 0;
+              if (raw.includes(":")) {
+                const parts = raw.split(":").map(Number);
+                if (parts.length === 3) minutes = parts[0] * 60 + parts[1] + parts[2] / 60;
+                else if (parts.length === 2) minutes = parts[0] + parts[1] / 60;
+              } else {
+                const sec = parseInt(raw, 10);
+                if (!isNaN(sec)) minutes = sec / 60;
+              }
+              if (minutes > 0) { totalMinutes += minutes; validCount++; }
+            }
+            if (validCount > 0) {
+              updates.avg_episode_length = Math.round(totalMinutes / validCount);
+              log.push("avg_episode_length");
+            }
+          }
+        }
+      } catch (e: any) { errors.push(`RSS feed: ${e.message}`); }
+    }
+
+    if (Object.keys(updates).length > 0) {
+      const sets: string[] = [];
+      const params: any[] = [];
+      for (const [col, val] of Object.entries(updates)) {
+        params.push(val);
+        sets.push(`${col} = $${params.length}`);
+      }
+      params.push(slug);
+      sets.push(`updated_at = NOW()`);
+      await pool.query(`UPDATE podcast_directory SET ${sets.join(", ")} WHERE slug = $${params.length}`, params);
+    }
+
+    return { fieldsUpdated: log, errors, totalUpdated: Object.keys(updates).length };
+  }
+
   app.post("/api/admin/cms/podcasts/:slug/refresh-metadata", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {
       const { slug } = req.params;
-      const { rows } = await pool.query(
-        `SELECT id, slug, name, itunes_id, artwork_url, apple_url, spotify_url, description, category,
-                youtube_url, website_url, twitter_handle, instagram_url, tiktok_url, facebook_url,
-                hosts, frequency, avg_episode_length, year_started, about_podcast, total_episodes, feed_url
-         FROM podcast_directory WHERE slug = $1`, [slug]
-      );
-      if (rows.length === 0) return res.status(404).json({ message: "Podcast not found" });
-      const podcast = rows[0];
-      const updates: Record<string, any> = {};
-      const log: string[] = [];
-      const errors: string[] = [];
-
-      if (podcast.itunes_id) {
-        try {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 10000);
-          const itunesResp = await fetch(`https://itunes.apple.com/lookup?id=${podcast.itunes_id}`, { signal: controller.signal });
-          clearTimeout(timeout);
-          if (itunesResp.ok) {
-            const itunesData = await itunesResp.json();
-            const r = (itunesData.results || [])[0];
-            if (r) {
-              const art = (r.artworkUrl600 || r.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb");
-              if (art) { updates.artwork_url = art; log.push("artwork"); }
-              if (r.collectionName) { updates.name = r.collectionName; log.push("name"); }
-              if (r.collectionViewUrl) { updates.apple_url = r.collectionViewUrl; log.push("apple_url"); }
-              if (r.primaryGenreName) { updates.category = r.primaryGenreName; log.push("category"); }
-              if (r.trackCount) { updates.total_episodes = r.trackCount; log.push("total_episodes"); }
-              if (r.feedUrl) { updates.feed_url = r.feedUrl; }
-            }
-          }
-        } catch (e: any) { errors.push(`iTunes: ${e.message}`); }
-      }
-
-      const podcastName = updates.name || podcast.name;
-      try {
-        const { searchSpotifyShow } = await import("./spotifyClient");
-        const spotifyUrl = await searchSpotifyShow(podcastName);
-        if (spotifyUrl) { updates.spotify_url = spotifyUrl; log.push("spotify_url"); }
-      } catch (e: any) {
-        console.error(`[CMS] Spotify lookup failed for "${podcastName}":`, e.message);
-        errors.push(`Spotify: ${e.message}`);
-      }
-
-      const feedUrl = updates.feed_url || podcast.feed_url;
-      if (!updates.feed_url && feedUrl) {
-        updates.feed_url = feedUrl;
-      }
-      if (feedUrl && typeof feedUrl === "string" && feedUrl.startsWith("http")) {
-        try {
-          const feedResp = await fetch(feedUrl, {
-            headers: { "User-Agent": "PodRise/1.0" },
-            signal: AbortSignal.timeout(8000),
-          });
-          if (feedResp.ok) {
-            const feedXml = await feedResp.text();
-            const extract = (tag: string) => {
-              const m = feedXml.match(new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]></${tag}>|<${tag}[^>]*>([^<]*)</${tag}>`));
-              return m ? (m[1] || m[2] || "").trim() : null;
-            };
-
-            const desc = extract("description") || extract("itunes:summary");
-            if (desc && desc.length > 10) {
-              updates.description = desc.slice(0, 2000); log.push("description");
-              updates.about_podcast = desc.slice(0, 5000); log.push("about_podcast");
-            }
-
-            const link = extract("link");
-            if (link && link.startsWith("http") && !link.includes("apple.com") && !link.includes("spotify.com")) {
-              updates.website_url = link; log.push("website_url");
-            }
-
-            const author = extract("itunes:author");
-            if (author) { updates.hosts = author; log.push("hosts"); }
-
-            const socialLinks = feedXml.match(/https?:\/\/(www\.)?(twitter\.com|x\.com|instagram\.com|facebook\.com|youtube\.com|tiktok\.com|discord\.gg)[^\s<"']*/gi) || [];
-            for (const link of socialLinks) {
-              if (!updates.twitter_handle && (link.includes("twitter.com/") || link.includes("x.com/"))) {
-                const handle = link.split("/").filter(Boolean).pop()?.replace(/[?#].*/, "");
-                if (handle && handle.length > 1 && handle.length < 50) { updates.twitter_handle = handle; log.push("twitter"); }
-              }
-              if (!updates.instagram_url && link.includes("instagram.com/")) { updates.instagram_url = link.replace(/[?#].*/, ""); log.push("instagram"); }
-              if (!updates.facebook_url && link.includes("facebook.com/")) { updates.facebook_url = link.replace(/[?#].*/, ""); log.push("facebook"); }
-              if (!updates.youtube_url && link.includes("youtube.com/")) { updates.youtube_url = link.replace(/[?#].*/, ""); log.push("youtube"); }
-              if (!updates.tiktok_url && link.includes("tiktok.com/")) { updates.tiktok_url = link.replace(/[?#].*/, ""); log.push("tiktok"); }
-            }
-
-            const itemMatches = feedXml.match(/<item[\s>]/gi);
-            const itemCount = itemMatches ? itemMatches.length : 0;
-            if (itemCount > 0 && !updates.total_episodes) {
-              updates.total_episodes = itemCount;
-              log.push("total_episodes");
-            }
-
-            const pubDateMatches = [...feedXml.matchAll(/<item[\s\S]*?<pubDate>([^<]+)<\/pubDate>/gi)];
-            const episodeDates: Date[] = [];
-            for (const pm of pubDateMatches) {
-              const d = new Date(pm[1].trim());
-              if (!isNaN(d.getTime())) episodeDates.push(d);
-            }
-            episodeDates.sort((a, b) => b.getTime() - a.getTime());
-
-            if (episodeDates.length >= 2) {
-              const recentDates = episodeDates.slice(0, Math.min(20, episodeDates.length));
-              const gaps: number[] = [];
-              for (let i = 0; i < recentDates.length - 1; i++) {
-                gaps.push((recentDates[i].getTime() - recentDates[i + 1].getTime()) / (1000 * 60 * 60 * 24));
-              }
-              const avgGap = gaps.reduce((a, b) => a + b, 0) / gaps.length;
-              let frequency = "Weekly";
-              if (avgGap <= 1.5) frequency = "Daily";
-              else if (avgGap <= 4) frequency = "Multiple times a week";
-              else if (avgGap <= 10) frequency = "Weekly";
-              else if (avgGap <= 18) frequency = "Bi-weekly";
-              else if (avgGap <= 45) frequency = "Monthly";
-              else frequency = "Occasionally";
-              updates.frequency = frequency;
-              log.push("frequency");
-            }
-
-            if (episodeDates.length > 0) {
-              const earliest = episodeDates[episodeDates.length - 1];
-              updates.year_started = earliest.getFullYear();
-              log.push("year_started");
-            }
-
-            const durationMatches = [...feedXml.matchAll(/<itunes:duration>([^<]+)<\/itunes:duration>/gi)];
-            if (durationMatches.length > 0) {
-              let totalMinutes = 0;
-              let validCount = 0;
-              for (const dm of durationMatches) {
-                const raw = dm[1].trim();
-                let minutes = 0;
-                if (raw.includes(":")) {
-                  const parts = raw.split(":").map(Number);
-                  if (parts.length === 3) minutes = parts[0] * 60 + parts[1] + parts[2] / 60;
-                  else if (parts.length === 2) minutes = parts[0] + parts[1] / 60;
-                } else {
-                  const sec = parseInt(raw, 10);
-                  if (!isNaN(sec)) minutes = sec / 60;
-                }
-                if (minutes > 0) { totalMinutes += minutes; validCount++; }
-              }
-              if (validCount > 0) {
-                updates.avg_episode_length = Math.round(totalMinutes / validCount);
-                log.push("avg_episode_length");
-              }
-            }
-          }
-        } catch (e: any) { errors.push(`RSS feed: ${e.message}`); }
-      }
-
-      if (Object.keys(updates).length > 0) {
-        const sets: string[] = [];
-        const params: any[] = [];
-        for (const [col, val] of Object.entries(updates)) {
-          params.push(val);
-          sets.push(`${col} = $${params.length}`);
-        }
-        params.push(slug);
-        sets.push(`updated_at = NOW()`);
-        await pool.query(`UPDATE podcast_directory SET ${sets.join(", ")} WHERE slug = $${params.length}`, params);
-      }
-
+      const { rows: checkRows } = await pool.query(`SELECT id FROM podcast_directory WHERE slug = $1`, [slug]);
+      if (checkRows.length === 0) return res.status(404).json({ message: "Podcast not found" });
+      const result = await refreshPodcastMetadataBySlug(slug);
       const { rows: updated } = await pool.query(`SELECT * FROM podcast_directory WHERE slug = $1`, [slug]);
-      res.json({ updated: updated[0], fieldsUpdated: log, errors, totalUpdated: Object.keys(updates).length });
+      res.json({ updated: updated[0], fieldsUpdated: result.fieldsUpdated, errors: result.errors, totalUpdated: result.totalUpdated });
     } catch (err: any) {
       console.error("[CMS] Refresh metadata error:", err);
       res.status(500).json({ message: err?.message || "Failed to refresh metadata" });
@@ -13035,7 +13042,26 @@ Rules:
       if ("aboutPodcast" in b) data.aboutPodcast = trimStr(b.aboutPodcast);
       if ("hasLandingPage" in b) data.hasLandingPage = typeof b.hasLandingPage === "boolean" ? b.hasLandingPage : false;
 
+      const { rows: existingRows } = await pool.query(
+        `SELECT id FROM podcast_directory WHERE itunes_id = $1 LIMIT 1`, [trimmedId]
+      );
+      const isNewPodcast = existingRows.length === 0;
+
       const entry = await storage.upsertPodcastDirectoryEntry(data);
+
+      if (isNewPodcast && entry.slug) {
+        const podcastSlug = entry.slug;
+        const podcastName = entry.name || trimmedName;
+        console.log(`[CMS] New podcast added: "${podcastName}" (slug: ${podcastSlug}). Starting background metadata refresh...`);
+        refreshPodcastMetadataBySlug(podcastSlug)
+          .then((result) => {
+            console.log(`[CMS] Background metadata refresh completed for "${podcastName}" (slug: ${podcastSlug}): ${result.totalUpdated} fields updated [${result.fieldsUpdated.join(", ")}]${result.errors.length > 0 ? ` | Errors: ${result.errors.join("; ")}` : ""}`);
+          })
+          .catch((err) => {
+            console.error(`[CMS] Background metadata refresh failed for "${podcastName}" (slug: ${podcastSlug}):`, err?.message || err);
+          });
+      }
+
       res.json(entry);
     } catch (err: any) {
       res.status(500).json({ message: "Failed to save podcast directory entry" });
