@@ -13214,7 +13214,7 @@ Rules:
   app.post("/api/admin/cms/podcasts/bulk-update", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {
-      const { slugs, status, is_active } = req.body;
+      const { slugs, status } = req.body;
       if (!Array.isArray(slugs) || slugs.length === 0) {
         return res.status(400).json({ message: "No slugs provided" });
       }
@@ -13225,10 +13225,7 @@ Rules:
       if (status !== undefined && !validStatuses.includes(status)) {
         return res.status(400).json({ message: "Invalid status value" });
       }
-      if (is_active !== undefined && typeof is_active !== "boolean") {
-        return res.status(400).json({ message: "is_active must be a boolean" });
-      }
-      if (status === undefined && is_active === undefined) {
+      if (status === undefined) {
         return res.status(400).json({ message: "No fields to update" });
       }
 
@@ -13237,10 +13234,6 @@ Rules:
       if (status !== undefined) {
         params.push(status);
         setClauses.push(`status = $${params.length}`);
-      }
-      if (is_active !== undefined) {
-        params.push(is_active);
-        setClauses.push(`is_active = $${params.length}`);
       }
       setClauses.push(`updated_at = NOW()`);
 

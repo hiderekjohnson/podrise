@@ -95,7 +95,7 @@ interface CMSPodcast {
   status: string;
   episode_count: number;
   enrichment_score: number;
-  is_active: boolean;
+
   follower_count: number;
 }
 
@@ -861,7 +861,7 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
     }
   };
 
-  const handleBulkUpdate = async (fields: { status?: string; is_active?: boolean }) => {
+  const handleBulkUpdate = async (fields: { status?: string }) => {
     if (selectedSlugs.size === 0) return;
     setIsBulkUpdating(true);
     try {
@@ -969,17 +969,6 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
               <option value="needs_review">Needs Review</option>
               <option value="requested">Requested</option>
             </select>
-            <select
-              data-testid="select-bulk-active"
-              defaultValue=""
-              onChange={(e) => { if (e.target.value) { handleBulkUpdate({ is_active: e.target.value === "true" }); e.target.value = ""; } }}
-              disabled={isBulkUpdating}
-              className="h-8 px-2 border border-border rounded-lg text-xs bg-white dark:bg-zinc-900 disabled:opacity-50"
-            >
-              <option value="" disabled>Set Active...</option>
-              <option value="true">Active</option>
-              <option value="false">Inactive</option>
-            </select>
             {!showDeleteConfirm ? (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
@@ -1064,14 +1053,13 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
                   Enrichment {sortField === "enrichment" && (sortOrder === "asc" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
                 </span>
               </th>
-              <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">Active</th>
               <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {(!podcasts || podcasts.length === 0) ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-sm text-muted-foreground">
+                <td colSpan={7} className="px-4 py-12 text-center text-sm text-muted-foreground">
                   {search ? "No matching podcasts found." : "No podcasts in directory yet."}
                 </td>
               </tr>
@@ -1125,15 +1113,6 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
                         p.enrichment_score >= 75 ? "text-emerald-600 dark:text-emerald-400" : p.enrichment_score >= 40 ? "text-amber-600 dark:text-amber-400" : "text-red-500 dark:text-red-400"
                       }`}>{p.enrichment_score}%</span>
                     </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold ${
-                      p.is_active
-                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                        : "bg-gray-100 text-gray-500 dark:bg-gray-800/50 dark:text-gray-400"
-                    }`} data-testid={`text-active-${p.id}`}>
-                      {p.is_active ? "Active" : "Inactive"}
-                    </span>
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={p.status || "published"} />
@@ -1476,9 +1455,9 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
               <StatusSelect value={form.status} onChange={(v) => setForm({ ...form, status: v })} />
             </div>
             <div>
-              <button onClick={() => setForm({ ...form, hasLandingPage: !form.hasLandingPage })} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border transition-colors w-full justify-center ${form.hasLandingPage ? "bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-400" : "bg-gray-50 border-gray-200 text-gray-500 dark:bg-gray-800/30 dark:border-gray-700 dark:text-gray-400"}`} data-testid="button-toggle-active">
+              <button onClick={() => setForm({ ...form, hasLandingPage: !form.hasLandingPage })} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold border transition-colors w-full justify-center ${form.hasLandingPage ? "bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-400" : "bg-gray-50 border-gray-200 text-gray-500 dark:bg-gray-800/30 dark:border-gray-700 dark:text-gray-400"}`} data-testid="button-toggle-landing-page">
                 {form.hasLandingPage ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                {form.hasLandingPage ? "Active" : "Inactive"}
+                {form.hasLandingPage ? "Landing Page" : "No Landing Page"}
               </button>
             </div>
           </div>
