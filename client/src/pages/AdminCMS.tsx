@@ -7,9 +7,9 @@ import {
   Loader2, Search, ChevronLeft, ChevronDown, ChevronUp,
   Podcast, FileText, Users, Building2, ShoppingBag,
   Save, RefreshCw, Plus, Trash2, GripVertical, ExternalLink,
-  Image, Clock, Calendar, Hash, Eye, EyeOff, AlertCircle, Pencil,
+  Image, Clock, Calendar, Hash, Eye, EyeOff, AlertCircle,
   Globe, Star, Zap, CheckCircle, XCircle, Play, Copy, Check, Sparkles,
-  CircleDot, Link, Music, Headphones, MessageSquareQuote, BookOpen, Tag, HelpCircle, Brain, Newspaper, X
+  CircleDot, Link, Music, Headphones, BookOpen, Tag, HelpCircle, Brain, Newspaper, X
 } from "lucide-react";
 
 function useDebouncedValue(value: string, delay = 300) {
@@ -270,29 +270,18 @@ interface ExtractedProduct {
   image_url: string;
 }
 
-interface EntityEntry {
-  name: string;
-  context: string;
-  type: "person" | "company";
-}
-
 interface EpisodeForm {
   episodeTitle: string;
   publishDate: string;
   duration: string;
   artworkUrl: string;
-  tldl: string;
   whatHappened: string;
   keyInsights: string[];
-  quote: string;
-  quoteAttribution: string;
   hosts: string;
   guests: CMSGuest[];
   resources: CMSResource[];
-  sponsors: CMSSponsor[];
   keyTopics: string[];
   status: string;
-  entityContexts: EntityEntry[];
   spotifyEpisodeUrl: string;
   appleEpisodeUrl: string;
   audioUrl: string;
@@ -300,13 +289,6 @@ interface EpisodeForm {
   showNotes: string;
   tabloidHeadline: string;
   tabloidSubHeadline: string;
-}
-
-interface EditingQuote {
-  speakerName: string;
-  quoteText: string;
-  context: string;
-  quoteType: string;
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -1905,10 +1887,6 @@ function parseJSON<T>(val: string | undefined | null, fallback: T): T {
 function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: string; episodeSlug: string; onNavigate: (view: CMSView) => void }) {
   const { toast } = useToast();
   const [showTranscript, setShowTranscript] = useState(false);
-  const [editingQuoteId, setEditingQuoteId] = useState<number | null>(null);
-  const [editingQuoteData, setEditingQuoteData] = useState<EditingQuote | null>(null);
-  const [newQuote, setNewQuote] = useState<EditingQuote>({ speakerName: "", quoteText: "", context: "", quoteType: "Hero Quote" });
-  const [showAddQuote, setShowAddQuote] = useState(false);
 
   const { data: episode, isLoading } = useQuery<CMSEpisodeDetail>({
     queryKey: ["/api/admin/cms/episodes", podcastSlug, episodeSlug],
@@ -1923,35 +1901,18 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
 
   useEffect(() => {
     if (episode && !form) {
-      const rawEntities: Record<string, string> = episode.entity_contexts_cache
-        ? (typeof episode.entity_contexts_cache === "string"
-          ? parseJSON<Record<string, string>>(episode.entity_contexts_cache, {})
-          : episode.entity_contexts_cache)
-        : {};
-      const knownCompanyWords = ["capital", "ventures", "labs", "inc", "corp", "llc"];
-      const entityEntries: EntityEntry[] = Object.entries(rawEntities).map(([slug, ctx]) => {
-        const name = slug.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-        const isCompany = knownCompanyWords.some(kw => name.toLowerCase().includes(kw)) ||
-          (typeof ctx === "string" && /\b(company|platform|product|service|app)\b/i.test(ctx));
-        return { name, context: ctx, type: isCompany ? "company" as const : "person" as const };
-      });
       setForm({
         episodeTitle: episode.episode_title || "",
         publishDate: episode.publish_date || "",
         duration: episode.duration || "",
         artworkUrl: episode.artwork_url || "",
-        tldl: episode.tldl || "",
         whatHappened: episode.what_happened || "",
         keyInsights: episode.key_insights || [],
-        quote: episode.quote || "",
-        quoteAttribution: episode.quote_attribution || "",
         hosts: episode.hosts || "",
         guests: parseJSON<CMSGuest[]>(episode.guests, []),
         resources: parseJSON<CMSResource[]>(episode.resources, []),
-        sponsors: parseJSON<CMSSponsor[]>(episode.sponsors, []),
         keyTopics: episode.key_topics || [],
         status: episode.status || "published",
-        entityContexts: entityEntries,
         spotifyEpisodeUrl: episode.spotify_episode_url || "",
         appleEpisodeUrl: episode.apple_episode_url || "",
         audioUrl: episode.audio_url || "",
@@ -1986,34 +1947,6 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
     },
   });
 
-  const addQuoteMutation = useMutation({
-    mutationFn: (data: EditingQuote) => apiRequest("POST", `/api/admin/cms/episodes/${podcastSlug}/${episodeSlug}/quotes`, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/episodes", podcastSlug, episodeSlug] });
-      setShowAddQuote(false);
-      setNewQuote({ speakerName: "", quoteText: "", context: "", quoteType: "Hero Quote" });
-      toast({ title: "Quote added" });
-    },
-  });
-
-  const updateQuoteMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: EditingQuote }) => apiRequest("PATCH", `/api/admin/cms/quotes/${id}`, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/episodes", podcastSlug, episodeSlug] });
-      setEditingQuoteId(null);
-      setEditingQuoteData(null);
-      toast({ title: "Quote updated" });
-    },
-  });
-
-  const deleteQuoteMutation = useMutation({
-    mutationFn: (id: number) => apiRequest("DELETE", `/api/admin/cms/quotes/${id}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/episodes", podcastSlug, episodeSlug] });
-      toast({ title: "Quote deleted" });
-    },
-  });
-
   if (isLoading || !form || !episode) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -2023,18 +1956,10 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
   }
 
   const handleSave = () => {
-    const entityCacheObj: Record<string, string> = {};
-    for (const ent of form.entityContexts) {
-      const slug = ent.name.toLowerCase().replace(/\s+/g, "-");
-      entityCacheObj[slug] = ent.context;
-    }
-    const { entityContexts, ...rest } = form;
     const payload: Record<string, string | string[]> = {
-      ...rest,
+      ...form,
       guests: JSON.stringify(form.guests),
       resources: JSON.stringify(form.resources),
-      sponsors: JSON.stringify(form.sponsors),
-      entityContextsCache: JSON.stringify(entityCacheObj),
     };
     updateMutation.mutate(payload);
   };
@@ -2073,16 +1998,6 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
 
   const addResource = (type: string) => {
     setForm({ ...form, resources: [...form.resources, { name: "", type, description: "" }] });
-  };
-
-  const startEditingQuote = (q: CMSQuote) => {
-    setEditingQuoteId(q.id);
-    setEditingQuoteData({
-      speakerName: q.speaker_name,
-      quoteText: q.quote_text,
-      quoteType: q.quote_type,
-      context: q.context || "",
-    });
   };
 
   const MENTION_TYPES = ["book", "tool", "product", "service", "app", "website"] as const;
@@ -2153,15 +2068,11 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
         };
         const checks = [
           { label: "Transcript", icon: FileText, ok: !!episode.transcript },
-          { label: "TL;DL", icon: Zap, ok: hasVal(episode.tldl) },
-          { label: "Quote", icon: MessageSquareQuote, ok: hasVal(episode.quote) },
           { label: "Key Insights", icon: Star, ok: Array.isArray(episode.key_insights) ? episode.key_insights.length > 0 : hasArr(episode.key_insights as any) },
           { label: "Guests", icon: Users, ok: hasArr(episode.guests) },
-          { label: "Sponsors", icon: Building2, ok: hasArr(episode.sponsors) },
           { label: "Resources", icon: BookOpen, ok: hasArr(episode.resources) },
           { label: "Questions", icon: HelpCircle, ok: hasArr(episode.top_questions) },
           { label: "Topic Context", icon: Brain, ok: hasVal(episode.topic_contexts) },
-          { label: "Quotes DB", icon: MessageSquareQuote, ok: episode.quotes && episode.quotes.length > 0 },
           { label: "Show Notes", icon: FileText, ok: hasVal(episode.show_notes) },
           { label: "Apple URL", icon: Link, ok: hasVal(episode.apple_episode_url) },
           { label: "Spotify URL", icon: Music, ok: hasVal(episode.spotify_episode_url) },
@@ -2254,17 +2165,6 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
             <h4 className="text-sm font-bold text-foreground">Recap</h4>
 
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">TLDL</label>
-              <textarea
-                data-testid="input-cms-tldl"
-                value={form.tldl}
-                onChange={(e) => setForm({ ...form, tldl: e.target.value })}
-                rows={3}
-                className="w-full px-3 py-2 border border-border rounded-lg text-sm resize-none"
-              />
-            </div>
-
-            <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">What Happened</label>
               <textarea
                 data-testid="input-cms-what-happened"
@@ -2314,184 +2214,6 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
                 </button>
               </div>
             ))}
-          </div>
-
-          <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-bold text-foreground">Quotes (from episode_quotes)</h4>
-              <button
-                onClick={() => setShowAddQuote(!showAddQuote)}
-                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80"
-                data-testid="button-add-quote"
-              >
-                <Plus className="w-3 h-3" /> Add Quote
-              </button>
-            </div>
-
-            {showAddQuote && (
-              <div className="border border-primary/20 rounded-lg p-3 space-y-2 bg-primary/5" data-testid="form-add-quote">
-                <div className="grid grid-cols-2 gap-2">
-                  <input
-                    placeholder="Speaker name"
-                    value={newQuote.speakerName}
-                    onChange={(e) => setNewQuote({ ...newQuote, speakerName: e.target.value })}
-                    className="px-3 py-2 border border-border rounded-lg text-sm"
-                    data-testid="input-new-quote-speaker"
-                  />
-                  <select
-                    value={newQuote.quoteType}
-                    onChange={(e) => setNewQuote({ ...newQuote, quoteType: e.target.value })}
-                    className="px-3 py-2 border border-border rounded-lg text-sm bg-white dark:bg-zinc-900"
-                    data-testid="select-new-quote-type"
-                  >
-                    <option value="Hero Quote">Hero Quote</option>
-                    <option value="Hot Take">Hot Take</option>
-                    <option value="Prediction">Prediction</option>
-                    <option value="Spicy">Spicy</option>
-                    <option value="Tweetable">Tweetable</option>
-                  </select>
-                </div>
-                <textarea
-                  placeholder="Quote text"
-                  value={newQuote.quoteText}
-                  onChange={(e) => setNewQuote({ ...newQuote, quoteText: e.target.value })}
-                  rows={2}
-                  className="w-full px-3 py-2 border border-border rounded-lg text-sm resize-none"
-                  data-testid="input-new-quote-text"
-                />
-                <input
-                  placeholder="Context"
-                  value={newQuote.context}
-                  onChange={(e) => setNewQuote({ ...newQuote, context: e.target.value })}
-                  className="w-full px-3 py-2 border border-border rounded-lg text-sm"
-                  data-testid="input-new-quote-context"
-                />
-                <button
-                  onClick={() => addQuoteMutation.mutate(newQuote)}
-                  disabled={!newQuote.quoteText || addQuoteMutation.isPending}
-                  className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-semibold disabled:opacity-50"
-                  data-testid="button-submit-quote"
-                >
-                  {addQuoteMutation.isPending ? "Adding..." : "Add Quote"}
-                </button>
-              </div>
-            )}
-
-            {(episode.quotes || []).map((q: CMSQuote) => (
-              <div key={q.id} className="border border-border rounded-lg p-3 space-y-2" data-testid={`quote-item-${q.id}`}>
-                {editingQuoteId === q.id && editingQuoteData ? (
-                  <div className="space-y-2">
-                    <div className="grid grid-cols-2 gap-2">
-                      <input
-                        value={editingQuoteData.speakerName}
-                        onChange={(e) => setEditingQuoteData({ ...editingQuoteData, speakerName: e.target.value })}
-                        className="px-3 py-2 border border-border rounded-lg text-sm"
-                        data-testid={`input-edit-quote-speaker-${q.id}`}
-                      />
-                      <select
-                        value={editingQuoteData.quoteType}
-                        onChange={(e) => setEditingQuoteData({ ...editingQuoteData, quoteType: e.target.value })}
-                        className="px-3 py-2 border border-border rounded-lg text-sm bg-white dark:bg-zinc-900"
-                        data-testid={`select-edit-quote-type-${q.id}`}
-                      >
-                        <option value="Hero Quote">Hero Quote</option>
-                        <option value="Hot Take">Hot Take</option>
-                        <option value="Prediction">Prediction</option>
-                        <option value="Spicy">Spicy</option>
-                        <option value="Tweetable">Tweetable</option>
-                      </select>
-                    </div>
-                    <textarea
-                      value={editingQuoteData.quoteText}
-                      onChange={(e) => setEditingQuoteData({ ...editingQuoteData, quoteText: e.target.value })}
-                      rows={2}
-                      className="w-full px-3 py-2 border border-border rounded-lg text-sm resize-none"
-                      data-testid={`input-edit-quote-text-${q.id}`}
-                    />
-                    <input
-                      value={editingQuoteData.context}
-                      onChange={(e) => setEditingQuoteData({ ...editingQuoteData, context: e.target.value })}
-                      placeholder="Context"
-                      className="w-full px-3 py-2 border border-border rounded-lg text-sm"
-                      data-testid={`input-edit-quote-context-${q.id}`}
-                    />
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => updateQuoteMutation.mutate({ id: q.id, data: editingQuoteData })}
-                        disabled={updateQuoteMutation.isPending}
-                        className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-semibold disabled:opacity-50"
-                        data-testid={`button-save-quote-${q.id}`}
-                      >
-                        {updateQuoteMutation.isPending ? "Saving..." : "Save"}
-                      </button>
-                      <button
-                        onClick={() => { setEditingQuoteId(null); setEditingQuoteData(null); }}
-                        className="px-3 py-1.5 border border-border rounded-lg text-xs font-semibold"
-                        data-testid={`button-cancel-edit-quote-${q.id}`}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-foreground">{q.speaker_name}</span>
-                        <span className="px-1.5 py-0.5 bg-muted/40 rounded text-xs text-muted-foreground">{q.quote_type}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => startEditingQuote(q)}
-                          className="text-muted-foreground hover:text-primary"
-                          data-testid={`button-edit-quote-${q.id}`}
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => deleteQuoteMutation.mutate(q.id)}
-                          className="text-muted-foreground hover:text-red-500"
-                          data-testid={`button-delete-quote-${q.id}`}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                    <p className="text-sm text-foreground italic">"{q.quote_text}"</p>
-                    {q.context && <p className="text-xs text-muted-foreground">{q.context}</p>}
-                  </>
-                )}
-              </div>
-            ))}
-            {(!episode.quotes || episode.quotes.length === 0) && !showAddQuote && (
-              <p className="text-xs text-muted-foreground text-center py-4">No quotes yet.</p>
-            )}
-          </div>
-
-          <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
-            <h4 className="text-sm font-bold text-foreground">Featured Quote</h4>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-1">Quote</label>
-                <textarea
-                  data-testid="input-cms-quote"
-                  value={form.quote}
-                  onChange={(e) => setForm({ ...form, quote: e.target.value })}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-border rounded-lg text-sm resize-none"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-1">Attribution</label>
-                <input
-                  data-testid="input-cms-quote-attribution"
-                  type="text"
-                  value={form.quoteAttribution}
-                  onChange={(e) => setForm({ ...form, quoteAttribution: e.target.value })}
-                  className="w-full px-3 py-2 border border-border rounded-lg text-sm"
-                />
-              </div>
-            </div>
           </div>
 
           <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
@@ -2762,139 +2484,6 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
                 )}
               </div>
             ))}
-          </div>
-
-          <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-3">
-            <h4 className="text-sm font-bold text-foreground">Sponsors</h4>
-            {form.sponsors.length === 0 && <p className="text-xs text-muted-foreground">No sponsors.</p>}
-            {form.sponsors.map((s, i) => (
-              <div key={i} className="border border-border rounded-lg p-2 space-y-1" data-testid={`sponsor-item-${i}`}>
-                <input
-                  placeholder="Name"
-                  value={s.name}
-                  onChange={(e) => {
-                    const updated = [...form.sponsors];
-                    updated[i] = { ...updated[i], name: e.target.value };
-                    setForm({ ...form, sponsors: updated });
-                  }}
-                  className="w-full px-2 py-1 border border-border rounded text-xs"
-                  data-testid={`input-sponsor-name-${i}`}
-                />
-                <input
-                  placeholder="Description"
-                  value={s.description || ""}
-                  onChange={(e) => {
-                    const updated = [...form.sponsors];
-                    updated[i] = { ...updated[i], description: e.target.value };
-                    setForm({ ...form, sponsors: updated });
-                  }}
-                  className="w-full px-2 py-1 border border-border rounded text-xs"
-                  data-testid={`input-sponsor-desc-${i}`}
-                />
-              </div>
-            ))}
-          </div>
-
-          <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-bold text-foreground">People Mentioned</h4>
-              <button
-                onClick={() => setForm({ ...form, entityContexts: [...form.entityContexts, { name: "", context: "", type: "person" }] })}
-                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80"
-                data-testid="button-add-person"
-              >
-                <Plus className="w-3 h-3" /> Add
-              </button>
-            </div>
-            {form.entityContexts.filter((e) => e.type === "person").length === 0 && (
-              <p className="text-xs text-muted-foreground">No people mentioned.</p>
-            )}
-            {form.entityContexts.map((ent, i) => ent.type === "person" ? (
-              <div key={i} className="border border-border rounded-lg p-2 space-y-1" data-testid={`person-item-${i}`}>
-                <div className="flex items-center gap-2">
-                  <input
-                    placeholder="Name"
-                    value={ent.name}
-                    onChange={(e) => {
-                      const updated = [...form.entityContexts];
-                      updated[i] = { ...updated[i], name: e.target.value };
-                      setForm({ ...form, entityContexts: updated });
-                    }}
-                    className="flex-1 px-2 py-1 border border-border rounded text-xs"
-                    data-testid={`input-person-name-${i}`}
-                  />
-                  <button
-                    onClick={() => setForm({ ...form, entityContexts: form.entityContexts.filter((_, idx) => idx !== i) })}
-                    className="text-muted-foreground hover:text-red-500"
-                    data-testid={`button-delete-person-${i}`}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                <input
-                  placeholder="Context (how they were mentioned)"
-                  value={ent.context}
-                  onChange={(e) => {
-                    const updated = [...form.entityContexts];
-                    updated[i] = { ...updated[i], context: e.target.value };
-                    setForm({ ...form, entityContexts: updated });
-                  }}
-                  className="w-full px-2 py-1 border border-border rounded text-xs"
-                  data-testid={`input-person-context-${i}`}
-                />
-              </div>
-            ) : null)}
-          </div>
-
-          <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-bold text-foreground">Companies Mentioned</h4>
-              <button
-                onClick={() => setForm({ ...form, entityContexts: [...form.entityContexts, { name: "", context: "", type: "company" }] })}
-                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80"
-                data-testid="button-add-company"
-              >
-                <Plus className="w-3 h-3" /> Add
-              </button>
-            </div>
-            {form.entityContexts.filter((e) => e.type === "company").length === 0 && (
-              <p className="text-xs text-muted-foreground">No companies mentioned.</p>
-            )}
-            {form.entityContexts.map((ent, i) => ent.type === "company" ? (
-              <div key={i} className="border border-border rounded-lg p-2 space-y-1" data-testid={`company-item-${i}`}>
-                <div className="flex items-center gap-2">
-                  <input
-                    placeholder="Company name"
-                    value={ent.name}
-                    onChange={(e) => {
-                      const updated = [...form.entityContexts];
-                      updated[i] = { ...updated[i], name: e.target.value };
-                      setForm({ ...form, entityContexts: updated });
-                    }}
-                    className="flex-1 px-2 py-1 border border-border rounded text-xs"
-                    data-testid={`input-company-name-${i}`}
-                  />
-                  <button
-                    onClick={() => setForm({ ...form, entityContexts: form.entityContexts.filter((_, idx) => idx !== i) })}
-                    className="text-muted-foreground hover:text-red-500"
-                    data-testid={`button-delete-company-${i}`}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                <input
-                  placeholder="Context (how they were mentioned)"
-                  value={ent.context}
-                  onChange={(e) => {
-                    const updated = [...form.entityContexts];
-                    updated[i] = { ...updated[i], context: e.target.value };
-                    setForm({ ...form, entityContexts: updated });
-                  }}
-                  className="w-full px-2 py-1 border border-border rounded text-xs"
-                  data-testid={`input-company-context-${i}`}
-                />
-              </div>
-            ) : null)}
           </div>
 
           {episode?.extractedProducts && episode.extractedProducts.length > 0 && (
