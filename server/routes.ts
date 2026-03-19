@@ -827,6 +827,30 @@ export async function registerRoutes(
     maxAge: 86400,
   }));
 
+  async function logAuthError(endpoint: string, errorMessage: string, req: any) {
+    try {
+      const { pool } = await import("./db");
+      const method = req.method || "GET";
+      const userAgent = req.headers?.["user-agent"] || null;
+      const severity = "error";
+      const friendlySummary = `Authentication failed: ${errorMessage.substring(0, 200)}`;
+      const existing = await pool.query(
+        `SELECT id, occurrence_count FROM error_logs WHERE endpoint = $1 AND method = $2 AND http_status = $3 AND error_message = $4 LIMIT 1`,
+        [endpoint, method, 500, errorMessage.substring(0, 2000)]
+      );
+      if (existing.rows.length > 0) {
+        await pool.query(`UPDATE error_logs SET occurrence_count = occurrence_count + 1, last_occurred_at = NOW() WHERE id = $1`, [existing.rows[0].id]);
+      } else {
+        await pool.query(
+          `INSERT INTO error_logs (endpoint, http_status, error_message, friendly_summary, severity, method, user_agent) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [endpoint, 500, errorMessage.substring(0, 2000), friendlySummary, severity, method, userAgent]
+        );
+      }
+    } catch (logErr) {
+      console.error("[ErrorTracker] Failed to log auth error:", logErr);
+    }
+  }
+
   const errorTrackingEndpointBlacklist = new Set(["/api/health", "/api/admin/error-logs"]);
   app.use("/api", (req, res, next) => {
     if (errorTrackingEndpointBlacklist.has(req.path) || errorTrackingEndpointBlacklist.has(req.originalUrl?.split("?")[0])) {
@@ -1895,6 +1919,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
   });
 
   app.get("/api/auth/magic", async (req, res) => {
+    try {
     const token = req.query.token as string;
     if (!token) {
       return res.redirect("/login?error=invalid");
@@ -1907,6 +1932,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
     const user = await storage.getUserByEmail(magicLink.email);
     if (!user) {
+      logAuthError("/api/auth/magic", `User not found for magic link email: ${magicLink.email}`, req);
       return res.redirect("/login?error=invalid");
     }
 
@@ -1938,6 +1964,11 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     req.session.save(() => {
       res.redirect(user.onboardingCompleted ? "/dashboard" : "/onboarding");
     });
+    } catch (err: any) {
+      console.error("[MagicLink] Auth error:", err);
+      logAuthError("/api/auth/magic", err?.message || "Unknown magic link error", req);
+      res.redirect("/login?error=invalid");
+    }
   });
 
   if (process.env.NODE_ENV === "development") {
@@ -1989,11 +2020,15 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     try {
       const { code, state } = req.query as { code?: string; state?: string };
       if (!code) {
-        console.error("[GoogleAuth] Callback missing code param");
+        const msg = "Google OAuth callback missing code param";
+        console.error("[GoogleAuth]", msg);
+        logAuthError("/api/auth/google/callback", msg, req);
         return res.redirect("/login?error=invalid");
       }
       if (!state || state !== req.session.oauthState) {
-        console.error("[GoogleAuth] State mismatch — query state:", state?.substring(0, 8), "session state:", req.session.oauthState?.substring(0, 8) || "MISSING", "sessionID:", req.sessionID?.substring(0, 8));
+        const msg = `State mismatch — query state: ${state?.substring(0, 8) || "NONE"}, session state: ${req.session.oauthState?.substring(0, 8) || "MISSING"}, sessionID: ${req.sessionID?.substring(0, 8)}`;
+        console.error("[GoogleAuth]", msg);
+        logAuthError("/api/auth/google/callback", msg, req);
         return res.redirect("/login?error=invalid");
       }
       delete req.session.oauthState;
@@ -2016,7 +2051,9 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       });
       const tokenData = await tokenRes.json() as any;
       if (!tokenData.access_token) {
-        console.error("[GoogleAuth] Token exchange failed:", tokenData);
+        const msg = `Token exchange failed: ${tokenData.error || "no access_token"}`;
+        console.error("[GoogleAuth]", msg);
+        logAuthError("/api/auth/google/callback", msg, req);
         return res.redirect("/login?error=invalid");
       }
 
@@ -2025,6 +2062,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       });
       const googleUser = await userInfoRes.json() as { id: string; email: string; name?: string; picture?: string };
       if (!googleUser.email) {
+        logAuthError("/api/auth/google/callback", "Google user info returned no email", req);
         return res.redirect("/login?error=invalid");
       }
 
@@ -2126,8 +2164,9 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       req.session.save(() => {
         res.redirect(user.onboardingCompleted ? "/dashboard" : "/onboarding");
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error("[GoogleAuth] Callback error:", err);
+      logAuthError("/api/auth/google/callback", err?.message || "Unknown Google OAuth error", req);
       res.redirect("/login?error=invalid");
     }
   });
