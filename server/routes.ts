@@ -10823,6 +10823,35 @@ Rules:
     }
   });
 
+  app.post("/api/admin/cms/episodes/bulk-clear-spotify", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const invalidUrl = "https://open.spotify.com/show/3gG1m4g1g1g1g1g1g1g1g1";
+      const { mode } = req.body;
+      if (mode === "count") {
+        const { rows } = await pool.query(
+          `SELECT 
+            COUNT(*) FILTER (WHERE spotify_episode_url = $1) as invalid_count,
+            COUNT(*) as total_count
+           FROM landing_page_recaps`,
+          [invalidUrl]
+        );
+        return res.json({ count: parseInt(rows[0].invalid_count, 10), total: parseInt(rows[0].total_count, 10) });
+      }
+      if (mode === "clear") {
+        const result = await pool.query(
+          `UPDATE landing_page_recaps SET spotify_episode_url = NULL WHERE spotify_episode_url = $1`,
+          [invalidUrl]
+        );
+        return res.json({ cleared: result.rowCount });
+      }
+      return res.status(400).json({ message: "Invalid mode. Use 'count' or 'clear'." });
+    } catch (err: any) {
+      console.error("[CMS] Bulk clear Spotify links error:", err);
+      res.status(500).json({ message: err?.message || "Failed to bulk clear Spotify links" });
+    }
+  });
+
   app.post("/api/admin/cms/episodes/:podcastSlug/:episodeSlug/quotes", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {
