@@ -13,6 +13,7 @@ import { getUncachableResendClient } from "./resendClient";
 import { markdownToEmailHtml, recapHasContent, type EpisodeMetaForEmail } from "./emailTemplate";
 import { generateRecap } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
+import { normalizeTitle, SQL_NORMALIZE_TITLE } from "./utils/normalizeTitle";
 import { pool } from "./db";
 import { activeEpGenItunesIds } from "./epGenState";
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, unlinkSync, existsSync } from "fs";
@@ -8984,7 +8985,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
               if (existing.length > 0) continue;
 
               const { rows: existingTranscript } = await pool.query(
-                `SELECT id FROM episode_transcripts WHERE podcast_id = $1 AND lower(trim(episode_title)) = lower(trim($2)) LIMIT 1`,
+                `SELECT id FROM episode_transcripts WHERE podcast_id = $1 AND ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$2')} LIMIT 1`,
                 [podcast.itunes_id, epTitle]
               );
 
@@ -9503,7 +9504,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
                  t.transcript
           FROM landing_page_recaps r
           JOIN podcast_directory pd ON pd.slug = r.slug
-          JOIN episode_transcripts t ON t.podcast_id = pd.itunes_id::text AND LOWER(t.episode_title) = LOWER(r.episode_title)
+          JOIN episode_transcripts t ON t.podcast_id = pd.itunes_id::text AND ${SQL_NORMALIZE_TITLE('t.episode_title')} = ${SQL_NORMALIZE_TITLE('r.episode_title')}
           WHERE r.slug = $1 AND r.episode_slug = $2
           LIMIT 1
         `;
@@ -9515,7 +9516,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
                  t.transcript
           FROM landing_page_recaps r
           JOIN podcast_directory pd ON pd.slug = r.slug
-          JOIN episode_transcripts t ON t.podcast_id = pd.itunes_id::text AND LOWER(t.episode_title) = LOWER(r.episode_title)
+          JOIN episode_transcripts t ON t.podcast_id = pd.itunes_id::text AND ${SQL_NORMALIZE_TITLE('t.episode_title')} = ${SQL_NORMALIZE_TITLE('r.episode_title')}
           WHERE (r.resources IS NULL OR r.resources::text = '[]'
             OR (
               NOT EXISTS (
@@ -10497,7 +10498,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const { episode_title, itunes_id } = recapRows[0];
 
       const { rows: transcriptRows } = await pool.query(
-        `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND episode_title = $2 LIMIT 1`,
+        `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$2')} LIMIT 1`,
         [String(itunes_id), episode_title]
       );
       if (transcriptRows.length === 0) return res.status(404).json({ message: "Transcript not found" });
@@ -11035,7 +11036,7 @@ Rules:
         const { rows: pdRows } = await pool.query(`SELECT itunes_id FROM podcast_directory WHERE slug = $1`, [podcastSlug]);
         if (pdRows.length > 0) {
           const { rows: transcriptRows } = await pool.query(
-            `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND episode_title = $2 LIMIT 1`,
+            `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$2')} LIMIT 1`,
             [String(pdRows[0].itunes_id), episode.episode_title]
           );
           if (transcriptRows.length > 0) transcript = transcriptRows[0].transcript;
@@ -11216,7 +11217,7 @@ Rules:
           AND EXISTS (
             SELECT 1 FROM episode_transcripts 
             WHERE episode_transcripts.podcast_id = landing_page_recaps.itunes_id 
-              AND LOWER(TRIM(episode_transcripts.episode_title)) = LOWER(TRIM(landing_page_recaps.episode_title))
+              AND ${SQL_NORMALIZE_TITLE('episode_transcripts.episode_title')} = ${SQL_NORMALIZE_TITLE('landing_page_recaps.episode_title')}
               AND episode_transcripts.transcript IS NOT NULL
               AND episode_transcripts.transcript != ''
           )
@@ -11256,7 +11257,7 @@ Rules:
             AND EXISTS (
               SELECT 1 FROM episode_transcripts 
               WHERE episode_transcripts.podcast_id = landing_page_recaps.itunes_id 
-                AND LOWER(TRIM(episode_transcripts.episode_title)) = LOWER(TRIM(landing_page_recaps.episode_title))
+                AND ${SQL_NORMALIZE_TITLE('episode_transcripts.episode_title')} = ${SQL_NORMALIZE_TITLE('landing_page_recaps.episode_title')}
                 AND episode_transcripts.transcript IS NOT NULL
                 AND episode_transcripts.transcript != ''
             )
@@ -11281,7 +11282,7 @@ Rules:
 
           try {
             const { rows: transcriptRows } = await pool.query(
-              `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND LOWER(TRIM(episode_title)) = LOWER(TRIM($2)) LIMIT 1`,
+              `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$2')} LIMIT 1`,
               [ep.itunes_id, ep.episode_title]
             );
             if (!transcriptRows[0]?.transcript) {
@@ -13017,7 +13018,7 @@ Rules:
                 const tClient = await dbPool.connect();
                 try {
                   const titleMatch = await tClient.query(
-                    `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND episode_title ILIKE $2 LIMIT 1`,
+                    `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$2')} LIMIT 1`,
                     [itunesId, epTitle]
                   );
                   if (titleMatch.rows.length > 0) {
@@ -15555,7 +15556,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       let transcript = "";
       try {
         const tRes = await pool.query(
-          `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND episode_title = $2 LIMIT 1`,
+          `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$2')} LIMIT 1`,
           [recap.itunesId, recap.episodeTitle]
         );
         if (tRes.rows[0]?.transcript) {
@@ -17373,7 +17374,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
         (async () => {
           try {
             const { rows: existing } = await pool.query(
-              `SELECT id FROM episode_transcripts WHERE podcast_id = $1 AND (episode_guid = $2 OR lower(trim(episode_title)) = lower(trim($3))) LIMIT 1`,
+              `SELECT id FROM episode_transcripts WHERE podcast_id = $1 AND (episode_guid = $2 OR ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$3')}) LIMIT 1`,
               [podcast.itunes_id, epUuid, epTitle]
             );
             if (existing.length > 0) {

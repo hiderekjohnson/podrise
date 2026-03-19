@@ -3,6 +3,7 @@ import {
   generateRecapFromTranscript,
   extractQuotesFromTranscript,
 } from "./recapGenerator";
+import { SQL_NORMALIZE_TITLE } from "./utils/normalizeTitle";
 import https from "https";
 import http from "http";
 import fs from "fs";
@@ -151,7 +152,7 @@ async function run() {
       }
 
       const tRes = await client.query(
-        `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND episode_title = $2 LIMIT 1`,
+        `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$2')} LIMIT 1`,
         [row.itunes_id?.toString(), row.episode_title]
       );
       if (!tRes.rows[0]?.transcript) { console.log("  ⚠ No transcript, skipping regeneration"); continue; }

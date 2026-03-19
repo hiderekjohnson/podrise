@@ -1,6 +1,7 @@
 import { db } from "./db";
 import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, advertisers, bookmarks, deviceTokens, refreshTokens, errorLogs, referrals, referralTiers, pulseSubscriptions, supportArticles, feedAds, feedAdSettings, featureFlags, userFeatureOverrides, adEvents, siteSettings, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog, type Referral, type ReferralTier, type InsertReferralTier, type PulseSubscription, type SupportArticle, type InsertSupportArticle, type FeedAd, type InsertFeedAd, type FeedAdSetting, type FeatureFlag, type InsertFeatureFlag, type UserFeatureOverride, type AdEvent, type InsertAdEvent, type SiteSetting } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull, asc, inArray } from "drizzle-orm";
+import { normalizeTitle } from "./utils/normalizeTitle";
 
 export interface IStorage {
   createUser(user: CreateUserRequest): Promise<UserResponse>;
@@ -218,6 +219,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async saveTranscript(data: { podcastId: string; episodeGuid: string; episodeTitle: string; transcript: string; description?: string; subtitle?: string; datePublished?: number; duration?: number; audioUrl?: string; imageUrl?: string; seasonNumber?: number; episodeNumber?: number; episodeType?: string }): Promise<EpisodeTranscript> {
+    data = { ...data, episodeTitle: normalizeTitle(data.episodeTitle) };
     const isComplete = !!(data.transcript && data.description && data.datePublished && data.duration && data.audioUrl);
     const updateSet: Record<string, any> = {
       description: data.description,

@@ -1,5 +1,6 @@
 import pg from "pg";
 import { storage } from "./storage";
+import { normalizeTitle } from "./utils/normalizeTitle";
 
 const TADDY_API_URL = "https://api.taddy.org";
 const DELAY_MS = 800;
@@ -87,7 +88,7 @@ async function processPodcast(name: string, itunesId: string, taddyUuid: string,
   client.release();
 
   const existingGuids = new Set(existingRows.map((r: any) => r.episode_guid));
-  const existingTitles = new Set(existingRows.map((r: any) => r.episode_title?.toLowerCase()));
+  const existingTitles = new Set(existingRows.map((r: any) => r.episode_title ? normalizeTitle(r.episode_title).toLowerCase() : null));
   const needed = TARGET_MIN - existingRows.length;
   if (needed <= 0) {
     console.log(`  Already have ${existingRows.length} transcripts, skipping.`);
@@ -117,15 +118,16 @@ async function processPodcast(name: string, itunesId: string, taddyUuid: string,
         if (newDownloads >= needed) break;
 
         const alreadyByGuid = existingGuids.has(ep.uuid);
-        const alreadyByTitle = ep.name && existingTitles.has(ep.name.toLowerCase());
+        const normalizedName = ep.name ? normalizeTitle(ep.name) : null;
+        const alreadyByTitle = normalizedName && existingTitles.has(normalizedName.toLowerCase());
 
         if (alreadyByGuid || alreadyByTitle) {
           const c = await backfillPool.connect();
           try {
             const isComplete = !!(ep.description && ep.datePublished && ep.duration && ep.audioUrl);
             await c.query(
-              `UPDATE episode_transcripts SET description = $1, date_published = $2, duration = $3, audio_url = $4, image_url = $5, season_number = $6, episode_number = $7, episode_type = $8, subtitle = $9, fetched_at = NOW(), complete_record = (transcript IS NOT NULL AND transcript != '' AND $13::boolean) WHERE podcast_id = $10 AND (episode_guid = $11 OR episode_title = $12)`,
-              [ep.description, ep.datePublished, ep.duration, ep.audioUrl, ep.imageUrl, ep.seasonNumber, ep.episodeNumber, ep.episodeType, ep.subtitle, itunesId, ep.uuid, ep.name, isComplete]
+              `UPDATE episode_transcripts SET description = $1, date_published = $2, duration = $3, audio_url = $4, image_url = $5, season_number = $6, episode_number = $7, episode_type = $8, subtitle = $9, fetched_at = NOW(), complete_record = (transcript IS NOT NULL AND transcript != '' AND $13::boolean) WHERE podcast_id = $10 AND (episode_guid = $11 OR LOWER(TRIM(episode_title)) = LOWER(TRIM($12)))`,
+              [ep.description, ep.datePublished, ep.duration, ep.audioUrl, ep.imageUrl, ep.seasonNumber, ep.episodeNumber, ep.episodeType, ep.subtitle, itunesId, ep.uuid, normalizedName || ep.name, isComplete]
             );
             metadataUpdates++;
           } catch (err: any) {
@@ -153,7 +155,7 @@ async function processPodcast(name: string, itunesId: string, taddyUuid: string,
               episodeType: ep.episodeType || undefined,
             });
             existingGuids.add(ep.uuid);
-            existingTitles.add((ep.name || "").toLowerCase());
+            existingTitles.add(normalizeTitle(ep.name || "").toLowerCase());
             newDownloads++;
             consecutiveNoTranscript = 0;
             if (newDownloads % 10 === 0) console.log(`    ... ${newDownloads} new transcripts downloaded`);

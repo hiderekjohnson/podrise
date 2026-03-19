@@ -1,4 +1,5 @@
 import pg from "pg";
+import { normalizeTitle } from "./utils/normalizeTitle";
 
 const TADDY_API_URL = "https://api.taddy.org";
 const MAX_RETRIES = 3;
@@ -90,7 +91,7 @@ async function main() {
       const guidSet = new Set(incompleteEps.map((e: any) => e.episode_guid));
       const titleMap = new Map<string, number>();
       for (const e of incompleteEps) {
-        if (e.episode_title) titleMap.set(e.episode_title.toLowerCase(), e.id);
+        if (e.episode_title) titleMap.set(normalizeTitle(e.episode_title).toLowerCase(), e.id);
       }
 
       let fixed = 0;
@@ -118,7 +119,7 @@ async function main() {
 
         for (const ep of episodes) {
           const matchByGuid = guidSet.has(ep.uuid);
-          const matchByTitle = ep.name && titleMap.has(ep.name.toLowerCase());
+          const matchByTitle = ep.name && titleMap.has(normalizeTitle(ep.name).toLowerCase());
 
           if (matchByGuid || matchByTitle) {
             const isComplete = !!(ep.description && ep.datePublished && ep.duration && ep.audioUrl);
@@ -136,14 +137,14 @@ async function main() {
                      subtitle = COALESCE($9, subtitle),
                      fetched_at = NOW(),
                      complete_record = (transcript IS NOT NULL AND transcript != '' AND $13::boolean)
-                 WHERE podcast_id = $10 AND (episode_guid = $11 OR lower(episode_title) = lower($12))`,
+                 WHERE podcast_id = $10 AND (episode_guid = $11 OR LOWER(TRIM(episode_title)) = LOWER(TRIM($12)))`,
                 [ep.description, ep.datePublished, ep.duration, ep.audioUrl, ep.imageUrl,
                  ep.seasonNumber, ep.episodeNumber, ep.episodeType, ep.subtitle,
-                 p.itunes_id, ep.uuid, ep.name, isComplete]
+                 p.itunes_id, ep.uuid, ep.name ? normalizeTitle(ep.name) : ep.name, isComplete]
               );
               fixed++;
               guidSet.delete(ep.uuid);
-              if (ep.name) titleMap.delete(ep.name.toLowerCase());
+              if (ep.name) titleMap.delete(normalizeTitle(ep.name).toLowerCase());
             } catch (err: any) {
               console.error(`    DB update error for "${ep.name}": ${err.message}`);
             }

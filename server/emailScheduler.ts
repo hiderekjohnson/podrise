@@ -7,6 +7,7 @@ import { searchPodcastByItunesId, searchPodcastByName, getRecentEpisodesWithTran
 import { parseRawTaddySegments, parseTranscriptToSegments } from "./transcriptParser";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 import { activeEpGenItunesIds } from "./epGenState";
+import { SQL_NORMALIZE_TITLE } from "./utils/normalizeTitle";
 
 const SCHEDULER_INTERVAL_MS = 60 * 1000;
 const ADMIN_NOTIFY_EMAIL = "hiderekjohnson@gmail.com";
@@ -1006,7 +1007,7 @@ export async function refreshLandingPageRecaps(force: boolean = false, dateRange
           const client = await dbPool.connect();
           try {
             const titleMatch = await client.query(
-              `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND episode_title ILIKE $2 LIMIT 1`,
+              `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$2')} LIMIT 1`,
               [podcast.itunesId, epTitle]
             );
             if (titleMatch.rows.length > 0) {
@@ -2056,7 +2057,7 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
             const dbClient = await dbPool.connect();
             try {
               const titleMatch = await dbClient.query(
-                `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND episode_title ILIKE $2 LIMIT 1`,
+                `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$2')} LIMIT 1`,
                 [podcast.itunesId, epTitle]
               );
               if (titleMatch.rows.length > 0) {
