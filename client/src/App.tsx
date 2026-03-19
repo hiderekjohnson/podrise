@@ -37,7 +37,7 @@ const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 const Enterprise = lazy(() => import("./pages/Enterprise"));
 const PodcasterClaim = lazy(() => import("./pages/PodcasterClaim"));
 const PodcasterDashboard = lazy(() => import("./pages/PodcasterDashboard"));
-const ShopPage = lazy(() => import("./pages/Bookstore"));
+const ShopPage = lazy(() => import("./pages/Shop"));
 const ShopDetailRouter = lazy(() => import("./pages/ShopDetailRouter"));
 
 const FeedPage = lazy(() => import("./pages/FeedPage"));

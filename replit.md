@@ -23,7 +23,7 @@ PodRise is a full-stack web application designed to provide personalized daily p
 **Feature Flags**: A scalable system for managing features with global toggles and per-user overrides.
 **SEO/SSR Pipeline**: Asynchronous, DB-backed meta tag injection and Server-Side Rendering (SSR) for all public pages to enhance search engine visibility.
 **Logged-In Feed Experience**: Features a three-column layout with an icon-only sidebar, magazine-style episode cards, and a right rail for search, referrals, and shop.
-**Unified Shop**: Merged bookstore and product pages into a single shop experience with unified filtering and detail pages.
+**Unified Shop**: All book and product pages unified under `/shop` with `/api/shop`, `/api/shop/books`, `/api/shop/book/:slug`, and `/api/shop/product/:slug` endpoints. Admin endpoints at `/api/admin/shop-books` and `/api/admin/shop-items`. Legacy `/bookstore` URLs have 301 redirects to `/shop` for SEO. Page component is `Shop.tsx`.
 **Support Knowledge Base**: An admin-editable knowledge base powers the Help & Support AI chatbot.
 **Feed Ads System**: Configurable inline feed ads (podcast and regular) integrated into the user feed, with admin controls for management.
 **Error Tracking**: Global middleware logs all API errors to a dedicated table for monitoring and deduplication.
