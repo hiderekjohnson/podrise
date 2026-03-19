@@ -1,0 +1,87 @@
+Phase 1: Podcast Setup (one-time)
+Before any recaps can happen, each podcast needs to be registered:
+Podcast is added to the podcast_directory table with its name, iTunes ID, slug, hosts, and artwork - can you be more specific here, like when do we get the spotify link, youtube link, social media stuff, etc, and how?
+Taddy API is used to look up the podcast's Taddy UUID via iTunes ID or name search (seems like name search is causing issues, should we only search via itunes id going forward to avoid errors? That means we’ll need to make sure every podcast has an itunes id, but we can do that.
+A Taddy webhook is registered so Taddy notifies you when any tracked podcast publishes a new episode
+
+Phase 2: Getting the Transcript
+There are two ways a transcript arrives:
+Path A: Taddy Webhook (automatic, real-time)
+A tracked podcast publishes a new episode
+Taddy detects it and sends a POST to /api/webhooks/taddy with episode data (title, UUID, audio URL, description, duration, publish date, image)
+Your server verifies the webhook secret
+Checks if this podcast is in your podcast_directory — if not, ignores it
+Checks if this episode already exists in episode_transcripts (by UUID or title match) — if so, skips
+Calls Taddy's getEpisodeTranscript API with the episode UUID
+Taddy returns transcript segments (each with text, speaker label, and timecodes)
+Segments are joined into a single plain text string with [Speaker] text format
+Transcript + all episode metadata is saved to the episode_transcripts table
+Transcript is also parsed into individual segments and saved to transcript_segments table (for the interactive transcript reader on the frontend) - not sure this is needed anymore, because we don’t show users the transcript, will this save some time and processing? Or am i understanding this process correctly and we need to do it?
+Path B: Bulk Download Script (manual)
+You run downloadAllTranscripts.ts manually
+It queries podcast_directory for all tracked podcasts that have fewer than 100 transcripts
+For each podcast, it pages through episodes via Taddy API (up to 25 pages of 25 episodes)
+For each episode not already in the database, it downloads the transcript from Taddy
+Saves to episode_transcripts with full metadata
+Processes in batches of 10 podcasts with 15-second pauses between batches to avoid rate limits
+
+Phase 3: Generating the Recap - 
+Once a transcript exists, the recap gets generated. There are three entry points, but they all end up calling the same core function:
+Entry Point 1: Taddy Webhook (immediate, same request)
+Right after saving the transcript in Phase 2 Path A, the webhook handler continues:
+Checks if a recap already exists for this episode in landing_page_recaps — if so, stops
+Calls generateRecapFromTranscript with the transcript text, podcast name, and episode title
+Entry Point 2: Production Scheduler (every 5 minutes)
+A background job that catches anything the webhook missed:
+Runs every 5 minutes automatically
+Queries episode_transcripts for episodes from the last 3 days that have a transcript but no matching recap in landing_page_recaps
+Picks up to 3 episodes per batch (max 1 per podcast)
+For each episode, looks up podcast info from podcast_directory
+Calls generateRecapFromFullTranscript (which handles chunking for long transcripts)
+30-second pause between each episode
+Entry Point 3: Background Generator (manual bulk runs)
+Used for backfilling when you need to generate many recaps at once:
+You run it manually with optional flags like --limit=50 or --podcast=some-slug
+Queries for episodes with transcripts but no recaps
+Processes with concurrency of 2
+Calls generateRecapFromFullTranscript for each
+The Core Generation (what GPT-4o actually does)
+Short transcripts (under 28,000 characters) — single pass:
+Builds a prompt with the transcript, podcast name, and episode title
+Sends one GPT-4o call asking for a JSON response containing:
+whatHappened — 6-8 paragraph narrative recap (are we sure it’s more what knowledge can be extracted from the episode in narrative form, rather than just what happened?)
+keyInsights — 4 standalone takeaways
+guests — name and title for each guest
+resources — books mentioned with 3-5 sentence context each
+Parses the JSON response
+Sanitizes text (smart quotes → straight quotes, em dashes → regular dashes) - should we remove this, will this save us extra step, or not a big deal?
+Returns the structured recap object
+Long transcripts (over 28,000 characters) — chunking:
+Splits the transcript into chunks of ~28,000 characters each
+Each chunk gets its own GPT-4o call extracting: key facts/insights, books, and guests
+All chunk results are merged (notes combined, books deduplicated, guests deduplicated)
+A final synthesis GPT-4o call takes all the merged notes and produces the final whatHappened, keyInsights, guests, and resources
+Same sanitization as single-pass
+With all that we’ve removed, do you think chunking is even needed anymore for longer episodes, or it’s not the stuff we’re extracting its just the size of the transcript that was causing quality issues when trying to extract knowledge from it?
+
+Phase 4: Saving the Recap
+After GPT-4o returns the structured data:
+Format episode metadata — calculate duration string ("1 hr 23 min"), format publish date
+Look up Apple Podcasts URL — calls iTunes lookup API with the podcast's iTunes ID, searches through up to 200 episodes to find a title match, returns the direct episode link
+Look up Spotify URL — calls Spotify search API to find the episode and get its Spotify link
+Upsert to landing_page_recaps — inserts or updates the recap record with all the data: podcast info, episode info, whatHappened, keyInsights, guests, resources, Apple URL, Spotify URL, artwork, duration, publish date
+Save to book_insights — each book mentioned gets a separate row (podcast slug, episode slug, title, author, context) for the bookstore/shop aggregation
+
+Phase 5: Validation
+After saving, basic validation runs:
+Checks if any critical fields are missing (Apple URL, Spotify URL, audio URL)
+If Spotify URL is missing, tries Spotify search again
+If Apple URL is missing, tries iTunes lookup again
+If audio URL is missing and Apple lookup found one, saves it - do we even need the audio url what is this?
+Logs any remaining issues to recap_processing_failures table for admin review
+
+Phase 6: Publishing
+Webhook path: the recap is saved but published defaults to false until the bulk publish step runs
+Production scheduler path: sets published = true immediately on save
+Background generator: after processing all episodes for a podcast, runs a bulk update setting all unpublished recaps for that podcast to published = true
+Once published, the recap is live and visible on the frontend at /{podcast-slug}/{episode-slug}.
