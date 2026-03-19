@@ -33,14 +33,14 @@ interface ListDetailPodcast {
 }
 
 const DISCOVER_TOPICS = [
-  { slug: "ai", name: "AI", icon: Brain, color: "#8B5CF6" },
   { slug: "startups", name: "Startups", icon: Rocket, color: "#F59E0B" },
   { slug: "investing", name: "Investing", icon: BarChart3, color: "#3B82F6" },
-  { slug: "crypto-web3", name: "Crypto", icon: Coins, color: "#F97316" },
-  { slug: "health-longevity", name: "Health", icon: Heart, color: "#EF4444" },
-  { slug: "psychology", name: "Psychology", icon: BookOpen, color: "#A855F7" },
   { slug: "productivity", name: "Productivity", icon: Zap, color: "#EAB308" },
+  { slug: "ai", name: "AI", icon: Brain, color: "#8B5CF6" },
+  { slug: "crypto-web3", name: "Crypto", icon: Coins, color: "#F97316" },
   { slug: "geopolitics", name: "Geopolitics", icon: Globe, color: "#64748B" },
+  { slug: "psychology", name: "Psychology", icon: BookOpen, color: "#A855F7" },
+  { slug: "health-longevity", name: "Health", icon: Heart, color: "#EF4444" },
 ] as const;
 
 function AllPodcastsGrid({

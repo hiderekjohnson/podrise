@@ -2962,10 +2962,32 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       const cached = directoryCache.podcastsDirectory.get();
       if (cached) return res.json(cached);
       const result = await pool.query(
-        `SELECT slug, name, artwork_url, category FROM podcast_directory WHERE slug IS NOT NULL ORDER BY name ASC`
+        `SELECT slug, name, artwork_url, category FROM podcast_directory WHERE slug IS NOT NULL ORDER BY COALESCE(followers, 0) DESC, name ASC`
       );
-      directoryCache.podcastsDirectory.set(result.rows);
-      res.json(result.rows);
+      const rows = result.rows;
+      const categoryBuckets: Record<string, any[]> = {};
+      for (const row of rows) {
+        const cat = ((row.category || "Other").split(",")[0].trim() || "Other").toLowerCase();
+        if (!categoryBuckets[cat]) categoryBuckets[cat] = [];
+        categoryBuckets[cat].push(row);
+      }
+      const bucketKeys = Object.keys(categoryBuckets);
+      const interleaved: any[] = [];
+      const indices: Record<string, number> = {};
+      for (const k of bucketKeys) indices[k] = 0;
+      let added = true;
+      while (added) {
+        added = false;
+        for (const k of bucketKeys) {
+          if (indices[k] < categoryBuckets[k].length) {
+            interleaved.push(categoryBuckets[k][indices[k]]);
+            indices[k]++;
+            added = true;
+          }
+        }
+      }
+      directoryCache.podcastsDirectory.set(interleaved);
+      res.json(interleaved);
     } catch (err) {
       console.error("[Directory] Error:", err);
       res.status(500).json({ message: "Internal server error" });
