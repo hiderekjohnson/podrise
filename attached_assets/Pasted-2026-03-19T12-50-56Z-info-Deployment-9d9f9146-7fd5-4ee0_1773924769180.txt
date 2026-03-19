@@ -1,0 +1,108 @@
+2026-03-19T12:50:56Z info: Deployment: 9d9f9146-7fd5-4ee0-ba2d-bc345eb08b85
+2026-03-19T12:50:56Z info: Build: fef4bc8f-f5f6-4e66-8832-d47ef97da245
+2026-03-19T12:50:56Z info: Running Security Scan
+2026-03-19T12:51:29Z info: Security Scan Complete
+2026-03-19T12:51:29Z info: Connecting to builder
+2026-03-19T12:51:29Z info: Builder connected
+2026-03-19T12:51:30Z info: Installing packages
+--> npm install
+
+
+up to date, audited 690 packages in 2s
+
+  run `npm fund` for details
+
+
+3 vulnerabilities (1 low, 2 high)
+
+To address all issues, run:
+  npm audit fix
+
+Run `npm audit` for details.
+
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.12.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.12.0
+npm notice To update run: npm install -g npm@11.12.0
+npm notice
+
+2026-03-19T12:51:32Z info: Starting Build
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+
+building client...
+
+vite v7.3.0 building client environment for production...
+
+transforming...
+
+✓ 1133 modules transformed.
+
+✗ Build failed in 4.60s
+
+[vite:load-fallback] Could not load /home/runner/workspace/client/src/components/RequestPodcastDialog (imported by client/src/pages/PodcastsExplorer.tsx): ENOENT: no such file or directory, open '/home/runner/workspace/client/src/components/RequestPodcastDialog'
+    at async open (node:internal/fs/promises:634:25)
+    at async Object.readFile (node:internal/fs/promises:1236:14)
+    at async Object.handler (/home/runner/workspace/node_modules/vite/dist/node/chunks/config.js:33168:21)
+    at async PluginDriver.hookFirstAndGetPlugin (/home/runner/workspace/node_modules/rollup/dist/es/shared/node-entry.js:22376:28)
+    at async <anonymous> (/home/runner/workspace/node_modules/rollup/dist/es/shared/node-entry.js:21376:33)
+    at async Queue.work (/home/runner/workspace/node_modules/rollup/dist/es/shared/node-entry.js:22604:32) {
+  errno: -2,
+  code: 'PLUGIN_ERROR',
+  syscall: 'open',
+  path: '/home/runner/workspace/client/src/components/RequestPodcastDialog',
+  pluginCode: 'ENOENT',
+  plugin: 'vite:load-fallback',
+  hook: 'load',
+  watchFiles: [
+    '/home/runner/workspace/client/index.html',
+    '/home/runner/workspace/client/src/main.tsx',
+    '/home/runner/workspace/package.json',
+    '/home/runner/workspace/node_modules/react/jsx-runtime.js',
+    '/home/runner/workspace/node_modules/react-dom/client.js',
+    '/home/runner/workspace/client/src/App.tsx',
+    '/home/runner/workspace/node_modules/react-dom/index.js',
+    '/home/runner/workspace/node_modules/react/cjs/react-jsx-runtime.production.min.js',
+    '/home/runner/workspace/node_modules/react/index.js',
+    '/home/runner/workspace/node_modules/react-dom/cjs/react-dom.production.min.js',
+    '/home/runner/workspace/client/src/index.css',
+    '/home/runner/workspace/node_modules/@tanstack/react-query/build/modern/index.js',
+    '/home/runner/workspace/client/src/lib/queryClient.ts',
+    '/home/runner/workspace/node_modules/wouter/esm/index.js',
+    '/home/runner/workspace/client/src/pages/not-found.tsx',
+    '/home/runner/workspace/client/src/pages/Login.tsx',
+    '/home/runner/workspace/client/src/pages/AdminSetup.tsx',
+    '/home/runner/workspace/client/src/pages/PodcastRouter.tsx',
+    '/home/runner/workspace/client/src/pages/PodcastSubRouter.tsx',
+    '/home/runner/workspace/client/src/pages/EpisodeGuestsPage.tsx',
+    '/home/runner/workspace/client/src/pages/Admin.tsx',
+    '/home/runner/workspace/client/src/pages/Home.tsx',
+    '/home/runner/workspace/client/src/pages/Dashboard.tsx',
+    '/home/runner/workspace/client/src/pages/Cookies.tsx',
+    '/home/runner/workspace/client/src/pages/Privacy.tsx',
+    '/home/runner/workspace/client/src/pages/PodcastsExplorer.tsx',
+    '/home/runner/workspace/client/src/pages/FeatureRequests.tsx',
+    '/home/runner/workspace/client/src/pages/About.tsx',
+    '/home/runner/workspace/client/src/pages/EpisodeArchivePage.tsx',
+    '/home/runner/workspace/client/src/pages/Contact.tsx',
+    '/home/runner/workspace/client/src/pages/GetStarted.tsx',
+    '/home/runner/workspace/client/src/pages/Register.tsx',
+    '/home/runner/workspace/client/src/pages/VerifyEmail.tsx',
+    '/home/runner/workspace/client/src/pages/Enterprise.tsx',
+    '/home/runner/workspace/client/src/pages/PodcasterClaim.tsx',
+    '/home/runner/workspace/client/src/pages/Terms.tsx',
+    '/home/runner/workspace/client/src/pages/Support.tsx',
+    '/home/runner/workspace/client/src/pages/ShopDetailRouter.tsx',
+    '/home/runner/workspace/client/src/pages/FeedPage.tsx',
+    '/home/runner/workspace/client/src/pages/DiscoverPage.tsx',
+    '/home/runner/workspace/client/src/pages/ForPodcasters.tsx',
+    '/home/runner/workspace/client/src/pages/PodcasterDashboard.tsx',
+    '/home/runner/workspace/client/src/pages/HelpPage.tsx',
+    '/home/runner/workspace/client/src/pages/Onboarding.tsx',
+    '/home/runner/workspace/client/src/pages/BookmarksPage.tsx',
+    '/home/runner/workspace/client/src/pages/LogoutPage.tsx',
+    '/home/runner/workspace/client/src/pages/CategoryDirectory.tsx',
+    '/home/runner/workspace/client/src/pages/Advertise.tsx',
+    '/home/runner/workspace/client/sr
