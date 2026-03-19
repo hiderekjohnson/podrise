@@ -22,9 +22,9 @@ export default function NewsletterLandingPage() {
       }
       el.setAttribute("content", content);
     };
-    setMeta("name", "description", "Get a 2-minute daily briefing of the podcasts you love, so you stay sharp, informed, and ahead.");
+    setMeta("name", "description", "Get a 2-minute daily briefing of the podcasts you love, so you stay sharp, informed, and ahead—in minutes, not hours.");
     setMeta("property", "og:title", "Your Daily Podcast Briefing | PodRise");
-    setMeta("property", "og:description", "Get a 2-minute daily briefing of the podcasts you love, so you stay sharp, informed, and ahead.");
+    setMeta("property", "og:description", "Get a 2-minute daily briefing of the podcasts you love, so you stay sharp, informed, and ahead—in minutes, not hours.");
   }, []);
 
   useEffect(() => {
@@ -90,7 +90,7 @@ export default function NewsletterLandingPage() {
               className="text-[13px] lg:text-[16.5px] font-normal leading-[1.45] lg:leading-[1.65] text-[#52525B] max-w-[460px] mb-3 lg:mb-9"
               data-testid="text-newsletter-subheadline"
             >
-              Get a 2-minute daily briefing of the podcasts you love, so you stay sharp, informed, and ahead
+              Get a 2-minute daily briefing of the podcasts you love, so you stay sharp, informed, and ahead—in minutes, not hours.
             </p>
 
             <div className="max-w-[480px]" data-testid="newsletter-cta-container">
