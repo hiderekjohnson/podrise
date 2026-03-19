@@ -24,6 +24,13 @@ export function SiteHeader() {
             Podcasts
           </Link>
           <Link
+            href="/how-it-works"
+            className="text-[17px] font-medium text-[#52525B] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 flex items-center"
+            data-testid="nav-how-it-works"
+          >
+            How it Works
+          </Link>
+          <Link
             href="/shop"
             className="text-[17px] font-medium text-[#52525B] dark:text-[#A1A1AA] hover:text-[#6366F1] transition-colors min-h-[44px] px-3 flex items-center gap-1.5"
             data-testid="nav-shop"
@@ -74,6 +81,7 @@ export function SiteHeader() {
           <div className="px-4 py-3 space-y-1">
             <div className="space-y-1">
               <Link href="/podcasts" className="block text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-podcasts">Podcasts</Link>
+              <Link href="/how-it-works" className="block text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-how-it-works">How it Works</Link>
               <Link href="/shop" className="flex items-center gap-2 text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-shop">
                 Shop
                 <span className="text-[12px] font-bold uppercase tracking-wide bg-primary/[0.1] text-primary px-1.5 py-0.5 rounded-md leading-none">Beta</span>
