@@ -30,11 +30,6 @@ export function Footer() {
             <h3 className={headingClass}>Company</h3>
             <ul className="space-y-3">
               <li>
-                <Link href="/how-it-works" className={linkClass} data-testid="link-how-it-works">
-                  How it Works
-                </Link>
-              </li>
-              <li>
                 <Link href="/about" className={linkClass} data-testid="link-about">
                   About Us
                 </Link>
