@@ -1,19 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ChevronDown, ExternalLink } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "@/data/entityDirectoryData";
-
-const PEOPLE_IMAGE_MAP = new Map<string, string>();
-PEOPLE_DIRECTORY.forEach(p => {
-  PEOPLE_IMAGE_MAP.set(p.slug, p.imageUrl);
-  PEOPLE_IMAGE_MAP.set(p.name.toLowerCase(), p.imageUrl);
-});
-
-const COMPANY_LOGO_MAP = new Map<string, string>();
-COMPANIES_DIRECTORY.forEach(c => {
-  COMPANY_LOGO_MAP.set(c.slug, c.logoUrl);
-  COMPANY_LOGO_MAP.set(c.name.toLowerCase(), c.logoUrl);
-});
 
 export interface MentionEntry {
   slug: string;
@@ -46,25 +33,6 @@ export interface AccordionItemData {
     companies: MentionEntry[];
     products: ProductEntry[];
   };
-}
-
-const AVATAR_COLORS = [
-  { bg: "#EEF2FF", color: "#4F46E5" },
-  { bg: "#F0F9FF", color: "#0369A1" },
-  { bg: "#FFF7ED", color: "#C2410C" },
-  { bg: "#FEF9C3", color: "#A16207" },
-  { bg: "#FCE7F3", color: "#9D174D" },
-  { bg: "#F0FDF4", color: "#15803D" },
-  { bg: "#E0E7FF", color: "#3730A3" },
-  { bg: "#FEF2F2", color: "#DC2626" },
-];
-
-function getInitials(name: string): string {
-  return name.split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
-}
-
-function getAvatarColor(index: number) {
-  return AVATAR_COLORS[index % AVATAR_COLORS.length];
 }
 
 export function parseSpotifyEpisodeId(url: string | null): string | null {
@@ -105,30 +73,6 @@ function RecapIcon({ className }: { className?: string }) {
       <line x1="16" y1="13" x2="8" y2="13"/>
       <line x1="16" y1="17" x2="8" y2="17"/>
     </svg>
-  );
-}
-
-function MentionAvatar({ src, name, index, kind }: { src: string; name: string; index: number; kind: "person" | "company" }) {
-  const [failed, setFailed] = useState(!src);
-  if (failed) {
-    const colors = getAvatarColor(index);
-    return (
-      <div
-        className={`w-[42px] h-[42px] flex-shrink-0 flex items-center justify-center text-[13px] font-bold ${kind === "person" ? "rounded-full" : "rounded-[10px]"}`}
-        style={{ background: colors.bg, color: colors.color }}
-      >
-        {getInitials(name)}
-      </div>
-    );
-  }
-  return (
-    <img
-      src={src}
-      alt={name}
-      className={`w-[42px] h-[42px] flex-shrink-0 object-cover ${kind === "person" ? "rounded-full" : "rounded-[10px] bg-white border border-[#F0F0F2]"}`}
-      loading="lazy"
-      onError={() => setFailed(true)}
-    />
   );
 }
 
@@ -204,107 +148,17 @@ export function CardBottomAccordion({ item, bottomBar }: {
   item: AccordionItemData;
   bottomBar: React.ReactNode;
 }) {
-  const [openSection, setOpenSection] = useState<"recap" | "mentions" | "listen" | null>(null);
-  const [activeTab, setActiveTab] = useState<"people" | "companies" | "products">("people");
-  const [showAllPeople, setShowAllPeople] = useState(false);
-  const [showAllCompanies, setShowAllCompanies] = useState(false);
-  const [showAllProducts, setShowAllProducts] = useState(false);
+  const [openSection, setOpenSection] = useState<"recap" | "listen" | null>(null);
 
-  const { people, companies, products } = item.mentions;
-  const totalMentions = people.length + companies.length + products.length;
   const whatHappenedParagraphs = item.whatHappened ? item.whatHappened.split(/\n\n+/).filter((p) => p.trim()) : [];
   const hasRecap = whatHappenedParagraphs.length > 0;
-  const hasMentions = totalMentions > 0;
 
   const spotifyId = parseSpotifyEpisodeId(item.spotifyEpisodeUrl);
   const youtubeId = parseYouTubeVideoId(item.youtubeUrl);
   const hasListen = !!spotifyId || !!youtubeId || !!item.spotifyEpisodeUrl || !!item.spotifyUrl || (!!item.youtubeUrl && item.youtubeUrl !== '');
 
-  const toggleSection = (section: "recap" | "mentions" | "listen") => {
+  const toggleSection = (section: "recap" | "listen") => {
     setOpenSection(prev => prev === section ? null : section);
-  };
-
-  const stackItems = [...people.slice(0, 3), ...companies.slice(0, 2)];
-  const remaining = totalMentions - stackItems.length;
-
-  const tabs: { key: "people" | "companies" | "products"; label: string; count: number }[] = [];
-  if (people.length > 0) tabs.push({ key: "people", label: "People", count: people.length });
-  if (companies.length > 0) tabs.push({ key: "companies", label: "Companies", count: companies.length });
-  if (products.length > 0) tabs.push({ key: "products", label: "Products", count: products.length });
-
-  useEffect(() => {
-    if (!tabs.find(t => t.key === activeTab) && tabs.length > 0) {
-      setActiveTab(tabs[0].key);
-    }
-  }, [people.length, companies.length, products.length, activeTab]);
-
-  const renderMentionRows = (items: MentionEntry[], type: "person" | "company", showAll: boolean, onShowMore: () => void) => {
-    const visibleItems = showAll ? items : items.slice(0, 3);
-    const hiddenCount = items.length - 3;
-    return (
-      <>
-        {visibleItems.map((m, i) => {
-          const personImg = type === "person" ? (PEOPLE_IMAGE_MAP.get(m.slug) || PEOPLE_IMAGE_MAP.get(m.name.toLowerCase())) : null;
-          const companyImg = type === "company" ? (COMPANY_LOGO_MAP.get(m.slug) || COMPANY_LOGO_MAP.get(m.name.toLowerCase())) : null;
-          return (
-          <div key={m.slug + i} className="flex items-start gap-[14px] py-[15px] border-b border-[#F0F0F2] last:border-b-0" data-testid={`mention-${type}-${m.slug}`}>
-            <MentionAvatar
-              src={type === "person" ? (personImg || "/people/default-avatar.png") : (companyImg || "")}
-              name={m.name}
-              index={i}
-              kind={type === "person" ? "person" : "company"}
-            />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-baseline gap-2 flex-wrap mb-1">
-                <span className="text-[15px] font-bold text-[#09090B]">{m.name}</span>
-                {(m.role || m.company) && (
-                  <span className="text-[12px] text-[#71717A]">
-                    {m.role}{m.company ? ` at ${m.company}` : ""}
-                  </span>
-                )}
-              </div>
-              {m.context && <div className="text-[14px] text-[#52525B] leading-[1.55]">{m.context}</div>}
-            </div>
-          </div>
-          );
-        })}
-        {!showAll && hiddenCount > 0 && (
-          <div className="py-3 flex justify-center">
-            <button onClick={onShowMore} className="text-[14px] font-medium text-[#6366F1] bg-transparent border-[1.5px] border-[#A5B4FC] rounded-full px-[18px] py-[7px] hover:bg-[#EEF2FF] hover:border-[#6366F1] transition-all" data-testid={`mention-show-more-${type}`}>
-              Show {hiddenCount} more {type === "person" ? "people" : "companies"}
-            </button>
-          </div>
-        )}
-      </>
-    );
-  };
-
-  const renderProductRows = (items: ProductEntry[], showAll: boolean, onShowMore: () => void) => {
-    const visibleItems = showAll ? items : items.slice(0, 3);
-    const hiddenCount = items.length - 3;
-    return (
-      <>
-        {visibleItems.map((p, i) => (
-          <div key={p.name + i} className="flex items-start gap-[14px] py-[15px] border-b border-[#F0F0F2] last:border-b-0" data-testid={`mention-product-${i}`}>
-            <div className="w-[34px] h-[46px] rounded flex-shrink-0 bg-[#EEF2FF] flex items-center justify-center text-[18px] shadow-[2px_2px_0_rgba(0,0,0,0.08)]">
-              📘
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-[15px] font-bold text-[#09090B] mb-1">{p.name}</div>
-              {p.company && <div className="text-[12px] text-[#A1A1AA] mb-[5px]" style={{ fontFamily: "var(--font-mono)" }}>{p.company}</div>}
-              {p.description && <div className="text-[14px] text-[#52525B] leading-[1.55]">{p.description}</div>}
-            </div>
-          </div>
-        ))}
-        {!showAll && hiddenCount > 0 && (
-          <div className="py-3 flex justify-center">
-            <button onClick={onShowMore} className="text-[14px] font-medium text-[#6366F1] bg-transparent border-[1.5px] border-[#A5B4FC] rounded-full px-[18px] py-[7px] hover:bg-[#EEF2FF] hover:border-[#6366F1] transition-all" data-testid="mention-show-more-products">
-              Show {hiddenCount} more products
-            </button>
-          </div>
-        )}
-      </>
-    );
   };
 
   return (
@@ -339,92 +193,6 @@ export function CardBottomAccordion({ item, bottomBar }: {
                       <p key={i} className="mb-[14px] last:mb-0">{para}</p>
                     ))}
                   </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      )}
-
-      {hasMentions && (
-        <div className="border-t border-[#E4E4E7]" data-testid={`feed-mentions-${item.id}`}>
-          <div
-            className={`flex items-center gap-3 px-4 md:px-5 py-[13px] cursor-pointer transition-colors ${openSection === "mentions" ? "bg-[#F7F7FC]" : "hover:bg-[#FAFAFB]"}`}
-            onClick={() => toggleSection("mentions")}
-            data-testid={`feed-mentions-toggle-${item.id}`}
-          >
-            <div className="flex items-center flex-shrink-0">
-              {stackItems.map((m, i) => {
-                const isPerson = i < people.length;
-                const personImg = isPerson ? (PEOPLE_IMAGE_MAP.get(m.slug) || PEOPLE_IMAGE_MAP.get(m.name.toLowerCase())) : null;
-                const companyImg = !isPerson ? (COMPANY_LOGO_MAP.get(m.slug) || COMPANY_LOGO_MAP.get(m.name.toLowerCase())) : null;
-                const borderColor = openSection === "mentions" ? "#F7F7FC" : "#FFFFFF";
-                if (isPerson && personImg) {
-                  return <img key={m.slug + i} src={personImg} alt={m.name} className={`w-[28px] h-[28px] rounded-full flex-shrink-0 object-cover ${i > 0 ? "-ml-[8px]" : ""}`} style={{ border: `2px solid ${borderColor}` }} loading="lazy" />;
-                }
-                if (!isPerson && companyImg) {
-                  return <img key={m.slug + i} src={companyImg} alt={m.name} className={`w-[28px] h-[28px] rounded-lg flex-shrink-0 object-cover bg-white ${i > 0 ? "-ml-[8px]" : ""}`} style={{ border: `2px solid ${borderColor}` }} loading="lazy" />;
-                }
-                const colors = getAvatarColor(i);
-                return (
-                  <div
-                    key={m.slug + i}
-                    className={`w-[28px] h-[28px] flex-shrink-0 flex items-center justify-center text-[10px] font-bold ${i > 0 ? "-ml-[8px]" : ""} ${
-                      isPerson ? "rounded-full" : "rounded-lg"
-                    }`}
-                    style={{ background: colors.bg, color: colors.color, border: `2px solid ${borderColor}` }}
-                  >
-                    {getInitials(m.name)}
-                  </div>
-                );
-              })}
-              {remaining > 0 && (
-                <div className="w-[28px] h-[28px] rounded-full flex-shrink-0 -ml-[8px] bg-[#E4E4E7] text-[#71717A] text-[9px] font-bold flex items-center justify-center" style={{ fontFamily: "var(--font-mono)", border: `2px solid ${openSection === "mentions" ? "#F7F7FC" : "#FFFFFF"}` }}>
-                  +{remaining}
-                </div>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-[14px] font-bold text-[#09090B]">Mentioned in this episode</div>
-            </div>
-            <ChevronDown className={`w-4 h-4 text-[#A1A1AA] flex-shrink-0 transition-transform duration-200 ${openSection === "mentions" ? "rotate-180 text-[#6366F1]" : ""}`} />
-          </div>
-          <AnimatePresence>
-            {openSection === "mentions" && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-                className="overflow-hidden border-t border-[#F0F0F2]"
-              >
-                <div className="flex border-b border-[#F0F0F2] px-6">
-                  {tabs.map((tab, i) => (
-                    <button
-                      key={tab.key}
-                      onClick={() => setActiveTab(tab.key)}
-                      className={`flex items-center gap-[6px] py-[11px] px-[14px] text-[14px] font-medium border-b-2 -mb-px transition-colors select-none whitespace-nowrap ${
-                        i === 0 ? "pl-0" : ""
-                      } ${
-                        activeTab === tab.key
-                          ? "text-[#6366F1] border-[#6366F1] font-semibold"
-                          : "text-[#A1A1AA] border-transparent hover:text-[#52525B]"
-                      }`}
-                      data-testid={`mention-tab-${tab.key}-${item.id}`}
-                    >
-                      {tab.label}
-                      <span className={`text-[11px] font-semibold px-[7px] py-[1px] rounded-full transition-all ${
-                        activeTab === tab.key ? "bg-[#EEF2FF] text-[#6366F1]" : "bg-[#F0F0F2] text-[#71717A]"
-                      }`} style={{ fontFamily: "var(--font-mono)" }}>
-                        {tab.count}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-                <div className="px-6 pb-1">
-                  {activeTab === "people" && renderMentionRows(people, "person", showAllPeople, () => setShowAllPeople(true))}
-                  {activeTab === "companies" && renderMentionRows(companies, "company", showAllCompanies, () => setShowAllCompanies(true))}
-                  {activeTab === "products" && renderProductRows(products, showAllProducts, () => setShowAllProducts(true))}
                 </div>
               </motion.div>
             )}
