@@ -1,7 +1,7 @@
 import { useParams } from "wouter";
 import React, { useEffect, useState, useRef, useMemo } from "react";
-import { motion } from "framer-motion";
-import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, ArrowUp, Clock, ShoppingBag, Bookmark, BookmarkCheck, Heart, ListChecks, ArrowRight, ArrowLeft, Lock } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, ArrowUp, Clock, ShoppingBag, Bookmark, BookmarkCheck, Heart, ListChecks, ArrowRight, ArrowLeft, Lock, Mail } from "lucide-react";
 import { BookCover as SharedBookCover } from "@/components/BookCover";
 import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -12,7 +12,8 @@ import { Link, useLocation } from "wouter";
 import { GetRecapsModal } from "@/components/GetRecapsModal";
 import { FeedStyleCard, FeedStyleCardHeader, FeedStyleCardSection } from "@/components/FeedStyleCard";
 import { RecapCard } from "@/components/RecapCard";
-import { PodcastPageLayout } from "@/components/PodcastPageLayout";
+import { Footer } from "@/components/Footer";
+import { SiteHeader } from "@/components/SiteHeader";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -568,6 +569,9 @@ export default function EpisodeRecapPage() {
   const isLoggedIn = !!authUser;
   const [showAuthGatePanel, setShowAuthGatePanel] = useState(false);
   const [showUpdatesModal, setShowUpdatesModal] = useState(false);
+  const [showStickyBar, setShowStickyBar] = useState(false);
+  const [stickyDismissed, setStickyDismissed] = useState(false);
+  const ctaSectionRef = useRef<HTMLDivElement>(null);
 
   const { data: bookmarksData } = useQuery<{ id: number; episodeSlug: string; podcastSlug: string }[]>({
     queryKey: ["/api/bookmarks"],
@@ -799,7 +803,7 @@ export default function EpisodeRecapPage() {
     ];
 
     const handleScroll = () => {
-      const offset = (authUser ? 0 : 120) + 52 + 40;
+      const offset = (authUser ? 0 : 68) + 52 + 40;
       let current = sectionIds[0];
       for (const id of sectionIds) {
         const el = document.getElementById(id);
@@ -814,6 +818,21 @@ export default function EpisodeRecapPage() {
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, [episode, authUser]);
+
+  useEffect(() => {
+    if (isLoggedIn || stickyDismissed) return;
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const threshold = 600;
+      const ctaEl = ctaSectionRef.current;
+      const ctaInView = ctaEl
+        ? ctaEl.getBoundingClientRect().top < window.innerHeight - 60 && ctaEl.getBoundingClientRect().bottom > 60
+        : false;
+      setShowStickyBar(scrollY > threshold && !ctaInView);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isLoggedIn, stickyDismissed]);
 
 
   if (episodeLoading) {
@@ -881,7 +900,7 @@ export default function EpisodeRecapPage() {
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
     if (!el) return;
-    const headerHeight = authUser ? 0 : 120;
+    const headerHeight = authUser ? 0 : 68;
     const navHeight = 52;
     const offset = headerHeight + navHeight + 16;
     const top = el.getBoundingClientRect().top + window.scrollY - offset;
@@ -906,67 +925,6 @@ export default function EpisodeRecapPage() {
           </button>
         )}
 
-        {!authUser && (
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[16px] text-muted-foreground overflow-hidden" data-testid="breadcrumb-nav">
-            <Link href="/" className="hover:text-foreground transition-colors shrink-0 hidden sm:inline">Home</Link>
-            <ChevronRight className="w-3 h-3 shrink-0 hidden sm:inline" />
-            <Link href="/podcasts" className="hover:text-foreground transition-colors shrink-0 hidden sm:inline">Podcasts</Link>
-            <ChevronRight className="w-3 h-3 shrink-0 hidden sm:inline" />
-            <Link href={`/podcasts/${podcastSlug}`} className="hover:text-foreground transition-colors shrink-0 truncate max-w-[140px] sm:max-w-none">{episode.podcastName}</Link>
-            <ChevronRight className="w-3 h-3 shrink-0" />
-            <span className="text-foreground font-medium truncate min-w-0">{episode.episodeTitle}</span>
-          </nav>
-        )}
-
-        {!authUser && (
-          <nav className={`sticky z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar top-[120px]`} data-testid="nav-in-page">
-            {episode.keyInsights?.length > 0 && (
-              <button
-                onClick={() => scrollTo("section-key-insights")}
-                className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-key-insights" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-                data-testid="nav-key-insights"
-              >
-                Takeaways
-              </button>
-            )}
-            <button
-              onClick={() => scrollTo("section-what-happened")}
-              className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-what-happened" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-              data-testid="nav-what-happened"
-            >
-              Recap
-            </button>
-            {(guests.length > 0 || hasHosts) && (
-              <button
-                onClick={() => scrollTo("section-guests")}
-                className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-guests" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-                data-testid="nav-people"
-              >
-                Participants
-              </button>
-            )}
-            {(hasBooks || hasShopProducts) && (
-              <button
-                onClick={() => scrollTo("section-shop")}
-                className={`flex items-center gap-1.5 px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-shop" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-                data-testid="nav-shop"
-              >
-                <ShoppingBag className="w-4 h-4" />
-                Shop
-                <span className="ml-0.5 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#6366F1]/10 text-[#6366F1] border border-[#6366F1]/20">Beta</span>
-              </button>
-            )}
-            {hasQuotes && (
-              <button
-                onClick={() => scrollTo("section-quotes")}
-                className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-quotes" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-                data-testid="nav-quotes"
-              >
-                Quotes
-              </button>
-            )}
-          </nav>
-        )}
 
         {!authUser && episode.keyInsights?.length > 0 && (
           <section id="section-key-insights" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-key-insights">
@@ -1514,7 +1472,7 @@ export default function EpisodeRecapPage() {
   );
 
   const mainContent = (
-    <div className={`px-4 md:px-6 py-6 ${authUser ? "pb-24 md:pb-8" : "pb-8"} ${!authUser ? "max-w-4xl mx-auto" : ""}`}>
+    <div className="px-4 md:px-6 py-6 pb-24 md:pb-8">
       {authUser ? (
         <RecapCard
           id={`${podcastSlug}-${episodeSlug}`}
@@ -1546,108 +1504,6 @@ export default function EpisodeRecapPage() {
           className="mb-0"
           isLoggedIn={isLoggedIn}
         />
-      ) : (
-        <FeedStyleCard testId="episode-feed-card">
-          <FeedStyleCardHeader
-            imageUrl={episode.artworkUrl || podcastConfig?.artworkUrl || ""}
-            imageAlt={episode.podcastName}
-            imageLink={`/podcasts/${podcastSlug}`}
-            name={episode.podcastName}
-            nameLink={`/podcasts/${podcastSlug}`}
-            meta={metaItems}
-            tintSource={episode.artworkUrl || podcastSlug}
-            testIdPrefix="episode-card"
-            rightAction={headerRightAction}
-          />
-          <FeedStyleCardSection>
-            <div className="flex items-baseline justify-between gap-3 mb-[9px]">
-              <span className="text-[12px] text-[#A1A1AA] overflow-hidden text-ellipsis whitespace-nowrap flex-1 min-w-0" style={{ fontFamily: "var(--font-mono)" }} data-testid="episode-card-title">
-                {episode.episodeTitle}
-              </span>
-              <span className="text-[12px] text-[#A1A1AA] whitespace-nowrap flex-shrink-0" style={{ fontFamily: "var(--font-mono)" }}>
-                {relativeTime(episode.publishDate)}
-              </span>
-            </div>
-            {episode.tldl && (
-              <h3 className="text-[26px] font-normal text-[#09090B] dark:text-white leading-[1.2] tracking-[-0.01em]" style={{ fontFamily: "var(--font-serif)" }} data-testid="episode-card-headline">
-                {episode.tldl}
-              </h3>
-            )}
-          </FeedStyleCardSection>
-
-          {episode.keyInsights?.length > 0 && (
-            <FeedStyleCardSection>
-              <div id="section-key-insights" data-testid="section-key-insights">
-                <span className="text-[11px] font-medium tracking-[0.15em] uppercase text-[#A1A1AA] block mb-4" style={{ fontFamily: "var(--font-mono)" }}>
-                  KEY TAKEAWAYS
-                </span>
-                <div className="space-y-4">
-                  {episode.keyInsights.map((insight: string, i: number) => (
-                    <div
-                      key={i}
-                      className="flex gap-3 items-start"
-                      data-testid={`insight-${i}`}
-                    >
-                      <span className="w-[8px] h-[8px] rounded-full bg-[#6366F1] shrink-0 mt-[9px]" />
-                      <p className="text-[15px] leading-[1.75] text-[#52525B] dark:text-[#A1A1AA] flex-1">{insight.replace(/\[([^\]]+)\]/g, '$1')}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </FeedStyleCardSection>
-          )}
-
-          {firstQuote && (
-            <FeedStyleCardSection>
-              <blockquote className="border-l-[3px] border-[#6366F1] pl-5 py-1" data-testid="inline-blockquote">
-                <p className="text-[17px] leading-[1.7] text-[#09090B] dark:text-white italic" style={{ fontFamily: "var(--font-serif)" }}>
-                  "{firstQuote.quoteText}"
-                </p>
-                {firstQuote.speakerName && (
-                  <cite className="text-[13px] text-[#A1A1AA] not-italic mt-2 block">
-                    — {firstQuote.speakerName}{firstQuote.speakerRole ? `, ${firstQuote.speakerRole}` : ""}
-                  </cite>
-                )}
-              </blockquote>
-            </FeedStyleCardSection>
-          )}
-        </FeedStyleCard>
-      )}
-
-      {!authUser && (
-        <div className="mt-5 bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl shadow-sm shadow-black/[0.02] overflow-hidden px-4 sm:px-6 py-5" data-testid="episode-recap-body-card">
-          {recapContent}
-        </div>
-      )}
-
-      {!authUser && (
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.15 }}
-          className="mt-10"
-        >
-          <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-2xl p-6 sm:p-8" data-testid="section-episode-cta">
-            <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
-              <div className="flex-1 text-center sm:text-left">
-                <h2 className="text-lg sm:text-xl font-display font-extrabold text-foreground leading-snug mb-2">
-                  Get {episode.podcastName} recaps in your inbox
-                </h2>
-                <p className="text-[16px] text-muted-foreground">
-                  We'll send a recap whenever a new episode drops.
-                </p>
-              </div>
-              <a
-                href="https://podrise.com/register"
-                className="h-11 px-5 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98] whitespace-nowrap"
-                data-testid="button-signup-episode-register"
-              >
-                Get Started
-                <ArrowRight className="w-4 h-4" />
-              </a>
-            </div>
-          </div>
-        </motion.div>
       )}
 
       {previousEpisodes.length > 0 && (
@@ -1722,77 +1578,225 @@ export default function EpisodeRecapPage() {
 
   if (!authUser) {
     return (
-      <PodcastPageLayout config={podcastConfig}>
-        <div className="mb-6">
-          <div className="flex items-baseline justify-between gap-3 mb-[9px]">
-            <span className="text-[12px] text-[#A1A1AA] overflow-hidden text-ellipsis whitespace-nowrap flex-1 min-w-0" style={{ fontFamily: "var(--font-mono)" }} data-testid="episode-card-title">
-              {episode.episodeTitle}
-            </span>
-            <span className="text-[12px] text-[#A1A1AA] whitespace-nowrap flex-shrink-0" style={{ fontFamily: "var(--font-mono)" }}>
-              {relativeTime(episode.publishDate)}
-            </span>
+      <div className="min-h-screen flex flex-col overflow-x-clip">
+        <SiteHeader />
+
+        <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">
+          <div className="w-full max-w-4xl">
+            <section className="pt-8 sm:pt-10 pb-4">
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="flex items-start gap-5"
+              >
+                <Link href={`/podcasts/${podcastSlug}`}>
+                  <img
+                    src={episode.artworkUrl || podcastConfig?.artworkUrl || ""}
+                    alt={episode.podcastName}
+                    className="w-[120px] h-[120px] rounded-xl shadow-lg shadow-black/[0.08] object-cover ring-1 ring-black/[0.04] shrink-0"
+                    data-testid="img-episode-artwork"
+                  />
+                </Link>
+                <div className="flex-1 min-w-0 pt-1">
+                  <h1
+                    className="text-[1.5rem] sm:text-[1.75rem] lg:text-[2rem] font-normal text-[#09090B] dark:text-white leading-[1.2] tracking-[-0.01em]"
+                    style={{ fontFamily: "var(--font-serif)" }}
+                    data-testid="text-episode-title"
+                  >
+                    {episode.tldl || episode.episodeTitle}
+                  </h1>
+                </div>
+              </motion.div>
+            </section>
+
+            <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[15px] text-muted-foreground mb-5" data-testid="breadcrumb-nav">
+              <Link href="/" className="hover:text-foreground transition-colors shrink-0">Home</Link>
+              <ChevronRight className="w-3 h-3 shrink-0" />
+              <Link href="/podcasts" className="hover:text-foreground transition-colors shrink-0">Podcasts</Link>
+              <ChevronRight className="w-3 h-3 shrink-0" />
+              <Link href={`/podcasts/${podcastSlug}`} className="hover:text-foreground transition-colors shrink-0 truncate max-w-[200px]">{episode.podcastName}</Link>
+            </nav>
+
+            <nav className="sticky top-[68px] z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar mb-8" data-testid="nav-in-page">
+              {episode.keyInsights?.length > 0 && (
+                <button
+                  onClick={() => scrollTo("section-key-insights")}
+                  className={`px-4 py-2 text-[15px] font-semibold rounded-full whitespace-nowrap transition-colors ${activeSection === "section-key-insights" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+                  data-testid="nav-key-insights"
+                >
+                  Takeaways
+                </button>
+              )}
+              <button
+                onClick={() => scrollTo("section-what-happened")}
+                className={`px-4 py-2 text-[15px] font-semibold rounded-full whitespace-nowrap transition-colors ${activeSection === "section-what-happened" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+                data-testid="nav-what-happened"
+              >
+                Recap
+              </button>
+              {(guests.length > 0 || hasHosts) && (
+                <button
+                  onClick={() => scrollTo("section-guests")}
+                  className={`px-4 py-2 text-[15px] font-semibold rounded-full whitespace-nowrap transition-colors ${activeSection === "section-guests" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+                  data-testid="nav-people"
+                >
+                  Participants
+                </button>
+              )}
+              {(hasBooks || hasShopProducts) && (
+                <button
+                  onClick={() => scrollTo("section-shop")}
+                  className={`px-4 py-2 text-[15px] font-semibold rounded-full whitespace-nowrap transition-colors ${activeSection === "section-shop" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+                  data-testid="nav-shop"
+                >
+                  Shop
+                  <span className="ml-1.5 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#6366F1]/10 text-[#6366F1] border border-[#6366F1]/20">Beta</span>
+                </button>
+              )}
+            </nav>
+
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+            >
+              {recapContent}
+            </motion.div>
+
+            {previousEpisodes.length > 0 && (
+              <motion.section
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="mt-10"
+                data-testid="section-more-episodes"
+              >
+                <div className="flex items-center gap-2.5 mb-4">
+                  <ListChecks className="w-4 h-4 text-primary" />
+                  <span className="text-base font-bold text-primary uppercase tracking-wider">More {episode.podcastName} Episode Recaps</span>
+                </div>
+                <div className="space-y-3">
+                  {previousEpisodes.map((ep: any) => (
+                    <EpisodeCard
+                      key={ep.episodeSlug}
+                      episodeSlug={ep.episodeSlug}
+                      podcastSlug={podcastSlug}
+                      publishDate={ep.publishDate}
+                      episodeTitle={ep.episodeTitle}
+                      tldl={ep.tldl}
+                      duration={ep.duration}
+                      testIdPrefix="card-more-episode"
+                    />
+                  ))}
+                </div>
+                <div className="flex justify-center mt-6">
+                  <Link href={`/podcasts/${podcastSlug}`}>
+                    <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-display font-bold text-base bg-primary/[0.06] text-primary hover:bg-primary/[0.1] transition-colors" data-testid="link-all-episodes">
+                      View all {episode.podcastName} episodes
+                      <ArrowRight className="w-4 h-4" />
+                    </span>
+                  </Link>
+                </div>
+              </motion.section>
+            )}
+
+            <motion.div
+              ref={ctaSectionRef}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+              className="mt-10 pb-16"
+            >
+              <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-2xl p-6 sm:p-8" data-testid="section-episode-cta">
+                <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
+                  <div className="flex-1 text-center sm:text-left">
+                    <h2 className="text-lg sm:text-xl font-display font-extrabold text-foreground leading-snug mb-2">
+                      Get {episode.podcastName} recaps in your inbox
+                    </h2>
+                    <p className="text-[16px] text-muted-foreground">
+                      We'll send a recap whenever a new episode drops.
+                    </p>
+                  </div>
+                  <a
+                    href="https://podrise.com/register"
+                    className="h-11 px-5 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98] whitespace-nowrap"
+                    data-testid="button-signup-episode-register"
+                  >
+                    Get Started
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
+                </div>
+              </div>
+            </motion.div>
+
+            <EpisodeChatPanelWithRef
+              ref={chatRef}
+              podcastSlug={podcastSlug}
+              episodeSlug={episodeSlug}
+              episodeTitle={episode?.episodeTitle || ""}
+              podcastName={episode?.podcastName || ""}
+              isLoggedIn={isLoggedIn}
+            />
+            {showAuthGatePanel && (
+              <AuthGatePanel
+                onClose={() => setShowAuthGatePanel(false)}
+                onSuccess={() => { setShowAuthGatePanel(false); }}
+              />
+            )}
           </div>
-          {episode.tldl && (
-            <h2 className="text-[26px] font-normal text-[#09090B] dark:text-white leading-[1.2] tracking-[-0.01em]" style={{ fontFamily: "var(--font-serif)" }} data-testid="episode-card-headline">
-              {episode.tldl}
-            </h2>
-          )}
-        </div>
+        </main>
 
-        {recapContent}
+        <Footer />
 
-        {previousEpisodes.length > 0 && (
-          <motion.section
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="mt-10"
-            data-testid="section-more-episodes"
-          >
-            <div className="flex items-center gap-2.5 mb-4">
-              <ListChecks className="w-4 h-4 text-primary" />
-              <span className="text-base font-bold text-primary uppercase tracking-wider">More {episode.podcastName} Episode Recaps</span>
-            </div>
-            <div className="space-y-3">
-              {previousEpisodes.map((ep: any) => (
-                <EpisodeCard
-                  key={ep.episodeSlug}
-                  episodeSlug={ep.episodeSlug}
-                  podcastSlug={podcastSlug}
-                  publishDate={ep.publishDate}
-                  episodeTitle={ep.episodeTitle}
-                  tldl={ep.tldl}
-                  duration={ep.duration}
-                  testIdPrefix="card-more-episode"
-                />
-              ))}
-            </div>
-            <div className="flex justify-center mt-6">
-              <Link href={`/podcasts/${podcastSlug}`}>
-                <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-display font-bold text-base bg-primary/[0.06] text-primary hover:bg-primary/[0.1] transition-colors" data-testid="link-all-episodes">
-                  View all {episode.podcastName} episodes
+        <AnimatePresence>
+          {showStickyBar && !stickyDismissed && (
+            <motion.div
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-black/95 backdrop-blur-lg border-t border-black/[0.08] dark:border-white/[0.08] shadow-[0_-4px_20px_rgba(0,0,0,0.06)]"
+              data-testid="sticky-signup-bar"
+            >
+              <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row items-center gap-3">
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="w-10 h-10 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
+                    <Mail className="w-5 h-5 text-primary" />
+                  </div>
+                  <p className="text-base font-semibold text-foreground whitespace-nowrap">
+                    Never miss a <span className="text-primary">{episode.podcastName}</span> recap
+                  </p>
+                </div>
+                <a
+                  href="https://podrise.com/register"
+                  className="min-h-[44px] px-5 rounded-lg font-bold text-base bg-primary text-primary-foreground shadow-sm hover:brightness-105 transition-all active:scale-[0.98] whitespace-nowrap flex items-center gap-2"
+                  data-testid="button-sticky-signup-register"
+                >
+                  Sign Up Free
                   <ArrowRight className="w-4 h-4" />
-                </span>
-              </Link>
-            </div>
-          </motion.section>
-        )}
+                </a>
+                <button
+                  onClick={() => setStickyDismissed(true)}
+                  className="absolute top-2 right-2 sm:relative sm:top-auto sm:right-auto p-2 rounded-md text-[#52525B] dark:text-[#A1A1AA] hover:text-foreground hover:bg-black/[0.04] transition-colors shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  data-testid="button-dismiss-sticky"
+                  aria-label="Dismiss"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        <EpisodeChatPanelWithRef
-          ref={chatRef}
-          podcastSlug={podcastSlug}
-          episodeSlug={episodeSlug}
-          episodeTitle={episode?.episodeTitle || ""}
-          podcastName={episode?.podcastName || ""}
-          isLoggedIn={isLoggedIn}
+        <GetRecapsModal
+          open={showUpdatesModal}
+          onClose={() => setShowUpdatesModal(false)}
+          podcastName={episode.podcastName}
+          artworkUrl={episode.artworkUrl || podcastConfig?.artworkUrl}
+          itunesId={podcastConfig?.itunesId || ""}
         />
-        {showAuthGatePanel && (
-          <AuthGatePanel
-            onClose={() => setShowAuthGatePanel(false)}
-            onSuccess={() => { setShowAuthGatePanel(false); }}
-          />
-        )}
-      </PodcastPageLayout>
+      </div>
     );
   }
 

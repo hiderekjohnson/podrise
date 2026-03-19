@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "wouter";
-import { Loader2, ArrowRight, ArrowLeft, Clock, Mic, Headphones, UserCircle, BookOpen, Mail, ShoppingBag, ExternalLink, Lock } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, Clock, Mic, Headphones, UserCircle, BookOpen, Mail, ShoppingBag, ExternalLink, Lock, X, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { BookCoverFill } from "@/components/BookCover";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -9,12 +10,13 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
-import { PodcastPageLayout } from "@/components/PodcastPageLayout";
+import { GetRecapsModal } from "@/components/GetRecapsModal";
 
 import { getPodcastBySlug, PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import { RecapCard } from "@/components/RecapCard";
+import { useSetConversion } from "@/contexts/PageConversionContext";
 
 
 function extractAsin(url: string): string | null {
@@ -437,6 +439,12 @@ export default function PodcastLandingGeneric() {
   const staticConfig = getPodcastBySlug(slug || "");
   const { data: user } = useAuth();
   const { toast } = useToast();
+  const isLoggedIn = !!user;
+  const [showStickyBar, setShowStickyBar] = useState(false);
+  const [stickyDismissed, setStickyDismissed] = useState(false);
+  const [showRecapsModal, setShowRecapsModal] = useState(false);
+  const [activeSection, setActiveSection] = useState("section-episodes");
+  const ctaSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -463,6 +471,49 @@ export default function PodcastLandingGeneric() {
       }
     }
   }, [slug]);
+
+  useEffect(() => {
+    if (isLoggedIn || stickyDismissed) return;
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const threshold = 600;
+      const ctaEl = ctaSectionRef.current;
+      const ctaInView = ctaEl
+        ? ctaEl.getBoundingClientRect().top < window.innerHeight - 60 && ctaEl.getBoundingClientRect().bottom > 60
+        : false;
+      setShowStickyBar(scrollY > threshold && !ctaInView);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isLoggedIn, stickyDismissed]);
+
+  useEffect(() => {
+    const sectionIds = ["section-episodes", "section-discover", "section-shop"];
+    const handleScroll = () => {
+      const offset = (isLoggedIn ? 0 : 68) + 52 + 40;
+      let current = sectionIds[0];
+      for (const id of sectionIds) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= offset) {
+          current = id;
+        }
+      }
+      setActiveSection(current);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isLoggedIn]);
+
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const headerHeight = isLoggedIn ? 0 : 68;
+    const navHeight = 52;
+    const offset = headerHeight + navHeight + 16;
+    const top = el.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top, behavior: "smooth" });
+  };
 
   const { data: dbEntry, isLoading: dbEntryLoading } = useQuery<any>({
     queryKey: ["/api/podcasts/by-slug", slug],
@@ -510,6 +561,15 @@ export default function PodcastLandingGeneric() {
     websiteUrl: (dbEntry as any).websiteUrl,
     storeUrl: (dbEntry as any).storeUrl,
   } as PodcastLandingConfig & { twitterHandle?: string | null; instagramUrl?: string | null; tiktokUrl?: string | null; facebookUrl?: string | null; discordUrl?: string | null; websiteUrl?: string | null; storeUrl?: string | null } : staticConfig ? { ...staticConfig, twitterHandle: null as string | null, instagramUrl: null as string | null, tiktokUrl: null as string | null, facebookUrl: null as string | null, discordUrl: null as string | null, websiteUrl: null as string | null, storeUrl: null as string | null } : null;
+
+  useSetConversion({
+    pageType: "podcast",
+    name: config?.name || "",
+    slug: config?.slug || "",
+    artworkUrl: config?.artworkUrl || "",
+    hosts: config?.hosts ? config.hosts.split(/,\s*|&\s*|\sand\s/i).map((h: string) => h.trim()).filter(Boolean) : [],
+    description: config?.description || "",
+  });
 
   useEffect(() => {
     if (!config) return;
@@ -865,8 +925,171 @@ export default function PodcastLandingGeneric() {
   }
 
   return (
-    <PodcastPageLayout config={config}>
-      {contentSections}
-    </PodcastPageLayout>
+    <div className="min-h-screen flex flex-col overflow-x-clip">
+      <SiteHeader />
+
+      <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-7xl">
+          <section className="pt-8 sm:pt-10 pb-4">
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="flex items-start gap-5"
+            >
+              {artworkUrl && (
+                <img
+                  src={artworkUrl}
+                  alt={name}
+                  className="w-[120px] h-[120px] rounded-xl shadow-lg shadow-black/[0.08] object-cover ring-1 ring-black/[0.04] shrink-0"
+                  data-testid="img-podcast-artwork"
+                />
+              )}
+              <div className="flex-1 min-w-0 pt-1">
+                <h1
+                  className="text-[1.5rem] sm:text-[1.75rem] lg:text-[2rem] font-normal text-[#09090B] dark:text-white leading-[1.2] tracking-[-0.01em]"
+                  style={{ fontFamily: "var(--font-serif)" }}
+                  data-testid="text-podcast-name"
+                >
+                  {name}
+                </h1>
+                {hosts && (
+                  <p className="text-[15px] text-muted-foreground mt-2" data-testid="text-podcast-hosts">
+                    {hosts}
+                  </p>
+                )}
+              </div>
+            </motion.div>
+          </section>
+
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[15px] text-muted-foreground mb-5" data-testid="breadcrumb-nav">
+            <Link href="/" className="hover:text-foreground transition-colors shrink-0">Home</Link>
+            <ChevronRight className="w-3 h-3 shrink-0" />
+            <Link href="/podcasts" className="hover:text-foreground transition-colors shrink-0">Podcasts</Link>
+            <ChevronRight className="w-3 h-3 shrink-0" />
+            <span className="text-foreground font-medium truncate">{name}</span>
+          </nav>
+
+          <nav className="sticky top-[68px] z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar mb-8" data-testid="section-tabs">
+            <button
+              onClick={() => scrollTo("section-episodes")}
+              className={`px-4 py-2 text-[15px] font-semibold rounded-full whitespace-nowrap transition-colors ${activeSection === "section-episodes" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              data-testid="tab-episodes"
+            >
+              Episode Recaps
+            </button>
+            <button
+              onClick={() => scrollTo("section-discover")}
+              className={`px-4 py-2 text-[15px] font-semibold rounded-full whitespace-nowrap transition-colors ${activeSection === "section-discover" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              data-testid="tab-discover"
+            >
+              Discover
+            </button>
+            <button
+              onClick={() => scrollTo("section-shop")}
+              className={`px-4 py-2 text-[15px] font-semibold rounded-full whitespace-nowrap transition-colors ${activeSection === "section-shop" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              data-testid="tab-shop"
+            >
+              Shop
+              <span className="ml-1.5 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#6366F1]/10 text-[#6366F1] border border-[#6366F1]/20">Beta</span>
+            </button>
+            <button
+              onClick={() => setShowRecapsModal(true)}
+              className="px-4 py-2 text-[15px] font-semibold rounded-full whitespace-nowrap transition-colors text-primary/70 hover:text-primary hover:bg-primary/[0.06]"
+              data-testid="tab-get-recaps"
+            >
+              Get Recaps
+            </button>
+          </nav>
+
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+          >
+            {contentSections}
+          </motion.div>
+
+          <motion.section
+            ref={ctaSectionRef}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+            className="pb-16"
+          >
+            <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-2xl p-6 sm:p-8" data-testid="section-bottom-cta">
+              <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
+                <div className="flex-1 text-center sm:text-left">
+                  <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground leading-snug mb-2">
+                    Get {name} recaps in your inbox
+                  </h2>
+                  <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">
+                    We'll send a recap whenever a new episode drops.
+                  </p>
+                </div>
+                <a
+                  href="https://podrise.com/register"
+                  className="min-h-[52px] px-6 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[17px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98] whitespace-nowrap"
+                  data-testid="button-signup-bottom-register"
+                >
+                  Get Started
+                  <ArrowRight className="w-5 h-5" />
+                </a>
+              </div>
+            </div>
+          </motion.section>
+        </div>
+      </main>
+
+      <Footer />
+
+      <AnimatePresence>
+        {showStickyBar && !stickyDismissed && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-black/95 backdrop-blur-lg border-t border-black/[0.08] dark:border-white/[0.08] shadow-[0_-4px_20px_rgba(0,0,0,0.06)]"
+            data-testid="sticky-signup-bar"
+          >
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row items-center gap-3">
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="w-10 h-10 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
+                  <Mail className="w-5 h-5 text-primary" />
+                </div>
+                <p className="text-base font-semibold text-foreground whitespace-nowrap">
+                  Never miss a <span className="text-primary">{name}</span> recap
+                </p>
+              </div>
+              <a
+                href="https://podrise.com/register"
+                className="min-h-[44px] px-5 rounded-lg font-bold text-base bg-primary text-primary-foreground shadow-sm hover:brightness-105 transition-all active:scale-[0.98] whitespace-nowrap flex items-center gap-2"
+                data-testid="button-sticky-signup-register"
+              >
+                Sign Up Free
+                <ArrowRight className="w-4 h-4" />
+              </a>
+              <button
+                onClick={() => setStickyDismissed(true)}
+                className="absolute top-2 right-2 sm:relative sm:top-auto sm:right-auto p-2 rounded-md text-[#52525B] dark:text-[#A1A1AA] hover:text-foreground hover:bg-black/[0.04] transition-colors shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                data-testid="button-dismiss-sticky"
+                aria-label="Dismiss"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <GetRecapsModal
+        open={showRecapsModal}
+        onClose={() => setShowRecapsModal(false)}
+        podcastName={name}
+        artworkUrl={artworkUrl}
+        itunesId={itunesId}
+      />
+    </div>
   );
 }
