@@ -872,7 +872,6 @@ export default function EpisodeArchivePage() {
                       isBookmarked={bookmarkedKeys.has(`${slug}::${ep.episodeSlug}`)}
                       onFollowToggle={handleFollowToggle}
                       onBookmarkToggle={handleBookmarkToggle}
-                      showFullRecapLink
                       toast={toast}
                       testIdPrefix="archive-episode"
                       className=""

@@ -665,7 +665,6 @@ export default function PodcastLandingGeneric() {
                       isBookmarked={bookmarkedKeys.has(`${slug}::${ep.episodeSlug}`)}
                       onFollowToggle={handleFollowToggle}
                       onBookmarkToggle={handleBookmarkToggle}
-                      showFullRecapLink
                       toast={toast}
                       testIdPrefix="podcast-episode"
                       className=""

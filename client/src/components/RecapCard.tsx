@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "wouter";
 import { Bookmark, BookmarkCheck, BookmarkX, Share, Copy, ExternalLink, MoreHorizontal } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FeedEpisodeCard } from "@/components/FeedEpisodeCard";
@@ -157,7 +156,6 @@ export interface RecapCardProps {
   onFollowToggle?: (slug: string, follow: boolean) => void;
   onBookmarkToggle?: (episodeSlug: string, podcastSlug: string) => void;
   onBookmarkRemove?: (podcastSlug: string, episodeSlug: string) => void;
-  showFullRecapLink?: boolean;
   toast: (opts: Record<string, any>) => any;
   testIdPrefix?: string;
   className?: string;
@@ -190,7 +188,6 @@ export function RecapCard({
   onFollowToggle,
   onBookmarkToggle,
   onBookmarkRemove,
-  showFullRecapLink = false,
   toast,
   testIdPrefix = "recap",
   className = "mb-5",
@@ -211,15 +208,7 @@ export function RecapCard({
 
   const bottomBar = (
     <div className="border-t border-[#E4E4E7] flex items-center justify-between px-3 md:px-4 py-2">
-      {showFullRecapLink ? (
-        <Link href={`/podcasts/${podcastSlug}/${episodeSlug}`}>
-          <span className="text-[12px] font-medium text-[#6366F1] hover:text-[#4F46E5] transition-colors" data-testid={`${testIdPrefix}-full-recap-${id}`}>
-            Read full recap →
-          </span>
-        </Link>
-      ) : (
-        <div />
-      )}
+      <div />
       <div className="flex items-center gap-[2px]">
         {onBookmarkRemove ? (
           <button
