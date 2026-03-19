@@ -401,8 +401,8 @@ function ShopSection() {
   return (
     <div className="bg-white border border-[#F0F0F2] rounded-[14px] overflow-hidden mb-[14px]" data-testid="rail-shop">
       <div className="px-4 pt-[15px] pb-[13px] border-b border-[#F0F0F2]">
-        <div className="text-[15px] font-bold text-[#09090B]">Podcast Recommended</div>
-        <div className="text-[12px] text-[#A1A1AA] mt-0.5">Shop what podcasts are talking about</div>
+        <div className="text-[15px] font-bold text-[#09090B]">Books Mentioned on Podcasts</div>
+        <div className="text-[12px] text-[#A1A1AA] mt-0.5">See which podcasts talked about them</div>
       </div>
       {items.slice(0, 6).map((item, i) => (
         <Link key={i} href={item.link || "/shop"}>
