@@ -5,7 +5,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { getPodcastBySlug } from "../data/podcastLandingData";
-import { getPodcastCategoryInfo, TOPIC_TO_TOPICS_PAGE_MAP } from "@/data/podcastCategoryData";
+import { getPodcastCategoryInfo, TOPIC_TO_TOPICS_PAGE_MAP } from "@/data/podcastTopicHelpers";
 import { TOPICS, getTopicBySlug, getCategoryPath } from "@/data/topicData";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import { RecapCard } from "@/components/RecapCard";

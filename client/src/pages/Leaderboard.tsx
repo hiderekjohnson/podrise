@@ -6,11 +6,11 @@ import { Footer } from "@/components/Footer";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import { SiteHeader } from "@/components/SiteHeader";
 import {
-  PODCAST_CATEGORIES,
+  CATEGORY_TOPICS,
   getAllCategoryLinks,
   getQualifyingTopics,
   getPodcastsForTopic,
-} from "@/data/podcastCategoryData";
+} from "@/data/podcastTopicHelpers";
 
 const CATEGORY_MAP: Record<string, string[]> = {
   "Business": ["business", "entrepreneurship", "startup", "saas", "management", "strategy", "acquisitions", "growth", "marketing", "online marketing", "side hustles", "company analysis", "business of tech", "business news", "economic", "organizational"],
@@ -102,7 +102,7 @@ export default function Leaderboard() {
   const exploreByTopic = useMemo(() => {
     return categoryLinks
       .map(cat => {
-        const category = PODCAST_CATEGORIES.find(c => c.slug === cat.slug);
+        const category = CATEGORY_TOPICS.find(c => c.slug === cat.slug);
         if (!category) return null;
         const qualifyingTopics = getQualifyingTopics(cat.slug).slice(0, 3);
         if (qualifyingTopics.length === 0) return null;

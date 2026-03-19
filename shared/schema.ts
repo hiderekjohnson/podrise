@@ -45,20 +45,21 @@ export const bookmarks = pgTable("bookmarks", {
 export type Bookmark = typeof bookmarks.$inferSelect;
 export type InsertBookmark = typeof bookmarks.$inferInsert;
 
-export const podcastLists = pgTable("podcast_lists", {
+export const podcastCategories = pgTable("podcast_categories", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
   description: text("description"),
-  podcastSlugs: text("podcast_slugs").array().notNull().default([]),
-  category: text("category"),
+  icon: text("icon"),
+  keywords: text("keywords").array().notNull().default([]),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export type PodcastList = typeof podcastLists.$inferSelect;
-export type InsertPodcastList = typeof podcastLists.$inferInsert;
+export const insertPodcastCategorySchema = createInsertSchema(podcastCategories).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertPodcastCategory = z.infer<typeof insertPodcastCategorySchema>;
+export type PodcastCategory = typeof podcastCategories.$inferSelect;
 
 export const affiliateClicks = pgTable("affiliate_clicks", {
   id: serial("id").primaryKey(),

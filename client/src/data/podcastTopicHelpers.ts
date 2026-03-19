@@ -6,14 +6,14 @@ export interface CategoryTopic {
   description: string;
 }
 
-export interface PodcastCategory {
+export interface PodcastCategoryWithTopics {
   slug: string;
   name: string;
   description: string;
   topics: CategoryTopic[];
 }
 
-export const PODCAST_CATEGORIES: PodcastCategory[] = [
+export const CATEGORY_TOPICS: PodcastCategoryWithTopics[] = [
   {
     slug: "business",
     name: "Business",
@@ -107,18 +107,8 @@ export const PODCAST_CATEGORIES: PodcastCategory[] = [
       { slug: "science", name: "Science", description: "Scientific discoveries, research, and explanations." },
     ],
   },
-  {
-    slug: "psychology",
-    name: "Psychology",
-    description: "Psychology podcasts exploring human behavior, cognitive science, and the mind.",
-    topics: [],
-  },
-  {
-    slug: "science",
-    name: "Science",
-    description: "Science podcasts covering space, biology, physics, and the natural world.",
-    topics: [],
-  },
+  { slug: "psychology", name: "Psychology", description: "Psychology podcasts exploring human behavior, cognitive science, and the mind.", topics: [] },
+  { slug: "science", name: "Science", description: "Science podcasts covering space, biology, physics, and the natural world.", topics: [] },
 ];
 
 export const TOPIC_TO_TOPICS_PAGE_MAP: Record<string, string> = {
@@ -243,8 +233,8 @@ export function getPodcastsForTopic(categorySlug: string, topicSlug: string): Po
   return getPodcastsForCategory(categorySlug).filter(p => getTopicsForPodcast(p, categorySlug).includes(topicSlug));
 }
 
-export function getCategoryBySlug(slug: string): PodcastCategory | undefined {
-  return PODCAST_CATEGORIES.find(c => c.slug === slug);
+export function getCategoryBySlug(slug: string): PodcastCategoryWithTopics | undefined {
+  return CATEGORY_TOPICS.find(c => c.slug === slug);
 }
 
 export function getQualifyingTopics(categorySlug: string): CategoryTopic[] {
@@ -254,7 +244,7 @@ export function getQualifyingTopics(categorySlug: string): CategoryTopic[] {
 }
 
 export function getAllCategoryLinks(): { slug: string; name: string; count: number }[] {
-  return PODCAST_CATEGORIES
+  return CATEGORY_TOPICS
     .map(c => ({ slug: c.slug, name: c.name, count: getPodcastsForCategory(c.slug).length }))
     .filter(c => c.count >= 6)
     .sort((a, b) => b.count - a.count);
@@ -263,8 +253,6 @@ export function getAllCategoryLinks(): { slug: string; name: string; count: numb
 export function getTopicsPageSlug(topicSlug: string): string | null {
   return TOPIC_TO_TOPICS_PAGE_MAP[topicSlug] || null;
 }
-
-export const ALL_CATEGORY_SLUGS = PODCAST_CATEGORIES.map(c => c.slug);
 
 export function getPodcastCategoryInfo(podcast: PodcastLandingConfig): {
   category: { slug: string; name: string } | null;

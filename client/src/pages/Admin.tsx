@@ -15,7 +15,7 @@ const AnalyticsEmail = lazy(() => import("./AnalyticsEmail"));
 const ApiUsageDashboard = lazy(() => import("./ApiUsageDashboard"));
 const AdvertisersAdmin = lazy(() => import("./AdvertisersAdmin"));
 const AdminUsersManager = lazy(() => import("./AdminUsersManager"));
-const AdminListsManager = lazy(() => import("./AdminListsManager"));
+const AdminCategoriesManager = lazy(() => import("./AdminCategoriesManager"));
 const AdminErrorLogs = lazy(() => import("./AdminErrorLogs"));
 const AdminReferrals = lazy(() => import("./AdminReferrals"));
 const AdminSupportKB = lazy(() => import("./AdminSupportKB"));
@@ -329,7 +329,7 @@ export default function Admin() {
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "pending" | "directory" | "shop" | "advertisers" | "admin-users" | "lists" | "advanced" | "errors" | "referrals" | "support-kb" | "cms" | "landing-pages" | "mturk">("advanced");
+  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "pending" | "directory" | "shop" | "advertisers" | "admin-users" | "categories" | "advanced" | "errors" | "referrals" | "support-kb" | "cms" | "landing-pages" | "mturk">("advanced");
   const [analyticsSubTab, setAnalyticsSubTab] = useState<"acquisition" | "affiliates" | "growth" | "email">("acquisition");
   const [advancedSubTab, setAdvancedSubTab] = useState<"backfill" | "rss" | "hosts" | "api-costs" | "feature-flags">("backfill");
   const [backfillSubTab, setBackfillSubTab] = useState<"transcripts" | "pages" | "tools">("transcripts");
@@ -669,16 +669,16 @@ export default function Admin() {
                   Shop
                 </button>
                 <button
-                  data-testid="tab-lists"
-                  onClick={() => { setActiveTab("lists"); setSearchTerm(""); }}
+                  data-testid="tab-categories"
+                  onClick={() => { setActiveTab("categories"); setSearchTerm(""); }}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
-                    activeTab === "lists"
+                    activeTab === "categories"
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
                   }`}
                 >
                   <List className="w-4 h-4" />
-                  Lists
+                  Categories
                 </button>
                 <button
                   data-testid="tab-advertisers"
@@ -1331,9 +1331,9 @@ export default function Admin() {
                 <AdminUsersManager />
               </Suspense>
             )}
-            {activeTab === "lists" && (
+            {activeTab === "categories" && (
               <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
-                <AdminListsManager />
+                <AdminCategoriesManager />
               </Suspense>
             )}
             {activeTab === "errors" && (

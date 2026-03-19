@@ -603,6 +603,17 @@ export async function registerRoutes(
         created_at TIMESTAMP DEFAULT NOW(),
         UNIQUE(user_id, tier_id)
       );
+      CREATE TABLE IF NOT EXISTS podcast_categories (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        slug TEXT NOT NULL UNIQUE,
+        description TEXT,
+        icon TEXT,
+        keywords TEXT[] DEFAULT '{}' NOT NULL,
+        sort_order INTEGER DEFAULT 0 NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
     `);
     await migrationPool.query(`
       ALTER TABLE landing_page_recaps ADD COLUMN IF NOT EXISTS youtube_url TEXT;
@@ -13131,7 +13142,6 @@ Rules:
       await safeDelete(`DELETE FROM recaps WHERE podcast_slug = ANY($1)`, [foundSlugs]);
       await safeDelete(`DELETE FROM episodes WHERE podcast_slug = ANY($1)`, [foundSlugs]);
       await safeDelete(`DELETE FROM feed_ads WHERE podcast_slug = ANY($1)`, [foundSlugs]);
-      await safeDelete(`UPDATE podcast_lists SET podcast_slugs = ARRAY(SELECT unnest(podcast_slugs) EXCEPT SELECT unnest($1::text[])) WHERE podcast_slugs && $1`, [foundSlugs]);
       await safeDelete(`UPDATE rss_feeds SET podcast_slugs = ARRAY(SELECT unnest(podcast_slugs) EXCEPT SELECT unnest($1::text[])) WHERE podcast_slugs && $1`, [foundSlugs]);
       await pool.query(`DELETE FROM podcast_directory WHERE slug = ANY($1)`, [foundSlugs]);
       const names = existing.map((r: any) => r.name).join(", ");
@@ -17345,108 +17355,87 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     }
   });
 
-  app.get("/api/admin/lists", async (req, res) => {
-    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+  app.get("/api/categories", async (_req, res) => {
     try {
-      const result = await pool.query("SELECT * FROM podcast_lists ORDER BY category, sort_order, name");
+      const result = await pool.query("SELECT id, name, slug, description, icon, keywords, sort_order FROM podcast_categories ORDER BY sort_order, name");
       res.json(result.rows);
     } catch (err) {
-      console.error("[Lists] Fetch error:", err);
-      res.status(500).json({ error: "Failed to fetch lists" });
+      console.error("[Categories] Public fetch error:", err);
+      res.status(500).json({ error: "Failed to fetch categories" });
     }
   });
 
-  app.post("/api/admin/lists", async (req, res) => {
+  app.get("/api/admin/categories", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     try {
-      const { name, slug, description, podcastSlugs, category, sortOrder } = req.body;
+      const result = await pool.query("SELECT * FROM podcast_categories ORDER BY sort_order, name");
+      res.json(result.rows);
+    } catch (err) {
+      console.error("[Categories] Fetch error:", err);
+      res.status(500).json({ error: "Failed to fetch categories" });
+    }
+  });
+
+  app.post("/api/admin/categories", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { name, slug, description, icon, keywords, sortOrder } = req.body;
       if (!name || typeof name !== "string") return res.status(400).json({ error: "Name is required" });
       if (!slug || typeof slug !== "string") return res.status(400).json({ error: "Slug is required" });
-      if (podcastSlugs && !Array.isArray(podcastSlugs)) return res.status(400).json({ error: "podcastSlugs must be an array" });
+      if (keywords && !Array.isArray(keywords)) return res.status(400).json({ error: "keywords must be an array" });
       const result = await pool.query(
-        `INSERT INTO podcast_lists (name, slug, description, podcast_slugs, category, sort_order) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-        [name.trim(), slug.trim(), description || null, podcastSlugs || [], category || null, Number(sortOrder) || 0]
+        `INSERT INTO podcast_categories (name, slug, description, icon, keywords, sort_order) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [name.trim(), slug.trim(), description || null, icon || null, keywords || [], Number(sortOrder) || 0]
       );
       res.json(result.rows[0]);
     } catch (err: any) {
-      if (err.code === "23505") return res.status(409).json({ error: "A list with this slug already exists" });
-      console.error("[Lists] Create error:", err);
-      res.status(500).json({ error: "Failed to create list" });
+      if (err.code === "23505") return res.status(409).json({ error: "A category with this slug already exists" });
+      console.error("[Categories] Create error:", err);
+      res.status(500).json({ error: "Failed to create category" });
     }
   });
 
-  app.patch("/api/admin/lists/:id", async (req, res) => {
+  app.patch("/api/admin/categories/:id", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     try {
       const id = Number(req.params.id);
-      if (!Number.isFinite(id) || id <= 0) return res.status(400).json({ error: "Invalid list ID" });
-      const { name, slug, description, podcastSlugs, category, sortOrder } = req.body;
+      if (!Number.isFinite(id) || id <= 0) return res.status(400).json({ error: "Invalid category ID" });
+      const { name, slug, description, icon, keywords, sortOrder } = req.body;
       const fields: string[] = [];
       const values: any[] = [];
       let idx = 1;
       if (name !== undefined) { fields.push(`name = $${idx++}`); values.push(name); }
       if (slug !== undefined) { fields.push(`slug = $${idx++}`); values.push(slug); }
       if (description !== undefined) { fields.push(`description = $${idx++}`); values.push(description); }
-      if (podcastSlugs !== undefined) { fields.push(`podcast_slugs = $${idx++}`); values.push(podcastSlugs); }
-      if (category !== undefined) { fields.push(`category = $${idx++}`); values.push(category); }
+      if (icon !== undefined) { fields.push(`icon = $${idx++}`); values.push(icon); }
+      if (keywords !== undefined) { fields.push(`keywords = $${idx++}`); values.push(keywords); }
       if (sortOrder !== undefined) { fields.push(`sort_order = $${idx++}`); values.push(sortOrder); }
       fields.push(`updated_at = NOW()`);
       values.push(id);
       const result = await pool.query(
-        `UPDATE podcast_lists SET ${fields.join(", ")} WHERE id = $${idx} RETURNING *`,
+        `UPDATE podcast_categories SET ${fields.join(", ")} WHERE id = $${idx} RETURNING *`,
         values
       );
-      if (result.rows.length === 0) return res.status(404).json({ error: "List not found" });
+      if (result.rows.length === 0) return res.status(404).json({ error: "Category not found" });
       res.json(result.rows[0]);
     } catch (err: any) {
-      if (err.code === "23505") return res.status(409).json({ error: "A list with this slug already exists" });
-      console.error("[Lists] Update error:", err);
-      res.status(500).json({ error: "Failed to update list" });
+      if (err.code === "23505") return res.status(409).json({ error: "A category with this slug already exists" });
+      console.error("[Categories] Update error:", err);
+      res.status(500).json({ error: "Failed to update category" });
     }
   });
 
-  app.delete("/api/admin/lists/:id", async (req, res) => {
+  app.delete("/api/admin/categories/:id", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     try {
       const id = Number(req.params.id);
-      if (!Number.isFinite(id) || id <= 0) return res.status(400).json({ error: "Invalid list ID" });
-      const result = await pool.query("DELETE FROM podcast_lists WHERE id = $1", [id]);
-      if (result.rowCount === 0) return res.status(404).json({ error: "List not found" });
+      if (!Number.isFinite(id) || id <= 0) return res.status(400).json({ error: "Invalid category ID" });
+      const result = await pool.query("DELETE FROM podcast_categories WHERE id = $1", [id]);
+      if (result.rowCount === 0) return res.status(404).json({ error: "Category not found" });
       res.json({ success: true });
     } catch (err) {
-      console.error("[Lists] Delete error:", err);
-      res.status(500).json({ error: "Failed to delete list" });
-    }
-  });
-
-  app.get("/api/lists", async (_req, res) => {
-    try {
-      const result = await pool.query("SELECT id, name, slug, description, podcast_slugs, category FROM podcast_lists ORDER BY category, sort_order, name");
-      res.json(result.rows);
-    } catch (err) {
-      console.error("[Lists] Public fetch error:", err);
-      res.status(500).json({ error: "Failed to fetch lists" });
-    }
-  });
-
-  app.get("/api/lists/:slug", async (req, res) => {
-    try {
-      const result = await pool.query("SELECT * FROM podcast_lists WHERE slug = $1", [req.params.slug]);
-      if (result.rows.length === 0) return res.status(404).json({ error: "List not found" });
-      const list = result.rows[0];
-      const podcastSlugs = list.podcast_slugs || [];
-      let podcasts: any[] = [];
-      if (podcastSlugs.length > 0) {
-        const podcastResult = await pool.query(
-          "SELECT slug, name, artwork_url, description, category FROM podcast_directory WHERE slug = ANY($1) ORDER BY array_position($1::text[], slug)",
-          [podcastSlugs]
-        );
-        podcasts = podcastResult.rows;
-      }
-      res.json({ ...list, podcasts });
-    } catch (err) {
-      console.error("[Lists] Fetch single error:", err);
-      res.status(500).json({ error: "Failed to fetch list" });
+      console.error("[Categories] Delete error:", err);
+      res.status(500).json({ error: "Failed to delete category" });
     }
   });
 
@@ -17834,7 +17823,6 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       await safeDelete(`DELETE FROM recaps WHERE podcast_slug = ANY($1)`, [slugs]);
       await safeDelete(`DELETE FROM episodes WHERE podcast_slug = ANY($1)`, [slugs]);
       await safeDelete(`DELETE FROM feed_ads WHERE podcast_slug = ANY($1)`, [slugs]);
-      await safeDelete(`UPDATE podcast_lists SET podcast_slugs = ARRAY(SELECT unnest(podcast_slugs) EXCEPT SELECT unnest($1::text[])) WHERE podcast_slugs && $1`, [slugs]);
       await safeDelete(`UPDATE rss_feeds SET podcast_slugs = ARRAY(SELECT unnest(podcast_slugs) EXCEPT SELECT unnest($1::text[])) WHERE podcast_slugs && $1`, [slugs]);
       await pool.query(`DELETE FROM podcast_directory WHERE slug = ANY($1)`, [slugs]);
       console.log(`[PodcastDelete] Removed ${slugs.length} broken podcasts and all related data: ${slugs.join(', ')}`);
@@ -18175,20 +18163,20 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     }
 
     try {
-      const { rows: listCount } = await pool.query("SELECT COUNT(*)::int AS count FROM podcast_lists");
-      if (listCount[0].count === 0) {
-        console.log("[Seed] No podcast lists found — seeding curated lists...");
-        const { SEED_LISTS } = await import("./seedLists");
-        for (const l of SEED_LISTS) {
+      const { rows: catCount } = await pool.query("SELECT COUNT(*)::int AS count FROM podcast_categories");
+      if (catCount[0].count === 0) {
+        console.log("[Seed] No podcast categories found — seeding categories...");
+        const { SEED_CATEGORIES } = await import("./seedCategories");
+        for (const c of SEED_CATEGORIES) {
           await pool.query(
-            `INSERT INTO podcast_lists (name, slug, description, podcast_slugs, category, sort_order) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (slug) DO NOTHING`,
-            [l.name, l.slug, l.description, l.podcastSlugs, l.category, l.sortOrder]
+            `INSERT INTO podcast_categories (name, slug, description, icon, keywords, sort_order) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (slug) DO NOTHING`,
+            [c.name, c.slug, c.description, c.icon, c.keywords, c.sortOrder]
           );
         }
-        console.log(`[Seed] Seeded ${SEED_LISTS.length} curated podcast lists`);
+        console.log(`[Seed] Seeded ${SEED_CATEGORIES.length} podcast categories`);
       }
     } catch (err) {
-      console.error("[Seed] Failed to seed podcast lists:", err);
+      console.error("[Seed] Failed to seed podcast categories:", err);
     }
 
     try {
