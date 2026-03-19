@@ -1,0 +1,171 @@
+Exterior site - not logged in 
+We need to completely remove this page and all it’s functionality to clean up the site and the processing of things, as right now the backend processes are causing major issues for fixing existing issues and resolving ongoing issues. https://podrise.com/companies  https://podrise.com/people
+
+https://podrise.com/shop is giving this error Something went wrong
+An unexpected error occurred. Don't worry — your data is safe. Try reloading the page, or reach out if the problem persists.
+
+In footer - Privacy Policy
+Terms needs to be under LEGAL
+
+For whats new section on the website, we need to remove all the features that we’ve removed in the last couple days https://podrise.com/updates
+
+On https://podrise.com/podcasts remove these things, see image.
+
+From each podcast pages, remove all this stuff - Most Discussed Companies
+Bitcoin
+Bitcoin
+
+First and largest decentralized cryptocurrency
+
+3 eps
+Anthropic
+Anthropic
+
+AI safety company behind Claude
+
+2 eps
+OpenAI
+OpenAI
+
+AI research and deployment company behind ChatGPT and GPT-4
+
+2 eps
+Substack
+Substack
+
+Newsletter and publishing platform for independent writers
+
+1 ep
+Coinbase
+Coinbase
+
+Cryptocurrency exchange and blockchain platform
+
+1 ep
+Microsoft
+Microsoft
+
+Technology company behind Windows, Azure, and Copilot
+
+1 ep
+Netflix
+Netflix
+
+Streaming entertainment service
+
+1 ep
+Google
+Google
+
+Technology company and search engine giant
+
+1 ep
+Palantir
+Palantir
+
+Data analytics and AI platform for government and enterprise
+
+1 ep
+Oracle
+Oracle
+
+Enterprise software and database company
+
+1 ep
+Most Mentioned People
+Sam Altman
+Sam Altman
+
+CEO of OpenAI
+
+2 eps
+Brad Gerstner
+Brad Gerstner
+
+Founder & CEO of Altimeter Capital
+
+1 ep
+Travis Kalanick
+Travis Kalanick
+
+Co-founder of Uber
+
+1 ep
+Ray Dalio
+Ray Dalio
+
+Founder of Bridgewater Associates
+
+1 ep
+Brian Armstrong
+Brian Armstrong
+
+CEO of Coinbase
+
+1 ep
+Donald Trump
+Donald Trump
+
+47th President of the United States
+
+1 ep
+Satya Nadella
+Satya Nadella
+
+CEO of Microsoft
+
+1 ep
+Sergey Brin
+Sergey Brin
+
+Co-founder of Google
+
+1 ep
+Tucker Carlson
+Tucker Carlson
+
+Political Commentator & Media Host
+
+1 ep
+Marc Benioff
+Marc Benioff
+
+CEO of Salesforce
+
+1 ep
+Top Topics Discussed
+Technology
+(15)
+Artificial Intelligence
+(13)
+Media & Content
+(9)
+Economics
+(8)
+Investing
+(7)
+Geopolitics
+(7)
+Career Growth
+(7)
+Marketing
+(7)
+Crypto & Web3
+(5)
+Negotiation
+(5)
+
+For each episode page, remove all this stuff:
+
+Top Mentions in This All-In with Chamath, Jason, Sacks & Friedberg Episode
+People
+Tucker Carlson
+Tucker Carlson
+
+Political Commentator & Media Host
+
+Tucker Carlson was referenced as a figure whose views are increasingly deemed acceptable among some Democrats, despite being distanced from by mainstream party members.
+
+Tell me more
+
+And remove companies.
