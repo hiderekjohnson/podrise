@@ -10422,6 +10422,63 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  const clearDuplicateSpotifyState: Record<string, { running: boolean; total: number; processed: number; cleared: number; complete: boolean }> = {};
+
+  app.post("/api/admin/cms/podcasts/:slug/clear-duplicate-spotify", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { slug } = req.params;
+      if (clearDuplicateSpotifyState[slug]?.running) {
+        return res.status(409).json({ message: "Already running for this podcast" });
+      }
+      const { rows: podcastRows } = await pool.query(`SELECT spotify_url FROM podcast_directory WHERE slug = $1`, [slug]);
+      if (podcastRows.length === 0) return res.status(404).json({ message: "Podcast not found" });
+      const podcastSpotifyUrl = podcastRows[0].spotify_url;
+      if (!podcastSpotifyUrl) return res.status(400).json({ message: "Podcast has no spotify_url set" });
+
+      const { rows: episodes } = await pool.query(
+        `SELECT id, spotify_episode_url FROM landing_page_recaps WHERE slug = $1 AND spotify_episode_url IS NOT NULL AND spotify_episode_url != ''`,
+        [slug]
+      );
+
+      const state = { running: true, total: episodes.length, processed: 0, cleared: 0, complete: false };
+      clearDuplicateSpotifyState[slug] = state;
+
+      res.json({ started: true, total: episodes.length });
+
+      (async () => {
+        try {
+          for (const ep of episodes) {
+            const epUrl = (ep.spotify_episode_url || "").trim().replace(/\/+$/, "");
+            const podUrl = podcastSpotifyUrl.trim().replace(/\/+$/, "");
+            if (epUrl === podUrl) {
+              await pool.query(`UPDATE landing_page_recaps SET spotify_episode_url = '' WHERE id = $1`, [ep.id]);
+              state.cleared++;
+            }
+            state.processed++;
+            await new Promise(r => setTimeout(r, 50));
+          }
+        } catch (err) {
+          console.error("[CMS] Clear duplicate spotify error:", err);
+        } finally {
+          state.running = false;
+          state.complete = true;
+        }
+      })();
+    } catch (err: any) {
+      console.error("[CMS] Clear duplicate spotify error:", err);
+      res.status(500).json({ message: err?.message || "Failed to start clearing" });
+    }
+  });
+
+  app.get("/api/admin/cms/podcasts/:slug/clear-duplicate-spotify/status", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    const { slug } = req.params;
+    const state = clearDuplicateSpotifyState[slug];
+    if (!state) return res.json({ running: false, total: 0, processed: 0, cleared: 0, complete: false });
+    res.json(state);
+  });
+
   const podcastEnrichState = { running: false, progress: { total: 0, done: 0, updated: 0, skipped: 0, errors: 0, log: [] as string[] } };
 
   app.post("/api/admin/cms/podcast-enrich", async (req, res) => {

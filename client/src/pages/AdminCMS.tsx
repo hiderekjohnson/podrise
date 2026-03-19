@@ -1187,6 +1187,116 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
   const [refreshLog, setRefreshLog] = useState<string[] | null>(null);
   const [showDeleteConfirmDetail, setShowDeleteConfirmDetail] = useState(false);
   const [isDeletingDetail, setIsDeletingDetail] = useState(false);
+  const [clearSpotifyRunning, setClearSpotifyRunning] = useState(false);
+  const [clearSpotifyStatus, setClearSpotifyStatus] = useState<{ total: number; processed: number; cleared: number; complete: boolean } | null>(null);
+  const clearSpotifyPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const handleClearDuplicateSpotify = async () => {
+    if (!podcast?.slug || clearSpotifyRunning) return;
+    setClearSpotifyRunning(true);
+    setClearSpotifyStatus(null);
+    try {
+      const res = await fetch(`/api/admin/cms/podcasts/${podcast.slug}/clear-duplicate-spotify`, {
+        method: "POST",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast({ title: "Error", description: data.message, variant: "destructive" });
+        setClearSpotifyRunning(false);
+        return;
+      }
+      let pollFailures = 0;
+      clearSpotifyPollRef.current = setInterval(async () => {
+        try {
+          const statusRes = await fetch(`/api/admin/cms/podcasts/${podcast.slug}/clear-duplicate-spotify/status`, { credentials: "include" });
+          if (!statusRes.ok) {
+            pollFailures++;
+            if (pollFailures >= 5) {
+              if (clearSpotifyPollRef.current) clearInterval(clearSpotifyPollRef.current);
+              clearSpotifyPollRef.current = null;
+              setClearSpotifyRunning(false);
+              toast({ title: "Error", description: "Lost connection to clearing process", variant: "destructive" });
+            }
+            return;
+          }
+          pollFailures = 0;
+          const status = await statusRes.json();
+          setClearSpotifyStatus(status);
+          if (status.complete) {
+            if (clearSpotifyPollRef.current) clearInterval(clearSpotifyPollRef.current);
+            clearSpotifyPollRef.current = null;
+            setClearSpotifyRunning(false);
+            toast({ title: "Complete", description: `Cleared ${status.cleared} of ${status.total} episodes` });
+            queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/podcasts", podcast.slug] });
+          }
+        } catch {
+          pollFailures++;
+          if (pollFailures >= 5) {
+            if (clearSpotifyPollRef.current) clearInterval(clearSpotifyPollRef.current);
+            clearSpotifyPollRef.current = null;
+            setClearSpotifyRunning(false);
+            toast({ title: "Error", description: "Lost connection to clearing process", variant: "destructive" });
+          }
+        }
+      }, 500);
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+      setClearSpotifyRunning(false);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (clearSpotifyPollRef.current) clearInterval(clearSpotifyPollRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!podcast?.slug || !podcast?.spotify_url) return;
+    (async () => {
+      try {
+        const res = await fetch(`/api/admin/cms/podcasts/${podcast.slug}/clear-duplicate-spotify/status`, { credentials: "include" });
+        if (!res.ok) return;
+        const status = await res.json();
+        if (status.running) {
+          setClearSpotifyRunning(true);
+          setClearSpotifyStatus(status);
+          let pollFailures = 0;
+          clearSpotifyPollRef.current = setInterval(async () => {
+            try {
+              const statusRes = await fetch(`/api/admin/cms/podcasts/${podcast.slug}/clear-duplicate-spotify/status`, { credentials: "include" });
+              if (!statusRes.ok) {
+                pollFailures++;
+                if (pollFailures >= 5) {
+                  if (clearSpotifyPollRef.current) clearInterval(clearSpotifyPollRef.current);
+                  clearSpotifyPollRef.current = null;
+                  setClearSpotifyRunning(false);
+                }
+                return;
+              }
+              pollFailures = 0;
+              const s = await statusRes.json();
+              setClearSpotifyStatus(s);
+              if (s.complete) {
+                if (clearSpotifyPollRef.current) clearInterval(clearSpotifyPollRef.current);
+                clearSpotifyPollRef.current = null;
+                setClearSpotifyRunning(false);
+                queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/podcasts", podcast.slug] });
+              }
+            } catch {
+              pollFailures++;
+              if (pollFailures >= 5) {
+                if (clearSpotifyPollRef.current) clearInterval(clearSpotifyPollRef.current);
+                clearSpotifyPollRef.current = null;
+                setClearSpotifyRunning(false);
+              }
+            }
+          }, 500);
+        }
+      } catch {}
+    })();
+  }, [podcast?.slug]);
 
   const handleDeletePodcast = async () => {
     if (!podcast?.slug) return;
@@ -1352,6 +1462,17 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
             {isRefreshing ? "Refreshing..." : "Refresh Metadata"}
           </button>
+          {podcast.spotify_url && (
+            <button
+              onClick={handleClearDuplicateSpotify}
+              disabled={clearSpotifyRunning}
+              className="flex items-center gap-2 px-4 py-2 bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400 rounded-xl text-sm font-semibold hover:bg-orange-100 dark:hover:bg-orange-900/30 disabled:opacity-50 transition-colors border border-orange-200 dark:border-orange-800"
+              data-testid="button-clear-duplicate-spotify"
+            >
+              <XCircle className={`w-4 h-4 ${clearSpotifyRunning ? "animate-spin" : ""}`} />
+              {clearSpotifyRunning ? "Clearing..." : "Clear Invalid Spotify Links"}
+            </button>
+          )}
           <button
             onClick={() => onNavigate({ tab: "episodes", podcastSlug: slug })}
             className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl text-sm font-semibold hover:bg-primary/20 transition-colors"
@@ -1392,6 +1513,31 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
           )}
         </div>
       </div>
+
+      {clearSpotifyStatus && (
+        <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800 rounded-xl p-4 space-y-2" data-testid="clear-spotify-progress">
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-medium text-orange-700 dark:text-orange-400">
+              {clearSpotifyStatus.complete ? "Clear complete" : "Clearing invalid Spotify links..."}
+            </span>
+            <span className="text-orange-600 dark:text-orange-500">
+              {clearSpotifyStatus.processed}/{clearSpotifyStatus.total} checked &middot; {clearSpotifyStatus.cleared} cleared
+            </span>
+          </div>
+          <div className="w-full bg-orange-200 dark:bg-orange-900/30 rounded-full h-2">
+            <div
+              className="bg-orange-500 h-2 rounded-full transition-all duration-300"
+              style={{ width: clearSpotifyStatus.total > 0 ? `${(clearSpotifyStatus.processed / clearSpotifyStatus.total) * 100}%` : "0%" }}
+              data-testid="clear-spotify-progress-bar"
+            />
+          </div>
+          {clearSpotifyStatus.complete && (
+            <p className="text-sm text-orange-700 dark:text-orange-400 font-semibold" data-testid="clear-spotify-summary">
+              Cleared {clearSpotifyStatus.cleared} of {clearSpotifyStatus.total} episodes
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
