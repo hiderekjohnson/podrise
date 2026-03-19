@@ -146,7 +146,7 @@ export default function Disclosure() {
               PodRise runs paid advertisements. Brands can pay to have their products and services promoted to our audience. You can learn more on our <Link href="/advertise" className="text-primary font-medium hover:underline" data-testid="link-advertise-inline">advertising page</Link>.
             </p>
             <p>
-              These paid ads appear in the newsletter, on <Link href="/industries" className="text-primary font-medium hover:underline" data-testid="link-industries-inline">industry</Link> and category pages, and in personalized briefings — never in the <Link href="/shop" className="text-primary font-medium hover:underline" data-testid="link-shop-advertising">Shop</Link>.
+              These paid ads appear in the newsletter, on podcast pages, and in personalized briefings — never in the <Link href="/shop" className="text-primary font-medium hover:underline" data-testid="link-shop-advertising">Shop</Link>.
             </p>
             <p>
               Every paid ad is written by PodRise in our voice, but it is always clearly labeled as sponsored. There is no ambiguity about what is an ad and what is not.

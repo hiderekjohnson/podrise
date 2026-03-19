@@ -19,7 +19,7 @@ PodRise is a full-stack web application designed to provide personalized daily p
 **Entity Management**: Robust database tables for people and companies, linked to episodes via mentions detected through text-matching and AI context generation.
 **API Usage Tracking**: All OpenAI API calls are logged for cost monitoring and categorization.
 **Referral Program**: A "Pod Squad" referral system with tiered rewards and tracking for email-verified users.
-**Pulse Product (Pro)**: A paid subscription offering personalized daily topic briefings with Stripe integration for payment processing.
+**Pulse Product (Pro)**: DISABLED — daily pulse scheduler, all pulse routes, and all public-facing pulse/industry/topic/role navigation removed. Feature flag `pulse` is OFF in production. Backend code and pages preserved for future re-enable. To re-enable: uncomment `startDailyPulseScheduler()` in routes.ts, restore routes in App.tsx, and re-add Explore dropdown to SiteHeader.tsx.
 **Feature Flags**: A scalable system for managing features with global toggles and per-user overrides.
 **SEO/SSR Pipeline**: Asynchronous, DB-backed meta tag injection and Server-Side Rendering (SSR) for all public pages to enhance search engine visibility.
 **Logged-In Feed Experience**: Features a three-column layout with an icon-only sidebar, magazine-style episode cards, and a right rail for search, referrals, and shop.

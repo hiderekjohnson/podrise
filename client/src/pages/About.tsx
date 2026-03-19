@@ -223,35 +223,35 @@ export default function About() {
         >
           <div className="relative bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-8 sm:p-10 shadow-sm overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40 rounded-t-2xl" />
-            <h3 className="text-lg font-display font-bold text-foreground text-center mb-3">Explore by industry, interest, or role</h3>
+            <h3 className="text-lg font-display font-bold text-foreground text-center mb-3">Explore podcasts, people, and companies</h3>
             <p className="text-[16px] text-muted-foreground text-center max-w-lg mx-auto mb-8">
-              Every topic comes with a daily intelligence briefing, curated reading lists, key people to follow, and the best podcasts to listen to.
+              Discover the best podcasts, track the people shaping conversations, and follow the companies making headlines.
             </p>
             <div className="grid sm:grid-cols-3 gap-4">
-              <Link href="/industries" data-testid="link-explore-industries">
+              <Link href="/podcasts" data-testid="link-explore-podcasts">
                 <div className="group bg-card border border-border rounded-xl p-5 text-center hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer">
                   <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center mx-auto mb-3">
                     <Building2 className="w-5 h-5 text-blue-600" />
                   </div>
-                  <p className="text-[16px] font-display font-bold text-foreground group-hover:text-primary transition-colors mb-1">Industries</p>
-                  <p className="text-[14px] text-muted-foreground">AI, Healthcare, Finance, Real Estate, and more</p>
+                  <p className="text-[16px] font-display font-bold text-foreground group-hover:text-primary transition-colors mb-1">Podcasts</p>
+                  <p className="text-[14px] text-muted-foreground">Browse 268+ shows with AI-powered episode recaps</p>
                 </div>
               </Link>
-              <Link href="/interests" data-testid="link-explore-interests">
+              <Link href="/people" data-testid="link-explore-people">
                 <div className="group bg-card border border-border rounded-xl p-5 text-center hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer">
                   <div className="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center mx-auto mb-3">
                     <Zap className="w-5 h-5 text-amber-600" />
                   </div>
-                  <p className="text-[16px] font-display font-bold text-foreground group-hover:text-primary transition-colors mb-1">Interests</p>
-                  <p className="text-[14px] text-muted-foreground">Health, Leadership, Personal Finance, and more</p>
+                  <p className="text-[16px] font-display font-bold text-foreground group-hover:text-primary transition-colors mb-1">People</p>
+                  <p className="text-[14px] text-muted-foreground">Guests, hosts, and experts across top podcasts</p>
                 </div>
               </Link>
-              <Link href="/roles" data-testid="link-explore-roles">
+              <Link href="/companies" data-testid="link-explore-companies">
                 <div className="group bg-card border border-border rounded-xl p-5 text-center hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer">
                   <div className="w-11 h-11 rounded-xl bg-[#EEF2FF] dark:bg-[#6366F1]/10 flex items-center justify-center mx-auto mb-3">
                     <Briefcase className="w-5 h-5 text-[#6366F1]" />
                   </div>
-                  <p className="text-[16px] font-display font-bold text-foreground group-hover:text-primary transition-colors mb-1">Roles</p>
+                  <p className="text-[16px] font-display font-bold text-foreground group-hover:text-primary transition-colors mb-1">Companies</p>
                   <p className="text-[14px] text-muted-foreground">CEOs, Product Managers, Engineers, Marketers, and more</p>
                 </div>
               </Link>
@@ -391,16 +391,16 @@ export default function About() {
               </Link>
             </div>
             <div className="flex-1 bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-7 shadow-sm">
-              <h3 className="text-lg font-display font-bold mb-2">Explore by topic</h3>
+              <h3 className="text-lg font-display font-bold mb-2">Explore podcasts</h3>
               <p className="text-base text-[#52525B] dark:text-[#A1A1AA] leading-relaxed mb-4">
-                Browse industries, interests, and roles — each with daily briefings, recommended reading, and top voices.
+                Browse 268+ podcasts with AI-powered recaps, key insights, and the best books and products recommended by hosts.
               </p>
               <Link
-                href="/industries"
+                href="/podcasts"
                 className="inline-flex items-center gap-1.5 text-base font-bold text-primary hover:text-primary/80 transition-colors"
                 data-testid="link-browse-topics"
               >
-                Explore Industries
+                Browse Podcasts
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -434,11 +434,11 @@ export default function About() {
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
-                  href="/industries"
+                  href="/podcasts"
                   className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.1] text-base font-bold text-foreground shadow-sm hover:shadow-md transition-all"
                   data-testid="link-cta-browse"
                 >
-                  Explore Industries
+                  Browse Podcasts
                 </Link>
               </div>
             </div>

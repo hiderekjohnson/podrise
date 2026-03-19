@@ -329,9 +329,6 @@ const STATIC_PAGES = [
   { path: "/shop", priority: "0.8", changefreq: "weekly" },
   { path: "/people", priority: "0.8", changefreq: "weekly" },
   { path: "/companies", priority: "0.8", changefreq: "weekly" },
-  { path: "/industries", priority: "0.8", changefreq: "weekly" },
-  { path: "/interests", priority: "0.8", changefreq: "weekly" },
-  { path: "/roles", priority: "0.8", changefreq: "weekly" },
   { path: "/insights", priority: "0.7", changefreq: "weekly" },
   { path: "/pod-squad", priority: "0.7", changefreq: "weekly" },
   { path: "/about", priority: "0.5", changefreq: "monthly" },
@@ -419,12 +416,6 @@ async function buildSitemap(): Promise<string> {
       xml += `    <lastmod>${today}</lastmod>\n`;
       xml += `    <changefreq>weekly</changefreq>\n`;
       xml += `    <priority>0.7</priority>\n`;
-      xml += `  </url>\n`;
-      xml += `  <url>\n`;
-      xml += `    <loc>${DOMAIN}${categoryPath}/${topic.slug}/pulse</loc>\n`;
-      xml += `    <lastmod>${today}</lastmod>\n`;
-      xml += `    <changefreq>daily</changefreq>\n`;
-      xml += `    <priority>0.6</priority>\n`;
       xml += `  </url>\n`;
     }
   } catch (err) {
@@ -18781,12 +18772,14 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       console.error("[Cache] Pre-warm failed:", err);
     }
 
-    try {
-      const { startDailyPulseScheduler } = await import("./dailyPulseScheduler");
-      startDailyPulseScheduler();
-    } catch (err) {
-      console.error("[DailyPulse] Scheduler start failed:", err);
-    }
+    // Pulse scheduler disabled — feature not yet ready for production
+    // To re-enable: uncomment and redeploy
+    // try {
+    //   const { startDailyPulseScheduler } = await import("./dailyPulseScheduler");
+    //   startDailyPulseScheduler();
+    // } catch (err) {
+    //   console.error("[DailyPulse] Scheduler start failed:", err);
+    // }
 
     try {
       await storage.seedDefaultFeatureFlags();

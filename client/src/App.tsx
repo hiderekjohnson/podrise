@@ -146,29 +146,29 @@ function Router() {
         <Route path="/pod-squad" component={PodSquad} />
         <Route path="/refer">{() => { window.location.replace("/pod-squad"); return null; }}</Route>
         <Route path="/enterprise" component={Enterprise} />
-        <Route path="/trends">{() => { window.location.replace("/industries"); return null; }}</Route>
-        <Route path="/industries/:slug/pulse/:date" component={PulseGatedTopicPulsePage} />
-        <Route path="/industries/:slug/pulse" component={PulseGatedTopicPulsePage} />
-        <Route path="/industries/:slug" component={TopicDetailPage} />
-        <Route path="/industries" component={CategoryDirectory} />
-        <Route path="/interests/:slug/pulse/:date" component={PulseGatedTopicPulsePage} />
-        <Route path="/interests/:slug/pulse" component={PulseGatedTopicPulsePage} />
-        <Route path="/interests/:slug" component={TopicDetailPage} />
-        <Route path="/interests" component={CategoryDirectory} />
-        <Route path="/roles/:slug/pulse/:date" component={PulseGatedTopicPulsePage} />
-        <Route path="/roles/:slug/pulse" component={PulseGatedTopicPulsePage} />
-        <Route path="/roles/:slug" component={TopicDetailPage} />
-        <Route path="/roles" component={CategoryDirectory} />
-        <Route path="/insights/:slug/pulse/:date" component={PulseGatedTopicPulsePage} />
-        <Route path="/insights/:slug/pulse" component={PulseGatedTopicPulsePage} />
-        <Route path="/insights/:slug" component={TopicDetailPage} />
-        <Route path="/insights" component={TopicsDirectory} />
-        <Route path="/topics/:slug/pulse/:date" component={PulseGatedTopicPulsePage} />
-        <Route path="/topics/:slug/pulse" component={PulseGatedTopicPulsePage} />
-        <Route path="/topics/:slug" component={TopicDetailPage} />
-        <Route path="/topics" component={TopicsDirectory} />
+        <Route path="/trends">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/industries/:slug/pulse/:date">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/industries/:slug/pulse">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/industries/:slug">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/industries">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/interests/:slug/pulse/:date">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/interests/:slug/pulse">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/interests/:slug">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/interests">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/roles/:slug/pulse/:date">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/roles/:slug/pulse">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/roles/:slug">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/roles">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/insights/:slug/pulse/:date">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/insights/:slug/pulse">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/insights/:slug">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/insights">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/topics/:slug/pulse/:date">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/topics/:slug/pulse">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/topics/:slug">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/topics">{() => { window.location.replace("/"); return null; }}</Route>
         <Route path="/upgrade" component={UpgradeGatedPage} />
-        <Route path="/pulse" component={PulseGatedMyPulsePage} />
+        <Route path="/pulse">{() => { window.location.replace("/"); return null; }}</Route>
         <Route path="/podcaster/claim" component={PodcasterClaim} />
         <Route path="/podcaster/verify" component={PodcasterDashboard} />
         <Route path="/podcaster/dashboard/:slug" component={PodcasterDashboard} />

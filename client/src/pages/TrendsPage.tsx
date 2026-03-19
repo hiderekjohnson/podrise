@@ -616,35 +616,6 @@ export default function TrendsPage() {
                   delay={0.1}
                 />
 
-                <CategorySection
-                  title="Industries"
-                  icon={Globe}
-                  entities={topicsByCategory.industries}
-                  accentColor="bg-[#F0FDF4] text-[#15803D]"
-                  seeAllHref="/industries"
-                  seeAllLabel="All Industries"
-                  delay={0.15}
-                />
-
-                <CategorySection
-                  title="Roles"
-                  icon={Users}
-                  entities={topicsByCategory.roles}
-                  accentColor="bg-[#EFF6FF] text-[#1D4ED8]"
-                  seeAllHref="/roles"
-                  seeAllLabel="All Roles"
-                  delay={0.2}
-                />
-
-                <CategorySection
-                  title="Interests"
-                  icon={Sparkles}
-                  entities={topicsByCategory.interests}
-                  accentColor="bg-[#F5F3FF] text-[#7C3AED]"
-                  seeAllHref="/interests"
-                  seeAllLabel="All Interests"
-                  delay={0.25}
-                />
               </div>
 
               <div className="lg:col-span-1 mt-8 lg:mt-0 pt-8 lg:pt-0 border-t lg:border-t-0 lg:border-l border-[#F0F0F2] lg:pl-8">
@@ -661,20 +632,6 @@ export default function TrendsPage() {
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 lg:sticky lg:top-[84px]">
-                    <GatewayCard
-                      href="/industries"
-                      icon={Globe}
-                      title="Industry Intelligence"
-                      description="AI-powered analysis of what's happening across industries — from healthcare to fintech to media"
-                      testId="link-explore-industries"
-                    />
-                    <GatewayCard
-                      href="/interests"
-                      icon={Lightbulb}
-                      title="Topic Deep Dives"
-                      description="Explore what experts are saying about AI, leadership, markets, health, and more"
-                      testId="link-explore-interests"
-                    />
                     <GatewayCard
                       href="/people"
                       icon={Users}

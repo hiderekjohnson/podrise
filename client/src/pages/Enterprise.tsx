@@ -407,32 +407,32 @@ export default function Enterprise() {
               Explore what we cover
             </h2>
             <p className="text-[16px] text-muted-foreground max-w-xl mx-auto leading-relaxed mb-8">
-              Browse the industries, interests, and roles we already track — each one with daily intelligence briefings and curated discovery tools.
+              Explore the podcasts, people, and companies we already track — each with AI-powered recaps and discovery tools.
             </p>
             <div className="flex flex-wrap justify-center gap-3">
               <Link
-                href="/industries"
+                href="/podcasts"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-border bg-card text-base font-semibold hover:border-primary/30 hover:shadow-sm transition-all"
-                data-testid="link-browse-industries"
+                data-testid="link-browse-podcasts"
               >
                 <Building2 className="w-4 h-4 text-primary" />
-                Industries
+                Podcasts
               </Link>
               <Link
-                href="/interests"
+                href="/people"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-border bg-card text-base font-semibold hover:border-primary/30 hover:shadow-sm transition-all"
-                data-testid="link-browse-interests"
+                data-testid="link-browse-people"
               >
                 <Zap className="w-4 h-4 text-primary" />
-                Interests
+                People
               </Link>
               <Link
-                href="/roles"
+                href="/companies"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-border bg-card text-base font-semibold hover:border-primary/30 hover:shadow-sm transition-all"
-                data-testid="link-browse-roles"
+                data-testid="link-browse-companies"
               >
                 <Briefcase className="w-4 h-4 text-primary" />
-                Roles
+                Companies
               </Link>
             </div>
           </div>

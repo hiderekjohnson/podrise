@@ -297,10 +297,10 @@ export default function Home() {
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
             >
               {[
-                { href: "/industries", icon: Building2, title: "By Industry", desc: "Tech, finance, healthcare, real estate — get daily recaps from podcasts that cover your industry." },
-                { href: "/interests", icon: Sparkles, title: "By Interest", desc: "AI, leadership, personal finance, health — follow the topics you care about across all the best podcasts." },
-                { href: "/roles", icon: Users, title: "By Role", desc: "Founder, marketer, engineer, investor — see the podcasts that people in your role are following." },
                 { href: "/podcasts", icon: Mic, title: "By Podcast", desc: "Already know what you listen to? Search for specific shows and start getting their recaps delivered daily." },
+                { href: "/people", icon: Users, title: "By Person", desc: "Find guests, hosts, and experts mentioned across top podcasts — see who's shaping the conversation." },
+                { href: "/companies", icon: Building2, title: "By Company", desc: "Track what podcasts are saying about the companies you follow — from startups to public giants." },
+                { href: "/shop", icon: Sparkles, title: "Shop", desc: "Discover the best books, tools, and products recommended by top podcast hosts and guests." },
               ].map((card) => (
                 <motion.div key={card.href} variants={stagger.item}>
                   <Link href={card.href} className="block h-full">
