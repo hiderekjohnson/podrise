@@ -11,6 +11,7 @@ import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "../data/entityDirectoryDa
 import { Link, useLocation } from "wouter";
 import { GetRecapsModal } from "@/components/GetRecapsModal";
 import { FeedStyleCard, FeedStyleCardHeader, FeedStyleCardSection } from "@/components/FeedStyleCard";
+import { RecapCard } from "@/components/RecapCard";
 import { PodcastPageLayout } from "@/components/PodcastPageLayout";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -521,6 +522,18 @@ export default function EpisodeRecapPage() {
   });
   const removeBookmarkMut = useMutation({
     mutationFn: async () => { await apiRequest("DELETE", `/api/bookmarks/${encodeURIComponent(podcastSlug)}/${encodeURIComponent(episodeSlug)}`); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] }); },
+  });
+  const genericAddBookmark = useMutation({
+    mutationFn: async ({ episodeSlug: es, podcastSlug: ps }: { episodeSlug: string; podcastSlug: string }) => {
+      await apiRequest("POST", "/api/bookmarks", { episodeSlug: es, podcastSlug: ps });
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] }); },
+  });
+  const genericRemoveBookmark = useMutation({
+    mutationFn: async ({ episodeSlug: es, podcastSlug: ps }: { episodeSlug: string; podcastSlug: string }) => {
+      await apiRequest("DELETE", `/api/bookmarks/${encodeURIComponent(ps)}/${encodeURIComponent(es)}`);
+    },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] }); },
   });
 
@@ -1532,71 +1545,103 @@ export default function EpisodeRecapPage() {
 
   const mainContent = (
     <div className={`px-4 md:px-6 py-6 ${authUser ? "pb-24 md:pb-8" : "pb-8"} ${!authUser ? "max-w-4xl mx-auto" : ""}`}>
-      <FeedStyleCard testId="episode-feed-card">
-        <FeedStyleCardHeader
-          imageUrl={episode.artworkUrl || podcastConfig?.artworkUrl || ""}
-          imageAlt={episode.podcastName}
-          imageLink={`/podcasts/${podcastSlug}`}
-          name={episode.podcastName}
-          nameLink={`/podcasts/${podcastSlug}`}
-          meta={metaItems}
-          tintSource={episode.artworkUrl || podcastSlug}
+      {authUser ? (
+        <RecapCard
+          id={`${podcastSlug}-${episodeSlug}`}
+          podcastSlug={podcastSlug}
+          episodeSlug={episodeSlug}
+          podcastName={episode.podcastName}
+          episodeTitle={episode.episodeTitle}
+          publishDate={episode.publishDate}
+          artworkUrl={episode.artworkUrl || podcastConfig?.artworkUrl || null}
+          tldl={episode.tldl}
+          tabloidSubHeadline={episode.tabloidSubHeadline}
+          keyInsights={episode.keyInsights}
+          quote={firstQuote?.quoteText || null}
+          quoteAttribution={firstQuote?.speakerName ? `${firstQuote.speakerName}${firstQuote.speakerRole ? `, ${firstQuote.speakerRole}` : ""}` : null}
+          duration={episode.duration}
+          hosts={podcastConfig?.hosts}
+          totalEpisodes={podcastConfig?.totalEpisodes}
+          yearStarted={podcastConfig?.yearStarted}
+          whatHappened={episode.whatHappened}
+          spotifyEpisodeUrl={episode.spotifyEpisodeUrl}
+          spotifyUrl={episode.spotifyUrl}
+          youtubeUrl={episode.youtubeUrl}
+          isFollowing={isFollowing}
+          isBookmarked={isBookmarked}
+          onFollowToggle={(slug, follow) => followMutation.mutate({ follow })}
+          onBookmarkToggle={() => { if (isBookmarked) removeBookmarkMut.mutate(); else addBookmarkMut.mutate(); }}
+          toast={toast}
           testIdPrefix="episode-card"
-          rightAction={headerRightAction}
+          className="mb-0"
         />
-        <FeedStyleCardSection>
-          <div className="flex items-baseline justify-between gap-3 mb-[9px]">
-            <span className="text-[12px] text-[#A1A1AA] overflow-hidden text-ellipsis whitespace-nowrap flex-1 min-w-0" style={{ fontFamily: "var(--font-mono)" }} data-testid="episode-card-title">
-              {episode.episodeTitle}
-            </span>
-            <span className="text-[12px] text-[#A1A1AA] whitespace-nowrap flex-shrink-0" style={{ fontFamily: "var(--font-mono)" }}>
-              {relativeTime(episode.publishDate)}
-            </span>
-          </div>
-          {episode.tldl && (
-            <h3 className="text-[26px] font-normal text-[#09090B] dark:text-white leading-[1.2] tracking-[-0.01em]" style={{ fontFamily: "var(--font-serif)" }} data-testid="episode-card-headline">
-              {episode.tldl}
-            </h3>
-          )}
-        </FeedStyleCardSection>
-
-        {episode.keyInsights?.length > 0 && (
+      ) : (
+        <FeedStyleCard testId="episode-feed-card">
+          <FeedStyleCardHeader
+            imageUrl={episode.artworkUrl || podcastConfig?.artworkUrl || ""}
+            imageAlt={episode.podcastName}
+            imageLink={`/podcasts/${podcastSlug}`}
+            name={episode.podcastName}
+            nameLink={`/podcasts/${podcastSlug}`}
+            meta={metaItems}
+            tintSource={episode.artworkUrl || podcastSlug}
+            testIdPrefix="episode-card"
+            rightAction={headerRightAction}
+          />
           <FeedStyleCardSection>
-            <div id="section-key-insights" data-testid="section-key-insights">
-              <span className="text-[11px] font-medium tracking-[0.15em] uppercase text-[#A1A1AA] block mb-4" style={{ fontFamily: "var(--font-mono)" }}>
-                KEY TAKEAWAYS
+            <div className="flex items-baseline justify-between gap-3 mb-[9px]">
+              <span className="text-[12px] text-[#A1A1AA] overflow-hidden text-ellipsis whitespace-nowrap flex-1 min-w-0" style={{ fontFamily: "var(--font-mono)" }} data-testid="episode-card-title">
+                {episode.episodeTitle}
               </span>
-              <div className="space-y-4">
-                {episode.keyInsights.map((insight: string, i: number) => (
-                  <div
-                    key={i}
-                    className="flex gap-3 items-start"
-                    data-testid={`insight-${i}`}
-                  >
-                    <span className="w-[8px] h-[8px] rounded-full bg-[#6366F1] shrink-0 mt-[9px]" />
-                    <p className="text-[15px] leading-[1.75] text-[#52525B] dark:text-[#A1A1AA] flex-1">{insight.replace(/\[([^\]]+)\]/g, '$1')}</p>
-                  </div>
-                ))}
-              </div>
+              <span className="text-[12px] text-[#A1A1AA] whitespace-nowrap flex-shrink-0" style={{ fontFamily: "var(--font-mono)" }}>
+                {relativeTime(episode.publishDate)}
+              </span>
             </div>
+            {episode.tldl && (
+              <h3 className="text-[26px] font-normal text-[#09090B] dark:text-white leading-[1.2] tracking-[-0.01em]" style={{ fontFamily: "var(--font-serif)" }} data-testid="episode-card-headline">
+                {episode.tldl}
+              </h3>
+            )}
           </FeedStyleCardSection>
-        )}
 
-        {!authUser && firstQuote && (
-          <FeedStyleCardSection>
-            <blockquote className="border-l-[3px] border-[#6366F1] pl-5 py-1" data-testid="inline-blockquote">
-              <p className="text-[17px] leading-[1.7] text-[#09090B] dark:text-white italic" style={{ fontFamily: "var(--font-serif)" }}>
-                "{firstQuote.quoteText}"
-              </p>
-              {firstQuote.speakerName && (
-                <cite className="text-[13px] text-[#A1A1AA] not-italic mt-2 block">
-                  — {firstQuote.speakerName}{firstQuote.speakerRole ? `, ${firstQuote.speakerRole}` : ""}
-                </cite>
-              )}
-            </blockquote>
-          </FeedStyleCardSection>
-        )}
-      </FeedStyleCard>
+          {episode.keyInsights?.length > 0 && (
+            <FeedStyleCardSection>
+              <div id="section-key-insights" data-testid="section-key-insights">
+                <span className="text-[11px] font-medium tracking-[0.15em] uppercase text-[#A1A1AA] block mb-4" style={{ fontFamily: "var(--font-mono)" }}>
+                  KEY TAKEAWAYS
+                </span>
+                <div className="space-y-4">
+                  {episode.keyInsights.map((insight: string, i: number) => (
+                    <div
+                      key={i}
+                      className="flex gap-3 items-start"
+                      data-testid={`insight-${i}`}
+                    >
+                      <span className="w-[8px] h-[8px] rounded-full bg-[#6366F1] shrink-0 mt-[9px]" />
+                      <p className="text-[15px] leading-[1.75] text-[#52525B] dark:text-[#A1A1AA] flex-1">{insight.replace(/\[([^\]]+)\]/g, '$1')}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </FeedStyleCardSection>
+          )}
+
+          {firstQuote && (
+            <FeedStyleCardSection>
+              <blockquote className="border-l-[3px] border-[#6366F1] pl-5 py-1" data-testid="inline-blockquote">
+                <p className="text-[17px] leading-[1.7] text-[#09090B] dark:text-white italic" style={{ fontFamily: "var(--font-serif)" }}>
+                  "{firstQuote.quoteText}"
+                </p>
+                {firstQuote.speakerName && (
+                  <cite className="text-[13px] text-[#A1A1AA] not-italic mt-2 block">
+                    — {firstQuote.speakerName}{firstQuote.speakerRole ? `, ${firstQuote.speakerRole}` : ""}
+                  </cite>
+                )}
+              </blockquote>
+            </FeedStyleCardSection>
+          )}
+        </FeedStyleCard>
+      )}
 
       {!authUser && (
         <div className="mt-5 bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl shadow-sm shadow-black/[0.02] overflow-hidden px-4 sm:px-6 py-5" data-testid="episode-recap-body-card">
@@ -1643,7 +1688,7 @@ export default function EpisodeRecapPage() {
         </motion.div>
       )}
 
-      {!authUser && previousEpisodes.length > 0 && (
+      {previousEpisodes.length > 0 && (
         <motion.section
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1656,7 +1701,37 @@ export default function EpisodeRecapPage() {
             <span className="text-base font-bold text-primary uppercase tracking-wider">More {episode.podcastName} Episode Recaps</span>
           </div>
           <div className="space-y-3">
-            {previousEpisodes.map((ep: any) => (
+            {authUser ? previousEpisodes.map((ep: any) => (
+              <RecapCard
+                key={ep.episodeSlug}
+                id={`${podcastSlug}-${ep.episodeSlug}`}
+                podcastSlug={podcastSlug}
+                episodeSlug={ep.episodeSlug}
+                podcastName={episode.podcastName}
+                episodeTitle={ep.episodeTitle}
+                publishDate={ep.publishDate}
+                artworkUrl={episode.artworkUrl || podcastConfig?.artworkUrl || null}
+                tldl={ep.tldl}
+                duration={ep.duration}
+                hosts={podcastConfig?.hosts}
+                totalEpisodes={podcastConfig?.totalEpisodes}
+                yearStarted={podcastConfig?.yearStarted}
+                isFollowing={isFollowing}
+                isBookmarked={(bookmarksData || []).some((b: any) => b.episodeSlug === ep.episodeSlug && b.podcastSlug === podcastSlug)}
+                onFollowToggle={(slug, follow) => followMutation.mutate({ follow })}
+                onBookmarkToggle={(epSlug, pSlug) => {
+                  const bookmarked = (bookmarksData || []).some((b: any) => b.episodeSlug === epSlug && b.podcastSlug === pSlug);
+                  if (bookmarked) {
+                    genericRemoveBookmark.mutate({ episodeSlug: epSlug, podcastSlug: pSlug });
+                  } else {
+                    genericAddBookmark.mutate({ episodeSlug: epSlug, podcastSlug: pSlug });
+                  }
+                }}
+                toast={toast}
+                testIdPrefix="card-more-episode"
+                className=""
+              />
+            )) : previousEpisodes.map((ep: any) => (
               <EpisodeCard
                 key={ep.episodeSlug}
                 episodeSlug={ep.episodeSlug}

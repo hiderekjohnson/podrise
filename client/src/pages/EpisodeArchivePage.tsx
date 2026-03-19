@@ -1,12 +1,14 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, Link } from "wouter";
 import { Search, ChevronDown, ChevronRight, Loader2, ArrowUpDown, Users, Tag, X, Clock, Calendar as CalendarIcon, UserCheck, Filter, Timer } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { getPodcastBySlug } from "../data/podcastLandingData";
 import { getPodcastCategoryInfo, TOPIC_TO_TOPICS_PAGE_MAP } from "@/data/podcastCategoryData";
 import { TOPICS, getTopicBySlug, getCategoryPath } from "@/data/topicData";
 import { EpisodeCard } from "@/components/EpisodeCard";
-import { FeedEpisodeCard } from "@/components/FeedEpisodeCard";
+import { RecapCard } from "@/components/RecapCard";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/hooks/use-auth";
@@ -82,7 +84,61 @@ export default function EpisodeArchivePage() {
   const [guestSearch, setGuestSearch] = useState("");
   const [topicSearch, setTopicSearch] = useState("");
 
+  const { toast } = useToast();
+
   const podcastConfig = getPodcastBySlug(slug);
+
+  type BookmarkRecord = { id: number; episodeSlug: string; podcastSlug: string };
+  const { data: bookmarksData } = useQuery<BookmarkRecord[]>({
+    queryKey: ["/api/bookmarks"],
+    enabled: isLoggedIn,
+  });
+  const bookmarkedKeys = new Set((bookmarksData || []).map((b: BookmarkRecord) => `${b.podcastSlug}::${b.episodeSlug}`));
+
+  const { data: followData } = useQuery<{ followedSlugs: string[] }>({
+    queryKey: ["/api/feed/followed-slugs"],
+    enabled: isLoggedIn,
+  });
+  const isFollowing = followData?.followedSlugs?.includes(slug) ?? false;
+
+  const addBookmark = useMutation({
+    mutationFn: async ({ episodeSlug, podcastSlug }: { episodeSlug: string; podcastSlug: string }) => {
+      await apiRequest("POST", "/api/bookmarks", { episodeSlug, podcastSlug });
+    },
+    onSuccess: () => { toast({ title: "Saved", description: "Episode saved" }); },
+    onSettled: () => { queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] }); },
+  });
+
+  const removeBookmark = useMutation({
+    mutationFn: async ({ podcastSlug, episodeSlug }: { podcastSlug: string; episodeSlug: string }) => {
+      await apiRequest("DELETE", `/api/bookmarks/${encodeURIComponent(podcastSlug)}/${encodeURIComponent(episodeSlug)}`);
+    },
+    onSuccess: () => { toast({ title: "Removed", description: "Episode removed from saved" }); },
+    onSettled: () => { queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] }); },
+  });
+
+  const handleBookmarkToggle = useCallback((episodeSlug: string, podcastSlug: string) => {
+    if (!authUser) return;
+    const key = `${podcastSlug}::${episodeSlug}`;
+    if (bookmarkedKeys.has(key)) removeBookmark.mutate({ podcastSlug, episodeSlug });
+    else addBookmark.mutate({ episodeSlug, podcastSlug });
+  }, [bookmarkedKeys, addBookmark, removeBookmark, authUser]);
+
+  const followMutation = useMutation({
+    mutationFn: async ({ follow }: { follow: boolean }) => {
+      const endpoint = follow ? "/api/feed/follow" : "/api/feed/unfollow";
+      await apiRequest("POST", endpoint, { podcastSlug: slug });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/feed/followed-slugs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/feed"] });
+    },
+  });
+
+  const handleFollowToggle = useCallback((podcastSlug: string, follow: boolean) => {
+    if (!authUser) return;
+    followMutation.mutate({ follow });
+  }, [authUser, followMutation]);
 
   const { data: dbEntry } = useQuery<any>({
     queryKey: ["/api/podcasts/by-slug", slug],
@@ -789,20 +845,31 @@ export default function EpisodeArchivePage() {
               <div className="flex flex-col gap-5" data-testid="section-episodes">
                 {visibleEpisodes.map((ep: any) => (
                   isLoggedIn ? (
-                    <FeedEpisodeCard
+                    <RecapCard
                       key={ep.episodeSlug}
+                      id={ep.id || ep.episodeSlug}
                       episodeSlug={ep.episodeSlug}
                       podcastSlug={slug}
                       podcastName={config.name}
-                      publishDate={ep.publishDate}
                       episodeTitle={ep.episodeTitle}
+                      publishDate={ep.publishDate}
+                      artworkUrl={config.artworkUrl}
                       tldl={ep.tldl}
                       keyInsights={ep.keyInsights}
                       quote={ep.quote}
                       quoteAttribution={ep.quoteAttribution}
                       duration={ep.duration}
-                      artworkUrl={config.artworkUrl}
+                      whatHappened={ep.whatHappened}
+                      hosts={podcastConfig?.hosts || undefined}
+                      totalEpisodes={podcastConfig?.totalEpisodes || undefined}
+                      yearStarted={podcastConfig?.yearStarted || undefined}
+                      isFollowing={isFollowing}
+                      isBookmarked={bookmarkedKeys.has(`${slug}::${ep.episodeSlug}`)}
+                      onFollowToggle={handleFollowToggle}
+                      onBookmarkToggle={handleBookmarkToggle}
+                      toast={toast}
                       testIdPrefix="archive-episode"
+                      className=""
                     />
                   ) : (
                     <EpisodeCard

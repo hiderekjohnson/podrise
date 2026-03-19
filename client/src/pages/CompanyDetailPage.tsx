@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowLeft, MessageSquare, Headphones, Calendar, ExternalLink, Building2, Globe, MapPin, Users, DollarSign, Briefcase, Clock, Zap } from "lucide-react";
@@ -8,7 +8,11 @@ import { Footer } from "@/components/Footer";
 import { getCompanyBySlug, getPersonBySlug as getPersonData, COMPANIES_DIRECTORY, PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
 import { SiteHeader } from "@/components/SiteHeader";
 import { FeedStyleCard, FeedStyleCardHeader } from "@/components/FeedStyleCard";
+import { RecapCard } from "@/components/RecapCard";
+import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import { useAuth } from "@/hooks/use-auth";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface EpisodeEntry {
   slug: string;
@@ -37,6 +41,59 @@ export default function CompanyDetailPage() {
   const companyData = getCompanyBySlug(slug);
   const [activeSection, setActiveSection] = useState("");
   const [showAllEpisodes, setShowAllEpisodes] = useState(false);
+  const { toast } = useToast();
+
+  type BookmarkRecord = { id: number; episodeSlug: string; podcastSlug: string };
+  const { data: bookmarksData } = useQuery<BookmarkRecord[]>({
+    queryKey: ["/api/bookmarks"],
+    enabled: isLoggedIn,
+  });
+  const bookmarkedKeys = new Set((bookmarksData || []).map((b: BookmarkRecord) => `${b.podcastSlug}::${b.episodeSlug}`));
+
+  const { data: followData } = useQuery<{ followedSlugs: string[] }>({
+    queryKey: ["/api/feed/followed-slugs"],
+    enabled: isLoggedIn,
+  });
+  const followedSlugs = new Set(followData?.followedSlugs || []);
+
+  const addBookmark = useMutation({
+    mutationFn: async ({ episodeSlug, podcastSlug }: { episodeSlug: string; podcastSlug: string }) => {
+      await apiRequest("POST", "/api/bookmarks", { episodeSlug, podcastSlug });
+    },
+    onSuccess: () => { toast({ title: "Saved", description: "Episode saved" }); },
+    onSettled: () => { queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] }); },
+  });
+
+  const removeBookmark = useMutation({
+    mutationFn: async ({ podcastSlug, episodeSlug }: { podcastSlug: string; episodeSlug: string }) => {
+      await apiRequest("DELETE", `/api/bookmarks/${encodeURIComponent(podcastSlug)}/${encodeURIComponent(episodeSlug)}`);
+    },
+    onSuccess: () => { toast({ title: "Removed", description: "Episode removed from saved" }); },
+    onSettled: () => { queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] }); },
+  });
+
+  const handleBookmarkToggle = (episodeSlug: string, podcastSlug: string) => {
+    if (!authUser) return;
+    const key = `${podcastSlug}::${episodeSlug}`;
+    if (bookmarkedKeys.has(key)) removeBookmark.mutate({ podcastSlug, episodeSlug });
+    else addBookmark.mutate({ episodeSlug, podcastSlug });
+  };
+
+  const followMutation = useMutation({
+    mutationFn: async ({ podcastSlug, follow }: { podcastSlug: string; follow: boolean }) => {
+      const endpoint = follow ? "/api/feed/follow" : "/api/feed/unfollow";
+      await apiRequest("POST", endpoint, { podcastSlug });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/feed/followed-slugs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/feed"] });
+    },
+  });
+
+  const handleFollowToggle = (podcastSlug: string, follow: boolean) => {
+    if (!authUser) return;
+    followMutation.mutate({ podcastSlug, follow });
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -240,42 +297,71 @@ export default function CompanyDetailPage() {
             <MessageSquare className="w-5 h-5 text-primary" />
             Episodes Mentioning {company.name}
           </h2>
-          <div className="space-y-2">
+          <div className={isLoggedIn ? "flex flex-col gap-4" : "space-y-2"}>
             {(showAllEpisodes ? company.mentions : company.mentions.slice(0, 8)).map((ep) => (
-              <div
-                key={`${ep.slug}/${ep.episode_slug}`}
-                className="p-4 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer group"
-                onClick={() => window.open(`/podcasts/${ep.slug}/${ep.episode_slug}`, '_blank')}
-                data-testid={`card-episode-${ep.slug}-${ep.episode_slug}`}
-              >
-                <div className="flex items-center gap-4">
-                  {ep.artwork_url && (
-                    <img src={ep.artwork_url} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-base font-semibold text-foreground truncate group-hover:text-primary transition-colors" data-testid={`text-episode-title-${ep.slug}-${ep.episode_slug}`}>
-                      {ep.episode_title}
-                    </p>
-                    <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-0.5 flex items-center gap-1.5">
-                      <Headphones className="w-3.5 h-3.5" />
-                      {ep.podcast_name}
-                      {ep.publish_date && (
-                        <>
-                          <span className="mx-1">&middot;</span>
-                          <Calendar className="w-3 h-3" />
-                          {new Date(ep.publish_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                        </>
-                      )}
-                    </p>
+              isLoggedIn ? (
+                (() => {
+                  const podcastMeta = PODCAST_LANDINGS.find(p => p.slug === ep.slug);
+                  return (
+                    <RecapCard
+                      key={`${ep.slug}/${ep.episode_slug}`}
+                      id={`${ep.slug}-${ep.episode_slug}`}
+                      podcastSlug={ep.slug}
+                      episodeSlug={ep.episode_slug}
+                      podcastName={ep.podcast_name}
+                      episodeTitle={ep.episode_title}
+                      publishDate={ep.publish_date}
+                      artworkUrl={ep.artwork_url}
+                      quote={ep.context}
+                      hosts={podcastMeta?.hosts}
+                      totalEpisodes={podcastMeta?.totalEpisodes}
+                      yearStarted={podcastMeta?.yearStarted}
+                      isFollowing={followedSlugs.has(ep.slug)}
+                      isBookmarked={bookmarkedKeys.has(`${ep.slug}::${ep.episode_slug}`)}
+                      onFollowToggle={handleFollowToggle}
+                      onBookmarkToggle={handleBookmarkToggle}
+                      toast={toast}
+                      testIdPrefix="company-episode"
+                      className=""
+                    />
+                  );
+                })()
+              ) : (
+                <div
+                  key={`${ep.slug}/${ep.episode_slug}`}
+                  className="p-4 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer group"
+                  onClick={() => window.open(`/podcasts/${ep.slug}/${ep.episode_slug}`, '_blank')}
+                  data-testid={`card-episode-${ep.slug}-${ep.episode_slug}`}
+                >
+                  <div className="flex items-center gap-4">
+                    {ep.artwork_url && (
+                      <img src={ep.artwork_url} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-base font-semibold text-foreground truncate group-hover:text-primary transition-colors" data-testid={`text-episode-title-${ep.slug}-${ep.episode_slug}`}>
+                        {ep.episode_title}
+                      </p>
+                      <p className="text-base text-[#52525B] dark:text-[#A1A1AA] mt-0.5 flex items-center gap-1.5">
+                        <Headphones className="w-3.5 h-3.5" />
+                        {ep.podcast_name}
+                        {ep.publish_date && (
+                          <>
+                            <span className="mx-1">&middot;</span>
+                            <Calendar className="w-3 h-3" />
+                            {new Date(ep.publish_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                          </>
+                        )}
+                      </p>
+                    </div>
+                    <ExternalLink className="w-4 h-4 text-[#52525B] group-hover:text-primary transition-colors flex-shrink-0" />
                   </div>
-                  <ExternalLink className="w-4 h-4 text-[#52525B] group-hover:text-primary transition-colors flex-shrink-0" />
+                  {ep.context && (
+                    <p className="mt-3 text-base text-[#52525B] dark:text-[#A1A1AA]/80 leading-relaxed pl-16 italic">
+                      &ldquo;{ep.context}&rdquo;
+                    </p>
+                  )}
                 </div>
-                {ep.context && (
-                  <p className="mt-3 text-base text-[#52525B] dark:text-[#A1A1AA]/80 leading-relaxed pl-16 italic">
-                    &ldquo;{ep.context}&rdquo;
-                  </p>
-                )}
-              </div>
+              )
             ))}
           </div>
           {!showAllEpisodes && company.mentions.length > 8 && (

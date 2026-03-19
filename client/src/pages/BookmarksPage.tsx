@@ -1,12 +1,10 @@
-import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Link } from "wouter";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Bookmark, BookmarkX, Share, Copy, ExternalLink } from "lucide-react";
-import { FeedEpisodeCard } from "@/components/FeedEpisodeCard";
-import { CardBottomAccordion } from "@/components/CardBottomAccordion";
+import { Loader2, Bookmark } from "lucide-react";
+import { RecapCard } from "@/components/RecapCard";
+import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import type { MentionEntry, ProductEntry } from "@/components/CardBottomAccordion";
 
 interface EnrichedBookmark {
@@ -33,115 +31,27 @@ interface EnrichedBookmark {
   };
 }
 
-function SharePopover({ episodeTitle, podcastSlug, episodeSlug, itemId, toast }: {
-  episodeTitle: string;
-  podcastSlug: string;
-  episodeSlug: string;
-  itemId: number;
-  toast: ReturnType<typeof useToast>["toast"];
-}) {
-  const [open, setOpen] = useState(false);
-  const getShareUrl = () => `${window.location.origin}/podcasts/${encodeURIComponent(podcastSlug)}/${encodeURIComponent(episodeSlug)}`;
-  const supportsNativeShare = typeof navigator !== "undefined" && !!navigator.share;
-
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen(!open)}
-        aria-label="Share episode"
-        className="w-8 h-8 rounded-[7px] flex items-center justify-center text-[#A1A1AA] hover:bg-white hover:text-[#6366F1] transition-all"
-        data-testid={`bookmark-share-${itemId}`}
-      >
-        <Share className="w-[15px] h-[15px]" />
-      </button>
-      {open && (
-        <div className="absolute bottom-full right-0 mb-2 w-[180px] bg-white dark:bg-[#1C1C22] rounded-xl shadow-lg border border-[#E4E4E7] dark:border-[#3F3F46] overflow-hidden z-50">
-          <button
-            onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(getShareUrl());
-                toast({ title: "Link copied", description: "Episode link copied to clipboard" });
-              } catch { toast({ title: "Copy failed", description: "Could not copy link", variant: "destructive" }); }
-              setOpen(false);
-            }}
-            className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-[13px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:bg-[#F4F4F5] dark:hover:bg-[#27272A] transition-colors"
-            data-testid={`bookmark-share-copy-${itemId}`}
-          >
-            <Copy className="w-4 h-4" /> Copy link
-          </button>
-          {supportsNativeShare && (
-            <button
-              onClick={() => { navigator.share({ title: episodeTitle, url: getShareUrl() }).catch(() => {}); setOpen(false); }}
-              className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-[13px] font-medium text-[#3F3F46] dark:text-[#A1A1AA] hover:bg-[#F4F4F5] dark:hover:bg-[#27272A] border-t border-[#F0F0F2] dark:border-[#3F3F46]"
-              data-testid={`bookmark-share-native-${itemId}`}
-            >
-              <ExternalLink className="w-4 h-4" /> Share via...
-            </button>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function BookmarkCard({ item, onRemove, toast }: {
-  item: EnrichedBookmark;
-  onRemove: (podcastSlug: string, episodeSlug: string) => void;
-  toast: ReturnType<typeof useToast>["toast"];
-}) {
-  return (
-    <FeedEpisodeCard
-      podcastSlug={item.podcastSlug}
-      episodeSlug={item.episodeSlug}
-      podcastName={item.podcastName}
-      episodeTitle={item.episodeTitle}
-      publishDate={item.publishDate}
-      artworkUrl={item.artworkUrl}
-      tldl={item.tldl}
-      keyInsights={item.keyInsights}
-      quote={item.quote}
-      quoteAttribution={item.quoteAttribution}
-      testIdPrefix="bookmark"
-      bottomActions={
-        <CardBottomAccordion
-          item={item}
-          bottomBar={
-            <div className="border-t border-[#E4E4E7] flex items-center justify-between px-3 md:px-4 py-2">
-              <Link href={`/podcasts/${item.podcastSlug}/${item.episodeSlug}`}>
-                <span className="text-[12px] font-medium text-[#6366F1] hover:text-[#4F46E5] transition-colors" data-testid={`bookmark-full-recap-${item.id}`}>
-                  Read full recap →
-                </span>
-              </Link>
-              <div className="flex items-center gap-[2px]">
-                <button
-                  onClick={() => onRemove(item.podcastSlug, item.episodeSlug)}
-                  className="w-8 h-8 rounded-[7px] flex items-center justify-center text-[#A1A1AA] hover:bg-white dark:hover:bg-[#1C1C22] hover:text-red-500 transition-all"
-                  aria-label="Remove saved episode"
-                  data-testid={`bookmark-remove-${item.id}`}
-                >
-                  <BookmarkX className="w-[15px] h-[15px]" />
-                </button>
-                <SharePopover
-                  episodeTitle={item.episodeTitle}
-                  podcastSlug={item.podcastSlug}
-                  episodeSlug={item.episodeSlug}
-                  itemId={item.id}
-                  toast={toast}
-                />
-              </div>
-            </div>
-          }
-        />
-      }
-    />
-  );
-}
-
 export default function BookmarksPage() {
   const { toast } = useToast();
 
   const { data: bookmarksList = [], isLoading } = useQuery<EnrichedBookmark[]>({
     queryKey: ["/api/bookmarks/enriched"],
+  });
+
+  const { data: followData } = useQuery<{ followedSlugs: string[] }>({
+    queryKey: ["/api/feed/followed-slugs"],
+  });
+  const followedSlugs = new Set(followData?.followedSlugs || []);
+
+  const followMutation = useMutation({
+    mutationFn: async ({ slug, follow }: { slug: string; follow: boolean }) => {
+      const endpoint = follow ? "/api/feed/follow" : "/api/feed/unfollow";
+      await apiRequest("POST", endpoint, { podcastSlug: slug });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/feed/followed-slugs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/feed"] });
+    },
   });
 
   const removeBookmark = useMutation({
@@ -180,14 +90,40 @@ export default function BookmarksPage() {
             </div>
           ) : (
             <div className="space-y-5" data-testid="bookmarks-feed">
-              {bookmarksList.map((bm) => (
-                <BookmarkCard
-                  key={bm.id}
-                  item={bm}
-                  onRemove={(podcastSlug, episodeSlug) => removeBookmark.mutate({ podcastSlug, episodeSlug })}
-                  toast={toast}
-                />
-              ))}
+              {bookmarksList.map((bm) => {
+                const podcastMeta = PODCAST_LANDINGS.find(p => p.slug === bm.podcastSlug);
+                return (
+                  <RecapCard
+                    key={bm.id}
+                    id={bm.id}
+                    podcastSlug={bm.podcastSlug}
+                    episodeSlug={bm.episodeSlug}
+                    podcastName={bm.podcastName}
+                    episodeTitle={bm.episodeTitle}
+                    publishDate={bm.publishDate}
+                    artworkUrl={bm.artworkUrl}
+                    tldl={bm.tldl}
+                    keyInsights={bm.keyInsights}
+                    quote={bm.quote}
+                    quoteAttribution={bm.quoteAttribution}
+                    hosts={podcastMeta?.hosts}
+                    totalEpisodes={podcastMeta?.totalEpisodes}
+                    yearStarted={podcastMeta?.yearStarted}
+                    whatHappened={bm.whatHappened}
+                    spotifyEpisodeUrl={bm.spotifyEpisodeUrl}
+                    spotifyUrl={bm.spotifyUrl}
+                    youtubeUrl={bm.youtubeUrl}
+                    mentions={bm.mentions}
+                    isFollowing={followedSlugs.has(bm.podcastSlug)}
+                    onFollowToggle={(slug, follow) => followMutation.mutate({ slug, follow })}
+                    onBookmarkRemove={(podcastSlug, episodeSlug) => removeBookmark.mutate({ podcastSlug, episodeSlug })}
+                    showFullRecapLink
+                    toast={toast}
+                    testIdPrefix="bookmark"
+                    className=""
+                  />
+                );
+              })}
             </div>
           )}
         </div>

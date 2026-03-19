@@ -20,7 +20,7 @@ export interface ProductEntry {
 }
 
 export interface AccordionItemData {
-  id: number;
+  id: number | string;
   episodeSlug: string;
   podcastSlug: string;
   episodeTitle: string;

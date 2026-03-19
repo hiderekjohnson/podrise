@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, useLocation, Link } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Mic, MessageSquare, Headphones, Calendar, ExternalLink, Globe, Building2, Users, Zap, Tag, Quote, ChevronDown, ChevronUp, Clock, Radio, Search, ArrowUpDown, Sparkles, BookOpen } from "lucide-react";
@@ -13,7 +13,10 @@ import { TOPICS, getTopicBySlug, getCategoryPath } from "@/data/topicData";
 import { PODCAST_LANDINGS, type PodcastLandingConfig } from "@/data/podcastLandingData";
 import { SiteHeader } from "@/components/SiteHeader";
 import { FeedStyleCard, FeedStyleCardHeader } from "@/components/FeedStyleCard";
+import { RecapCard } from "@/components/RecapCard";
 import { useAuth } from "@/hooks/use-auth";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface EpisodeEntry {
   slug: string;
@@ -157,6 +160,59 @@ export default function PersonDetailPage() {
   const [showAllPodcasts, setShowAllPodcasts] = useState(false);
   const [faqOpen, setFaqOpen] = useState<Record<number, boolean>>({});
   const [activeSection, setActiveSection] = useState("");
+  const { toast } = useToast();
+
+  type BookmarkRecord = { id: number; episodeSlug: string; podcastSlug: string };
+  const { data: bookmarksData } = useQuery<BookmarkRecord[]>({
+    queryKey: ["/api/bookmarks"],
+    enabled: isLoggedIn,
+  });
+  const bookmarkedKeys = new Set((bookmarksData || []).map((b: BookmarkRecord) => `${b.podcastSlug}::${b.episodeSlug}`));
+
+  const { data: followData } = useQuery<{ followedSlugs: string[] }>({
+    queryKey: ["/api/feed/followed-slugs"],
+    enabled: isLoggedIn,
+  });
+  const followedSlugs = new Set(followData?.followedSlugs || []);
+
+  const addBookmark = useMutation({
+    mutationFn: async ({ episodeSlug, podcastSlug }: { episodeSlug: string; podcastSlug: string }) => {
+      await apiRequest("POST", "/api/bookmarks", { episodeSlug, podcastSlug });
+    },
+    onSuccess: () => { toast({ title: "Saved", description: "Episode saved" }); },
+    onSettled: () => { queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] }); },
+  });
+
+  const removeBookmark = useMutation({
+    mutationFn: async ({ podcastSlug, episodeSlug }: { podcastSlug: string; episodeSlug: string }) => {
+      await apiRequest("DELETE", `/api/bookmarks/${encodeURIComponent(podcastSlug)}/${encodeURIComponent(episodeSlug)}`);
+    },
+    onSuccess: () => { toast({ title: "Removed", description: "Episode removed from saved" }); },
+    onSettled: () => { queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] }); },
+  });
+
+  const handleBookmarkToggle = (episodeSlug: string, podcastSlug: string) => {
+    if (!authUser) return;
+    const key = `${podcastSlug}::${episodeSlug}`;
+    if (bookmarkedKeys.has(key)) removeBookmark.mutate({ podcastSlug, episodeSlug });
+    else addBookmark.mutate({ episodeSlug, podcastSlug });
+  };
+
+  const followMutation = useMutation({
+    mutationFn: async ({ podcastSlug, follow }: { podcastSlug: string; follow: boolean }) => {
+      const endpoint = follow ? "/api/feed/follow" : "/api/feed/unfollow";
+      await apiRequest("POST", endpoint, { podcastSlug });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/feed/followed-slugs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/feed"] });
+    },
+  });
+
+  const handleFollowToggle = (podcastSlug: string, follow: boolean) => {
+    if (!authUser) return;
+    followMutation.mutate({ podcastSlug, follow });
+  };
 
   const { data: person, isLoading } = useQuery<PersonDetail>({
     queryKey: ["/api/entities/people", slug],
@@ -639,7 +695,33 @@ export default function PersonDetailPage() {
                   <div className="flex flex-col gap-4">
                     {filteredEpisodes.length > 0 ? (
                       (showAllEpisodes ? filteredEpisodes : filteredEpisodes.slice(0, 8)).map((ep) => (
-                        <EpisodeCard key={`${ep.slug}/${ep.episode_slug}`} episode={ep} showType />
+                        (() => {
+                          const podcastMeta = PODCAST_LANDINGS.find(p => p.slug === ep.slug);
+                          return (
+                            <RecapCard
+                              key={`${ep.slug}/${ep.episode_slug}`}
+                              id={`${ep.slug}-${ep.episode_slug}`}
+                              podcastSlug={ep.slug}
+                              episodeSlug={ep.episode_slug}
+                              podcastName={ep.podcast_name}
+                              episodeTitle={ep.episode_title}
+                              publishDate={ep.publish_date}
+                              artworkUrl={ep.artwork_url}
+                              tldl={ep.tldl}
+                              quote={ep.context}
+                              hosts={podcastMeta?.hosts}
+                              totalEpisodes={podcastMeta?.totalEpisodes}
+                              yearStarted={podcastMeta?.yearStarted}
+                              isFollowing={followedSlugs.has(ep.slug)}
+                              isBookmarked={bookmarkedKeys.has(`${ep.slug}::${ep.episode_slug}`)}
+                              onFollowToggle={handleFollowToggle}
+                              onBookmarkToggle={handleBookmarkToggle}
+                              toast={toast}
+                              testIdPrefix="person-episode"
+                              className=""
+                            />
+                          );
+                        })()
                       ))
                     ) : (
                       <p className="text-center py-8 text-muted-foreground text-[16px]">No episodes match your filters.</p>

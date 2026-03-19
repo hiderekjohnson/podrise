@@ -17,8 +17,7 @@ import { getTopicBySlug, getCategoryPath } from "@/data/topicData";
 import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import { EpisodeCard } from "@/components/EpisodeCard";
-import { FeedEpisodeCard } from "@/components/FeedEpisodeCard";
-import { CardBottomAccordion } from "@/components/CardBottomAccordion";
+import { RecapCard } from "@/components/RecapCard";
 
 
 function extractAsin(url: string): string | null {
@@ -576,6 +575,36 @@ export default function PodcastLandingGeneric() {
     staleTime: 1000 * 60 * 30,
   });
 
+  type BookmarkRecord = { id: number; episodeSlug: string; podcastSlug: string };
+  const { data: bookmarksData } = useQuery<BookmarkRecord[]>({
+    queryKey: ["/api/bookmarks"],
+    enabled: !!user,
+  });
+  const bookmarkedKeys = new Set((bookmarksData || []).map((b: BookmarkRecord) => `${b.podcastSlug}::${b.episodeSlug}`));
+
+  const addBookmark = useMutation({
+    mutationFn: async ({ episodeSlug, podcastSlug }: { episodeSlug: string; podcastSlug: string }) => {
+      await apiRequest("POST", "/api/bookmarks", { episodeSlug, podcastSlug });
+    },
+    onSuccess: () => { toast({ title: "Saved", description: "Episode saved" }); },
+    onSettled: () => { queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] }); },
+  });
+
+  const removeBookmark = useMutation({
+    mutationFn: async ({ podcastSlug, episodeSlug }: { podcastSlug: string; episodeSlug: string }) => {
+      await apiRequest("DELETE", `/api/bookmarks/${encodeURIComponent(podcastSlug)}/${encodeURIComponent(episodeSlug)}`);
+    },
+    onSuccess: () => { toast({ title: "Removed", description: "Episode removed from saved" }); },
+    onSettled: () => { queryClient.invalidateQueries({ queryKey: ["/api/bookmarks"] }); },
+  });
+
+  const handleBookmarkToggle = (episodeSlug: string, podcastSlug: string) => {
+    if (!user) return;
+    const key = `${podcastSlug}::${episodeSlug}`;
+    if (bookmarkedKeys.has(key)) removeBookmark.mutate({ podcastSlug, episodeSlug });
+    else addBookmark.mutate({ episodeSlug, podcastSlug });
+  };
+
   const { data: followData } = useQuery<{ followedSlugs: string[] }>({
     queryKey: ["/api/feed/followed-slugs"],
     enabled: !!user,
@@ -596,6 +625,11 @@ export default function PodcastLandingGeneric() {
     },
   });
 
+  const handleFollowToggle = (podcastSlug: string, follow: boolean) => {
+    if (!user) return;
+    followMutation.mutate({ follow });
+  };
+
   const podcastMetaItems = [];
   if (hosts) podcastMetaItems.push({ icon: "host" as const, text: hosts });
   if (config.totalEpisodes) podcastMetaItems.push({ icon: "episodes" as const, text: `${config.totalEpisodes}+ episodes` });
@@ -612,36 +646,35 @@ export default function PodcastLandingGeneric() {
               <div className="flex flex-col gap-5">
                 {episodeRecaps.slice(0, 10).map((ep: any) => (
                   user ? (
-                    <FeedEpisodeCard
+                    <RecapCard
                       key={ep.episodeSlug}
+                      id={ep.id}
                       episodeSlug={ep.episodeSlug}
                       podcastSlug={slug}
                       podcastName={name}
-                      publishDate={ep.publishDate}
                       episodeTitle={ep.episodeTitle}
+                      publishDate={ep.publishDate}
+                      artworkUrl={artworkUrl}
                       tldl={ep.tldl}
                       keyInsights={ep.keyInsights}
                       quote={ep.quote}
                       quoteAttribution={ep.quoteAttribution}
                       duration={ep.duration}
-                      artworkUrl={artworkUrl}
+                      whatHappened={ep.whatHappened}
+                      spotifyEpisodeUrl={ep.spotifyEpisodeUrl}
+                      spotifyUrl={ep.pdSpotifyUrl || spotifyUrl}
+                      youtubeUrl={ep.youtubeUrl || ep.pdYoutubeUrl}
+                      mentions={ep.mentions}
+                      hosts={hosts}
+                      totalEpisodes={config.totalEpisodes}
+                      yearStarted={config.yearStarted}
+                      isFollowing={isFollowing}
+                      isBookmarked={bookmarkedKeys.has(`${slug}::${ep.episodeSlug}`)}
+                      onFollowToggle={handleFollowToggle}
+                      onBookmarkToggle={handleBookmarkToggle}
+                      toast={toast}
                       testIdPrefix="podcast-episode"
-                      bottomActions={
-                        <CardBottomAccordion
-                          item={{
-                            id: ep.id,
-                            episodeSlug: ep.episodeSlug,
-                            podcastSlug: slug,
-                            episodeTitle: ep.episodeTitle,
-                            whatHappened: ep.whatHappened || null,
-                            spotifyEpisodeUrl: ep.spotifyEpisodeUrl || null,
-                            spotifyUrl: ep.pdSpotifyUrl || spotifyUrl || null,
-                            youtubeUrl: ep.youtubeUrl || ep.pdYoutubeUrl || null,
-                            mentions: ep.mentions || { people: [], companies: [], products: [] },
-                          }}
-                          bottomBar={null}
-                        />
-                      }
+                      className=""
                     />
                   ) : (
                     <EpisodeCard
