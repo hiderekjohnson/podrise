@@ -6,6 +6,8 @@ import { searchSpotifyEpisode } from "./spotifyClient";
 
 const CONCURRENCY = 2;
 const BATCH_SIZE = 50;
+const HEADLINE_RETRY_COUNT = 2;
+const HEADLINE_RETRY_DELAY_MS = 3000;
 
 interface EpisodeRow {
   id: number;
@@ -29,6 +31,39 @@ async function getPodcastInfo(client: any, itunesId: string) {
 
 function makeEpisodeSlug(title: string): string {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
+}
+
+async function generateTabloidHeadlineWithRetry(
+  recapId: number,
+  epTitle: string,
+  podcastName: string,
+  whatHappened: string,
+  keyInsights: string[],
+): Promise<boolean> {
+  const { generateTabloidHeadline } = await import("./emailScheduler");
+  for (let attempt = 1; attempt <= HEADLINE_RETRY_COUNT + 1; attempt++) {
+    try {
+      const headlineResult = await generateTabloidHeadline(
+        epTitle, podcastName, "", whatHappened, keyInsights
+      );
+      if (headlineResult) {
+        await pool.query(
+          `UPDATE landing_page_recaps SET tabloid_headline = $1, tabloid_sub_headline = $2 WHERE id = $3`,
+          [headlineResult.tabloidHeadline, headlineResult.tabloidSubHeadline, recapId]
+        );
+        console.log(`[BgRecap] Generated tabloid headline for "${epTitle?.slice(0, 50)}" (attempt ${attempt})`);
+        return true;
+      }
+      console.warn(`[BgRecap] Tabloid headline returned null for "${epTitle?.slice(0, 50)}" (attempt ${attempt}/${HEADLINE_RETRY_COUNT + 1})`);
+    } catch (headlineErr: any) {
+      console.error(`[BgRecap] Tabloid headline generation error for "${epTitle?.slice(0, 50)}" (attempt ${attempt}/${HEADLINE_RETRY_COUNT + 1}): ${headlineErr.message}`, headlineErr.stack);
+    }
+    if (attempt <= HEADLINE_RETRY_COUNT) {
+      await new Promise(r => setTimeout(r, HEADLINE_RETRY_DELAY_MS));
+    }
+  }
+  console.error(`[BgRecap] Tabloid headline generation failed after ${HEADLINE_RETRY_COUNT + 1} attempts for "${epTitle?.slice(0, 50)}"`);
+  return false;
 }
 
 async function lookupAppleEpisodeUrl(itunesId: string, episodeTitle: string, podcastName: string): Promise<string> {
@@ -149,6 +184,8 @@ async function processEpisode(
         } catch (valErr: any) {
           console.warn(`[BgRecap] Validation failed for "${epTitle?.slice(0, 50)}":`, valErr);
         }
+
+        await generateTabloidHeadlineWithRetry(upsertedRecap.id, epTitle, podcastName, recap.whatHappened, recap.keyInsights || []);
       }
 
       return "generated";

@@ -4,11 +4,15 @@ import { generateRecapFromFullTranscript } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 
 const INTERVAL_MS = 5 * 60 * 1000;
+const HEADLINE_CATCHUP_INTERVAL_MS = 15 * 60 * 1000;
 const BATCH_SIZE = 3;
 const PER_PODCAST = 3;
 const BATCH_TIMEOUT_MS = 10 * 60 * 1000;
+const HEADLINE_RETRY_COUNT = 2;
+const HEADLINE_RETRY_DELAY_MS = 3000;
 let batchRunning = false;
 let batchStartedAt = 0;
+let catchUpRunning = false;
 
 async function getPodcastInfo(itunesId: string) {
   const { rows } = await pool.query(
@@ -20,6 +24,87 @@ async function getPodcastInfo(itunesId: string) {
 
 function makeEpisodeSlug(title: string): string {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
+}
+
+async function generateTabloidHeadlineWithRetry(
+  recapId: number,
+  epTitle: string,
+  podcastName: string,
+  whatHappened: string,
+  keyInsights: string[],
+): Promise<boolean> {
+  const { generateTabloidHeadline } = await import("./emailScheduler");
+  for (let attempt = 1; attempt <= HEADLINE_RETRY_COUNT + 1; attempt++) {
+    try {
+      const headlineResult = await generateTabloidHeadline(
+        epTitle, podcastName, "", whatHappened, keyInsights
+      );
+      if (headlineResult) {
+        await pool.query(
+          `UPDATE landing_page_recaps SET tabloid_headline = $1, tabloid_sub_headline = $2 WHERE id = $3`,
+          [headlineResult.tabloidHeadline, headlineResult.tabloidSubHeadline, recapId]
+        );
+        console.log(`[ProdRecap] Generated tabloid headline for "${epTitle?.slice(0, 50)}" (attempt ${attempt})`);
+        return true;
+      }
+      console.warn(`[ProdRecap] Tabloid headline returned null for "${epTitle?.slice(0, 50)}" (attempt ${attempt}/${HEADLINE_RETRY_COUNT + 1})`);
+    } catch (headlineErr: any) {
+      console.error(`[ProdRecap] Tabloid headline generation error for "${epTitle?.slice(0, 50)}" (attempt ${attempt}/${HEADLINE_RETRY_COUNT + 1}): ${headlineErr.message}`, headlineErr.stack);
+    }
+    if (attempt <= HEADLINE_RETRY_COUNT) {
+      await new Promise(r => setTimeout(r, HEADLINE_RETRY_DELAY_MS));
+    }
+  }
+  console.error(`[ProdRecap] Tabloid headline generation failed after ${HEADLINE_RETRY_COUNT + 1} attempts for "${epTitle?.slice(0, 50)}"`);
+  return false;
+}
+
+async function catchUpMissingHeadlines() {
+  if (catchUpRunning) {
+    console.log(`[ProdRecap] Headline catch-up already running, skipping`);
+    return;
+  }
+  catchUpRunning = true;
+  try {
+    const { rows } = await pool.query(`
+      SELECT id, episode_title, podcast_name, what_happened, key_insights
+      FROM landing_page_recaps
+      WHERE tabloid_headline IS NULL
+        AND what_happened IS NOT NULL
+        AND what_happened != ''
+        AND created_at >= NOW() - INTERVAL '7 days'
+      ORDER BY created_at DESC
+      LIMIT 20
+    `);
+
+    if (rows.length === 0) {
+      return;
+    }
+
+    console.log(`[ProdRecap] Headline catch-up: found ${rows.length} recap(s) missing tabloid headlines`);
+
+    let success = 0;
+    let failed = 0;
+    for (const row of rows) {
+      const keyInsights = Array.isArray(row.key_insights) ? row.key_insights : [];
+      const result = await generateTabloidHeadlineWithRetry(
+        row.id,
+        row.episode_title,
+        row.podcast_name,
+        row.what_happened,
+        keyInsights,
+      );
+      if (result) success++;
+      else failed++;
+      await new Promise(r => setTimeout(r, 2000));
+    }
+
+    console.log(`[ProdRecap] Headline catch-up complete: ${success} generated, ${failed} failed`);
+  } catch (err: any) {
+    console.error(`[ProdRecap] Headline catch-up error: ${err.message}`, err.stack);
+  } finally {
+    catchUpRunning = false;
+  }
 }
 
 async function processEpisode(ep: any, podcastSlug: string, podcastName: string, itunesId: string, hosts: string, artwork: string): Promise<boolean> {
@@ -85,21 +170,7 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
         console.warn(`[ProdRecap] Validation failed for "${epTitle?.slice(0, 50)}":`, valErr);
       }
 
-      try {
-        const { generateTabloidHeadline } = await import("./emailScheduler");
-        const headlineResult = await generateTabloidHeadline(
-          epTitle, podcastName, "", recap.whatHappened, recap.keyInsights || []
-        );
-        if (headlineResult) {
-          await pool.query(
-            `UPDATE landing_page_recaps SET tabloid_headline = $1, tabloid_sub_headline = $2 WHERE id = $3`,
-            [headlineResult.tabloidHeadline, headlineResult.tabloidSubHeadline, upsertedRecap.id]
-          );
-          console.log(`[ProdRecap] Generated tabloid headline for "${epTitle?.slice(0, 50)}"`);
-        }
-      } catch (headlineErr) {
-        console.warn(`[ProdRecap] Tabloid headline generation failed for "${epTitle?.slice(0, 50)}":`, headlineErr);
-      }
+      await generateTabloidHeadlineWithRetry(upsertedRecap.id, epTitle, podcastName, recap.whatHappened, recap.keyInsights || []);
     }
 
     return true;
@@ -274,5 +345,8 @@ export function startProductionRecapScheduler() {
     await cleanupDuplicateRecaps();
     runBatch();
     setInterval(runBatch, INTERVAL_MS);
+
+    catchUpMissingHeadlines();
+    setInterval(catchUpMissingHeadlines, HEADLINE_CATCHUP_INTERVAL_MS);
   }, 120_000);
 }
