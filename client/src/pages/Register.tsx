@@ -144,20 +144,23 @@ export default function Register() {
 
           <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA]/70 leading-relaxed">
             By signing up you agree to our{" "}
-            <Link href="/terms" className="text-primary hover:text-primary/80 underline underline-offset-2" data-testid="link-terms">Terms</Link>
+            <Link href="/terms" className="text-inherit hover:underline underline-offset-2" data-testid="link-terms">Terms</Link>
             {" "}and{" "}
-            <Link href="/privacy" className="text-primary hover:text-primary/80 underline underline-offset-2" data-testid="link-privacy">Privacy Policy</Link>.
+            <Link href="/privacy" className="text-inherit hover:underline underline-offset-2" data-testid="link-privacy">Privacy Policy</Link>.
           </p>
         </form>
 
         <div className="mt-5 pt-4 border-t border-[#E4E4E7] dark:border-white/[0.08]">
-          <Link
-            href="/login"
-            className="flex items-center justify-center w-full h-[44px] rounded-lg border border-[#D4D4D8] dark:border-white/[0.15] text-[15px] font-semibold text-foreground hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-colors"
-            data-testid="link-login"
-          >
-            Have an account? Sign in
-          </Link>
+          <p className="text-center text-[14px] text-[#52525B] dark:text-[#A1A1AA]/70">
+            Have an account?{" "}
+            <Link
+              href="/login"
+              className="text-inherit hover:underline underline-offset-2"
+              data-testid="link-login"
+            >
+              Sign in
+            </Link>
+          </p>
         </div>
       </div>
     </div>
