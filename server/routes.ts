@@ -10536,14 +10536,55 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const recap = await generateRecapFromTranscript(processedTranscript, podcastName, episode_title);
       if (!recap) return res.status(500).json({ message: "AI generation failed" });
 
+      const { rows: existingRows } = await pool.query(
+        `SELECT tldl, tabloid_headline, tabloid_sub_headline, spotify_episode_url FROM landing_page_recaps WHERE slug = $1 AND episode_slug = $2`,
+        [podcastSlug, episodeSlug]
+      );
+      const existingRecap = existingRows[0] || {};
+
+      let tabloidHeadline: string | null = existingRecap.tabloid_headline || null;
+      let tabloidSubHeadline: string | null = existingRecap.tabloid_sub_headline || null;
+      let spotifyEpisodeUrl: string | null = existingRecap.spotify_episode_url || null;
+
+      try {
+        const { generateTabloidHeadline } = await import("./emailScheduler");
+        const tabloidResult = await generateTabloidHeadline(
+          episode_title,
+          podcastName,
+          existingRecap.tldl || "",
+          recap.whatHappened,
+          recap.keyInsights || []
+        );
+        if (tabloidResult) {
+          tabloidHeadline = tabloidResult.tabloidHeadline;
+          tabloidSubHeadline = tabloidResult.tabloidSubHeadline;
+        }
+      } catch (err) {
+        console.warn("[Admin] Tabloid headline generation failed during regenerate, continuing:", err);
+      }
+
+      try {
+        const { searchSpotifyEpisode } = await import("./spotifyClient");
+        const spotifyResult = await searchSpotifyEpisode(podcastName, episode_title);
+        if (spotifyResult) {
+          spotifyEpisodeUrl = spotifyResult;
+        }
+      } catch (err) {
+        console.warn("[Admin] Spotify episode lookup failed during regenerate, continuing:", err);
+      }
+
       await pool.query(
-        `UPDATE landing_page_recaps SET what_happened = $1, key_insights = $2, guests = $3, resources = $4 WHERE slug = $5 AND episode_slug = $6`,
+        `UPDATE landing_page_recaps SET what_happened = $1, key_insights = $2, guests = $3, resources = $4, tabloid_headline = $5, tabloid_sub_headline = $6, spotify_episode_url = $7 WHERE slug = $8 AND episode_slug = $9`,
         [
           recap.whatHappened,
           recap.keyInsights && recap.keyInsights.length > 0 ? recap.keyInsights : null,
           recap.guests ? JSON.stringify(recap.guests) : "[]",
           recap.resources ? JSON.stringify(recap.resources) : "[]",
-          podcastSlug, episodeSlug,
+          tabloidHeadline,
+          tabloidSubHeadline,
+          spotifyEpisodeUrl,
+          podcastSlug,
+          episodeSlug,
         ]
       );
 
