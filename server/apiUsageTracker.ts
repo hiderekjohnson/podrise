@@ -112,7 +112,12 @@ export async function ensureApiUsageTable(): Promise<void> {
     )
   `);
   await pool.query(`
-    ALTER TABLE api_usage_logs ADD COLUMN IF NOT EXISTS metadata JSONB
+    ALTER TABLE api_usage_logs ADD COLUMN IF NOT EXISTS metadata JSONB;
+    ALTER TABLE api_usage_logs ADD COLUMN IF NOT EXISTS utm_source TEXT;
+    ALTER TABLE api_usage_logs ADD COLUMN IF NOT EXISTS utm_medium TEXT;
+    ALTER TABLE api_usage_logs ADD COLUMN IF NOT EXISTS utm_campaign TEXT;
+    ALTER TABLE api_usage_logs ADD COLUMN IF NOT EXISTS utm_content TEXT;
+    ALTER TABLE api_usage_logs ADD COLUMN IF NOT EXISTS utm_term TEXT;
   `);
   await pool.query(`
     CREATE INDEX IF NOT EXISTS idx_api_usage_created_at ON api_usage_logs (created_at)

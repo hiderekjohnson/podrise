@@ -479,6 +479,11 @@ export async function registerRoutes(
       ALTER TABLE users ADD COLUMN IF NOT EXISTS gender TEXT;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS location TEXT;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS language TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS utm_source TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS utm_medium TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS utm_campaign TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS utm_content TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS utm_term TEXT;
     `);
     await migrationPool.query(`
       CREATE TABLE IF NOT EXISTS extracted_products (
@@ -1974,14 +1979,23 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     if (req.query.utm_content) req.session.utmContent = req.query.utm_content as string;
     if (req.query.utm_term) req.session.utmTerm = req.query.utm_term as string;
     const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}&state=${state}&access_type=offline&prompt=select_account`;
-    res.redirect(url);
+    req.session.save((err) => {
+      if (err) console.error("[GoogleAuth] Session save error before redirect:", err);
+      res.redirect(url);
+    });
   });
 
   app.get("/api/auth/google/callback", async (req, res) => {
     try {
       const { code, state } = req.query as { code?: string; state?: string };
-      if (!code) return res.redirect("/login?error=invalid");
-      if (!state || state !== req.session.oauthState) return res.redirect("/login?error=invalid");
+      if (!code) {
+        console.error("[GoogleAuth] Callback missing code param");
+        return res.redirect("/login?error=invalid");
+      }
+      if (!state || state !== req.session.oauthState) {
+        console.error("[GoogleAuth] State mismatch — query state:", state?.substring(0, 8), "session state:", req.session.oauthState?.substring(0, 8) || "MISSING", "sessionID:", req.sessionID?.substring(0, 8));
+        return res.redirect("/login?error=invalid");
+      }
       delete req.session.oauthState;
 
       const clientId = process.env.GOOGLE_CLIENT_ID!;
