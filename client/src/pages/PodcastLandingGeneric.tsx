@@ -408,7 +408,7 @@ export default function PodcastLandingGeneric() {
     }
   }, [slug]);
 
-  const { data: dbEntry } = useQuery<any>({
+  const { data: dbEntry, isLoading: dbEntryLoading } = useQuery<any>({
     queryKey: ["/api/podcasts/by-slug", slug],
     enabled: !!slug,
   });
@@ -509,42 +509,6 @@ export default function PodcastLandingGeneric() {
     };
   }, [config?.name]);
 
-  if (!config && !dbEntry && !staticConfig) {
-    return (
-      <div className="min-h-screen flex flex-col bg-background">
-        {!user && <SiteHeader />}
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-2">Podcast not found</h1>
-            <p className="text-muted-foreground mb-4">We couldn't find a landing page for this podcast.</p>
-            <a href="/" className="text-primary hover:underline">Back to home</a>
-          </div>
-        </main>
-        {!user && <Footer />}
-      </div>
-    );
-  }
-
-  if (!config) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-6 h-6 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  const { name, hosts, category, itunesId, artworkUrl, spotifyUrl, youtubeUrl, relatedSlugs, description, appleRating, appleRatingCount } = config;
-
-  const hostNames = hosts ? hosts.split(/,\s*|&\s*|\sand\s/i).map((h: string) => h.trim()).filter(Boolean) : [];
-
-  const appleUrl = config.appleUrl || `https://podcasts.apple.com/podcast/id${itunesId}`;
-  const effectiveSpotifyUrl = spotifyUrl || `https://open.spotify.com/search/${encodeURIComponent(name)}`;
-
-  const relatedPodcasts = (relatedSlugs || [])
-    .map(s => getPodcastBySlug(s))
-    .filter((p): p is PodcastLandingConfig => !!p)
-    .slice(0, 3);
-
   const { data: episodeRecaps = [] } = useQuery<any[]>({
     queryKey: ["/api/podcasts", slug, "recaps", user ? "enriched" : "basic"],
     queryFn: async () => {
@@ -553,7 +517,7 @@ export default function PodcastLandingGeneric() {
       if (!res.ok) return [];
       return res.json();
     },
-    enabled: !!slug,
+    enabled: !!slug && !!config,
   });
 
   const { data: entityLinks } = useQuery<{
@@ -568,7 +532,7 @@ export default function PodcastLandingGeneric() {
       if (!res.ok) return { companies: [], people: [], topics: [], guests: [] };
       return res.json();
     },
-    enabled: !!slug,
+    enabled: !!slug && !!config,
     staleTime: 1000 * 60 * 30,
   });
 
@@ -606,12 +570,13 @@ export default function PodcastLandingGeneric() {
     queryKey: ["/api/feed/followed-slugs"],
     enabled: !!user,
   });
-  const isFollowing = followData?.followedSlugs?.includes(config.slug) ?? false;
+  const isFollowing = config ? (followData?.followedSlugs?.includes(config.slug) ?? false) : false;
 
+  const configSlug = config?.slug || slug || "";
   const followMutation = useMutation({
     mutationFn: async ({ follow }: { follow: boolean }) => {
       const endpoint = follow ? "/api/feed/follow" : "/api/feed/unfollow";
-      await apiRequest("POST", endpoint, { podcastSlug: config.slug });
+      await apiRequest("POST", endpoint, { podcastSlug: configSlug });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/feed/followed-slugs"] });
@@ -626,6 +591,50 @@ export default function PodcastLandingGeneric() {
     if (!user) return;
     followMutation.mutate({ follow });
   };
+
+  if (!config && dbEntryLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!config && !dbEntry && !staticConfig) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        {!user && <SiteHeader />}
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-2">Podcast not found</h1>
+            <p className="text-muted-foreground mb-4">We couldn't find a landing page for this podcast.</p>
+            <a href="/" className="text-primary hover:underline">Back to home</a>
+          </div>
+        </main>
+        {!user && <Footer />}
+      </div>
+    );
+  }
+
+  if (!config) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const { name, hosts, category, itunesId, artworkUrl, spotifyUrl, youtubeUrl, relatedSlugs, description, appleRating, appleRatingCount } = config;
+
+  const hostNames = hosts ? hosts.split(/,\s*|&\s*|\sand\s/i).map((h: string) => h.trim()).filter(Boolean) : [];
+
+  const appleUrl = config.appleUrl || `https://podcasts.apple.com/podcast/id${itunesId}`;
+  const effectiveSpotifyUrl = spotifyUrl || `https://open.spotify.com/search/${encodeURIComponent(name)}`;
+
+  const relatedPodcasts = (relatedSlugs || [])
+    .map(s => getPodcastBySlug(s))
+    .filter((p): p is PodcastLandingConfig => !!p)
+    .slice(0, 3);
 
   const contentSections = (
     <>
