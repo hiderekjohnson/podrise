@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
 import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, FileText, Inbox, Rss, Key, Database, Settings, ShoppingBag, MousePointerClick, DollarSign, Megaphone, Wrench, List, AlertTriangle, Gift, BookOpen, ToggleLeft, Plus, X } from "lucide-react";
 import { motion } from "framer-motion";
@@ -325,11 +325,26 @@ function BatchExpansionPanel() {
 }
 
 export default function Admin() {
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "pending" | "directory" | "shop" | "advertisers" | "admin-users" | "categories" | "advanced" | "errors" | "referrals" | "support-kb" | "cms" | "landing-pages" | "mturk">("advanced");
+  const isCmsRoute = location.startsWith("/admin/cms");
+  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "pending" | "directory" | "shop" | "advertisers" | "admin-users" | "categories" | "advanced" | "errors" | "referrals" | "support-kb" | "cms" | "landing-pages" | "mturk">(isCmsRoute ? "cms" : "advanced");
+
+  useEffect(() => {
+    if (location.startsWith("/admin/cms")) {
+      setActiveTab("cms");
+    }
+  }, [location]);
+
+  const switchTab = useCallback((tab: typeof activeTab) => {
+    setActiveTab(tab);
+    setSearchTerm("");
+    if (location.startsWith("/admin/cms")) {
+      navigate("/admin");
+    }
+  }, [location, navigate]);
   const [analyticsSubTab, setAnalyticsSubTab] = useState<"acquisition" | "affiliates" | "growth" | "email">("acquisition");
   const [advancedSubTab, setAdvancedSubTab] = useState<"backfill" | "rss" | "hosts" | "api-costs" | "feature-flags">("backfill");
   const [backfillSubTab, setBackfillSubTab] = useState<"transcripts" | "pages" | "tools">("transcripts");
@@ -607,7 +622,7 @@ export default function Admin() {
               <div className="flex items-center gap-2 overflow-x-auto pb-2 -mb-2 scrollbar-thin scrollbar-thumb-muted/30 scrollbar-track-transparent max-w-full">
                 <button
                   data-testid="tab-cms"
-                  onClick={() => { setActiveTab("cms"); setSearchTerm(""); }}
+                  onClick={() => { setActiveTab("cms"); setSearchTerm(""); navigate("/admin/cms/podcasts"); }}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "cms"
                       ? "bg-primary/10 text-primary"
@@ -619,7 +634,7 @@ export default function Admin() {
                 </button>
                 <button
                   data-testid="tab-pending"
-                  onClick={() => { setActiveTab("pending"); setSearchTerm(""); }}
+                  onClick={() => switchTab("pending")}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "pending"
                       ? "bg-primary/10 text-primary"
@@ -631,7 +646,7 @@ export default function Admin() {
                 </button>
                 <button
                   data-testid="tab-users"
-                  onClick={() => { setActiveTab("users"); setSearchTerm(""); }}
+                  onClick={() => switchTab("users")}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "users"
                       ? "bg-primary/10 text-primary"
@@ -646,7 +661,7 @@ export default function Admin() {
                 </button>
                 <button
                   data-testid="tab-analytics"
-                  onClick={() => { setActiveTab("analytics"); setSearchTerm(""); }}
+                  onClick={() => switchTab("analytics")}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "analytics"
                       ? "bg-primary/10 text-primary"
@@ -658,7 +673,7 @@ export default function Admin() {
                 </button>
                 <button
                   data-testid="tab-shop"
-                  onClick={() => { setActiveTab("shop"); setSearchTerm(""); }}
+                  onClick={() => switchTab("shop")}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "shop"
                       ? "bg-primary/10 text-primary"
@@ -670,7 +685,7 @@ export default function Admin() {
                 </button>
                 <button
                   data-testid="tab-categories"
-                  onClick={() => { setActiveTab("categories"); setSearchTerm(""); }}
+                  onClick={() => switchTab("categories")}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "categories"
                       ? "bg-primary/10 text-primary"
@@ -682,7 +697,7 @@ export default function Admin() {
                 </button>
                 <button
                   data-testid="tab-advertisers"
-                  onClick={() => { setActiveTab("advertisers"); setSearchTerm(""); }}
+                  onClick={() => switchTab("advertisers")}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "advertisers"
                       ? "bg-primary/10 text-primary"
@@ -694,7 +709,7 @@ export default function Admin() {
                 </button>
                 <button
                   data-testid="tab-admin-users"
-                  onClick={() => { setActiveTab("admin-users"); setSearchTerm(""); }}
+                  onClick={() => switchTab("admin-users")}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "admin-users"
                       ? "bg-primary/10 text-primary"
@@ -706,7 +721,7 @@ export default function Admin() {
                 </button>
                 <button
                   data-testid="tab-referrals"
-                  onClick={() => { setActiveTab("referrals"); setSearchTerm(""); }}
+                  onClick={() => switchTab("referrals")}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "referrals"
                       ? "bg-primary/10 text-primary"
@@ -718,7 +733,7 @@ export default function Admin() {
                 </button>
                 <button
                   data-testid="tab-errors"
-                  onClick={() => { setActiveTab("errors"); setSearchTerm(""); }}
+                  onClick={() => switchTab("errors")}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "errors"
                       ? "bg-primary/10 text-primary"
@@ -730,7 +745,7 @@ export default function Admin() {
                 </button>
                 <button
                   data-testid="tab-support-kb"
-                  onClick={() => { setActiveTab("support-kb"); setSearchTerm(""); }}
+                  onClick={() => switchTab("support-kb")}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "support-kb"
                       ? "bg-primary/10 text-primary"
@@ -742,7 +757,7 @@ export default function Admin() {
                 </button>
                 <button
                   data-testid="tab-landing-pages"
-                  onClick={() => { setActiveTab("landing-pages"); setSearchTerm(""); }}
+                  onClick={() => switchTab("landing-pages")}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "landing-pages"
                       ? "bg-primary/10 text-primary"
@@ -754,7 +769,7 @@ export default function Admin() {
                 </button>
                 <button
                   data-testid="tab-mturk"
-                  onClick={() => { setActiveTab("mturk"); setSearchTerm(""); }}
+                  onClick={() => switchTab("mturk")}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "mturk"
                       ? "bg-primary/10 text-primary"
@@ -766,7 +781,7 @@ export default function Admin() {
                 </button>
                 <button
                   data-testid="tab-advanced"
-                  onClick={() => { setActiveTab("advanced"); setSearchTerm(""); }}
+                  onClick={() => switchTab("advanced")}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "advanced"
                       ? "bg-primary/10 text-primary"

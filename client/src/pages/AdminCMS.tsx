@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -3624,18 +3625,72 @@ function ProductsTab() {
 
 type CMSSection = "podcasts" | "episodes" | "people" | "companies" | "products";
 
-export default function AdminCMS() {
-  const [view, setView] = useState<CMSView>({ tab: "podcasts" });
-  const [activeSection, setActiveSection] = useState<CMSSection>("podcasts");
+function safeDecode(segment: string): string {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    return segment;
+  }
+}
 
-  const handleNavigate = (newView: CMSView) => {
-    setView(newView);
-    if (newView.tab === "podcasts" || newView.tab === "podcast-detail") setActiveSection("podcasts");
-    else if (newView.tab === "episodes" || newView.tab === "episode-detail") setActiveSection("episodes");
-    else {
-      setActiveSection(newView.tab as CMSSection);
+function parseCmsPath(pathname: string): CMSView {
+  const cmsPrefix = "/admin/cms/";
+  if (!pathname.startsWith(cmsPrefix)) {
+    return { tab: "podcasts" };
+  }
+  const rest = pathname.slice(cmsPrefix.length).replace(/\/+$/, "");
+  const segments = rest.split("/").filter(Boolean);
+
+  if (segments[0] === "podcasts") {
+    if (segments.length === 1) return { tab: "podcasts" };
+    if (segments.length === 2) return { tab: "podcast-detail", podcastSlug: safeDecode(segments[1]) };
+    if (segments.length === 3 && segments[2] === "episodes") return { tab: "episodes", podcastSlug: safeDecode(segments[1]) };
+    if (segments.length === 4 && segments[2] === "episodes") return { tab: "episode-detail", podcastSlug: safeDecode(segments[1]), episodeSlug: safeDecode(segments[3]) };
+  }
+  if (segments[0] === "episodes") return { tab: "episodes" };
+  if (segments[0] === "people") return { tab: "people" };
+  if (segments[0] === "companies") return { tab: "companies" };
+  if (segments[0] === "products") return { tab: "products" };
+
+  return { tab: "podcasts" };
+}
+
+function cmsViewToPath(view: CMSView): string {
+  switch (view.tab) {
+    case "podcasts": return "/admin/cms/podcasts";
+    case "podcast-detail": return `/admin/cms/podcasts/${encodeURIComponent(view.podcastSlug)}`;
+    case "episodes":
+      if (view.podcastSlug) return `/admin/cms/podcasts/${encodeURIComponent(view.podcastSlug)}/episodes`;
+      return "/admin/cms/episodes";
+    case "episode-detail": return `/admin/cms/podcasts/${encodeURIComponent(view.podcastSlug)}/episodes/${encodeURIComponent(view.episodeSlug)}`;
+    case "people": return "/admin/cms/people";
+    case "companies": return "/admin/cms/companies";
+    case "products": return "/admin/cms/products";
+    default: return "/admin/cms/podcasts";
+  }
+}
+
+function getActiveSection(view: CMSView): CMSSection {
+  if (view.tab === "podcasts" || view.tab === "podcast-detail") return "podcasts";
+  if (view.tab === "episodes" || view.tab === "episode-detail") return "episodes";
+  return view.tab as CMSSection;
+}
+
+export default function AdminCMS() {
+  const [location, navigate] = useLocation();
+
+  useEffect(() => {
+    if (location === "/admin/cms" || location === "/admin/cms/") {
+      navigate("/admin/cms/podcasts", { replace: true });
     }
-  };
+  }, [location, navigate]);
+
+  const view = useMemo(() => parseCmsPath(location), [location]);
+  const activeSection = useMemo(() => getActiveSection(view), [view]);
+
+  const handleNavigate = useCallback((newView: CMSView) => {
+    navigate(cmsViewToPath(newView));
+  }, [navigate]);
 
   const sections: Array<{ key: CMSSection; label: string; icon: typeof Podcast }> = [
     { key: "podcasts", label: "Podcasts", icon: Podcast },
@@ -3645,16 +3700,15 @@ export default function AdminCMS() {
     { key: "products", label: "Mentions", icon: ShoppingBag },
   ];
 
-  const handleSectionClick = (key: CMSSection) => {
-    setActiveSection(key);
+  const handleSectionClick = useCallback((key: CMSSection) => {
     if (key === "podcasts") {
-      setView({ tab: "podcasts" });
+      navigate("/admin/cms/podcasts");
     } else if (key === "episodes") {
-      setView({ tab: "episodes" });
+      navigate("/admin/cms/episodes");
     } else {
-      setView({ tab: key });
+      navigate(`/admin/cms/${key}`);
     }
-  };
+  }, [navigate]);
 
   return (
     <div className="space-y-6" data-testid="cms-container">
