@@ -995,6 +995,7 @@ export const youtubeReviewLog = pgTable("youtube_review_log", {
   workerId: integer("worker_id").notNull(),
   action: text("action").notNull(),
   youtubeUrl: text("youtube_url"),
+  spotifyUrl: text("spotify_url"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

@@ -17686,7 +17686,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
   }
 
   const MTURK_ELIGIBLE_EPISODE_WHERE = `
-    youtube_url IS NULL
+    (youtube_url IS NULL OR spotify_episode_url IS NULL)
     AND publish_date >= '2026-03-15'
     AND published = true
     AND id NOT IN (
@@ -17718,6 +17718,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       const workerId = workerRows[0].id;
 
       const qualifiedWhere = MTURK_ELIGIBLE_EPISODE_WHERE
+        .replace(/\bspotify_episode_url\b/g, 'lpr.spotify_episode_url')
         .replace(/\byoutube_url\b/g, 'lpr.youtube_url')
         .replace(/\bpublish_date\b/g, 'lpr.publish_date')
         .replace(/\bpublished\b/g, 'lpr.published')
@@ -17725,7 +17726,8 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       const { rows: episodes } = await pool.query(`
         SELECT lpr.id, lpr.slug, lpr.podcast_name, lpr.episode_title, lpr.episode_slug, lpr.publish_date, lpr.duration,
                lpr.artwork_url, lpr.hosts, lpr.tldl, lpr.guests,
-               pd.youtube_url AS channel_youtube_url
+               lpr.youtube_url AS existing_youtube_url, lpr.spotify_episode_url AS existing_spotify_url,
+               pd.youtube_url AS channel_youtube_url, pd.spotify_url AS channel_spotify_url
         FROM landing_page_recaps lpr
         LEFT JOIN podcast_directory pd ON pd.slug = lpr.slug
         WHERE ${qualifiedWhere}
@@ -17740,7 +17742,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
         SELECT
           (SELECT COUNT(DISTINCT episode_id)::int FROM youtube_review_log WHERE action IN ('confirmed', 'no_video')) AS done,
           (SELECT COUNT(DISTINCT episode_id)::int FROM youtube_review_log WHERE action IN ('confirmed', 'no_video')) +
-          (SELECT COUNT(*)::int FROM landing_page_recaps WHERE youtube_url IS NULL AND publish_date >= '${MTURK_EPISODE_CUTOFF_DATE}' AND published = true
+          (SELECT COUNT(*)::int FROM landing_page_recaps WHERE (youtube_url IS NULL OR spotify_episode_url IS NULL) AND publish_date >= '${MTURK_EPISODE_CUTOFF_DATE}' AND published = true
             AND id NOT IN (SELECT DISTINCT episode_id FROM youtube_review_log WHERE action IN ('confirmed', 'no_video'))
           ) AS total
       `);
@@ -17801,6 +17803,9 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
           tldl: episode.tldl,
           guests: episode.guests,
           channelYoutubeUrl: episode.channel_youtube_url || null,
+          channelSpotifyUrl: episode.channel_spotify_url || null,
+          existingYoutubeUrl: episode.existing_youtube_url || null,
+          existingSpotifyUrl: episode.existing_spotify_url || null,
         },
         youtubeResult,
         progress: {
@@ -17822,12 +17827,12 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       if (workerRows.length === 0 || !workerRows[0].active) return res.status(403).json({ error: "Invalid or inactive worker" });
       const workerId = workerRows[0].id;
 
-      const { episodeId, action, youtubeUrl } = req.body;
+      const { episodeId, action, youtubeUrl, spotifyUrl } = req.body;
       if (!episodeId || !action) return res.status(400).json({ error: "Missing episodeId or action" });
       if (!["confirmed", "skipped", "no_video"].includes(action)) return res.status(400).json({ error: "Invalid action" });
 
       const { rows: episodeRows } = await pool.query(
-        `SELECT id FROM landing_page_recaps WHERE id = $1 AND published = true AND publish_date >= $2 AND youtube_url IS NULL`,
+        `SELECT id, youtube_url, spotify_episode_url FROM landing_page_recaps WHERE id = $1 AND published = true AND publish_date >= $2 AND (youtube_url IS NULL OR spotify_episode_url IS NULL)`,
         [episodeId, MTURK_EPISODE_CUTOFF_DATE]
       );
       if (episodeRows.length === 0) return res.status(400).json({ error: "Episode not found or not eligible" });
@@ -17838,23 +17843,44 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       );
       if (alreadyFinalized.length > 0) return res.status(400).json({ error: "Episode already finalized" });
 
-      let normalizedUrl: string | null = null;
+      let normalizedYoutubeUrl: string | null = null;
+      let normalizedSpotifyUrl: string | null = null;
+
       if (action === "confirmed") {
-        if (!youtubeUrl || typeof youtubeUrl !== "string") return res.status(400).json({ error: "YouTube URL required for confirmation" });
-        const ytUrlMatch = youtubeUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
-        if (!ytUrlMatch) return res.status(400).json({ error: "Invalid YouTube URL format" });
-        normalizedUrl = `https://www.youtube.com/watch?v=${ytUrlMatch[1]}`;
-        const { rowCount } = await pool.query(
-          `UPDATE landing_page_recaps SET youtube_url = $1 WHERE id = $2 AND youtube_url IS NULL`,
-          [normalizedUrl, episodeId]
-        );
-        if (rowCount === 0) return res.status(400).json({ error: "Episode already has a YouTube URL" });
+        if (youtubeUrl && typeof youtubeUrl === "string") {
+          const ytUrlMatch = youtubeUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+          if (!ytUrlMatch) return res.status(400).json({ error: "Invalid YouTube URL format" });
+          normalizedYoutubeUrl = `https://www.youtube.com/watch?v=${ytUrlMatch[1]}`;
+        }
+
+        if (spotifyUrl && typeof spotifyUrl === "string") {
+          const spotifyMatch = spotifyUrl.match(/open\.spotify\.com\/episode\/([a-zA-Z0-9]+)/);
+          if (!spotifyMatch) return res.status(400).json({ error: "Invalid Spotify URL format. Must be an open.spotify.com/episode/ URL" });
+          normalizedSpotifyUrl = `https://open.spotify.com/episode/${spotifyMatch[1]}`;
+        }
+
+        if (!normalizedYoutubeUrl && !normalizedSpotifyUrl) {
+          return res.status(400).json({ error: "At least one URL (YouTube or Spotify) is required for confirmation" });
+        }
+
+        if (normalizedYoutubeUrl) {
+          await pool.query(
+            `UPDATE landing_page_recaps SET youtube_url = $1 WHERE id = $2 AND youtube_url IS NULL`,
+            [normalizedYoutubeUrl, episodeId]
+          );
+        }
+
+        if (normalizedSpotifyUrl) {
+          await pool.query(
+            `UPDATE landing_page_recaps SET spotify_episode_url = $1 WHERE id = $2 AND spotify_episode_url IS NULL`,
+            [normalizedSpotifyUrl, episodeId]
+          );
+        }
       }
 
-
       await pool.query(
-        `INSERT INTO youtube_review_log (episode_id, worker_id, action, youtube_url) VALUES ($1, $2, $3, $4)`,
-        [episodeId, workerId, action, normalizedUrl]
+        `INSERT INTO youtube_review_log (episode_id, worker_id, action, youtube_url, spotify_url) VALUES ($1, $2, $3, $4, $5)`,
+        [episodeId, workerId, action, normalizedYoutubeUrl, normalizedSpotifyUrl]
       );
 
       res.json({ ok: true });
@@ -17994,7 +18020,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       const { rows } = await pool.query(`
         SELECT
           (SELECT COUNT(DISTINCT episode_id)::int FROM youtube_review_log WHERE action IN ('confirmed', 'no_video')) +
-          (SELECT COUNT(*)::int FROM landing_page_recaps WHERE youtube_url IS NULL AND publish_date >= '${MTURK_EPISODE_CUTOFF_DATE}' AND published = true
+          (SELECT COUNT(*)::int FROM landing_page_recaps WHERE (youtube_url IS NULL OR spotify_episode_url IS NULL) AND publish_date >= '${MTURK_EPISODE_CUTOFF_DATE}' AND published = true
             AND id NOT IN (SELECT DISTINCT episode_id FROM youtube_review_log WHERE action IN ('confirmed', 'no_video'))
           ) AS total_episodes,
           (SELECT COUNT(DISTINCT episode_id)::int FROM youtube_review_log WHERE action = 'confirmed') AS confirmed,
@@ -18166,8 +18192,10 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
           worker_id INTEGER NOT NULL,
           action TEXT NOT NULL,
           youtube_url TEXT,
+          spotify_url TEXT,
           created_at TIMESTAMP DEFAULT NOW()
         );
+        ALTER TABLE youtube_review_log ADD COLUMN IF NOT EXISTS spotify_url TEXT;
       `);
       console.log("[MTurk] Tables ensured");
     } catch (err) {

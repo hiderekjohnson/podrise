@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Check, SkipForward, XCircle, ExternalLink, Search, Loader2, Youtube, Play, ChevronDown, ChevronUp } from "lucide-react";
+import { SiSpotify } from "react-icons/si";
 
 interface Episode {
   id: number;
@@ -18,6 +19,9 @@ interface Episode {
   tldl: string;
   guests: string;
   channelYoutubeUrl: string | null;
+  channelSpotifyUrl: string | null;
+  existingYoutubeUrl: string | null;
+  existingSpotifyUrl: string | null;
 }
 
 interface YouTubeResult {
@@ -37,6 +41,12 @@ function parseYouTubeVideoId(url: string): string | null {
   if (!url) return null;
   if (url.includes("/search") || url.includes("search_query")) return null;
   const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+  return match ? match[1] : null;
+}
+
+function parseSpotifyEpisodeId(url: string): string | null {
+  if (!url) return null;
+  const match = url.match(/open\.spotify\.com\/episode\/([a-zA-Z0-9]+)/);
   return match ? match[1] : null;
 }
 
@@ -63,9 +73,12 @@ export default function YouTubeReviewPage() {
   const token = params.token || "";
   const { toast } = useToast();
   const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [spotifyUrl, setSpotifyUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showEmbed, setShowEmbed] = useState(false);
+  const [showSpotifyEmbed, setShowSpotifyEmbed] = useState(false);
   const [tldlExpanded, setTldlExpanded] = useState(false);
+  const [youtubeDisabled, setYoutubeDisabled] = useState(false);
 
   useEffect(() => {
     const meta = document.createElement("meta");
@@ -100,30 +113,57 @@ export default function YouTubeReviewPage() {
   });
 
   useEffect(() => {
-    if (reviewData?.youtubeResult?.url) {
-      setYoutubeUrl(reviewData.youtubeResult.url);
+    if (reviewData?.episode) {
+      const ep = reviewData.episode;
+      if (ep.existingYoutubeUrl) {
+        setYoutubeUrl(ep.existingYoutubeUrl);
+        setYoutubeDisabled(true);
+      } else if (reviewData?.youtubeResult?.url) {
+        setYoutubeUrl(reviewData.youtubeResult.url);
+        setYoutubeDisabled(false);
+      } else {
+        setYoutubeUrl("");
+        setYoutubeDisabled(false);
+      }
+      setSpotifyUrl("");
     } else {
       setYoutubeUrl("");
+      setSpotifyUrl("");
+      setYoutubeDisabled(false);
     }
     setShowEmbed(false);
+    setShowSpotifyEmbed(false);
     setTldlExpanded(false);
   }, [reviewData?.episode?.id]);
 
   const submitAction = useCallback(async (action: "confirmed" | "skipped" | "no_video") => {
     if (!reviewData?.episode) return;
-    if (action === "confirmed" && !youtubeUrl) {
-      toast({ title: "Enter a YouTube URL first", variant: "destructive" });
-      return;
+    if (action === "confirmed") {
+      const hasYoutube = !youtubeDisabled && youtubeUrl && parseYouTubeVideoId(youtubeUrl);
+      const hasSpotify = spotifyUrl && parseSpotifyEpisodeId(spotifyUrl);
+      if (youtubeDisabled && !hasSpotify) {
+        toast({ title: "Enter a Spotify URL to confirm", variant: "destructive" });
+        return;
+      }
+      if (!youtubeDisabled && !hasYoutube && !hasSpotify) {
+        toast({ title: "Enter at least one URL (YouTube or Spotify)", variant: "destructive" });
+        return;
+      }
     }
     setIsSubmitting(true);
     try {
+      const validYoutubeUrl = action === "confirmed" && !youtubeDisabled && youtubeUrl && parseYouTubeVideoId(youtubeUrl) ? youtubeUrl : undefined;
+      const validSpotifyUrl = action === "confirmed" && spotifyUrl && parseSpotifyEpisodeId(spotifyUrl) ? spotifyUrl : undefined;
       await apiRequest("POST", `/api/mturk/submit/${token}`, {
         episodeId: reviewData.episode.id,
         action,
-        youtubeUrl: action === "confirmed" ? youtubeUrl : undefined,
+        youtubeUrl: validYoutubeUrl,
+        spotifyUrl: validSpotifyUrl,
       });
       setYoutubeUrl("");
+      setSpotifyUrl("");
       setShowEmbed(false);
+      setShowSpotifyEmbed(false);
       await refetch();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Submission failed";
@@ -131,17 +171,28 @@ export default function YouTubeReviewPage() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [reviewData?.episode, youtubeUrl, token, refetch, toast]);
+  }, [reviewData?.episode, youtubeUrl, spotifyUrl, youtubeDisabled, token, refetch, toast]);
 
   const videoId = youtubeUrl ? parseYouTubeVideoId(youtubeUrl) : null;
+  const spotifyEpisodeId = spotifyUrl ? parseSpotifyEpisodeId(spotifyUrl) : null;
   const episode = reviewData?.episode;
   const progress = reviewData?.progress || { done: 0, total: 0 };
   const remaining = Math.max(0, progress.total - progress.done);
   const progressPct = progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
 
+  const hasValidYoutube = !!videoId;
+  const hasValidSpotify = !!spotifyEpisodeId;
+  const canConfirm = youtubeDisabled ? hasValidSpotify : (hasValidYoutube || hasValidSpotify);
+
   const handleTestClick = () => {
     if (videoId) {
       setShowEmbed(true);
+    }
+  };
+
+  const handleSpotifyTestClick = () => {
+    if (spotifyEpisodeId) {
+      setShowSpotifyEmbed(true);
     }
   };
 
@@ -194,6 +245,7 @@ export default function YouTubeReviewPage() {
   const guests = parseGuests(episode.guests);
   const searchQuery = `${episode.podcastName} ${episode.episodeTitle}`;
   const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`;
+  const spotifyShowUrl = episode.channelSpotifyUrl || `https://open.spotify.com/search/${encodeURIComponent(episode.podcastName)}`;
 
   return (
     <div className="h-screen flex flex-col bg-white text-gray-900" data-testid="youtube-review-page">
@@ -289,6 +341,9 @@ export default function YouTubeReviewPage() {
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">YouTube URL</label>
+            {youtubeDisabled && (
+              <p className="text-xs text-green-600" data-testid="text-youtube-prefilled">Already has YouTube URL — find the Spotify link below</p>
+            )}
             <div className="flex gap-2">
               <input
                 type="url"
@@ -297,13 +352,14 @@ export default function YouTubeReviewPage() {
                   setYoutubeUrl(e.target.value);
                   setShowEmbed(false);
                 }}
+                disabled={youtubeDisabled}
                 placeholder="https://www.youtube.com/watch?v=..."
-                className="flex-1 h-9 px-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/60"
+                className="flex-1 h-9 px-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/60 disabled:bg-gray-100 disabled:text-gray-500"
                 data-testid="input-youtube-url"
               />
               <button
                 onClick={handleTestClick}
-                disabled={!videoId}
+                disabled={!videoId || youtubeDisabled}
                 className="h-9 px-3 bg-gray-100 border border-gray-300 rounded-lg flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
                 data-testid="button-test-video"
               >
@@ -311,7 +367,7 @@ export default function YouTubeReviewPage() {
                 Test
               </button>
             </div>
-            {youtubeUrl && !videoId && (
+            {youtubeUrl && !videoId && !youtubeDisabled && (
               <p className="text-xs text-amber-600" data-testid="text-invalid-url">Could not extract video ID from this URL. Please check the format.</p>
             )}
           </div>
@@ -328,10 +384,68 @@ export default function YouTubeReviewPage() {
             </div>
           )}
 
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <SiSpotify className="w-3.5 h-3.5 text-green-500" />
+              <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Spotify Episode URL</label>
+              <span className="text-xs text-gray-400">(optional)</span>
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs mb-1.5">
+              <a
+                href={spotifyShowUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-green-600 hover:text-green-700 hover:underline"
+                data-testid="link-spotify-show"
+              >
+                <SiSpotify className="w-3 h-3" />
+                {episode.channelSpotifyUrl ? "Spotify Show Page" : `Search Spotify: ${episode.podcastName}`}
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="url"
+                value={spotifyUrl}
+                onChange={(e) => {
+                  setSpotifyUrl(e.target.value);
+                  setShowSpotifyEmbed(false);
+                }}
+                placeholder="https://open.spotify.com/episode/..."
+                className="flex-1 h-9 px-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500/60"
+                data-testid="input-spotify-url"
+              />
+              <button
+                onClick={handleSpotifyTestClick}
+                disabled={!spotifyEpisodeId}
+                className="h-9 px-3 bg-gray-100 border border-gray-300 rounded-lg flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
+                data-testid="button-test-spotify"
+              >
+                <Play className="w-3.5 h-3.5" />
+                Test
+              </button>
+            </div>
+            {spotifyUrl && !spotifyEpisodeId && (
+              <p className="text-xs text-amber-600" data-testid="text-invalid-spotify-url">Could not extract episode ID. Must be an open.spotify.com/episode/ URL.</p>
+            )}
+          </div>
+
+          {showSpotifyEmbed && spotifyEpisodeId && (
+            <div className="w-full rounded-lg overflow-hidden" data-testid="spotify-embed">
+              <iframe
+                src={`https://open.spotify.com/embed/episode/${spotifyEpisodeId}`}
+                className="w-full"
+                style={{ height: "152px" }}
+                allow="encrypted-media"
+                title="Spotify episode"
+              />
+            </div>
+          )}
+
           <div className="grid grid-cols-3 gap-2 pt-1">
             <button
               onClick={() => submitAction("confirmed")}
-              disabled={isSubmitting || !videoId}
+              disabled={isSubmitting || !canConfirm}
               className="h-11 rounded-lg bg-green-600 hover:bg-green-500 disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold text-sm flex items-center justify-center gap-1.5 transition-colors"
               data-testid="button-confirm"
             >
