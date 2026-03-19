@@ -1,0 +1,34 @@
+YouTube URL Update - Execution Log
+====================================
+Date: 2026-03-19
+Task: #114 - Update YouTube URLs for 17 podcasts
+
+Script: scripts/update-youtube-urls.ts
+
+Execution Results:
+  Found 11 existing slugs, 6 missing from podcast_directory table.
+
+Updated youtube_url for 11 existing podcasts:
+  accidental-tech-podcast → youtube.com/@atpfm (Accidental Tech Podcast)
+  ai-for-humans → youtube.com/@AIForHumansShow (Inox - Single)
+  almost30 → youtube.com/@Almost30Podcast (Almost 30)
+  areallygoodcry → youtube.com/@AReallyGoodCry (A Really Good Cry)
+  deargabby → youtube.com/@GabbyBernstein (Dear Gabby)
+  earnyourhappy → youtube.com/@LoriHarder (Earn Your Happy)
+  goodhang → youtube.com/@Good-Hang-with-Amy-Poehler (Good Hang with Amy Poehler)
+  gooppodcast → youtube.com/@goop (The goop Podcast)
+  marieforleo → youtube.com/@marieforleo (The Marie Forleo Podcast)
+  news-agents → youtube.com/@thenewsagents
+  wecandohardthings → youtube.com/@WeCanDoHardThingsShow (We Can Do Hard Things)
+
+Not found in podcast_directory (6 slugs do not exist in the table):
+  great-chat → youtube.com/@joshsmithsgreatchatshow
+  reuters-world-news → youtube.com/@Reuters
+  associated-press → youtube.com/@AssociatedPress
+  real-eisman-playbook → youtube.com/@RealEismanPlaybook
+  no-bullshit-leadership → youtube.com/@YourCEOMentor
+  memo-by-howard-marks → youtube.com/@OaktreeCapital
+
+These 6 podcasts need to be added to the directory before their
+YouTube URLs can be set. The script retains the mappings so it
+can be re-run once the podcasts are added.
