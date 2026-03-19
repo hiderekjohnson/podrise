@@ -122,6 +122,7 @@ export default function BookmarksPage() {
                     toast={toast}
                     testIdPrefix="bookmark"
                     className=""
+                    isLoggedIn={true}
                   />
                 );
               })}

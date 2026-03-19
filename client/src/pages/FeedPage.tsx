@@ -99,12 +99,13 @@ function PodSquadBanner() {
   );
 }
 
-function FeedRecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toast }: {
+function FeedRecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle, toast, user }: {
   item: FeedItem;
   onFollowToggle: (slug: string, follow: boolean) => void;
   bookmarkedKeys: Set<string>;
   onBookmarkToggle: (episodeSlug: string, podcastSlug: string) => void;
   toast: ReturnType<typeof useToast>["toast"];
+  user: any;
 }) {
   const isBookmarked = bookmarkedKeys.has(`${item.podcastSlug}::${item.episodeSlug}`);
 
@@ -136,6 +137,7 @@ function FeedRecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle,
       onBookmarkToggle={onBookmarkToggle}
       toast={toast}
       testIdPrefix="feed-card"
+      isLoggedIn={!!user}
     />
   );
 }
@@ -650,6 +652,7 @@ export default function FeedPage() {
                     bookmarkedKeys={bookmarkedKeys}
                     onBookmarkToggle={handleBookmarkToggle}
                     toast={toast}
+                    user={user}
                   />
                 );
                 return elements;

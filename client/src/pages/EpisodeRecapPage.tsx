@@ -16,7 +16,7 @@ import { PodcastPageLayout } from "@/components/PodcastPageLayout";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth, useRegister } from "@/hooks/use-auth";
+import { useAuth, useRegister, useLogin } from "@/hooks/use-auth";
 import { useSetConversion } from "@/contexts/PageConversionContext";
 
 interface BookResource {
@@ -131,18 +131,24 @@ function getAutoQuestion(entityName: string, entityType: string, podcastName?: s
   }
 }
 
-function DeepDiveButton({ label, entityName, entityType, chatRef, podcastName }: {
+function DeepDiveButton({ label, entityName, entityType, chatRef, podcastName, isLoggedIn, onAuthGate }: {
   label?: string;
   entityName: string;
   entityType: string;
   chatRef: React.RefObject<ChatContextRef | null>;
   podcastName?: string;
+  isLoggedIn?: boolean;
+  onAuthGate?: () => void;
 }) {
   return (
     <button
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
+        if (!isLoggedIn && onAuthGate) {
+          onAuthGate();
+          return;
+        }
         const q = getAutoQuestion(entityName, entityType, podcastName);
         chatRef.current?.open(entityName, entityType, q);
       }}
@@ -155,13 +161,88 @@ function DeepDiveButton({ label, entityName, entityType, chatRef, podcastName }:
   );
 }
 
-function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName }: {
+function AuthGatePanel({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+  const [email, setEmail] = useState("");
+  const registerMutation = useRegister();
+  const loginMutation = useLogin();
+  const [error, setError] = useState("");
+
+  const handleSubmit = async () => {
+    const trimmed = email.trim();
+    if (!trimmed) return;
+    setError("");
+    try {
+      await registerMutation.mutateAsync({ email: trimmed, podcasts: [], signupContext: "ask_ai", signupSource: "ask_ai_gate" });
+      onSuccess();
+    } catch {
+      try {
+        await loginMutation.mutateAsync({ email: trimmed });
+        onSuccess();
+      } catch {
+        setError("Something went wrong. Please try again.");
+      }
+    }
+  };
+
+  const isPending = registerMutation.isPending || loginMutation.isPending;
+
+  return (
+    <div className="fixed bottom-[calc(50px+env(safe-area-inset-bottom,0px))] md:bottom-0 right-0 sm:bottom-6 sm:right-6 z-50 w-full sm:w-[380px] sm:max-w-[calc(100vw-2rem)] rounded-t-2xl sm:rounded-2xl border border-black/[0.08] dark:border-white/[0.12] bg-background shadow-2xl shadow-black/[0.12] flex flex-col overflow-hidden" data-testid="auth-gate-panel">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-black/[0.06] dark:border-white/[0.08] bg-primary/[0.03]">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+            <Sparkles className="w-3.5 h-3.5 text-primary" />
+          </div>
+          <p className="text-[16px] font-semibold text-foreground">Ask AI</p>
+        </div>
+        <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors shrink-0" data-testid="close-auth-gate">
+          <X className="w-4 h-4 text-muted-foreground" />
+        </button>
+      </div>
+      <div className="px-5 py-6 space-y-4">
+        <div className="text-center space-y-2">
+          <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+            <Sparkles className="w-6 h-6 text-primary" />
+          </div>
+          <h3 className="text-[18px] font-bold text-foreground">Ask AI requires an account</h3>
+          <p className="text-[14px] text-muted-foreground leading-relaxed">Enter your email to create a free account and start chatting with AI about this episode.</p>
+        </div>
+        <div className="space-y-3">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }}
+            placeholder="you@email.com"
+            className="w-full px-4 py-3 rounded-xl border border-black/[0.08] dark:border-white/[0.12] bg-muted/30 text-[16px] text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition-all"
+            data-testid="auth-gate-email-input"
+            disabled={isPending}
+          />
+          {error && <p className="text-[13px] text-red-500" data-testid="auth-gate-error">{error}</p>}
+          <button
+            onClick={handleSubmit}
+            disabled={!email.trim() || isPending}
+            className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-[15px] font-semibold hover:bg-primary/90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+            data-testid="auth-gate-submit"
+          >
+            {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            {isPending ? "Setting up..." : "Get Started — It's Free"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName, isLoggedIn }: {
   podcastSlug: string;
   episodeSlug: string;
   episodeTitle: string;
   podcastName: string;
+  isLoggedIn: boolean;
 }, ref: React.Ref<ChatContextRef>) {
   const [isOpen, setIsOpen] = useState(false);
+  const [showAuthGate, setShowAuthGate] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -180,6 +261,10 @@ function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName 
   }, [isOpen]);
 
   const openChat = (entityName?: string, entityType?: string, initialQuestion?: string) => {
+    if (!isLoggedIn) {
+      setShowAuthGate(true);
+      return;
+    }
     const newEntity = entityName && entityType ? { name: entityName, type: entityType } : null;
     const entityChanged = newEntity && (!currentEntity || currentEntity.name !== newEntity.name || currentEntity.type !== newEntity.type);
     if (entityChanged || initialQuestion || !entityName) {
@@ -249,9 +334,23 @@ function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName 
   };
 
   if (!isOpen) {
+    if (showAuthGate) {
+      return (
+        <AuthGatePanel
+          onClose={() => setShowAuthGate(false)}
+          onSuccess={() => { setShowAuthGate(false); setIsOpen(true); }}
+        />
+      );
+    }
     return (
       <button
-        onClick={() => { setCurrentEntity(null); setMessages([]); setInput(""); setIsOpen(true); }}
+        onClick={() => {
+          if (!isLoggedIn) {
+            setShowAuthGate(true);
+            return;
+          }
+          setCurrentEntity(null); setMessages([]); setInput(""); setIsOpen(true);
+        }}
         className="fixed bottom-[calc(60px+env(safe-area-inset-bottom,0px))] right-4 sm:bottom-6 sm:right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-105 transition-all md:bottom-4"
         data-testid="open-ai-chat-fab"
       >
@@ -506,6 +605,8 @@ export default function EpisodeRecapPage() {
   const { toast } = useToast();
   const { data: authUser } = useAuth();
   const registerMutation = useRegister();
+  const isLoggedIn = !!authUser;
+  const [showAuthGatePanel, setShowAuthGatePanel] = useState(false);
   const [showUpdatesModal, setShowUpdatesModal] = useState(false);
   const [ctaEmail, setCtaEmail] = useState("");
 
@@ -1158,7 +1259,7 @@ export default function EpisodeRecapPage() {
                             <ChevronRight className="w-3 h-3" />
                           </Link>
                         )}
-                        <DeepDiveButton entityName={book.name} entityType="book" chatRef={chatRef} />
+                        <DeepDiveButton entityName={book.name} entityType="book" chatRef={chatRef} isLoggedIn={isLoggedIn} onAuthGate={() => setShowAuthGatePanel(true)} />
                       </div>
                     </div>
                   );
@@ -1383,6 +1484,7 @@ export default function EpisodeRecapPage() {
           toast={toast}
           testIdPrefix="episode-card"
           className="mb-0"
+          isLoggedIn={isLoggedIn}
         />
       ) : (
         <FeedStyleCard testId="episode-feed-card">
@@ -1539,6 +1641,7 @@ export default function EpisodeRecapPage() {
                 toast={toast}
                 testIdPrefix="card-more-episode"
                 className=""
+                isLoggedIn={isLoggedIn}
               />
             )) : previousEpisodes.map((ep: any) => (
               <EpisodeCard
@@ -1630,7 +1733,14 @@ export default function EpisodeRecapPage() {
           episodeSlug={episodeSlug}
           episodeTitle={episode?.episodeTitle || ""}
           podcastName={episode?.podcastName || ""}
+          isLoggedIn={isLoggedIn}
         />
+        {showAuthGatePanel && (
+          <AuthGatePanel
+            onClose={() => setShowAuthGatePanel(false)}
+            onSuccess={() => { setShowAuthGatePanel(false); }}
+          />
+        )}
       </PodcastPageLayout>
     );
   }
@@ -1653,7 +1763,14 @@ export default function EpisodeRecapPage() {
         episodeSlug={episodeSlug}
         episodeTitle={episode?.episodeTitle || ""}
         podcastName={episode?.podcastName || ""}
+        isLoggedIn={isLoggedIn}
       />
+      {showAuthGatePanel && (
+        <AuthGatePanel
+          onClose={() => setShowAuthGatePanel(false)}
+          onSuccess={() => { setShowAuthGatePanel(false); }}
+        />
+      )}
     </div>
   );
 }

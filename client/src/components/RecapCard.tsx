@@ -159,6 +159,7 @@ export interface RecapCardProps {
   toast: (opts: Record<string, any>) => any;
   testIdPrefix?: string;
   className?: string;
+  isLoggedIn?: boolean;
 }
 
 export function RecapCard({
@@ -191,6 +192,7 @@ export function RecapCard({
   toast,
   testIdPrefix = "recap",
   className = "mb-5",
+  isLoggedIn = false,
 }: RecapCardProps) {
   const headerAction = onFollowToggle ? (
     isFollowing ? (
@@ -288,6 +290,7 @@ export function RecapCard({
           <CardBottomAccordion
             item={accordionItem}
             bottomBar={bottomBar}
+            isLoggedIn={isLoggedIn}
           />
         }
       />

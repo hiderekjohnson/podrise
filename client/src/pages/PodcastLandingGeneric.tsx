@@ -668,6 +668,7 @@ export default function PodcastLandingGeneric() {
                       toast={toast}
                       testIdPrefix="podcast-episode"
                       className=""
+                      isLoggedIn={!!user}
                     />
                   ) : (
                     <EpisodeCard

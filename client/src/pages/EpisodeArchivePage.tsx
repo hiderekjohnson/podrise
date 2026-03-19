@@ -875,6 +875,7 @@ export default function EpisodeArchivePage() {
                       toast={toast}
                       testIdPrefix="archive-episode"
                       className=""
+                      isLoggedIn={!!authUser}
                     />
                   ) : (
                     <EpisodeCard

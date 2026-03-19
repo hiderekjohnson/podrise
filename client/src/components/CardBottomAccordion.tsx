@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ChevronDown, ExternalLink } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { ChevronDown, ExternalLink, Sparkles, ArrowUp, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export interface MentionEntry {
@@ -144,11 +144,127 @@ function ListenSection({ item }: { item: AccordionItemData }) {
   );
 }
 
-export function CardBottomAccordion({ item, bottomBar }: {
+interface ChatMsg {
+  role: "user" | "assistant";
+  content: string;
+}
+
+function InlineChatSection({ item }: { item: AccordionItemData }) {
+  const [messages, setMessages] = useState<ChatMsg[]>([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const sendMessage = async (text?: string) => {
+    const q = text || input.trim();
+    if (!q || loading) return;
+    setInput("");
+    const userMsg: ChatMsg = { role: "user", content: q };
+    setMessages(prev => [...prev, userMsg]);
+    setLoading(true);
+
+    try {
+      const resp = await fetch("/api/episode-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          podcastSlug: item.podcastSlug,
+          episodeSlug: item.episodeSlug,
+          question: q,
+          conversationHistory: messages,
+        }),
+      });
+      const data = await resp.json();
+      setMessages(prev => [...prev, { role: "assistant", content: data.answer || "Sorry, I couldn't respond." }]);
+    } catch {
+      setMessages(prev => [...prev, { role: "assistant", content: "Something went wrong. Please try again." }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const suggestions = [
+    `What are the key takeaways?`,
+    `Who was mentioned in this episode?`,
+  ];
+
+  return (
+    <div className="px-4 md:px-5 py-4" data-testid={`inline-chat-${item.id}`}>
+      <div className="max-h-[280px] overflow-y-auto space-y-2.5 mb-3">
+        {messages.length === 0 && (
+          <div className="space-y-2">
+            <p className="text-[13px] text-[#A1A1AA]">Ask anything about this episode:</p>
+            {suggestions.map((q, i) => (
+              <button
+                key={i}
+                onClick={() => sendMessage(q)}
+                className="block w-full text-left text-[13px] px-3 py-2 rounded-lg border border-[#E4E4E7] hover:bg-[#F7F7FC] hover:border-[#6366F1]/20 text-[#3F3F46] transition-all"
+                data-testid={`inline-chat-suggestion-${item.id}-${i}`}
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+        )}
+        {messages.map((msg, i) => (
+          <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-[14px] leading-relaxed ${
+              msg.role === "user"
+                ? "bg-[#6366F1] text-white"
+                : "bg-[#F4F4F5] text-[#3F3F46]"
+            }`} data-testid={`inline-chat-msg-${item.id}-${i}`}>
+              {msg.content}
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div className="flex justify-start">
+            <div className="rounded-2xl px-3 py-2.5 bg-[#F4F4F5]">
+              <div className="flex gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#A1A1AA] animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="w-1.5 h-1.5 rounded-full bg-[#A1A1AA] animate-bounce" style={{ animationDelay: "150ms" }} />
+                <div className="w-1.5 h-1.5 rounded-full bg-[#A1A1AA] animate-bounce" style={{ animationDelay: "300ms" }} />
+              </div>
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      <div className="flex items-center gap-2 bg-[#F4F4F5] rounded-xl px-3 py-2">
+        <input
+          ref={inputRef}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") sendMessage(); }}
+          placeholder="Ask about this episode..."
+          className="flex-1 bg-transparent text-[14px] text-[#09090B] placeholder:text-[#A1A1AA] outline-none"
+          data-testid={`inline-chat-input-${item.id}`}
+        />
+        <button
+          onClick={() => sendMessage()}
+          disabled={!input.trim() || loading}
+          className={`p-1.5 rounded-lg transition-all ${input.trim() && !loading ? "bg-[#6366F1] text-white hover:bg-[#4F46E5]" : "text-[#D4D4D8]"}`}
+          data-testid={`inline-chat-send-${item.id}`}
+        >
+          <ArrowUp className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function CardBottomAccordion({ item, bottomBar, isLoggedIn }: {
   item: AccordionItemData;
   bottomBar: React.ReactNode;
+  isLoggedIn?: boolean;
 }) {
-  const [openSection, setOpenSection] = useState<"recap" | "listen" | null>(null);
+  const [openSection, setOpenSection] = useState<"recap" | "listen" | "chat" | null>(null);
 
   const whatHappenedParagraphs = item.whatHappened ? item.whatHappened.split(/\n\n+/).filter((p) => p.trim()) : [];
   const hasRecap = whatHappenedParagraphs.length > 0;
@@ -157,7 +273,7 @@ export function CardBottomAccordion({ item, bottomBar }: {
   const youtubeId = parseYouTubeVideoId(item.youtubeUrl);
   const hasListen = !!spotifyId || !!youtubeId || !!item.spotifyEpisodeUrl || !!item.spotifyUrl || (!!item.youtubeUrl && item.youtubeUrl !== '');
 
-  const toggleSection = (section: "recap" | "listen") => {
+  const toggleSection = (section: "recap" | "listen" | "chat") => {
     setOpenSection(prev => prev === section ? null : section);
   };
 
@@ -226,6 +342,37 @@ export function CardBottomAccordion({ item, bottomBar }: {
                 className="overflow-hidden border-t border-[#F0F0F2]"
               >
                 <ListenSection item={item} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+
+      {isLoggedIn && (
+        <div className="border-t border-[#E4E4E7]" data-testid={`feed-chat-section-${item.id}`}>
+          <div
+            className={`flex items-center gap-3 px-4 md:px-5 py-[13px] cursor-pointer transition-colors ${openSection === "chat" ? "bg-[#F7F7FC]" : "hover:bg-[#FAFAFB]"}`}
+            onClick={() => toggleSection("chat")}
+            data-testid={`feed-chat-toggle-${item.id}`}
+          >
+            <div className="flex items-center flex-shrink-0">
+              <Sparkles className="w-[22px] h-[22px] text-[#6366F1]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px] font-bold text-[#09090B]">Chat about this episode</div>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-[#A1A1AA] flex-shrink-0 transition-transform duration-200 ${openSection === "chat" ? "rotate-180 text-[#6366F1]" : ""}`} />
+          </div>
+          <AnimatePresence>
+            {openSection === "chat" && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="overflow-hidden border-t border-[#F0F0F2]"
+              >
+                <InlineChatSection item={item} />
               </motion.div>
             )}
           </AnimatePresence>
