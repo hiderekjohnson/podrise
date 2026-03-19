@@ -6,7 +6,6 @@ import {
   Zap, Users, Settings, Radio, Menu, X
 } from "lucide-react";
 import { RightSidebar } from "@/components/RightSidebar";
-import logoTransparent from "@assets/Transparent-square_1773866360595.png";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -156,7 +155,7 @@ export function DashboardLayout({ children, hideRightSidebar }: DashboardLayoutP
       >
         <Link href="/dashboard" data-testid="sidebar-logo">
           <img
-            src={logoTransparent}
+            src="/favicon.png"
             alt="PodRise"
             width={36}
             height={36}
