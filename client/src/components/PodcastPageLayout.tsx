@@ -174,7 +174,7 @@ export function PodcastPageLayout({
       {!isLoggedIn && <SiteHeader />}
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">
-        <section className="w-full max-w-7xl pt-8 sm:pt-12 pb-8 sm:pb-10">
+        {!isLoggedIn && <section className="w-full max-w-7xl pt-8 sm:pt-12 pb-8 sm:pb-10">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -301,7 +301,7 @@ export function PodcastPageLayout({
               </div>
             </div>
           </motion.div>
-        </section>
+        </section>}
 
         <motion.div
           initial={{ opacity: 0, y: 8 }}
