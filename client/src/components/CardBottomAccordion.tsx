@@ -296,6 +296,37 @@ export function CardBottomAccordion({ item, bottomBar, isLoggedIn }: {
         </div>
       )}
 
+      {isLoggedIn && (
+        <div className="border-t border-[#E4E4E7]" data-testid={`feed-chat-section-${item.id}`}>
+          <div
+            className={`flex items-center gap-3 px-4 md:px-5 py-[13px] cursor-pointer transition-colors ${openSection === "chat" ? "bg-[#F7F7FC]" : "hover:bg-[#FAFAFB]"}`}
+            onClick={() => toggleSection("chat")}
+            data-testid={`feed-chat-toggle-${item.id}`}
+          >
+            <div className="flex items-center flex-shrink-0">
+              <Sparkles className="w-[22px] h-[22px] text-[#6366F1]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px] font-bold text-[#09090B]">Chat about this episode</div>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-[#A1A1AA] flex-shrink-0 transition-transform duration-200 ${openSection === "chat" ? "rotate-180 text-[#6366F1]" : ""}`} />
+          </div>
+          <AnimatePresence>
+            {openSection === "chat" && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="overflow-hidden border-t border-[#F0F0F2]"
+              >
+                <InlineChatSection item={item} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+
       {hasListen && (
         <div className="border-t border-[#E4E4E7]" data-testid={`feed-listen-section-${item.id}`}>
           <div
@@ -322,37 +353,6 @@ export function CardBottomAccordion({ item, bottomBar, isLoggedIn }: {
                 className="overflow-hidden border-t border-[#F0F0F2]"
               >
                 <ListenSection item={item} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      )}
-
-      {isLoggedIn && (
-        <div className="border-t border-[#E4E4E7]" data-testid={`feed-chat-section-${item.id}`}>
-          <div
-            className={`flex items-center gap-3 px-4 md:px-5 py-[13px] cursor-pointer transition-colors ${openSection === "chat" ? "bg-[#F7F7FC]" : "hover:bg-[#FAFAFB]"}`}
-            onClick={() => toggleSection("chat")}
-            data-testid={`feed-chat-toggle-${item.id}`}
-          >
-            <div className="flex items-center flex-shrink-0">
-              <Sparkles className="w-[22px] h-[22px] text-[#6366F1]" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-[14px] font-bold text-[#09090B]">Chat about this episode</div>
-            </div>
-            <ChevronDown className={`w-4 h-4 text-[#A1A1AA] flex-shrink-0 transition-transform duration-200 ${openSection === "chat" ? "rotate-180 text-[#6366F1]" : ""}`} />
-          </div>
-          <AnimatePresence>
-            {openSection === "chat" && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-                className="overflow-hidden border-t border-[#F0F0F2]"
-              >
-                <InlineChatSection item={item} />
               </motion.div>
             )}
           </AnimatePresence>
