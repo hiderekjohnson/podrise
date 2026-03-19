@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>This guy names billion dollar brands for a living — My First Million · PodRise</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', system-ui, sans-serif; background: #F7F7FC; color: #09090B; line-height: 1.6; }
+
+  /* Nav */
+  .pr-nav { background: #fff; border-bottom: 0.5px solid #E4E4E7; padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .pr-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+  .pr-logo-icon { width: 28px; height: 28px; background: linear-gradient(145deg, #6366F1, #8B5CF6); border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+  .pr-logo-word { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; color: #09090B; }
+  .pr-logo-word span { color: #6366F1; font-weight: 300; }
+  .pr-btn-ghost { font-size: 13px; color: #52525B; background: none; border: none; cursor: pointer; padding: 6px 10px; text-decoration: none; }
+  .pr-btn-solid { font-size: 13px; font-weight: 500; color: #fff; background: #6366F1; border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; text-decoration: none; }
+  .pr-btn-solid:hover { background: #4F46E5; }
+
+  /* Hero */
+  .pr-hero { background: #fff; border-bottom: 0.5px solid #E4E4E7; padding: 32px 28px 0; }
+  .pr-hero-inner { max-width: 760px; margin: 0 auto; }
+  .pr-hero-top { display: flex; gap: 24px; align-items: flex-start; margin-bottom: 24px; }
+  .pr-show-art { width: 80px; height: 80px; border-radius: 14px; flex-shrink: 0; object-fit: cover; }
+  .pr-episode-headline { font-family: 'DM Serif Display', serif; font-size: 28px; font-weight: 400; line-height: 1.25; letter-spacing: -0.02em; color: #09090B; }
+  .pr-breadcrumb { font-size: 12px; color: #A1A1AA; margin: 0 0 16px; }
+  .pr-breadcrumb a { color: #6366F1; text-decoration: none; }
+  .pr-breadcrumb a:hover { text-decoration: underline; }
+  .pr-ep-meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #A1A1AA; margin-bottom: 20px; }
+  .pr-ep-dot { width: 3px; height: 3px; background: #D4D4D8; border-radius: 50%; display: inline-block; }
+
+  /* Tabs */
+  .pr-tabs { display: flex; gap: 0; border-top: 0.5px solid #E4E4E7; margin-top: 4px; }
+  .pr-tab { font-size: 13px; font-weight: 500; padding: 12px 16px; color: #71717A; cursor: pointer; border-bottom: 2px solid transparent; position: relative; top: 0.5px; background: none; border-top: none; border-left: none; border-right: none; font-family: 'DM Sans', system-ui, sans-serif; }
+  .pr-tab.active { color: #6366F1; border-bottom-color: #6366F1; }
+  .pr-tab:hover { color: #09090B; }
+
+  /* Body */
+  .pr-body { max-width: 760px; margin: 0 auto; padding: 32px 28px; display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 32px; align-items: start; }
+
+  /* Takeaways */
+  .pr-takeaways { background: #fff; border: 0.5px solid #E4E4E7; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+  .pr-section-label { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: #6366F1; margin: 0 0 16px; display: flex; align-items: center; gap: 6px; }
+  .pr-takeaway-list { list-style: none; padding: 0; }
+  .pr-takeaway-list li { font-size: 14px; color: #52525B; line-height: 1.7; padding: 10px 0; border-bottom: 0.5px solid #F0F0F2; padding-left: 20px; position: relative; }
+  .pr-takeaway-list li:last-child { border-bottom: none; padding-bottom: 0; }
+  .pr-takeaway-list li::before { content: ''; position: absolute; left: 0; top: 18px; width: 6px; height: 6px; border-radius: 50%; background: #6366F1; }
+
+  /* Recap */
+  .pr-recap { background: #fff; border: 0.5px solid #E4E4E7; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+  .pr-recap p { font-size: 15px; color: #52525B; line-height: 1.8; margin-bottom: 16px; }
+  .pr-recap p:last-child { margin-bottom: 0; }
+
+  /* Guest */
+  .pr-guest-card { background: #fff; border: 0.5px solid #E4E4E7; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+  .pr-guest-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .pr-guest-avatar { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; object-fit: cover; background: #EEF2FF; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: #6366F1; }
+  .pr-guest-name { font-size: 15px; font-weight: 500; color: #09090B; margin: 0 0 2px; }
+  .pr-guest-role { font-size: 12px; color: #A1A1AA; margin: 0; }
+  .pr-guest-bio { font-size: 13px; color: #52525B; line-height: 1.65; }
+  .pr-guest-links { display: flex; gap: 8px; margin-top: 10px; }
+  .pr-guest-link { font-size: 12px; color: #6366F1; text-decoration: none; display: flex; align-items: center; gap: 3px; }
+  .pr-guest-link:hover { text-decoration: underline; }
+
+  /* More episodes */
+  .pr-more-label { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: #6366F1; margin: 0 0 14px; display: flex; align-items: center; gap: 6px; }
+  .pr-ep-card { background: #fff; border: 0.5px solid #E4E4E7; border-radius: 12px; padding: 16px 18px; margin-bottom: 10px; }
+  .pr-ep-card-meta { font-size: 12px; color: #A1A1AA; margin: 0 0 5px; display: flex; align-items: center; gap: 6px; }
+  .pr-ep-card-title { font-size: 14px; font-weight: 500; color: #6366F1; margin: 0 0 6px; line-height: 1.4; text-decoration: none; display: block; }
+  .pr-ep-card-title:hover { text-decoration: underline; }
+  .pr-ep-card-summary { font-size: 13px; color: #71717A; line-height: 1.55; margin: 0 0 10px; }
+  .pr-ep-card-cta { font-size: 12px; color: #6366F1; font-weight: 500; text-decoration: none; }
+
+  /* Sidebar */
+  .pr-sidebar-card { background: #fff; border: 0.5px solid #E4E4E7; border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+  .pr-sidebar-head { padding: 14px 16px 12px; border-bottom: 0.5px solid #F0F0F2; }
+  .pr-sidebar-head-title { font-size: 13px; font-weight: 500; color: #09090B; margin: 0 0 2px; display: flex; align-items: center; gap: 6px; }
+  .pr-sidebar-head-sub { font-size: 12px; color: #A1A1AA; margin: 0; }
+  .pr-book-row { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 0.5px solid #F0F0F2; }
+  .pr-book-row:last-of-type { border-bottom: none; }
+  .pr-book-cover { width: 32px; height: 44px; border-radius: 3px; object-fit: cover; flex-shrink: 0; background: #EEF2FF; }
+  .pr-book-info { flex: 1; min-width: 0; }
+  .pr-book-title-text { font-size: 13px; font-weight: 500; color: #09090B; margin: 0 0 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pr-book-author { font-size: 12px; color: #A1A1AA; margin: 0; }
+  .pr-book-locked { opacity: 0.35; }
+  .pr-book-gate { padding: 14px 16px; border-top: 0.5px solid #F0F0F2; background: #FAFAFA; text-align: center; }
+  .pr-book-gate-text { font-size: 12px; color: #71717A; margin: 0 0 10px; line-height: 1.5; }
+  .pr-book-gate-btn { display: block; width: 100%; background: #6366F1; color: #fff; font-size: 13px; font-weight: 500; padding: 9px; border-radius: 8px; cursor: pointer; border: none; font-family: 'DM Sans', system-ui, sans-serif; }
+  .pr-book-gate-btn:hover { background: #4F46E5; }
+
+  .pr-follow-card { background: #fff; border: 0.5px solid #E4E4E7; border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+  .pr-follow-title { font-size: 13px; font-weight: 500; color: #09090B; margin: 0 0 4px; }
+  .pr-follow-sub { font-size: 12px; color: #71717A; margin: 0 0 14px; line-height: 1.5; }
+  .pr-follow-btn { display: block; width: 100%; background: #6366F1; color: #fff; font-size: 13px; font-weight: 500; padding: 9px; border-radius: 8px; cursor: pointer; border: none; font-family: 'DM Sans', system-ui, sans-serif; text-align: center; text-decoration: none; }
+  .pr-follow-btn:hover { background: #4F46E5; }
+
+  /* AI button */
+  .pr-ai-btn { position: fixed; bottom: 24px; right: 24px; background: #6366F1; color: #fff; border: none; border-radius: 999px; padding: 12px 20px; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; font-family: 'DM Sans', system-ui, sans-serif; box-shadow: 0 2px 12px rgba(99,102,241,0.3); }
+  .pr-ai-btn:hover { background: #4F46E5; }
+
+  @media (max-width: 700px) {
+    .pr-body { grid-template-columns: 1fr; padding: 16px; gap: 20px; }
+    .pr-hero { padding: 20px 16px 0; }
+    .pr-nav { padding: 12px 16px; }
+    .pr-episode-headline { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="pr-nav">
+  <a href="/" class="pr-logo">
+    <div class="pr-logo-icon">
+      <svg viewBox="0 0 28 28" width="16" height="16" fill="none">
+        <rect x="1" y="11" width="3.5" height="6" rx="1.75" fill="white" opacity="0.5"/>
+        <rect x="6.5" y="7" width="3.5" height="14" rx="1.75" fill="white" opacity="0.75"/>
+        <rect x="12" y="4" width="3.5" height="20" rx="1.75" fill="white"/>
+        <rect x="17.5" y="8" width="3.5" height="12" rx="1.75" fill="white" opacity="0.85"/>
+        <rect x="23" y="5" width="3.5" height="18" rx="1.75" fill="white" opacity="0.6"/>
+      </svg>
+    </div>
+    <div class="pr-logo-word">Pod<span>Rise</span></div>
+  </a>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <a href="/login" class="pr-btn-ghost">Log in</a>
+    <a href="/signup" class="pr-btn-solid">Get started →</a>
+  </div>
+</nav>
+
+<div class="pr-hero">
+  <div class="pr-hero-inner">
+    <div class="pr-hero-top">
+      <img class="pr-show-art" src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/06/3a/a7/063aa7f5-4633-99a1-5c6e-ea8ebb6a3f27/mza_14342353339249219787.jpg/600x600bb.jpg" alt="My First Million">
+      <h1 class="pr-episode-headline">The right brand name creates a strategic moat — here's the 3-step formula that named Swiffer, BlackBerry, and Impossible Burger</h1>
+    </div>
+    <p class="pr-breadcrumb">
+      <a href="/">Home</a> ›
+      <a href="/podcasts">Podcasts</a> ›
+      <a href="/podcasts/myfirstmillion">My First Million</a>
+    </p>
+    <div class="pr-ep-meta">
+      <span>Mar 13, 2026</span>
+      <span class="pr-ep-dot"></span>
+      <span>1 hr 0 min</span>
+      <span class="pr-ep-dot"></span>
+      <span>Sam Parr &amp; Shaan Puri with David Placek</span>
+    </div>
+    <div class="pr-tabs">
+      <button class="pr-tab active" onclick="showSection('takeaways', this)">Takeaways</button>
+      <button class="pr-tab" onclick="showSection('recap', this)">Recap</button>
+      <button class="pr-tab" onclick="showSection('guest', this)">Guest</button>
+    </div>
+  </div>
+</div>
+
+<div class="pr-body">
+  <div>
+
+    <!-- Takeaways -->
+    <div id="section-takeaways">
+      <div class="pr-takeaways">
+        <p class="pr-section-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Key takeaways
+        </p>
+        <ul class="pr-takeaway-list">
+          <li>A brand name is the most frequently used part of any brand — more than the logo, the tagline, or the product itself. Swiffer beat ProMop not because the product was better, but because the name shifted perception entirely.</li>
+          <li>The three criteria for a powerful name: original (nothing else sounds like it), processing-fluent (easy to say and remember), and surprising (creates a moment of pause). A name that hits all three is almost impossible to ignore.</li>
+          <li>Choosing a safe, comfortable name is the most common and most costly naming mistake. Comfortable names blend in. "Windsurf" replaced "Codium" and drove a measurable spike in brand awareness within weeks.</li>
+          <li>David's team generates thousands of name candidates before presenting any — exploring linguistic roots, thematic categories, and cognitive science principles to evaluate each one's memorability before a human sees it.</li>
+          <li>The "comfort trap" in naming means most founding teams will reject the best name in the room because it feels risky. The names that feel polarizing in a boardroom are often the ones that win in the market.</li>
+          <li>BlackBerry was chosen because it felt tactile and organic — a deliberate contrast to the cold, corporate names dominating tech at the time. The surprise of the word was the point.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Recap -->
+    <div id="section-recap" style="display:none;">
+      <div class="pr-recap">
+        <p class="pr-section-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          Episode recap
+        </p>
+        <p>David Placek opened by making the case that most founders treat naming as an afterthought — something to resolve after the product is built, the deck is done, and the funding is closed. His argument: the name is the most-used piece of your brand. It appears in every conversation, every press mention, every investor email, every customer referral. Getting it wrong is expensive in a way that's hard to measure until it's too late.</p>
+        <p>The Swiffer story was his clearest example. P&G's internal name for the product was ProMop. It described what the product did. It was functional, accurate, and instantly forgettable. Swiffer did none of those things — it sounded like movement, like cleaning, like something slightly fun. It was original, processing-fluent, and surprising. It won every focus group. ProMop never had a chance.</p>
+        <p>David's framework for naming has three criteria. A name must be original — nothing in the market should sound like it. It must be processing-fluent — easy to say, easy to spell, easy to remember. And it must be surprising — it should create a brief moment of cognitive pause that makes the brain pay attention. A name that hits all three is extremely rare. His firm generates thousands of candidates using linguistic databases and cognitive science tools before narrowing to a shortlist of ten.</p>
+        <p>The Windsurf story — the renaming of Codium — was his most recent example. Codium was a defensible, category-appropriate name for an AI coding tool. It described the function. It was safe. Windsurf replaced it. The name carried speed, movement, and a physical quality that made it feel different from every other AI tool. Traffic, press mentions, and brand recall measurably improved within weeks of the rename.</p>
+        <p>Sam pushed back on how you get internal alignment on a name that feels risky. David's answer was direct: you don't. The best name in the room will always make someone uncomfortable. The job of the naming process isn't to find a name everyone loves — it's to find the name the market will remember. Those are almost never the same name.</p>
+      </div>
+    </div>
+
+    <!-- Guest -->
+    <div id="section-guest" style="display:none;">
+      <div class="pr-guest-card">
+        <p class="pr-section-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Guest
+        </p>
+        <div class="pr-guest-header">
+          <div class="pr-guest-avatar">D</div>
+          <div>
+            <p class="pr-guest-name">David Placek</p>
+            <p class="pr-guest-role">Founder, Lexicon Branding</p>
+          </div>
+        </div>
+        <p class="pr-guest-bio">David Placek founded Lexicon Branding in 1982 and has spent four decades naming some of the most recognized products in the world — including Swiffer, BlackBerry, Dasani, Pentium, and Impossible Burger. His methodology draws on cognitive science, linguistics, and consumer psychology to find names that are original, processing-fluent, and surprising. He argues that the name is the single most underinvested asset in any brand.</p>
+        <div class="pr-guest-links">
+          <a href="https://lexiconbranding.com" class="pr-guest-link" target="_blank">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            lexiconbranding.com
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- More episodes -->
+    <p class="pr-more-label">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      More My First Million episodes
+    </p>
+
+    <div class="pr-ep-card">
+      <div class="pr-ep-card-meta">
+        <span>Mar 11, 2026</span>
+        <span class="pr-ep-dot"></span>
+        <span>1 hr 15 min</span>
+      </div>
+      <a class="pr-ep-card-title" href="/podcasts/myfirstmillion/simplest-way-to-make-1m-2026">The simplest way to make $1M in 2026</a>
+      <p class="pr-ep-card-summary">Sam and Shaan walk through three business models with proven unit economics — including one ZuruTech is already using to build homes at a tenth of standard cost.</p>
+      <a class="pr-ep-card-cta" href="/podcasts/myfirstmillion/simplest-way-to-make-1m-2026">See full recap →</a>
+    </div>
+
+    <div class="pr-ep-card">
+      <div class="pr-ep-card-meta">
+        <span>Mar 8, 2026</span>
+        <span class="pr-ep-dot"></span>
+        <span>58 min</span>
+      </div>
+      <a class="pr-ep-card-title" href="/podcasts/myfirstmillion/next-10b-company-overlooked-category">Why the next $10B company will come from this overlooked category</a>
+      <p class="pr-ep-card-summary">Three verticals with the structural conditions for a new market leader — and why the window to enter them is open right now.</p>
+      <a class="pr-ep-card-cta" href="/podcasts/myfirstmillion/next-10b-company-overlooked-category">See full recap →</a>
+    </div>
+
+    <div class="pr-ep-card">
+      <div class="pr-ep-card-meta">
+        <span>Mar 5, 2026</span>
+        <span class="pr-ep-dot"></span>
+        <span>1 hr 8 min</span>
+      </div>
+      <a class="pr-ep-card-title" href="/podcasts/myfirstmillion/contrarian-hiring-framework">The contrarian hiring framework that built three $100M companies</a>
+      <p class="pr-ep-card-summary">Shaan breaks down why the best operators hire for trajectory over credentials — and the three interview questions that predict performance better than a resume.</p>
+      <a class="pr-ep-card-cta" href="/podcasts/myfirstmillion/contrarian-hiring-framework">See full recap →</a>
+    </div>
+
+  </div>
+
+  <div>
+
+    <div class="pr-sidebar-card">
+      <div class="pr-sidebar-head">
+        <p class="pr-sidebar-head-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          Books mentioned
+        </p>
+        <p class="pr-sidebar-head-sub">In this episode</p>
+      </div>
+      <div class="pr-book-row">
+        <img class="pr-book-cover" src="https://covers.openlibrary.org/b/isbn/9780316017923-M.jpg" alt="Ship of Gold in the Deep Blue Sea">
+        <div class="pr-book-info">
+          <p class="pr-book-title-text">Ship of Gold in the Deep Blue Sea</p>
+          <p class="pr-book-author">Gary Kinder</p>
+        </div>
+      </div>
+      <div class="pr-book-row pr-book-locked">
+        <img class="pr-book-cover" src="https://covers.openlibrary.org/b/isbn/9780743296526-M.jpg" alt="Leonardo da Vinci">
+        <div class="pr-book-info">
+          <p class="pr-book-title-text">Leonardo da Vinci</p>
+          <p class="pr-book-author">Walter Isaacson</p>
+        </div>
+      </div>
+      <div class="pr-book-gate">
+        <p class="pr-book-gate-text">Sign up free to see all books from this episode</p>
+        <button class="pr-book-gate-btn" onclick="window.location='/signup'">See all books →</button>
+      </div>
+    </div>
+
+    <div class="pr-follow-card">
+      <p class="pr-follow-title">Get My First Million in your daily briefing</p>
+      <p class="pr-follow-sub">New episodes land in your inbox the morning after they drop.</p>
+      <a href="/signup" class="pr-follow-btn">Follow this show →</a>
+    </div>
+
+  </div>
+</div>
+
+<button class="pr-ai-btn">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+  Ask AI about this episode
+</button>
+
+<script>
+  function showSection(name, btn) {
+    ['takeaways','recap','guest'].forEach(s => {
+      document.getElementById('section-' + s).style.display = s === name ? 'block' : 'none';
+    });
+    document.querySelectorAll('.pr-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+  }
+</script>
+
+</body>
+</html>
