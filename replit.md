@@ -37,6 +37,8 @@ PodRise is a full-stack web application designed to provide personalized daily p
   - **Name**: Never downgrades a real name to a slug-like name (e.g. "Motley Fool Money" → "motley-fool-money") — uses SQL `COALESCE(NULLIF(existing_name, slug), new_name)`.
   - These guards prevent the `ensureLandingPageDirectoryEntries()` 30s-delayed function from wiping backfill data.
 - **DirectoryBackfill** (routes.ts): Runs synchronously at startup, fixes both missing artwork AND slug-style names for all directory entries via iTunes batch lookup.
+- **Podcast Protection System**: Podcasts can be marked `is_protected = true` in the CMS. Protected podcasts cannot be deleted via single-delete or bulk-delete endpoints. Admin can toggle protection via the CMS bulk action bar (Shield/Unprotect buttons) or the `POST /api/admin/cms/podcasts/toggle-protection` endpoint.
+- **Post-merge safety**: The `scripts/post-merge.sh` script must NEVER use `--force` flag with `drizzle-kit push` — the flag bypasses confirmation prompts and can silently drop/recreate tables, destroying all data.
 
 ## Critical Rules for Data Changes
 - **Dev DB ≠ Production DB**: The development database is completely separate from production. One-time scripts that only modify the dev database will NOT affect production.
