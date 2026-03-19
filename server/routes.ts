@@ -59,7 +59,7 @@ const directoryCache = {
   people: new DataCache<any[]>("people"),
   companies: new DataCache<any[]>("companies"),
   topics: new DataCache<any[]>("topics"),
-  bookstore: new DataCache<any>("bookstore"),
+  shop: new DataCache<any>("shop"),
   podcastsDiscovery: new DataCache<any>("podcastsDiscovery"),
   podcastsDirectory: new DataCache<any[]>("podcastsDirectory"),
   sidebarData: new DataCache<any>("sidebarData"),
@@ -4634,9 +4634,9 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     }
   });
 
-  app.get("/api/bookstore", async (_req, res) => {
+  app.get("/api/shop/books", async (_req, res) => {
     try {
-      const cached = directoryCache.bookstore.get();
+      const cached = directoryCache.shop.get();
       if (cached) return res.json(cached);
 
       const { rows } = await pool.query(
@@ -4746,11 +4746,11 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
         .sort((a, b) => b.mentionCount - a.mentionCount || b.podcastCount - a.podcastCount);
 
       const result = { books, total: books.length };
-      directoryCache.bookstore.set(result);
+      directoryCache.shop.set(result);
       res.json(result);
     } catch (err) {
-      console.error("Bookstore error:", err);
-      res.status(500).json({ message: "Failed to load bookstore" });
+      console.error("Shop books error:", err);
+      res.status(500).json({ message: "Failed to load shop books" });
     }
   });
 
@@ -4899,7 +4899,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     }
   });
 
-  app.get("/api/bookstore/:bookSlug", async (req, res) => {
+  app.get("/api/shop/book/:bookSlug", async (req, res) => {
     try {
       const { bookSlug } = req.params;
 
@@ -6424,7 +6424,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           subtitle: b.author || null,
           imageUrl: `/books/${b.slug}.jpg`,
           type: "book" as const,
-          link: `/bookstore/${b.slug}`,
+          link: `/shop/${b.slug}`,
         }));
 
         const result = { trendingTopics, notableQuotes, trendingPeople, recommended };
@@ -9080,7 +9080,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
-  app.get("/api/admin/bookstore", async (req, res) => {
+  app.get("/api/admin/shop-books", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
     }
@@ -9090,12 +9090,12 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       );
       res.json({ books: rows });
     } catch (err: any) {
-      console.error("[Bookstore] Error:", err);
+      console.error("[Shop] Books error:", err);
       res.status(500).json({ message: err?.message || "Failed to load books" });
     }
   });
 
-  app.post("/api/admin/bookstore/enrich", async (req, res) => {
+  app.post("/api/admin/shop-books/enrich", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
     }
@@ -9185,7 +9185,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
             gbSuccess = true;
           }
         } catch (e) {
-          console.warn("[Bookstore] Google Books fetch failed:", e);
+          console.warn("[Shop] Google Books fetch failed:", e);
         }
       }
 
@@ -9250,7 +9250,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           }
         }
       } catch (e) {
-        console.warn("[Bookstore] Open Library fetch failed:", e);
+        console.warn("[Shop] Open Library fetch failed:", e);
       }
 
       updates.last_api_fetch = new Date();
@@ -9276,7 +9276,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const fieldsUpdated = Object.keys(updates).filter(k => k !== 'last_api_fetch').length;
       res.json({ book: updated[0], fieldsUpdated, apiStatus: { googleBooks: gbSuccess, openLibrary: olSuccess } });
     } catch (err: any) {
-      console.error("[Bookstore] Enrich error:", err);
+      console.error("[Shop] Enrich error:", err);
       res.status(500).json({ message: err?.message || "Failed to enrich book" });
     }
   });

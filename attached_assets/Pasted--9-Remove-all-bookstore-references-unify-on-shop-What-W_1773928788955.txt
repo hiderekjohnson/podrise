@@ -1,0 +1,41 @@
+#9 - Remove all bookstore references, unify on /shop
+What & Why
+The codebase still has leftover "bookstore" references from before the shop unification. Book links in sidebars and other components point to /bookstore/slug which 404s. There are also duplicate API endpoints (/api/bookstore and /api/shop) and UI labels that still say "Bookstore." This task removes the bookstore concept entirely and ensures every link, API call, and label uses /shop.
+
+Done looks like
+Clicking any book link anywhere on the site navigates to /shop/{slug} (no redirects, no 404s)
+No /api/bookstore endpoints remain — the ShopDetailRouter and admin queries use the existing /api/shop endpoints
+The PersonalShop heading says "Shop" not "Bookstore"
+The Disclosure page data-testids and copy no longer say "bookstore"
+No references to "bookstore" remain in route paths, API endpoints, query keys, or cache invalidation keys (bio text mentioning real-world bookstores is fine to keep)
+The /bookstore → /shop 301 redirects in the server are kept for SEO/external link compatibility
+The directoryCache.bookstore cache key is removed or renamed to shop
+The lazy import in App.tsx references the correct page file (rename Bookstore.tsx to Shop.tsx or update the import)
+Out of scope
+Changing the shop page layout or design
+Modifying the book enrichment pipeline logic
+Changing database table or column names
+Tasks
+Replace the /bookstore/${slug} link in the sidebar recommended books endpoint (server/routes.ts) with /shop/${slug}
+Update ShopDetailRouter to query /api/shop endpoints instead of /api/bookstore for book lookups
+Remove the /api/bookstore and /api/bookstore/:bookSlug endpoints from server routes (keep the /bookstore → /shop 301 redirects for external links)
+Remove or migrate the /api/admin/bookstore and /api/admin/bookstore/enrich endpoints to use /api/admin/shop-items endpoints
+Update ShopManagement cache invalidation to remove /api/admin/bookstore query key references
+Change the PersonalShop heading from "Bookstore" to "Shop"
+Rename the directoryCache.bookstore cache entry to shop (or remove it if /api/shop already has its own cache)
+Fix the lazy import in App.tsx that imports from ./pages/Bookstore — rename file or update the import
+Clean up "bookstore" references in Disclosure.tsx data-testids
+Search the entire codebase for any remaining /bookstore URL references and fix them (excluding bio text about real bookstores and attached_assets)
+Relevant files
+server/routes.ts:62
+server/routes.ts:890-895
+server/routes.ts:4637-4754
+server/routes.ts:4902-4903
+server/routes.ts:6427
+server/routes.ts:9083-9280
+client/src/App.tsx:40
+client/src/pages/ShopDetailRouter.tsx:29
+client/src/pages/ShopManagement.tsx:254,300
+client/src/components/PersonalShop.tsx:445
+client/src/pages/Disclosure.tsx:68-81
+server/enrichBooks.ts:74

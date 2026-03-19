@@ -65,11 +65,11 @@ export default function Disclosure() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.12 }}
-          data-testid="section-bookstore-shop"
+          data-testid="section-shop"
         >
           <div className="flex items-center gap-3 mb-8">
             <BookOpen className="w-5 h-5 text-primary" />
-            <h2 className="text-xl sm:text-2xl font-display font-bold" data-testid="text-bookstore-heading">The Shop — Nothing Here Can Be Bought</h2>
+            <h2 className="text-xl sm:text-2xl font-display font-bold" data-testid="text-shop-heading">The Shop — Nothing Here Can Be Bought</h2>
           </div>
 
           <div className="space-y-5 text-[17px] leading-[1.85] text-[#52525B] max-w-2xl">
@@ -78,7 +78,7 @@ export default function Disclosure() {
             </p>
           </div>
 
-          <div className="mt-6 bg-[#F7F7FC] border-l-[3px] border-l-[#6366F1] rounded-r-lg p-5 sm:p-6" data-testid="callout-bookstore-integrity">
+          <div className="mt-6 bg-[#F7F7FC] border-l-[3px] border-l-[#6366F1] rounded-r-lg p-5 sm:p-6" data-testid="callout-shop-integrity">
             <p className="text-[17px] leading-[1.85] text-foreground font-semibold mb-3">
               No brand, publisher, author, or PR firm can pay to appear in the Shop. There is no price. We do not offer it. We would never accept it.
             </p>

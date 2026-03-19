@@ -26,7 +26,7 @@ export default function ShopDetailRouter() {
   const slug = params?.slug || "";
 
   const { data: bookData, isLoading: bookLoading, error: bookError } = useQuery<BookData>({
-    queryKey: ["/api/bookstore", slug],
+    queryKey: ["/api/shop/book", slug],
     enabled: !!slug,
     retry: false,
   });

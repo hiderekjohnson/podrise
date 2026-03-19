@@ -251,7 +251,7 @@ export default function ShopManagement() {
       toast({ title: "Status updated", description: `Item ${variables.status}` });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/shop-items"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/bookstore"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop-books"] });
     },
     onError: (err: any) => {
       toast({ title: "Error", description: err?.message || "Failed to update status", variant: "destructive" });
@@ -297,7 +297,7 @@ export default function ShopManagement() {
     setEditingItem(null);
     queryClient.invalidateQueries({ queryKey: ["/api/admin/shop-items"] });
     queryClient.invalidateQueries({ queryKey: ["/api/admin/products"] });
-    queryClient.invalidateQueries({ queryKey: ["/api/admin/bookstore"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/admin/shop-books"] });
   };
 
   const typeButtons: { mode: TypeFilter; label: string; icon: typeof Package }[] = [
