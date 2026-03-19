@@ -126,7 +126,7 @@ function PodcastBooksTab({ slug, podcastName, isLoggedIn }: { slug: string; podc
           <p className="text-[16px] text-muted-foreground">Book data is still being extracted for this podcast.</p>
         </div>
       ) : !isLoggedIn ? (
-        <div className="relative" data-testid="books-signup-teaser">
+        <div className="relative overflow-hidden rounded-xl" data-testid="books-signup-teaser">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pointer-events-none select-none">
             {sorted.slice(0, 3).map((book, i) => {
               const bookSlug = book.slug;
@@ -151,24 +151,18 @@ function PodcastBooksTab({ slug, podcastName, isLoggedIn }: { slug: string; podc
               );
             })}
           </div>
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/70 to-white dark:via-zinc-950/70 dark:to-zinc-950 flex items-end justify-center pb-2">
+          <div className="absolute inset-0 backdrop-blur-[4px] bg-white/60 dark:bg-zinc-950/60 flex items-center justify-center">
             <div className="text-center px-4 py-6 max-w-md">
-              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-amber-500/10 mb-3">
-                <Lock className="w-5 h-5 text-amber-600" />
-              </div>
-              <p className="text-[16px] font-bold text-foreground mb-1.5" data-testid="text-teaser-headline">
-                Sign up free to see all {sorted.length} book{sorted.length !== 1 ? "s" : ""} recommended by {podcastName}
-              </p>
-              <p className="text-[14px] text-muted-foreground mb-4">
-                Discover which other podcasts mention these books too.
+              <p className="text-[15px] text-muted-foreground mb-4" data-testid="text-teaser-headline">
+                Access the complete list of {sorted.length} book{sorted.length !== 1 ? "s" : ""} recommended by {podcastName}, with cross-podcast recommendations and deep dives.
               </p>
               <Link
                 href="/register"
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold text-[15px] transition-colors shadow-sm"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-primary text-primary hover:bg-primary/5 font-semibold text-[14px] transition-colors"
                 data-testid="button-signup-books"
               >
-                Sign Up Free
-                <ArrowRight className="w-4 h-4" />
+                <Lock className="w-4 h-4" />
+                Register For Free
               </Link>
             </div>
           </div>

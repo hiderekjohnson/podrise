@@ -1106,10 +1106,10 @@ export default function EpisodeRecapPage() {
               {hasBooks && !isLoggedIn && (
               <>
               <div className="flex items-center gap-2.5 mb-5">
-                <BookOpen className="w-4 h-4 text-amber-600 shrink-0" />
-                <h3 className="text-base font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider m-0">Books Mentioned</h3>
+                <BookOpen className="w-4 h-4 text-primary shrink-0" />
+                <h3 className="text-base font-bold text-primary uppercase tracking-wider m-0">Books Mentioned</h3>
               </div>
-              <div className="relative" data-testid="episode-books-signup-teaser">
+              <div className="relative overflow-hidden rounded-xl" data-testid="episode-books-signup-teaser">
                 <div className="flex flex-col gap-5 pointer-events-none select-none">
                   {books.slice(0, 2).map((book, i) => {
                     const bookKey = book.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
@@ -1130,24 +1130,18 @@ export default function EpisodeRecapPage() {
                     );
                   })}
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/70 to-white dark:via-zinc-950/70 dark:to-zinc-950 flex items-end justify-center pb-2">
+                <div className="absolute inset-0 backdrop-blur-[4px] bg-white/60 dark:bg-zinc-950/60 flex items-center justify-center">
                   <div className="text-center px-4 py-6 max-w-md">
-                    <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-amber-500/10 mb-3">
-                      <Lock className="w-5 h-5 text-amber-600" />
-                    </div>
-                    <p className="text-[15px] font-bold text-foreground mb-1.5" data-testid="text-books-teaser-headline">
-                      Sign up free to see all {books.length} book{books.length !== 1 ? "s" : ""} from this episode
-                    </p>
-                    <p className="text-[13px] text-muted-foreground mb-4">
-                      Plus cross-podcast recommendations and deep dives.
+                    <p className="text-[15px] text-muted-foreground mb-4" data-testid="text-books-teaser-headline">
+                      Access the complete list of {books.length} book{books.length !== 1 ? "s" : ""} mentioned in this episode, with cross-podcast recommendations and deep dives.
                     </p>
                     <Link
                       href="/register"
-                      className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold text-[14px] transition-colors shadow-sm"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-primary text-primary hover:bg-primary/5 font-semibold text-[14px] transition-colors"
                       data-testid="button-signup-episode-books"
                     >
-                      Sign Up Free
-                      <ArrowRight className="w-4 h-4" />
+                      <Lock className="w-4 h-4" />
+                      Register For Free
                     </Link>
                   </div>
                 </div>
