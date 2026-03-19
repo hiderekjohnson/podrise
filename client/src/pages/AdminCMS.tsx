@@ -3635,12 +3635,14 @@ function safeDecode(segment: string): string {
 
 function parseCmsPath(pathname: string): CMSView {
   let rest = pathname;
-  if (rest.startsWith("/cms/")) {
+  if (rest.startsWith("/admin/cms/")) {
+    rest = rest.slice(11);
+  } else if (rest.startsWith("/admin/cms")) {
+    rest = rest.slice(10);
+  } else if (rest.startsWith("/cms/")) {
     rest = rest.slice(5);
   } else if (rest.startsWith("/cms")) {
     rest = rest.slice(4);
-  } else if (rest.startsWith("/admin/cms/")) {
-    rest = rest.slice(11);
   } else if (rest.startsWith("/")) {
     rest = rest.slice(1);
   }
@@ -3663,16 +3665,16 @@ function parseCmsPath(pathname: string): CMSView {
 
 function cmsViewToPath(view: CMSView): string {
   switch (view.tab) {
-    case "podcasts": return "/cms/podcasts";
-    case "podcast-detail": return `/cms/podcasts/${encodeURIComponent(view.podcastSlug)}`;
+    case "podcasts": return "/admin/cms/podcasts";
+    case "podcast-detail": return `/admin/cms/podcasts/${encodeURIComponent(view.podcastSlug)}`;
     case "episodes":
-      if (view.podcastSlug) return `/cms/podcasts/${encodeURIComponent(view.podcastSlug)}/episodes`;
-      return "/cms/episodes";
-    case "episode-detail": return `/cms/podcasts/${encodeURIComponent(view.podcastSlug)}/episodes/${encodeURIComponent(view.episodeSlug)}`;
-    case "people": return "/cms/people";
-    case "companies": return "/cms/companies";
-    case "products": return "/cms/products";
-    default: return "/cms/podcasts";
+      if (view.podcastSlug) return `/admin/cms/podcasts/${encodeURIComponent(view.podcastSlug)}/episodes`;
+      return "/admin/cms/episodes";
+    case "episode-detail": return `/admin/cms/podcasts/${encodeURIComponent(view.podcastSlug)}/episodes/${encodeURIComponent(view.episodeSlug)}`;
+    case "people": return "/admin/cms/people";
+    case "companies": return "/admin/cms/companies";
+    case "products": return "/admin/cms/products";
+    default: return "/admin/cms/podcasts";
   }
 }
 
@@ -3682,21 +3684,37 @@ function getActiveSection(view: CMSView): CMSSection {
   return view.tab as CMSSection;
 }
 
+function useCmsNavigation() {
+  const [location, wouterNavigate] = useLocation();
+  const browserPath = typeof window !== 'undefined' ? window.location.pathname : location;
+  const fullPath = browserPath.startsWith("/admin") ? browserPath : `/admin${location}`;
+  const cmsNavigate = useCallback((targetFullPath: string, options?: { replace?: boolean }) => {
+    const isNested = !location.startsWith("/admin");
+    if (isNested) {
+      const relative = targetFullPath.startsWith("/admin") ? targetFullPath.slice(6) || "/" : targetFullPath;
+      wouterNavigate(relative, options);
+    } else {
+      wouterNavigate(targetFullPath, options);
+    }
+  }, [location, wouterNavigate]);
+  return { path: fullPath, navigate: cmsNavigate };
+}
+
 export default function AdminCMS() {
-  const [location, navigate] = useLocation();
+  const { path: adminPath, navigate: cmsNavigate } = useCmsNavigation();
 
   useEffect(() => {
-    if (location === "/cms" || location === "/cms/" || location === "/" || location === "") {
-      navigate("/cms/podcasts", { replace: true });
+    if (adminPath === "/admin/cms" || adminPath === "/admin/cms/" || adminPath === "/admin" || adminPath === "/admin/") {
+      cmsNavigate("/admin/cms/podcasts", { replace: true });
     }
-  }, [location, navigate]);
+  }, [adminPath, cmsNavigate]);
 
-  const view = useMemo(() => parseCmsPath(location), [location]);
+  const view = useMemo(() => parseCmsPath(adminPath), [adminPath]);
   const activeSection = useMemo(() => getActiveSection(view), [view]);
 
   const handleNavigate = useCallback((newView: CMSView) => {
-    navigate(cmsViewToPath(newView));
-  }, [navigate]);
+    cmsNavigate(cmsViewToPath(newView));
+  }, [cmsNavigate]);
 
   const sections: Array<{ key: CMSSection; label: string; icon: typeof Podcast }> = [
     { key: "podcasts", label: "Podcasts", icon: Podcast },
@@ -3707,14 +3725,8 @@ export default function AdminCMS() {
   ];
 
   const handleSectionClick = useCallback((key: CMSSection) => {
-    if (key === "podcasts") {
-      navigate("/cms/podcasts");
-    } else if (key === "episodes") {
-      navigate("/cms/episodes");
-    } else {
-      navigate(`/cms/${key}`);
-    }
-  }, [navigate]);
+    cmsNavigate(`/admin/cms/${key === "podcasts" ? "podcasts" : key === "episodes" ? "episodes" : key}`);
+  }, [cmsNavigate]);
 
   return (
     <div className="space-y-6" data-testid="cms-container">

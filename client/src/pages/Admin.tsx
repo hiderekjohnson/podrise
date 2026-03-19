@@ -324,27 +324,43 @@ function BatchExpansionPanel() {
   );
 }
 
+function useAdminPath() {
+  const [location, wouterNavigate] = useLocation();
+  const browserPath = typeof window !== 'undefined' ? window.location.pathname : location;
+  const fullPath = browserPath.startsWith("/admin") ? browserPath : `/admin${location}`;
+  const adminNavigate = useCallback((targetFullPath: string) => {
+    const isNested = !location.startsWith("/admin");
+    if (isNested) {
+      const relative = targetFullPath.startsWith("/admin") ? targetFullPath.slice(6) || "/" : targetFullPath;
+      wouterNavigate(relative);
+    } else {
+      wouterNavigate(targetFullPath);
+    }
+  }, [location, wouterNavigate]);
+  return { path: fullPath, navigate: adminNavigate };
+}
+
 export default function Admin() {
-  const [location, navigate] = useLocation();
+  const { path: adminPath, navigate: adminNavigate } = useAdminPath();
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const isCmsRoute = location.startsWith("/cms");
+  const isCmsRoute = adminPath.startsWith("/admin/cms");
   const [activeTab, setActiveTab] = useState<"users" | "analytics" | "pending" | "directory" | "shop" | "advertisers" | "admin-users" | "categories" | "advanced" | "errors" | "referrals" | "support-kb" | "cms" | "landing-pages" | "mturk">(isCmsRoute ? "cms" : "advanced");
 
   useEffect(() => {
-    if (location.startsWith("/cms")) {
+    if (adminPath.startsWith("/admin/cms")) {
       setActiveTab("cms");
     }
-  }, [location]);
+  }, [adminPath]);
 
   const switchTab = useCallback((tab: typeof activeTab) => {
     setActiveTab(tab);
     setSearchTerm("");
-    if (location.startsWith("/cms")) {
-      navigate("/");
+    if (adminPath.startsWith("/admin/cms")) {
+      adminNavigate("/admin");
     }
-  }, [location, navigate]);
+  }, [adminPath, adminNavigate]);
   const [analyticsSubTab, setAnalyticsSubTab] = useState<"acquisition" | "affiliates" | "growth" | "email">("acquisition");
   const [advancedSubTab, setAdvancedSubTab] = useState<"backfill" | "rss" | "hosts" | "api-costs" | "feature-flags">("backfill");
   const [backfillSubTab, setBackfillSubTab] = useState<"transcripts" | "pages" | "tools">("transcripts");
@@ -622,7 +638,7 @@ export default function Admin() {
               <div className="flex items-center gap-2 overflow-x-auto pb-2 -mb-2 scrollbar-thin scrollbar-thumb-muted/30 scrollbar-track-transparent max-w-full">
                 <button
                   data-testid="tab-cms"
-                  onClick={() => { setActiveTab("cms"); setSearchTerm(""); navigate("/cms/podcasts"); }}
+                  onClick={() => { setActiveTab("cms"); setSearchTerm(""); adminNavigate("/admin/cms/podcasts"); }}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "cms"
                       ? "bg-primary/10 text-primary"
