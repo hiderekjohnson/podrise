@@ -27,7 +27,7 @@ export function hiResArtwork(url: string | null): string {
 
 export function getHeaderTint(source: string): string {
   const hash = source ? source.split("").reduce((a, c) => a + c.charCodeAt(0), 0) : 0;
-  const tints = ["#F0F1FE", "#FFFBEB", "#FEF2F2", "#ECFDF5", "#F0F9FF", "#FDF4FF", "#FFF7ED", "#F5F3FF"];
+  const tints = ["#F0F0FF", "#F0FBF5", "#FEF8ED", "#FEF0F5", "#F0F8FF"];
   return tints[hash % tints.length];
 }
 

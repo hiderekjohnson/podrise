@@ -69,7 +69,7 @@ function hiResArtwork(url: string): string {
 
 function getHeaderTint(artworkUrl: string): string {
   const hash = artworkUrl ? artworkUrl.split("").reduce((a, c) => a + c.charCodeAt(0), 0) : 0;
-  const tints = ["#F0F1FE", "#FFFBEB", "#FEF2F2", "#ECFDF5", "#F0F9FF", "#FDF4FF", "#FFF7ED", "#F5F3FF"];
+  const tints = ["#F0F0FF", "#F0FBF5", "#FEF8ED", "#FEF0F5", "#F0F8FF"];
   return tints[hash % tints.length];
 }
 
@@ -193,8 +193,8 @@ function PodcastAdCard({ ad, onFollow }: { ad: FeedAdData; onFollow: (slug: stri
   return (
     <div
       ref={viewRef}
-      className="rounded-2xl overflow-hidden mb-4"
-      style={{ background: "#FDF8F3" }}
+      className="rounded-2xl overflow-hidden mb-4 border border-[#F5E6B8]"
+      style={{ background: "#FFFBEB" }}
       data-testid={`feed-podcast-ad-${ad.id}`}
     >
       <div className="p-5 flex items-start gap-4">
@@ -241,8 +241,8 @@ function RegularAdCard({ ad }: { ad: FeedAdData }) {
   return (
     <div
       ref={viewRef}
-      className="rounded-2xl overflow-hidden mb-4"
-      style={{ background: "#FDF8F3" }}
+      className="rounded-2xl overflow-hidden mb-4 border border-[#F5E6B8]"
+      style={{ background: "#FFFBEB" }}
       data-testid={`feed-regular-ad-${ad.id}`}
     >
       <div className="p-5 flex items-start gap-4">
@@ -294,8 +294,8 @@ function EpisodeRecapAdCard({ ad, onFollow }: { ad: FeedAdData; onFollow: (slug:
   return (
     <div
       ref={viewRef}
-      className="rounded-2xl overflow-hidden mb-4"
-      style={{ background: "#FDF8F3" }}
+      className="rounded-2xl overflow-hidden mb-4 border border-[#F5E6B8]"
+      style={{ background: "#FFFBEB" }}
       data-testid={`feed-episode-recap-ad-${ad.id}`}
     >
       <div className="p-5">
