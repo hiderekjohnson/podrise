@@ -1,6 +1,10 @@
+import { useState } from "react";
 import { Link } from "wouter";
 import { Calendar, ArrowRight } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
+import { useAuth } from "@/hooks/use-auth";
+import { BlurredInsightGate } from "@/components/BlurredInsightGate";
+import { SignUpCTAModal } from "@/components/SignUpCTAModal";
 
 export function relativeTime(dateStr: string | null): string {
   if (!dateStr) return "";
@@ -141,6 +145,8 @@ export function FeedEpisodeCard({
   adBadge = false,
 }: FeedEpisodeCardProps) {
   const { theme } = useTheme();
+  const { data: authUser } = useAuth();
+  const [showSignUpCTA, setShowSignUpCTA] = useState(false);
   const headerTint = getHeaderTint(artworkUrl || podcastSlug);
   const tintBg = theme === "dark" ? headerTint.dark : headerTint.light;
   const insights = keyInsights || [];
@@ -206,12 +212,25 @@ export function FeedEpisodeCard({
             <div className={quote ? "mb-5" : ""}>
               <div className="text-[11px] font-semibold tracking-[0.1em] uppercase text-[#A1A1AA] dark:text-[#71717A] mb-3" style={{ fontFamily: "var(--font-mono)" }}>Key Takeaways</div>
               <ul className="list-none p-0">
-                {insights.map((insight, i) => (
-                  <li key={i} className="flex items-start gap-3 py-[10px] border-b border-[#F0F0F2] dark:border-[#1C1C22] text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] leading-[1.6] first:pt-0 last:border-b-0 last:pb-0">
-                    <div className="w-[6px] h-[6px] rounded-full bg-[#6366F1] flex-shrink-0 mt-[9px]" />
-                    <div>{insight}</div>
-                  </li>
-                ))}
+                {insights.map((insight, i) => {
+                  if (i === 3 && insights.length >= 4 && !authUser) {
+                    return (
+                      <BlurredInsightGate key={i} as="li" onRevealClick={() => setShowSignUpCTA(true)} className="flex items-start gap-3 py-[10px] border-b border-[#F0F0F2] dark:border-[#1C1C22] text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] leading-[1.6] last:border-b-0 last:pb-0" data-testid={`feed-insight-${i}`}>
+                        <div className="flex items-start gap-3">
+                          <div className="w-[6px] h-[6px] rounded-full bg-[#6366F1] flex-shrink-0 mt-[9px]" />
+                          <div>{insight}</div>
+                        </div>
+                      </BlurredInsightGate>
+                    );
+                  }
+
+                  return (
+                    <li key={i} className="flex items-start gap-3 py-[10px] border-b border-[#F0F0F2] dark:border-[#1C1C22] text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] leading-[1.6] first:pt-0 last:border-b-0 last:pb-0" data-testid={`feed-insight-${i}`}>
+                      <div className="w-[6px] h-[6px] rounded-full bg-[#6366F1] flex-shrink-0 mt-[9px]" />
+                      <div>{insight}</div>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}
@@ -232,6 +251,11 @@ export function FeedEpisodeCard({
       {additionalContent}
 
       {bottomActions}
+
+      <SignUpCTAModal
+        open={showSignUpCTA}
+        onClose={() => setShowSignUpCTA(false)}
+      />
     </article>
   );
 }

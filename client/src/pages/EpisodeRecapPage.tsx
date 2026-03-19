@@ -10,6 +10,8 @@ import { getPodcastBySlug, type PodcastLandingConfig } from "../data/podcastLand
 import { PEOPLE_DIRECTORY } from "../data/entityDirectoryData";
 import { Link, useLocation } from "wouter";
 import { GetRecapsModal } from "@/components/GetRecapsModal";
+import { BlurredInsightGate } from "@/components/BlurredInsightGate";
+import { SignUpCTAModal } from "@/components/SignUpCTAModal";
 import { FeedStyleCard, FeedStyleCardHeader, FeedStyleCardSection } from "@/components/FeedStyleCard";
 import { RecapCard } from "@/components/RecapCard";
 import { Footer } from "@/components/Footer";
@@ -570,6 +572,7 @@ export default function EpisodeRecapPage() {
   const [showAuthGatePanel, setShowAuthGatePanel] = useState(false);
   const [showUpdatesModal, setShowUpdatesModal] = useState(false);
   const [showStickyBar, setShowStickyBar] = useState(false);
+  const [showSignUpCTA, setShowSignUpCTA] = useState(false);
   const [stickyDismissed, setStickyDismissed] = useState(false);
   const ctaSectionRef = useRef<HTMLDivElement>(null);
 
@@ -934,16 +937,28 @@ export default function EpisodeRecapPage() {
               </span>
             </div>
             <div className="px-5 sm:px-6 py-[22px] space-y-4">
-              {episode.keyInsights.map((insight: string, i: number) => (
-                <div
-                  key={i}
-                  className="flex gap-3 items-start"
-                  data-testid={`insight-${i}`}
-                >
-                  <span className="w-[8px] h-[8px] rounded-full bg-[#6366F1] shrink-0 mt-[9px]" />
-                  <p className="text-[15px] leading-[1.75] text-[#52525B] dark:text-[#A1A1AA] flex-1">{insight.replace(/\[([^\]]+)\]/g, '$1')}</p>
-                </div>
-              ))}
+              {episode.keyInsights.map((insight: string, i: number) => {
+                const insightContent = (
+                  <div
+                    key={i}
+                    className="flex gap-3 items-start"
+                    data-testid={`insight-${i}`}
+                  >
+                    <span className="w-[8px] h-[8px] rounded-full bg-[#6366F1] shrink-0 mt-[9px]" />
+                    <p className="text-[15px] leading-[1.75] text-[#52525B] dark:text-[#A1A1AA] flex-1">{insight.replace(/\[([^\]]+)\]/g, '$1')}</p>
+                  </div>
+                );
+
+                if (i === 3 && episode.keyInsights.length >= 4) {
+                  return (
+                    <BlurredInsightGate key={i} onRevealClick={() => setShowSignUpCTA(true)}>
+                      {insightContent}
+                    </BlurredInsightGate>
+                  );
+                }
+
+                return insightContent;
+              })}
             </div>
           </section>
         )}
@@ -1804,6 +1819,11 @@ export default function EpisodeRecapPage() {
         podcastName={episode.podcastName}
         artworkUrl={episode.artworkUrl || podcastConfig?.artworkUrl}
         itunesId={podcastConfig?.itunesId || ""}
+      />
+
+      <SignUpCTAModal
+        open={showSignUpCTA}
+        onClose={() => setShowSignUpCTA(false)}
       />
 
       <EpisodeChatPanelWithRef
