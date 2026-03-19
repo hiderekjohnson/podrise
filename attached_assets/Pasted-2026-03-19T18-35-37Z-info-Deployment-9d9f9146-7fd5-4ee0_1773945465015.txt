@@ -1,0 +1,270 @@
+2026-03-19T18:35:37Z info: Deployment: 9d9f9146-7fd5-4ee0-ba2d-bc345eb08b85
+2026-03-19T18:35:37Z info: Running Security Scan
+2026-03-19T18:36:19Z info: Security Scan Complete
+2026-03-19T18:36:19Z info: Connecting to builder
+2026-03-19T18:36:19Z info: Builder connected
+2026-03-19T18:36:20Z info: Installing packages
+--> npm install
+
+
+up to date, audited 690 packages in 2s
+
+2026-03-19T18:36:22Z info: Starting Build
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+
+building client...
+
+vite v7.3.0 building client environment for production...
+
+transforming...
+
+✓ 1963 modules transformed.
+
+✗ Build failed in 5.57s
+
+[vite:esbuild] Transform failed with 1 error:
+/home/runner/workspace/client/src/pages/EpisodeRecapPage.tsx:1507:7: ERROR: Expected ":" but found "}"
+file: /home/runner/workspace/client/src/pages/EpisodeRecapPage.tsx:1507:7
+
+Expected ":" but found "}"
+1505 |            isLoggedIn={isLoggedIn}
+1506 |          />
+1507 |        )}
+     |         ^
+1508 |  
+1509 |        {previousEpisodes.length > 0 && (
+
+    at failureErrorWithLog (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:1467:15)
+    at /home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:736:50
+    at responseCallbacks.<computed> (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:603:9)
+    at handleIncomingPacket (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:658:12)
+    at Socket.readFromStdout (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:581:7)
+    at Socket.emit (node:events:524:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:191:23) {
+  errors: [Getter/Setter],
+  warnings: [Getter/Setter],
+  frame: '\n' +
+    'Expected ":" but found "}"\n' +
+    '1505 |            isLoggedIn={isLoggedIn}\n' +
+    '1506 |          />\n' +
+    '1507 |        )}\n' +
+    '     |         ^\n' +
+    '1508 |  \n' +
+    '1509 |        {previousEpisodes.length > 0 && (\n',
+  loc: {
+    column: 7,
+    file: '/home/runner/workspace/client/src/pages/EpisodeRecapPage.tsx',
+    length: 1,
+    line: 1507,
+    lineText: '      )}',
+    namespace: '',
+    suggestion: ':'
+  },
+  code: 'PLUGIN_ERROR',
+  plugin: 'vite:esbuild',
+  hook: 'transform',
+  id: '/home/runner/workspace/client/src/pages/EpisodeRecapPage.tsx',
+  watchFiles: [
+    '/home/runner/workspace/client/index.html',
+    '/home/runner/workspace/client/src/main.tsx',
+    '/home/runner/workspace/package.json',
+    '/home/runner/workspace/node_modules/react/jsx-runtime.js',
+    '/home/runner/workspace/node_modules/react-dom/client.js',
+    '/home/runner/workspace/node_modules/react-dom/index.js',
+    '/home/runner/workspace/node_modules/react/cjs/react-jsx-runtime.production.min.js',
+    '/home/runner/workspace/node_modules/react/index.js',
+    '/home/runner/workspace/node_modules/react-dom/cjs/react-dom.production.min.js',
+    '/home/runner/workspace/node_modules/react/cjs/react.production.min.js',
+    '/home/runner/workspace/node_modules/scheduler/index.js',
+    '/home/runner/workspace/client/src/index.css',
+    '/home/runner/workspace/node_modules/scheduler/cjs/scheduler.production.min.js',
+    '/home/runner/workspace/client/src/App.tsx',
+    '/home/runner/workspace/node_modules/wouter/esm/index.js',
+    '/home/runner/workspace/node_modules/@tanstack/react-query/build/modern/index.js',
+    '/home/runner/workspace/client/src/lib/queryClient.ts',
+    '/home/runner/workspace/client/src/pages/Home.tsx',
+    '/home/runner/workspace/client/src/pages/not-found.tsx',
+    '/home/runner/workspace/client/src/pages/Login.tsx',
+    '/home/runner/workspace/client/src/pages/Dashboard.tsx',
+    '/home/runner/workspace/client/src/pages/Admin.tsx',
+    '/home/runner/workspace/client/src/pages/PodcastRouter.tsx',
+    '/home/runner/workspace/client/src/pages/AdminSetup.tsx',
+    '/home/runner/workspace/client/src/pages/PodcastSubRouter.tsx',
+    '/home/runner/workspace/client/src/pages/PodcastsExplorer.tsx',
+    '/home/runner/workspace/client/src/pages/EpisodeGuestsPage.tsx',
+    '/home/runner/workspace/client/src/pages/EpisodeArchivePage.tsx',
+    '/home/runner/workspace/client/src/pages/Privacy.tsx',
+    '/home/runner/workspace/client/src/pages/Cookies.tsx',
+    '/home/runner/workspace/client/src/pages/Terms.tsx',
+    '/home/runner/workspace/client/src/pages/About.tsx',
+    '/home/runner/workspace/client/src/pages/FeatureRequests.tsx',
+    '/home/runner/workspace/client/src/pages/Contact.tsx',
+    '/home/runner/workspace/
+[vite:esbuild] Transform failed with 1 error:
+/home/runner/workspace/client/src/pages/EpisodeRecapPage.tsx:1507:7: ERROR: Expected ":" but found "}"
+file: /home/runner/workspace/client/src/pages/EpisodeRecapPage.tsx:1507:7
+
+Expected ":" but found "}"
+1505 |            isLoggedIn={isLoggedIn}
+1506 |          />
+1507 |        )}
+     |         ^
+1508 |  
+1509 |        {previousEpisodes.length > 0 && (
+
+    at failureErrorWithLog (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:1467:15)
+    at /home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:736:50
+    at responseCallbacks.<computed> (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:603:9)
+    at handleIncomingPacket (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:658:12)
+    at Socket.readFromStdout (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:581:7)
+    at Socket.emit (node:events:524:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:191:23) {
+  errors: [Getter/Setter],
+  warnings: [Getter/Setter],
+  frame: '\n' +
+    'Expected ":" but found "}"\n' +
+    '1505 |            isLoggedIn={isLoggedIn}\n' +
+    '1506 |          />\n' +
+    '1507 |        )}\n' +
+    '     |         ^\n' +
+    '1508 |  \n' +
+    '1509 |        {previousEpisodes.length > 0 && (\n',
+  loc: {
+    column: 7,
+    file: '/home/runner/workspace/client/src/pages/EpisodeRecapPage.tsx',
+    length: 1,
+    line: 1507,
+    lineText: '      )}',
+    namespace: '',
+    suggestion: ':'
+  },
+  code: 'PLUGIN_ERROR',
+  plugin: 'vite:esbuild',
+  hook: 'transform',
+  id: '/home/runner/workspace/client/src/pages/EpisodeRecapPage.tsx',
+  watchFiles: [
+    '/home/runner/workspace/client/index.html',
+    '/home/runner/workspace/client/src/main.tsx',
+    '/home/runner/workspace/package.json',
+    '/home/runner/workspace/node_modules/react/jsx-runtime.js',
+    '/home/runner/workspace/node_modules/react-dom/client.js',
+    '/home/runner/workspace/node_modules/react-dom/index.js',
+    '/home/runner/workspace/node_modules/react/cjs/react-jsx-runtime.production.min.js',
+    '/home/runner/workspace/node_modules/react/index.js',
+    '/home/runner/workspace/node_modules/react-dom/cjs/react-dom.production.min.js',
+    '/home/runner/workspace/node_modules/react/cjs/react.production.min.js',
+    '/home/runner/workspace/node_modules/scheduler/index.js',
+    '/home/runner/workspace/client/src/index.css',
+    '/home/runner/workspace/node_modules/scheduler/cjs/scheduler.production.min.js',
+    '/home/runner/workspace/client/src/App.tsx',
+    '/home/runner/workspace/node_modules/wouter/esm/index.js',
+    '/home/runner/workspace/node_modules/@tanstack/react-query/build/modern/index.js',
+    '/home/runner/workspace/client/src/lib/queryClient.ts',
+    '/home/runner/workspace/client/src/pages/Home.tsx',
+    '/home/runner/workspace/client/src/pages/not-found.tsx',
+    '/home/runner/workspace/client/src/pages/Login.tsx',
+    '/home/runner/workspace/client/src/pages/Dashboard.tsx',
+    '/home/runner/workspace/client/src/pages/Admin.tsx',
+    '/home/runner/workspace/client/src/pages/PodcastRouter.tsx',
+    '/home/runner/workspace/client/src/pages/AdminSetup.tsx',
+    '/home/runner/workspace/client/src/pages/PodcastSubRouter.tsx',
+    '/home/runner/workspace/client/src/pages/PodcastsExplorer.tsx',
+    '/home/runner/workspace/client/src/pages/EpisodeGuestsPage.tsx',
+    '/home/runner/workspace/client/src/pages/EpisodeArchivePage.tsx',
+    '/home/runner/workspace/client/src/pages/Privacy.tsx',
+    '/home/runner/workspace/client/src/pages/Cookies.tsx',
+    '/home/runner/workspace/client/src/pages/Terms.tsx',
+    '/home/runner/workspace/client/src/pages/About.tsx',
+    '/home/runner/workspace/client/src/pages/FeatureRequests.tsx',
+    '/home/runner/workspace/client/src/pages/Contact.tsx',
+    '/home/runner/workspace/
+[vite:esbuild] Transform failed with 1 error:
+/home/runner/workspace/client/src/pages/EpisodeRecapPage.tsx:1507:7: ERROR: Expected ":" but found "}"
+file: /home/runner/workspace/client/src/pages/EpisodeRecapPage.tsx:1507:7
+
+Expected ":" but found "}"
+1505 |            isLoggedIn={isLoggedIn}
+1506 |          />
+1507 |        )}
+     |         ^
+1508 |  
+1509 |        {previousEpisodes.length > 0 && (
+
+    at failureErrorWithLog (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:1467:15)
+    at /home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:736:50
+    at responseCallbacks.<computed> (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:603:9)
+    at handleIncomingPacket (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:658:12)
+    at Socket.readFromStdout (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:581:7)
+    at Socket.emit (node:events:524:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:191:23) {
+  errors: [Getter/Setter],
+  warnings: [Getter/Setter],
+  frame: '\n' +
+    'Expected ":" but found "}"\n' +
+    '1505 |            isLoggedIn={isLoggedIn}\n' +
+    '1506 |          />\n' +
+    '1507 |        )}\n' +
+    '     |         ^\n' +
+    '1508 |  \n' +
+    '1509 |        {previousEpisodes.length > 0 && (\n',
+  loc: {
+    column: 7,
+    file: '/home/runner/workspace/client/src/pages/EpisodeRecapPage.tsx',
+    length: 1,
+    line: 1507,
+    lineText: '      )}',
+    namespace: '',
+    suggestion: ':'
+  },
+  code: 'PLUGIN_ERROR',
+  plugin: 'vite:esbuild',
+  hook: 'transform',
+  id: '/home/runner/workspace/client/src/pages/EpisodeRecapPage.tsx',
+  watchFiles: [
+    '/home/runner/workspace/client/index.html',
+    '/home/runner/workspace/client/src/main.tsx',
+    '/home/runner/workspace/package.json',
+    '/home/runner/workspace/node_modules/react/jsx-runtime.js',
+    '/home/runner/workspace/node_modules/react-dom/client.js',
+    '/home/runner/workspace/node_modules/react-dom/index.js',
+    '/home/runner/workspace/node_modules/react/cjs/react-jsx-runtime.production.min.js',
+    '/home/runner/workspace/node_modules/react/index.js',
+    '/home/runner/workspace/node_modules/react-dom/cjs/react-dom.production.min.js',
+    '/home/runner/workspace/node_modules/react/cjs/react.production.min.js',
+    '/home/runner/workspace/node_modules/scheduler/index.js',
+    '/home/runner/workspace/client/src/index.css',
+    '/home/runner/workspace/node_modules/scheduler/cjs/scheduler.production.min.js',
+    '/home/runner/workspace/client/src/App.tsx',
+    '/home/runner/workspace/node_modules/wouter/esm/index.js',
+    '/home/runner/workspace/node_modules/@tanstack/react-query/build/modern/index.js',
+    '/home/runner/workspace/client/src/lib/queryClient.ts',
+    '/home/runner/workspace/client/src/pages/Home.tsx',
+    '/home/runner/workspace/client/src/pages/not-found.tsx',
+    '/home/runner/workspace/client/src/pages/Login.tsx',
+    '/home/runner/workspace/client/src/pages/Dashboard.tsx',
+    '/home/runner/workspace/client/src/pages/Admin.tsx',
+    '/home/runner/workspace/client/src/pages/PodcastRouter.tsx',
+    '/home/runner/workspace/client/src/pages/AdminSetup.tsx',
+    '/home/runner/workspace/client/src/pages/PodcastSubRouter.tsx',
+    '/home/runner/workspace/client/src/pages/PodcastsExplorer.tsx',
+    '/home/runner/workspace/client/src/pages/EpisodeGuestsPage.tsx',
+    '/home/runner/workspace/client/src/pages/EpisodeArchivePage.tsx',
+    '/home/runner/workspace/client/src/pages/Privacy.tsx',
+    '/home/runner/workspace/client/src/pages/Cookies.tsx',
+    '/home/runner/workspace/client/src/pages/Terms.tsx',
+    '/home/runner/workspace/client/src/pages/About.tsx',
+    '/home/runner/workspace/client/src/pages/FeatureRequests.tsx',
+    '/home/runner/workspace/client/src/pages/Contact.tsx',
+    '/home/runner/workspace/

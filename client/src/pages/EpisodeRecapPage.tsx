@@ -1504,7 +1504,7 @@ export default function EpisodeRecapPage() {
           className="mb-0"
           isLoggedIn={isLoggedIn}
         />
-      )}
+      ) : null}
 
       {previousEpisodes.length > 0 && (
         <motion.section
