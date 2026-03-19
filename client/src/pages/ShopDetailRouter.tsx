@@ -5,7 +5,7 @@ import type { BookData, ProductData } from "./ShopItemDetailPage";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
 import { Link } from "wouter";
-import { ShoppingBag, AlertCircle, ArrowRight, Lock } from "lucide-react";
+import { ShoppingBag, AlertCircle, ArrowRight, Mic, Users, TrendingUp } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 function is404(error: unknown): boolean {
@@ -67,42 +67,77 @@ export default function ShopDetailRouter() {
   }
 
   if (bookData && !isLoggedIn) {
+    const mentionCount = bookData.mentionCount || 0;
+    const bookName = bookData.name || "this book";
+    const hasMentions = mentionCount > 0;
     return (
-      <div className="min-h-screen flex flex-col bg-[#F7F7FC] dark:bg-[#08080F]">
-        <SiteHeader />
-        <div className="flex-1 flex flex-col items-center justify-center gap-4 px-4">
-          <div className="max-w-md text-center">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-500/10 mb-4">
-              <Lock className="w-7 h-7 text-amber-600" />
+      <div className="relative">
+        <div className="pointer-events-none select-none overflow-hidden max-h-screen" aria-hidden="true">
+          <ShopItemDetailPage itemKind="book" bookData={bookData} isLoggedIn={false} />
+        </div>
+
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4" role="dialog" aria-modal="true" data-testid="overlay-book-gate">
+          <div className="w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl" data-testid="modal-book-gate">
+            <div className="bg-[#6366F1] px-8 pt-8 pb-8">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/30 bg-white/10 mb-5">
+                <Mic className="w-4 h-4 text-white" />
+                <span className="text-white text-xs font-semibold tracking-wide uppercase" data-testid="text-book-pill">
+                  {bookName}{hasMentions ? ` · ${mentionCount} MENTION${mentionCount !== 1 ? "S" : ""}` : ""}
+                </span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white leading-tight mb-3" data-testid="heading-book-gate">
+                {hasMentions
+                  ? `See which ${mentionCount} episode${mentionCount !== 1 ? "s" : ""} recommended this book`
+                  : "See which episodes recommended this book"}
+              </h1>
+              <p className="text-white/80 text-[15px]" data-testid="text-book-gate-subtitle">
+                Free account. We listened so you didn't have to.
+              </p>
             </div>
-            <h1 className="text-2xl font-bold text-[#09090B] dark:text-white mb-2" data-testid="heading-book-gate">
-              {bookData.name}
-            </h1>
-            {bookData.author && (
-              <p className="text-[16px] text-[#A1A1AA] mb-4" data-testid="text-book-author">by {bookData.author}</p>
-            )}
-            <p className="text-[15px] text-[#52525B] dark:text-[#A1A1AA] mb-2" data-testid="text-book-gate-info">
-              This book has been mentioned on {bookData.podcastCount} podcast{bookData.podcastCount !== 1 ? "s" : ""} across {bookData.mentionCount} episode{bookData.mentionCount !== 1 ? "s" : ""}.
-            </p>
-            <p className="text-[15px] text-[#52525B] dark:text-[#A1A1AA] mb-6">
-              Sign up for a free PodRise account to see the full details, episode appearances, and cross-podcast recommendations.
-            </p>
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold text-[15px] transition-colors shadow-sm"
-              data-testid="button-signup-book-gate"
-            >
-              Sign Up Free
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-            <div className="mt-4">
-              <Link href="/shop" className="text-[14px] text-[#6366F1] hover:text-[#6366F1]/80 font-medium" data-testid="link-back-shop">
-                Back to Shop
+
+            <div className="bg-white dark:bg-[#18181B] px-8 py-8 space-y-6">
+              <div className="flex items-start gap-4" data-testid="value-prop-episodes">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#6366F1]/10 flex items-center justify-center">
+                  <Mic className="w-5 h-5 text-[#6366F1]" />
+                </div>
+                <p className="text-[15px] text-[#3F3F46] dark:text-[#D4D4D8] leading-relaxed">
+                  Every episode where <strong>{bookName}</strong> was mentioned — with the exact quote and context
+                </p>
+              </div>
+              <div className="flex items-start gap-4" data-testid="value-prop-hosts">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#6366F1]/10 flex items-center justify-center">
+                  <Users className="w-5 h-5 text-[#6366F1]" />
+                </div>
+                <p className="text-[15px] text-[#3F3F46] dark:text-[#D4D4D8] leading-relaxed">
+                  Which <strong>hosts and guests</strong> recommended it — and what they said about it
+                </p>
+              </div>
+              <div className="flex items-start gap-4" data-testid="value-prop-briefings">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#6366F1]/10 flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-[#6366F1]" />
+                </div>
+                <p className="text-[15px] text-[#3F3F46] dark:text-[#D4D4D8] leading-relaxed">
+                  Daily briefings from <strong>200+ podcasts</strong> — organized by your industry and interests
+                </p>
+              </div>
+
+              <Link
+                href="/register"
+                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-[#09090B] dark:border-white bg-transparent hover:bg-[#09090B] hover:text-white dark:hover:bg-white dark:hover:text-[#09090B] text-[#09090B] dark:text-white font-semibold text-[15px] transition-colors"
+                data-testid="button-signup-book-gate"
+              >
+                Create free account
+                <ArrowRight className="w-4 h-4" />
               </Link>
+              <p className="text-center text-[14px] text-[#71717A] dark:text-[#A1A1AA]" data-testid="text-login-link">
+                Already have an account?{" "}
+                <Link href="/login" className="text-[#6366F1] hover:text-[#6366F1]/80 font-medium underline" data-testid="link-login">
+                  Log in
+                </Link>
+              </p>
             </div>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
