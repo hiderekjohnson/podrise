@@ -978,6 +978,36 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
   });
 
   const [form, setForm] = useState<PodcastForm | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshLog, setRefreshLog] = useState<string[] | null>(null);
+
+  const handleRefreshMetadata = async () => {
+    if (!podcast?.slug) return;
+    setIsRefreshing(true);
+    setRefreshLog(null);
+    try {
+      const res = await fetch(`/api/admin/cms/podcasts/${podcast.slug}/refresh-metadata`, {
+        method: "POST",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast({ title: "Refresh failed", description: data.message || "Error", variant: "destructive" });
+        return;
+      }
+      setRefreshLog(data.fieldsUpdated || []);
+      toast({
+        title: data.totalUpdated > 0 ? `Updated ${data.totalUpdated} fields` : "No new data found",
+        description: data.fieldsUpdated?.length > 0 ? `Updated: ${data.fieldsUpdated.join(", ")}` : "All fields are already up to date.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/podcasts", podcast.slug] });
+      setForm(null);
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     if (podcast && !form) {
@@ -1080,6 +1110,15 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={handleRefreshMetadata}
+            disabled={isRefreshing}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 rounded-xl text-sm font-semibold hover:bg-emerald-100 dark:hover:bg-emerald-900/30 disabled:opacity-50 transition-colors border border-emerald-200 dark:border-emerald-800"
+            data-testid="button-refresh-metadata"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
+            {isRefreshing ? "Refreshing..." : "Refresh Metadata"}
+          </button>
           <button
             onClick={() => onNavigate({ tab: "episodes", podcastSlug: slug })}
             className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl text-sm font-semibold hover:bg-primary/20 transition-colors"

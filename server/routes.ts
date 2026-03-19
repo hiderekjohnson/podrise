@@ -10749,6 +10749,118 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.post("/api/admin/cms/podcasts/:slug/refresh-metadata", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { slug } = req.params;
+      const { rows } = await pool.query(
+        `SELECT id, slug, name, itunes_id, artwork_url, apple_url, spotify_url, description, category,
+                youtube_url, website_url, twitter_handle, instagram_url, tiktok_url, facebook_url,
+                hosts, frequency, avg_episode_length, year_started
+         FROM podcast_directory WHERE slug = $1`, [slug]
+      );
+      if (rows.length === 0) return res.status(404).json({ message: "Podcast not found" });
+      const podcast = rows[0];
+      const updates: Record<string, any> = {};
+      const log: string[] = [];
+      const errors: string[] = [];
+
+      if (podcast.itunes_id) {
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 10000);
+          const itunesResp = await fetch(`https://itunes.apple.com/lookup?id=${podcast.itunes_id}`, { signal: controller.signal });
+          clearTimeout(timeout);
+          if (itunesResp.ok) {
+            const itunesData = await itunesResp.json();
+            const r = (itunesData.results || [])[0];
+            if (r) {
+              const art = (r.artworkUrl600 || r.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb");
+              if (art) { updates.artwork_url = art; log.push("artwork"); }
+              if (r.collectionName) { updates.name = r.collectionName; log.push("name"); }
+              if (r.collectionViewUrl) { updates.apple_url = r.collectionViewUrl; log.push("apple_url"); }
+              if (r.primaryGenreName) { updates.category = r.primaryGenreName; log.push("category"); }
+              if (r.trackCount) { updates.total_episodes = r.trackCount; log.push("total_episodes"); }
+              if (r.feedUrl) { updates.feed_url = r.feedUrl; }
+            }
+          }
+        } catch (e: any) { errors.push(`iTunes: ${e.message}`); }
+      }
+
+      const podcastName = updates.name || podcast.name;
+      try {
+        const { searchSpotifyShow } = await import("./spotifyClient");
+        const spotifyUrl = await searchSpotifyShow(podcastName);
+        if (spotifyUrl) { updates.spotify_url = spotifyUrl; log.push("spotify_url"); }
+      } catch (e: any) { errors.push(`Spotify: ${e.message}`); }
+
+      if (updates.feed_url && typeof updates.feed_url === "string" && updates.feed_url.startsWith("http")) {
+        try {
+          const feedResp = await fetch(updates.feed_url, {
+            headers: { "User-Agent": "PodRise/1.0" },
+            signal: AbortSignal.timeout(8000),
+          });
+          if (feedResp.ok) {
+            const feedXml = await feedResp.text();
+            const extract = (tag: string) => {
+              const m = feedXml.match(new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]></${tag}>|<${tag}[^>]*>([^<]*)</${tag}>`));
+              return m ? (m[1] || m[2] || "").trim() : null;
+            };
+            const extractAttr = (tag: string, attr: string) => {
+              const m = feedXml.match(new RegExp(`<${tag}[^>]*${attr}="([^"]*)"`, 'i'));
+              return m ? m[1].trim() : null;
+            };
+
+            if (!podcast.description && !updates.description) {
+              const desc = extract("description") || extract("itunes:summary");
+              if (desc && desc.length > 10) { updates.description = desc.slice(0, 2000); log.push("description"); }
+            }
+            if (!podcast.website_url) {
+              const link = extract("link");
+              if (link && link.startsWith("http") && !link.includes("apple.com") && !link.includes("spotify.com")) {
+                updates.website_url = link; log.push("website_url");
+              }
+            }
+            const ownerEmail = extract("itunes:email");
+            const author = extract("itunes:author");
+            if (!podcast.hosts && author) { updates.hosts = author; log.push("hosts"); }
+
+            const socialLinks = feedXml.match(/https?:\/\/(www\.)?(twitter\.com|x\.com|instagram\.com|facebook\.com|youtube\.com|tiktok\.com|discord\.gg)[^\s<"']*/gi) || [];
+            for (const link of socialLinks) {
+              if (!podcast.twitter_handle && !updates.twitter_handle && (link.includes("twitter.com/") || link.includes("x.com/"))) {
+                const handle = link.split("/").filter(Boolean).pop()?.replace(/[?#].*/, "");
+                if (handle && handle.length > 1 && handle.length < 50) { updates.twitter_handle = handle; log.push("twitter"); }
+              }
+              if (!podcast.instagram_url && !updates.instagram_url && link.includes("instagram.com/")) { updates.instagram_url = link.replace(/[?#].*/, ""); log.push("instagram"); }
+              if (!podcast.facebook_url && !updates.facebook_url && link.includes("facebook.com/")) { updates.facebook_url = link.replace(/[?#].*/, ""); log.push("facebook"); }
+              if (!podcast.youtube_url && !updates.youtube_url && link.includes("youtube.com/")) { updates.youtube_url = link.replace(/[?#].*/, ""); log.push("youtube"); }
+              if (!podcast.tiktok_url && !updates.tiktok_url && link.includes("tiktok.com/")) { updates.tiktok_url = link.replace(/[?#].*/, ""); log.push("tiktok"); }
+            }
+          }
+        } catch (e: any) { errors.push(`RSS feed: ${e.message}`); }
+        delete updates.feed_url;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        const sets: string[] = [];
+        const params: any[] = [];
+        for (const [col, val] of Object.entries(updates)) {
+          params.push(val);
+          sets.push(`${col} = $${params.length}`);
+        }
+        params.push(slug);
+        sets.push(`updated_at = NOW()`);
+        await pool.query(`UPDATE podcast_directory SET ${sets.join(", ")} WHERE slug = $${params.length}`, params);
+      }
+
+      const { rows: updated } = await pool.query(`SELECT * FROM podcast_directory WHERE slug = $1`, [slug]);
+      res.json({ updated: updated[0], fieldsUpdated: log, errors, totalUpdated: Object.keys(updates).length });
+    } catch (err: any) {
+      console.error("[CMS] Refresh metadata error:", err);
+      res.status(500).json({ message: err?.message || "Failed to refresh metadata" });
+    }
+  });
+
   const podcastEnrichState = { running: false, progress: { total: 0, done: 0, updated: 0, skipped: 0, errors: 0, log: [] as string[] } };
 
   app.post("/api/admin/cms/podcast-enrich", async (req, res) => {
