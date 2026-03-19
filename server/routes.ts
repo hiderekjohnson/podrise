@@ -18466,45 +18466,106 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
   });
 
   try {
-    const needsFix = await pool.query(
+    const needsFixWithId = await pool.query(
       `SELECT slug, itunes_id, name, artwork_url FROM podcast_directory
        WHERE slug IS NOT NULL AND itunes_id IS NOT NULL
        AND ((artwork_url IS NULL OR artwork_url = '') OR name = slug)`
     );
-    if (needsFix.rows.length > 0) {
-      console.log(`[DirectoryBackfill] Found ${needsFix.rows.length} podcasts needing artwork or name fix`);
-      const ids = needsFix.rows.map((r: any) => r.itunes_id);
+    const needsFixNoId = await pool.query(
+      `SELECT slug, name, artwork_url FROM podcast_directory
+       WHERE slug IS NOT NULL AND (itunes_id IS NULL OR itunes_id = '')
+       AND ((artwork_url IS NULL OR artwork_url = '') OR name = slug)`
+    );
+    const totalNeedsFix = needsFixWithId.rows.length + needsFixNoId.rows.length;
+    if (totalNeedsFix > 0) {
+      console.log(`[DirectoryBackfill] Found ${totalNeedsFix} podcasts needing fix (${needsFixWithId.rows.length} with iTunes ID, ${needsFixNoId.rows.length} without)`);
       let fixed = 0;
-      for (let i = 0; i < ids.length; i += 50) {
+
+      if (needsFixWithId.rows.length > 0) {
+        const ids = needsFixWithId.rows.map((r: any) => r.itunes_id);
+        for (let i = 0; i < ids.length; i += 50) {
+          try {
+            const resp = await fetch(`https://itunes.apple.com/lookup?id=${ids.slice(i, i + 50).join(",")}`);
+            const data = await resp.json();
+            for (const r of (data.results || [])) {
+              const itunesIdStr = String(r.collectionId);
+              const row = needsFixWithId.rows.find((x: any) => x.itunes_id === itunesIdStr);
+              if (!row) continue;
+              const sets: string[] = [];
+              const params: any[] = [];
+              const missingArt = !row.artwork_url || row.artwork_url === '';
+              const slugName = row.name === row.slug;
+              if (missingArt) {
+                const art = (r.artworkUrl600 || r.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb");
+                if (art) { params.push(art); sets.push(`artwork_url = $${params.length}`); }
+              }
+              if (slugName && r.collectionName) {
+                params.push(r.collectionName);
+                sets.push(`name = $${params.length}`);
+              }
+              if (sets.length > 0) {
+                params.push(itunesIdStr);
+                await pool.query(`UPDATE podcast_directory SET ${sets.join(', ')} WHERE itunes_id = $${params.length}`, params);
+                fixed++;
+              }
+            }
+          } catch (e: any) { console.warn(`[DirectoryBackfill] Batch lookup failed:`, e.message); }
+          if (i + 50 < ids.length) await new Promise(r => setTimeout(r, 1000));
+        }
+      }
+
+      const ITUNES_OVERRIDES: Record<string, string> = {
+        'information-411': '1035041995',
+        'abc-world-news-this-week': '91959525',
+        'pucks-the-powers-that-be': '1586269186',
+      };
+
+      for (const row of needsFixNoId.rows) {
         try {
-          const resp = await fetch(`https://itunes.apple.com/lookup?id=${ids.slice(i, i + 50).join(",")}`);
-          const data = await resp.json();
-          for (const r of (data.results || [])) {
-            const itunesIdStr = String(r.collectionId);
-            const row = needsFix.rows.find((x: any) => x.itunes_id === itunesIdStr);
-            if (!row) continue;
+          let match: any = null;
+          const overrideId = ITUNES_OVERRIDES[row.slug];
+          if (overrideId) {
+            const resp = await fetch(`https://itunes.apple.com/lookup?id=${overrideId}`);
+            const data = await resp.json();
+            match = (data.results || [])[0] || null;
+          } else {
+            const searchTerm = row.slug.replace(/-/g, ' ');
+            const resp = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(searchTerm)}&media=podcast&limit=5`);
+            const data = await resp.json();
+            const results = data.results || [];
+            match = results.find((r: any) => {
+              const feedSlug = (r.collectionName || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+              const feedNorm = feedSlug.replace(/-/g, '');
+              const slugNorm = row.slug.replace(/-/g, '');
+              return feedSlug === row.slug || feedNorm === slugNorm || feedSlug.includes(row.slug) || row.slug.includes(feedSlug);
+            }) || null;
+          }
+          if (match) {
             const sets: string[] = [];
             const params: any[] = [];
+            const itunesId = String(match.collectionId);
+            params.push(itunesId);
+            sets.push(`itunes_id = $${params.length}`);
             const missingArt = !row.artwork_url || row.artwork_url === '';
-            const slugName = row.name === row.slug;
             if (missingArt) {
-              const art = (r.artworkUrl600 || r.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb");
+              const art = (match.artworkUrl600 || match.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb");
               if (art) { params.push(art); sets.push(`artwork_url = $${params.length}`); }
             }
-            if (slugName && r.collectionName) {
-              params.push(r.collectionName);
+            if (row.name === row.slug && match.collectionName) {
+              params.push(match.collectionName);
               sets.push(`name = $${params.length}`);
             }
-            if (sets.length > 0) {
-              params.push(itunesIdStr);
-              await pool.query(`UPDATE podcast_directory SET ${sets.join(', ')} WHERE itunes_id = $${params.length}`, params);
-              fixed++;
-            }
+            params.push(row.slug);
+            await pool.query(`UPDATE podcast_directory SET ${sets.join(', ')} WHERE slug = $${params.length}`, params);
+            fixed++;
+          } else {
+            console.warn(`[DirectoryBackfill] No iTunes match for slug: ${row.slug}`);
           }
-        } catch (e: any) { console.warn(`[DirectoryBackfill] Batch lookup failed:`, e.message); }
-        if (i + 50 < ids.length) await new Promise(r => setTimeout(r, 1000));
+          await new Promise(r => setTimeout(r, 300));
+        } catch (e: any) { console.warn(`[DirectoryBackfill] Search failed for ${row.slug}:`, e.message); }
       }
-      console.log(`[DirectoryBackfill] Fixed ${fixed}/${needsFix.rows.length} podcasts`);
+
+      console.log(`[DirectoryBackfill] Fixed ${fixed}/${totalNeedsFix} podcasts`);
     }
   } catch (err) {
     console.warn("[DirectoryBackfill] skipped:", err);
