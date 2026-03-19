@@ -574,6 +574,7 @@ export default function EpisodeRecapPage() {
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [showSignUpCTA, setShowSignUpCTA] = useState(false);
   const [stickyDismissed, setStickyDismissed] = useState(false);
+  const [loggedOutTab, setLoggedOutTab] = useState<"takeaways" | "recap" | "guest">("takeaways");
   const ctaSectionRef = useRef<HTMLDivElement>(null);
 
   const { data: bookmarksData } = useQuery<{ id: number; episodeSlug: string; podcastSlug: string }[]>({
@@ -736,6 +737,14 @@ export default function EpisodeRecapPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [podcastSlug, episodeSlug]);
+
+  useEffect(() => {
+    if (episode?.keyInsights?.length > 0) {
+      setLoggedOutTab("takeaways");
+    } else {
+      setLoggedOutTab("recap");
+    }
+  }, [episode?.keyInsights]);
 
   useEffect(() => {
     if (!episode) {
@@ -1585,218 +1594,296 @@ export default function EpisodeRecapPage() {
     </div>
   );
 
+  const episodeDate = (() => {
+    const d = new Date(episode.publishDate + "T00:00:00");
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  })();
+
+  const hostLine = (() => {
+    const hostStr = podcastConfig?.hosts || "";
+    const guestStr = guests.length > 0 ? guests.map(g => g.name).join(", ") : "";
+    if (hostStr && guestStr) return `${hostStr} with ${guestStr}`;
+    return hostStr || guestStr || "";
+  })();
+
+  const sidebarBooksForEpisode = books.slice(0, 2);
+
   if (!authUser) {
     return (
       <div className="min-h-screen flex flex-col overflow-x-clip">
         <SiteHeader />
 
-        <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">
-          <div className="w-full max-w-4xl">
-            <section className="pt-8 sm:pt-10 pb-4">
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="flex items-start gap-5"
+        <div className="bg-white dark:bg-zinc-950 border-b border-[#E4E4E7] dark:border-white/[0.06]" data-testid="episode-hero">
+          <div className="max-w-[1080px] mx-auto px-4 sm:px-7 pt-8 pb-0">
+            <div className="flex gap-6 items-start mb-6">
+              <Link href={`/podcasts/${podcastSlug}`}>
+                <img
+                  src={episode.artworkUrl || podcastConfig?.artworkUrl || ""}
+                  alt={episode.podcastName}
+                  className="w-[80px] h-[80px] rounded-[14px] object-cover shrink-0"
+                  data-testid="img-episode-artwork"
+                />
+              </Link>
+              <h1
+                className="text-[28px] sm:text-[28px] font-normal leading-[1.25] tracking-[-0.02em] text-[#09090B] dark:text-white"
+                style={{ fontFamily: "var(--font-serif)" }}
+                data-testid="text-episode-title"
               >
-                <Link href={`/podcasts/${podcastSlug}`}>
-                  <img
-                    src={episode.artworkUrl || podcastConfig?.artworkUrl || ""}
-                    alt={episode.podcastName}
-                    className="w-[120px] h-[120px] rounded-xl shadow-lg shadow-black/[0.08] object-cover ring-1 ring-black/[0.04] shrink-0"
-                    data-testid="img-episode-artwork"
-                  />
-                </Link>
-                <div className="flex-1 min-w-0 pt-1">
-                  <h1
-                    className="text-[1.5rem] sm:text-[1.75rem] lg:text-[2rem] font-normal text-[#09090B] dark:text-white leading-[1.2] tracking-[-0.01em]"
-                    style={{ fontFamily: "var(--font-serif)" }}
-                    data-testid="text-episode-title"
-                  >
-                    {episode.episodeTitle}
-                  </h1>
-                </div>
-              </motion.div>
-            </section>
+                {episode.episodeTitle}
+              </h1>
+            </div>
 
-            <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[15px] text-muted-foreground mb-5" data-testid="breadcrumb-nav">
-              <Link href="/" className="hover:text-foreground transition-colors shrink-0">Home</Link>
-              <ChevronRight className="w-3 h-3 shrink-0" />
-              <Link href="/podcasts" className="hover:text-foreground transition-colors shrink-0">Podcasts</Link>
-              <ChevronRight className="w-3 h-3 shrink-0" />
-              <Link href={`/podcasts/${podcastSlug}`} className="hover:text-foreground transition-colors shrink-0 truncate max-w-[200px]">{episode.podcastName}</Link>
-            </nav>
+            <p className="text-[12px] text-[#A1A1AA] mb-4" data-testid="breadcrumb-nav">
+              <Link href="/" className="text-[#6366F1] hover:underline">Home</Link>
+              {" › "}
+              <Link href="/podcasts" className="text-[#6366F1] hover:underline">Podcasts</Link>
+              {" › "}
+              <Link href={`/podcasts/${podcastSlug}`} className="text-[#6366F1] hover:underline">{episode.podcastName}</Link>
+            </p>
 
-            <nav className="sticky top-[68px] z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar mb-8" data-testid="nav-in-page">
+            <div className="flex items-center gap-2 text-[12px] text-[#A1A1AA] mb-5" data-testid="episode-meta-line">
+              <span>{episodeDate}</span>
+              {episode.duration && (
+                <>
+                  <span className="w-[3px] h-[3px] rounded-full bg-[#D4D4D8] inline-block" />
+                  <span>{episode.duration}</span>
+                </>
+              )}
+              {hostLine && (
+                <>
+                  <span className="w-[3px] h-[3px] rounded-full bg-[#D4D4D8] inline-block" />
+                  <span>{hostLine}</span>
+                </>
+              )}
+            </div>
+
+            <div className="flex gap-0 border-t border-[#E4E4E7] dark:border-white/[0.06] mt-1" data-testid="episode-tabs">
               {episode.keyInsights?.length > 0 && (
                 <button
-                  onClick={() => scrollTo("section-key-insights")}
-                  className={`px-4 py-2 text-[15px] font-semibold rounded-full whitespace-nowrap transition-colors ${activeSection === "section-key-insights" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-                  data-testid="nav-key-insights"
+                  onClick={() => setLoggedOutTab("takeaways")}
+                  className={`text-[13px] font-medium py-3 px-4 border-b-2 transition-colors ${loggedOutTab === "takeaways" ? "text-[#6366F1] border-[#6366F1]" : "text-[#71717A] border-transparent hover:text-[#09090B]"}`}
+                  data-testid="tab-takeaways"
                 >
                   Takeaways
                 </button>
               )}
               <button
-                onClick={() => scrollTo("section-what-happened")}
-                className={`px-4 py-2 text-[15px] font-semibold rounded-full whitespace-nowrap transition-colors ${activeSection === "section-what-happened" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-                data-testid="nav-what-happened"
+                onClick={() => setLoggedOutTab("recap")}
+                className={`text-[13px] font-medium py-3 px-4 border-b-2 transition-colors ${loggedOutTab === "recap" ? "text-[#6366F1] border-[#6366F1]" : "text-[#71717A] border-transparent hover:text-[#09090B]"}`}
+                data-testid="tab-recap"
               >
                 Recap
               </button>
-              {(guests.length > 0 || hasHosts) && (
+              {guests.length > 0 && (
                 <button
-                  onClick={() => scrollTo("section-guests")}
-                  className={`px-4 py-2 text-[15px] font-semibold rounded-full whitespace-nowrap transition-colors ${activeSection === "section-guests" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-                  data-testid="nav-people"
+                  onClick={() => setLoggedOutTab("guest")}
+                  className={`text-[13px] font-medium py-3 px-4 border-b-2 transition-colors ${loggedOutTab === "guest" ? "text-[#6366F1] border-[#6366F1]" : "text-[#71717A] border-transparent hover:text-[#09090B]"}`}
+                  data-testid="tab-guest"
                 >
-                  Participants
+                  Guest
                 </button>
               )}
-              {(hasBooks || hasShopProducts) && (
-                <button
-                  onClick={() => scrollTo("section-shop")}
-                  className={`px-4 py-2 text-[15px] font-semibold rounded-full whitespace-nowrap transition-colors ${activeSection === "section-shop" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-                  data-testid="nav-shop"
-                >
-                  Shop
-                  <span className="ml-1.5 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#6366F1]/10 text-[#6366F1] border border-[#6366F1]/20">Beta</span>
-                </button>
-              )}
-            </nav>
+            </div>
+          </div>
+        </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-            >
-              {recapContent}
-            </motion.div>
+        <main className="flex-1">
+          <div className="max-w-[1080px] mx-auto px-4 sm:px-7 py-8 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_260px] gap-8 items-start">
+            <div>
+              {loggedOutTab === "takeaways" && episode.keyInsights?.length > 0 && (
+                <div className="bg-white dark:bg-zinc-900 border border-[#E4E4E7] dark:border-white/[0.1] rounded-xl p-6 mb-5" data-testid="section-key-insights">
+                  <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[#6366F1] mb-4 flex items-center gap-1.5">
+                    <Lightbulb className="w-[14px] h-[14px]" />
+                    Key takeaways
+                  </p>
+                  <ul className="list-none p-0 m-0">
+                    {episode.keyInsights.map((insight: string, i: number) => {
+                      const content = (
+                        <li
+                          key={i}
+                          className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] leading-[1.7] py-[10px] border-b border-[#F0F0F2] dark:border-white/[0.06] last:border-b-0 last:pb-0 pl-5 relative"
+                          data-testid={`insight-${i}`}
+                        >
+                          <span className="absolute left-0 top-[18px] w-[6px] h-[6px] rounded-full bg-[#6366F1]" />
+                          {insight.replace(/\[([^\]]+)\]/g, '$1')}
+                        </li>
+                      );
 
-            {previousEpisodes.length > 0 && (
-              <motion.section
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="mt-10"
-                data-testid="section-more-episodes"
-              >
-                <div className="flex items-center gap-2.5 mb-4">
-                  <ListChecks className="w-4 h-4 text-primary" />
-                  <span className="text-base font-bold text-primary uppercase tracking-wider">More {episode.podcastName} Episode Recaps</span>
+                      if (i === 3 && episode.keyInsights.length >= 4) {
+                        return (
+                          <BlurredInsightGate key={i} onRevealClick={() => setShowSignUpCTA(true)} as="li">
+                            <div className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] leading-[1.7] py-[10px] pl-5 relative">
+                              <span className="absolute left-0 top-[18px] w-[6px] h-[6px] rounded-full bg-[#6366F1]" />
+                              {insight.replace(/\[([^\]]+)\]/g, '$1')}
+                            </div>
+                          </BlurredInsightGate>
+                        );
+                      }
+
+                      return content;
+                    })}
+                  </ul>
                 </div>
-                <div className="space-y-3">
-                  {previousEpisodes.map((ep: any) => (
-                    <EpisodeCard
-                      key={ep.episodeSlug}
-                      episodeSlug={ep.episodeSlug}
-                      podcastSlug={podcastSlug}
-                      publishDate={ep.publishDate}
-                      episodeTitle={ep.episodeTitle}
-                      tldl={ep.tldl}
-                      duration={ep.duration}
-                      testIdPrefix="card-more-episode"
-                    />
+              )}
+
+              {loggedOutTab === "recap" && (
+                <div className="bg-white dark:bg-zinc-900 border border-[#E4E4E7] dark:border-white/[0.1] rounded-xl p-6 mb-5" data-testid="section-what-happened">
+                  <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[#6366F1] mb-4 flex items-center gap-1.5">
+                    <BookOpen className="w-[14px] h-[14px]" />
+                    Episode recap
+                  </p>
+                  {whatHappenedParagraphs.map((paragraph: string, i: number) => (
+                    <p key={i} className="text-[15px] leading-[1.8] text-[#52525B] dark:text-[#A1A1AA] mb-4 last:mb-0">
+                      {paragraph}
+                    </p>
                   ))}
                 </div>
-                <div className="flex justify-center mt-6">
-                  <Link href={`/podcasts/${podcastSlug}`}>
-                    <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-display font-bold text-base bg-primary/[0.06] text-primary hover:bg-primary/[0.1] transition-colors" data-testid="link-all-episodes">
-                      View all {episode.podcastName} episodes
-                      <ArrowRight className="w-4 h-4" />
-                    </span>
-                  </Link>
-                </div>
-              </motion.section>
-            )}
+              )}
 
-            <motion.div
-              ref={ctaSectionRef}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.25 }}
-              className="mt-10 pb-16"
-            >
-              <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-2xl p-6 sm:p-8" data-testid="section-episode-cta">
-                <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
-                  <div className="flex-1 text-center sm:text-left">
-                    <h2 className="text-lg sm:text-xl font-display font-extrabold text-foreground leading-snug mb-2">
-                      Get {episode.podcastName} recaps in your inbox
-                    </h2>
-                    <p className="text-[16px] text-muted-foreground">
-                      We'll send a recap whenever a new episode drops.
-                    </p>
+              {loggedOutTab === "guest" && guests.length > 0 && (
+                <div data-testid="section-guests">
+                  {guests.map((guest, i) => (
+                    <div key={i} className="bg-white dark:bg-zinc-900 border border-[#E4E4E7] dark:border-white/[0.1] rounded-xl p-5 mb-5" data-testid={`guest-card-${i}`}>
+                      <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[#6366F1] mb-3 flex items-center gap-1.5">
+                        <Users className="w-[14px] h-[14px]" />
+                        Guest
+                      </p>
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-11 h-11 rounded-full bg-[#EEF2FF] flex items-center justify-center text-[14px] font-medium text-[#6366F1] shrink-0">
+                          {guest.name.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="text-[15px] font-medium text-[#09090B] dark:text-white mb-[2px]" data-testid={`guest-name-${i}`}>{guest.name}</p>
+                          {guest.title && <p className="text-[12px] text-[#A1A1AA]">{guest.title}</p>}
+                        </div>
+                      </div>
+                      {guest.bio && (
+                        <p className="text-[13px] text-[#52525B] dark:text-[#A1A1AA] leading-[1.65]">{guest.bio}</p>
+                      )}
+                      {(guest.twitter || guest.linkedin || guest.website) && (
+                        <div className="flex gap-2 mt-[10px]">
+                          {guest.website && (
+                            <a href={guest.website.startsWith("http") ? guest.website : `https://${guest.website}`} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#6366F1] hover:underline flex items-center gap-1" data-testid={`guest-website-${i}`}>
+                              <Globe className="w-3 h-3" />
+                              {guest.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+                            </a>
+                          )}
+                          {guest.twitter && (
+                            <a href={guest.twitter.startsWith("http") ? guest.twitter : `https://x.com/${guest.twitter.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#6366F1] hover:underline flex items-center gap-1" data-testid={`guest-twitter-${i}`}>
+                              <SiX className="w-3 h-3" />
+                            </a>
+                          )}
+                          {guest.linkedin && (
+                            <a href={guest.linkedin.startsWith("http") ? guest.linkedin : `https://linkedin.com/in/${guest.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#6366F1] hover:underline flex items-center gap-1" data-testid={`guest-linkedin-${i}`}>
+                              <SiLinkedin className="w-3 h-3" />
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {previousEpisodes.length > 0 && (
+                <div className="mt-5" data-testid="section-more-episodes">
+                  <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[#6366F1] mb-[14px] flex items-center gap-1.5">
+                    <ListChecks className="w-[13px] h-[13px]" />
+                    More {episode.podcastName} episodes
+                  </p>
+                  <div className="flex flex-col gap-[10px]">
+                    {previousEpisodes.slice(0, 3).map((ep: any) => (
+                      <EpisodeCard
+                        key={ep.episodeSlug}
+                        episodeSlug={ep.episodeSlug}
+                        podcastSlug={podcastSlug}
+                        publishDate={ep.publishDate}
+                        episodeTitle={ep.episodeTitle}
+                        tldl={ep.tldl}
+                        duration={ep.duration}
+                        testIdPrefix="card-more-episode"
+                      />
+                    ))}
                   </div>
-                  <a
-                    href="https://podrise.com/register"
-                    className="h-11 px-5 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98] whitespace-nowrap"
-                    data-testid="button-signup-episode-register"
-                  >
-                    Get Started
-                    <ArrowRight className="w-4 h-4" />
-                  </a>
                 </div>
-              </div>
-            </motion.div>
+              )}
+            </div>
 
-            <EpisodeChatPanelWithRef
-              ref={chatRef}
-              podcastSlug={podcastSlug}
-              episodeSlug={episodeSlug}
-              episodeTitle={episode?.episodeTitle || ""}
-              podcastName={episode?.podcastName || ""}
-              isLoggedIn={isLoggedIn}
-            />
-            {showAuthGatePanel && (
-              <AuthGatePanel
-                onClose={() => setShowAuthGatePanel(false)}
-                onSuccess={() => { setShowAuthGatePanel(false); }}
-              />
-            )}
+            <aside className="flex flex-col gap-4" data-testid="episode-sidebar">
+              {sidebarBooksForEpisode.length > 0 && (
+                <div className="bg-white dark:bg-zinc-900 border border-[#E4E4E7] dark:border-white/[0.1] rounded-xl overflow-hidden" data-testid="sidebar-books-mentioned">
+                  <div className="px-4 py-[14px] border-b border-[#F0F0F2] dark:border-white/[0.06]">
+                    <p className="text-[13px] font-medium text-[#09090B] dark:text-white flex items-center gap-1.5 mb-[2px]">
+                      <BookOpen className="w-[14px] h-[14px] text-[#6366F1]" />
+                      Books mentioned
+                    </p>
+                    <p className="text-[12px] text-[#A1A1AA]">In this episode</p>
+                  </div>
+                  {sidebarBooksForEpisode.map((book, i) => {
+                    const bookKey = book.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+                    const enrichment = bookSlugMap[bookKey];
+                    const displayAuthor = enrichment?.author || book.author;
+                    const isLocked = i >= 1 && books.length > 2;
+                    return (
+                      <div key={i} className={`flex items-center gap-[10px] px-4 py-[10px] border-b border-[#F0F0F2] dark:border-white/[0.06] last:border-b-0 ${isLocked ? "opacity-[0.35]" : ""}`} data-testid={`sidebar-book-${i}`}>
+                        <div className="w-8 h-11 rounded-[3px] overflow-hidden shrink-0 bg-[#EEF2FF]">
+                          <SharedBookCover title={book.name} slug={enrichment?.slug} googleBooksId={enrichment?.googleBooksId} isbn={enrichment?.isbn} hasCover={enrichment?.hasCover} size="sm" className="w-8 h-11 rounded-[3px] object-cover" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] font-medium text-[#09090B] dark:text-white truncate">{book.name}</p>
+                          {displayAuthor && displayAuthor !== "null" && (
+                            <p className="text-[12px] text-[#A1A1AA]">{displayAuthor}</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {books.length > 2 && (
+                    <div className="px-4 py-[14px] border-t border-[#F0F0F2] dark:border-white/[0.06] bg-[#FAFAFA] dark:bg-zinc-800/50 text-center">
+                      <p className="text-[12px] text-[#71717A] mb-[10px] leading-[1.5]">Sign up free to see all books from this episode</p>
+                      <Link
+                        href="/register"
+                        className="block w-full bg-[#6366F1] text-white text-[13px] font-medium py-[9px] rounded-lg text-center hover:bg-[#4F46E5] transition-colors"
+                        data-testid="sidebar-books-signup"
+                      >
+                        See all books →
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="bg-white dark:bg-zinc-900 border border-[#E4E4E7] dark:border-white/[0.1] rounded-xl p-[18px]" data-testid="sidebar-follow-cta">
+                <p className="text-[13px] font-medium text-[#09090B] dark:text-white mb-1">Get {episode.podcastName} in your daily briefing</p>
+                <p className="text-[12px] text-[#71717A] mb-[14px] leading-[1.5]">New episodes land in your inbox the morning after they drop.</p>
+                <Link
+                  href="/register"
+                  className="block w-full bg-[#6366F1] text-white text-[13px] font-medium py-[9px] rounded-lg text-center hover:bg-[#4F46E5] transition-colors"
+                  data-testid="sidebar-follow-signup"
+                >
+                  Follow this show →
+                </Link>
+              </div>
+            </aside>
           </div>
         </main>
 
         <Footer />
 
-        <AnimatePresence>
-          {showStickyBar && !stickyDismissed && (
-            <motion.div
-              initial={{ y: 100, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 100, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-black/95 backdrop-blur-lg border-t border-black/[0.08] dark:border-white/[0.08] shadow-[0_-4px_20px_rgba(0,0,0,0.06)]"
-              data-testid="sticky-signup-bar"
-            >
-              <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row items-center gap-3">
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="w-10 h-10 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
-                    <Mail className="w-5 h-5 text-primary" />
-                  </div>
-                  <p className="text-base font-semibold text-foreground whitespace-nowrap">
-                    Never miss a <span className="text-primary">{episode.podcastName}</span> recap
-                  </p>
-                </div>
-                <a
-                  href="https://podrise.com/register"
-                  className="min-h-[44px] px-5 rounded-lg font-bold text-base bg-primary text-primary-foreground shadow-sm hover:brightness-105 transition-all active:scale-[0.98] whitespace-nowrap flex items-center gap-2"
-                  data-testid="button-sticky-signup-register"
-                >
-                  Sign Up Free
-                  <ArrowRight className="w-4 h-4" />
-                </a>
-                <button
-                  onClick={() => setStickyDismissed(true)}
-                  className="absolute top-2 right-2 sm:relative sm:top-auto sm:right-auto p-2 rounded-md text-[#52525B] dark:text-[#A1A1AA] hover:text-foreground hover:bg-black/[0.04] transition-colors shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                  data-testid="button-dismiss-sticky"
-                  aria-label="Dismiss"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <EpisodeChatPanelWithRef
+          ref={chatRef}
+          podcastSlug={podcastSlug}
+          episodeSlug={episodeSlug}
+          episodeTitle={episode?.episodeTitle || ""}
+          podcastName={episode?.podcastName || ""}
+          isLoggedIn={isLoggedIn}
+        />
+        {showAuthGatePanel && (
+          <AuthGatePanel
+            onClose={() => setShowAuthGatePanel(false)}
+            onSuccess={() => { setShowAuthGatePanel(false); }}
+          />
+        )}
 
         <GetRecapsModal
           open={showUpdatesModal}
@@ -1804,6 +1891,11 @@ export default function EpisodeRecapPage() {
           podcastName={episode.podcastName}
           artworkUrl={episode.artworkUrl || podcastConfig?.artworkUrl}
           itunesId={podcastConfig?.itunesId || ""}
+        />
+
+        <SignUpCTAModal
+          open={showSignUpCTA}
+          onClose={() => setShowSignUpCTA(false)}
         />
       </div>
     );

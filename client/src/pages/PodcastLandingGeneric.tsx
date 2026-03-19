@@ -438,6 +438,7 @@ export default function PodcastLandingGeneric() {
   const [stickyDismissed, setStickyDismissed] = useState(false);
   const [showRecapsModal, setShowRecapsModal] = useState(false);
   const [activeSection, setActiveSection] = useState("section-episodes");
+  const [visibleEpisodes, setVisibleEpisodes] = useState(5);
   const ctaSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -522,6 +523,11 @@ export default function PodcastLandingGeneric() {
       return res.json();
     },
     enabled: !!slug,
+  });
+
+  const { data: podcastBooks } = useQuery<{ books: PodcastBook[]; total: number }>({
+    queryKey: ["/api/podcasts", slug, "books"],
+    enabled: !!slug && !user,
   });
 
   const config = dbEntry ? {
@@ -623,7 +629,8 @@ export default function PodcastLandingGeneric() {
     queryKey: ["/api/podcasts", slug, "recaps", user ? "enriched" : "basic"],
     queryFn: async () => {
       const mentionsParam = user ? "&mentions=true" : "";
-      const res = await fetch(`/api/podcasts/${slug}/recaps?limit=10${mentionsParam}`);
+      const limit = user ? "10" : "50";
+      const res = await fetch(`/api/podcasts/${slug}/recaps?limit=${limit}${mentionsParam}`);
       if (!res.ok) return [];
       return res.json();
     },
@@ -918,185 +925,172 @@ export default function PodcastLandingGeneric() {
     );
   }
 
+  const visibleRecaps = episodeRecaps.slice(0, visibleEpisodes);
+  const hasMoreEpisodes = visibleEpisodes < episodeRecaps.length;
+  const sidebarBooks = (podcastBooks?.books || []).slice(0, 3);
+
   return (
     <div className="min-h-screen flex flex-col overflow-x-clip">
       <SiteHeader />
 
-      <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-7xl">
-          <section className="pt-8 sm:pt-10 pb-4">
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="flex items-start gap-5"
-            >
-              {artworkUrl && (
-                <img
-                  src={artworkUrl}
-                  alt={name}
-                  className="w-[120px] h-[120px] rounded-xl shadow-lg shadow-black/[0.08] object-cover ring-1 ring-black/[0.04] shrink-0"
-                  data-testid="img-podcast-artwork"
-                />
+      <div className="bg-white dark:bg-zinc-950 border-b border-[#E4E4E7] dark:border-white/[0.06]" data-testid="podcast-hero">
+        <div className="max-w-[960px] mx-auto px-4 sm:px-7 py-7">
+          <div className="flex items-center gap-5">
+            {artworkUrl && (
+              <img
+                src={artworkUrl}
+                alt={name}
+                className="w-[72px] h-[72px] rounded-[14px] object-cover shrink-0"
+                data-testid="img-podcast-artwork"
+              />
+            )}
+            <div className="min-w-0">
+              <p className="text-[12px] text-[#A1A1AA] mb-[5px]" data-testid="breadcrumb-nav">
+                <Link href="/podcasts" className="text-[#6366F1] hover:underline">Podcasts</Link>
+                {" › "}
+                <span>{name}</span>
+              </p>
+              <h1 className="text-[22px] font-bold tracking-[-0.03em] text-[#09090B] dark:text-white leading-snug" data-testid="text-podcast-name">
+                {name}
+              </h1>
+              {hosts && (
+                <p className="text-[14px] text-[#71717A] mt-[3px]" data-testid="text-podcast-hosts">{hosts}</p>
               )}
-              <div className="flex-1 min-w-0 pt-1">
-                <h1
-                  className="text-[1.5rem] sm:text-[1.75rem] lg:text-[2rem] font-normal text-[#09090B] dark:text-white leading-[1.2] tracking-[-0.01em]"
-                  style={{ fontFamily: "var(--font-serif)" }}
-                  data-testid="text-podcast-name"
-                >
-                  {name}
-                </h1>
-                {hosts && (
-                  <p className="text-[15px] text-muted-foreground mt-2" data-testid="text-podcast-hosts">
-                    {hosts}
-                  </p>
-                )}
-                {(totalEpisodes || yearStarted) && (
-                  <p className="text-[14px] text-muted-foreground mt-1.5 flex items-center gap-1.5" data-testid="text-podcast-metadata">
-                    {totalEpisodes && (
-                      <span data-testid="text-episode-count">{totalEpisodes}+ episodes</span>
-                    )}
-                    {totalEpisodes && yearStarted && (
-                      <span className="text-muted-foreground/50">·</span>
-                    )}
-                    {yearStarted && (
-                      <span data-testid="text-year-started">Since {yearStarted}</span>
-                    )}
-                  </p>
-                )}
-              </div>
-            </motion.div>
-          </section>
-
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[15px] text-muted-foreground mb-5" data-testid="breadcrumb-nav">
-            <Link href="/" className="hover:text-foreground transition-colors shrink-0">Home</Link>
-            <ChevronRight className="w-3 h-3 shrink-0" />
-            <Link href="/podcasts" className="hover:text-foreground transition-colors shrink-0">Podcasts</Link>
-            <ChevronRight className="w-3 h-3 shrink-0" />
-            <span className="text-foreground font-medium truncate">{name}</span>
-          </nav>
-
-          <nav className="sticky top-[68px] z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar mb-8" data-testid="section-tabs">
-            <button
-              onClick={() => scrollTo("section-episodes")}
-              className={`px-4 py-2 text-[15px] font-semibold rounded-full whitespace-nowrap transition-colors ${activeSection === "section-episodes" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-              data-testid="tab-episodes"
-            >
-              Episode Recaps
-            </button>
-            <button
-              onClick={() => scrollTo("section-discover")}
-              className={`px-4 py-2 text-[15px] font-semibold rounded-full whitespace-nowrap transition-colors ${activeSection === "section-discover" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-              data-testid="tab-discover"
-            >
-              Discover
-            </button>
-            <button
-              onClick={() => scrollTo("section-shop")}
-              className={`px-4 py-2 text-[15px] font-semibold rounded-full whitespace-nowrap transition-colors ${activeSection === "section-shop" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-              data-testid="tab-shop"
-            >
-              Shop
-              <span className="ml-1.5 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#6366F1]/10 text-[#6366F1] border border-[#6366F1]/20">Beta</span>
-            </button>
-            <button
-              onClick={() => setShowRecapsModal(true)}
-              className="px-4 py-2 text-[15px] font-semibold rounded-full whitespace-nowrap transition-colors text-primary/70 hover:text-primary hover:bg-primary/[0.06]"
-              data-testid="tab-get-recaps"
-            >
-              Get Recaps
-            </button>
-          </nav>
-
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-          >
-            {contentSections}
-          </motion.div>
-
-          <motion.section
-            ref={ctaSectionRef}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.25 }}
-            className="pb-16"
-          >
-            <div className="bg-primary/[0.03] border border-primary/[0.08] rounded-2xl p-6 sm:p-8" data-testid="section-bottom-cta">
-              <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
-                <div className="flex-1 text-center sm:text-left">
-                  <h2 className="text-xl sm:text-2xl font-display font-extrabold text-foreground leading-snug mb-2">
-                    Get {name} recaps in your inbox
-                  </h2>
-                  <p className="text-base text-[#52525B] dark:text-[#A1A1AA]">
-                    We'll send a recap whenever a new episode drops.
-                  </p>
-                </div>
-                <a
-                  href="https://podrise.com/register"
-                  className="min-h-[52px] px-6 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[17px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98] whitespace-nowrap"
-                  data-testid="button-signup-bottom-register"
-                >
-                  Get Started
-                  <ArrowRight className="w-5 h-5" />
-                </a>
-              </div>
             </div>
-          </motion.section>
+          </div>
+        </div>
+      </div>
+
+      <main className="flex-1">
+        <div className="max-w-[960px] mx-auto px-4 sm:px-7 py-6 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_280px] gap-6 items-start">
+          <div>
+            <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[#6366F1] mb-[14px]" data-testid="section-label-episodes">Latest episodes</p>
+
+            {visibleRecaps.length > 0 ? (
+              <>
+                <div className="flex flex-col gap-[10px]">
+                  {visibleRecaps.map((ep: any) => (
+                    <EpisodeCard
+                      key={ep.episodeSlug}
+                      episodeSlug={ep.episodeSlug}
+                      podcastSlug={slug || ""}
+                      publishDate={ep.publishDate}
+                      episodeTitle={ep.episodeTitle}
+                      tldl={ep.tldl}
+                      duration={ep.duration}
+                    />
+                  ))}
+                </div>
+                {hasMoreEpisodes && (
+                  <button
+                    onClick={() => setVisibleEpisodes(prev => prev + 5)}
+                    className="block w-full bg-white dark:bg-zinc-900 border border-[#E4E4E7] dark:border-white/[0.1] rounded-xl py-[13px] text-[13px] font-medium text-[#52525B] text-center hover:bg-[#F7F7FC] dark:hover:bg-zinc-800 transition-colors mt-1 cursor-pointer"
+                    data-testid="button-load-more-episodes"
+                  >
+                    Load more episodes
+                  </button>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-16">
+                <div className="w-14 h-14 rounded-2xl bg-primary/[0.06] flex items-center justify-center mx-auto mb-4">
+                  <Mic className="w-6 h-6 text-primary/30" />
+                </div>
+                <p className="text-muted-foreground font-medium">Episode recaps are being generated.</p>
+                <p className="text-base text-[#52525B] dark:text-[#A1A1AA]/60 mt-1">Check back soon for the latest summaries.</p>
+              </div>
+            )}
+          </div>
+
+          <aside className="flex flex-col gap-4" data-testid="podcast-sidebar">
+            {sidebarBooks.length > 0 && (
+              <div className="bg-white dark:bg-zinc-900 border border-[#E4E4E7] dark:border-white/[0.1] rounded-xl overflow-hidden" data-testid="sidebar-recommended-books">
+                <div className="px-4 py-[14px] border-b border-[#F0F0F2] dark:border-white/[0.06]">
+                  <p className="text-[13px] font-medium text-[#09090B] dark:text-white flex items-center gap-1.5 mb-[2px]">
+                    <BookOpen className="w-[14px] h-[14px] text-[#6366F1]" />
+                    Recommended reading
+                  </p>
+                  <p className="text-[12px] text-[#A1A1AA]">Books mentioned on this show</p>
+                </div>
+                {sidebarBooks.map((book, i) => {
+                  const bookSlug = book.slug;
+                  const isLocked = i === 2 && sidebarBooks.length === 3;
+                  return (
+                    <div key={book.name} className={`flex items-center gap-[10px] px-4 py-[10px] border-b border-[#F0F0F2] dark:border-white/[0.06] last:border-b-0 ${isLocked ? "opacity-[0.35]" : ""}`} data-testid={`sidebar-book-${i}`}>
+                      <div className="w-8 h-11 rounded-[3px] overflow-hidden shrink-0 bg-[#EEF2FF]">
+                        <BookCoverFill title={book.name} slug={bookSlug} googleBooksId={book.googleBooksId} isbn={book.isbn} hasCover={book.hasCover} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-medium text-[#09090B] dark:text-white truncate">{book.name}</p>
+                        {book.author && book.author !== "null" && (
+                          <p className="text-[12px] text-[#A1A1AA]">{book.author}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+                {sidebarBooks.length === 3 && (
+                  <div className="px-4 py-[14px] border-t border-[#F0F0F2] dark:border-white/[0.06] bg-[#FAFAFA] dark:bg-zinc-800/50 text-center">
+                    <p className="text-[12px] text-[#71717A] mb-[10px] leading-[1.5]">Sign up free to see every book recommended on this show</p>
+                    <Link
+                      href="/register"
+                      className="block w-full bg-[#6366F1] text-white text-[13px] font-medium py-[9px] rounded-lg text-center hover:bg-[#4F46E5] transition-colors"
+                      data-testid="sidebar-books-signup"
+                    >
+                      See all books →
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {relatedPodcasts.length > 0 && (
+              <div className="bg-white dark:bg-zinc-900 border border-[#E4E4E7] dark:border-white/[0.1] rounded-xl overflow-hidden" data-testid="sidebar-related-podcasts">
+                <div className="px-4 py-[14px] border-b border-[#F0F0F2] dark:border-white/[0.06]">
+                  <p className="text-[13px] font-medium text-[#09090B] dark:text-white flex items-center gap-1.5 mb-[2px]">
+                    <Headphones className="w-[14px] h-[14px] text-[#6366F1]" />
+                    Related podcasts
+                  </p>
+                  <p className="text-[12px] text-[#A1A1AA]">Shows with a similar audience</p>
+                </div>
+                {relatedPodcasts.map((rp) => (
+                  <a
+                    key={rp.slug}
+                    href={`/podcasts/${rp.slug}`}
+                    className="flex items-center gap-[10px] px-4 py-[10px] border-b border-[#F0F0F2] dark:border-white/[0.06] last:border-b-0 hover:bg-[#FAFAFA] dark:hover:bg-zinc-800/50 transition-colors group"
+                    data-testid={`related-podcast-${rp.slug}`}
+                  >
+                    {rp.artworkUrl ? (
+                      <img src={rp.artworkUrl} alt={rp.name} className="w-[38px] h-[38px] rounded-lg object-cover shrink-0 bg-[#E4E4E7]" />
+                    ) : (
+                      <div className="w-[38px] h-[38px] rounded-lg bg-[#E4E4E7] shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-medium text-[#09090B] dark:text-white">{rp.name}</p>
+                      <p className="text-[11px] text-[#A1A1AA] uppercase tracking-[0.04em]">{rp.category}</p>
+                    </div>
+                    <span className="text-[#D4D4D8] text-[16px] ml-auto shrink-0">›</span>
+                  </a>
+                ))}
+              </div>
+            )}
+
+            <div className="bg-white dark:bg-zinc-900 border border-[#E4E4E7] dark:border-white/[0.1] rounded-xl p-[18px]" data-testid="sidebar-follow-cta">
+              <p className="text-[13px] font-medium text-[#09090B] dark:text-white mb-1">Get {name} in your daily briefing</p>
+              <p className="text-[12px] text-[#71717A] mb-[14px] leading-[1.5]">New episodes land in your inbox the morning after they drop.</p>
+              <Link
+                href="/register"
+                className="block w-full bg-[#6366F1] text-white text-[13px] font-medium py-[9px] rounded-lg text-center hover:bg-[#4F46E5] transition-colors"
+                data-testid="sidebar-follow-signup"
+              >
+                Follow this show →
+              </Link>
+            </div>
+          </aside>
         </div>
       </main>
 
       <Footer />
-
-      <AnimatePresence>
-        {showStickyBar && !stickyDismissed && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-black/95 backdrop-blur-lg border-t border-black/[0.08] dark:border-white/[0.08] shadow-[0_-4px_20px_rgba(0,0,0,0.06)]"
-            data-testid="sticky-signup-bar"
-          >
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row items-center gap-3">
-              <div className="flex items-center gap-3 shrink-0">
-                <div className="w-10 h-10 rounded-lg bg-primary/[0.08] flex items-center justify-center shrink-0">
-                  <Mail className="w-5 h-5 text-primary" />
-                </div>
-                <p className="text-base font-semibold text-foreground whitespace-nowrap">
-                  Never miss a <span className="text-primary">{name}</span> recap
-                </p>
-              </div>
-              <a
-                href="https://podrise.com/register"
-                className="min-h-[44px] px-5 rounded-lg font-bold text-base bg-primary text-primary-foreground shadow-sm hover:brightness-105 transition-all active:scale-[0.98] whitespace-nowrap flex items-center gap-2"
-                data-testid="button-sticky-signup-register"
-              >
-                Sign Up Free
-                <ArrowRight className="w-4 h-4" />
-              </a>
-              <button
-                onClick={() => setStickyDismissed(true)}
-                className="absolute top-2 right-2 sm:relative sm:top-auto sm:right-auto p-2 rounded-md text-[#52525B] dark:text-[#A1A1AA] hover:text-foreground hover:bg-black/[0.04] transition-colors shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                data-testid="button-dismiss-sticky"
-                aria-label="Dismiss"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <GetRecapsModal
-        open={showRecapsModal}
-        onClose={() => setShowRecapsModal(false)}
-        podcastName={name}
-        artworkUrl={artworkUrl}
-        itunesId={itunesId}
-      />
     </div>
   );
 }
