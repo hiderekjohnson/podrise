@@ -10886,6 +10886,37 @@ Rules:
     }
   });
 
+  app.post("/api/admin/cms/episodes/:podcastSlug/:episodeSlug/generate-headlines", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    const { podcastSlug, episodeSlug } = req.params;
+    try {
+      const { rows } = await pool.query(
+        `SELECT id, episode_title, podcast_name, what_happened, key_insights, tldl FROM landing_page_recaps WHERE slug = $1 AND episode_slug = $2 LIMIT 1`,
+        [podcastSlug, episodeSlug]
+      );
+      if (rows.length === 0) return res.status(404).json({ message: "Recap not found" });
+      const recap = rows[0];
+      if (!recap.what_happened) return res.status(400).json({ message: "Recap has no content to generate headlines from" });
+
+      const { generateTabloidHeadline } = await import("./emailScheduler");
+      const keyInsights = Array.isArray(recap.key_insights) ? recap.key_insights : [];
+      const result = await generateTabloidHeadline(
+        recap.episode_title, recap.podcast_name, recap.tldl || "", recap.what_happened, keyInsights
+      );
+      if (!result) return res.status(500).json({ message: "AI headline generation returned no result" });
+
+      await pool.query(
+        `UPDATE landing_page_recaps SET tabloid_headline = $1, tabloid_sub_headline = $2 WHERE id = $3`,
+        [result.tabloidHeadline, result.tabloidSubHeadline, recap.id]
+      );
+
+      res.json({ success: true, tabloidHeadline: result.tabloidHeadline, tabloidSubHeadline: result.tabloidSubHeadline });
+    } catch (err: any) {
+      console.error("[CMS] Generate headlines error:", err);
+      res.status(500).json({ message: err?.message || "Failed to generate headlines" });
+    }
+  });
+
   app.get("/api/admin/cms/entity-backfill-status", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {

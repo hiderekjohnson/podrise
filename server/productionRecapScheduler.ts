@@ -107,7 +107,12 @@ async function catchUpMissingHeadlines() {
   }
 }
 
-async function processEpisode(ep: any, podcastSlug: string, podcastName: string, itunesId: string, hosts: string, artwork: string): Promise<boolean> {
+interface ProcessEpisodeResult {
+  success: boolean;
+  headlineInfo?: { recapId: number; epTitle: string; podcastName: string; whatHappened: string; keyInsights: string[] };
+}
+
+async function processEpisode(ep: any, podcastSlug: string, podcastName: string, itunesId: string, hosts: string, artwork: string): Promise<ProcessEpisodeResult> {
   const epSlug = makeEpisodeSlug(ep.episode_title);
   const epTitle = ep.episode_title;
 
@@ -119,7 +124,7 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
       ep.description || null,
     );
 
-    if (!recap) return false;
+    if (!recap) return { success: false };
 
     const publishDate = ep.date_published
       ? new Date(ep.date_published * 1000).toISOString().slice(0, 10)
@@ -131,7 +136,7 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
     );
     if (existingRows.length > 0) {
       console.log(`[ProdRecap] Skip duplicate: "${epTitle?.slice(0, 60)}" already exists (id=${existingRows[0].id})`);
-      return true;
+      return { success: true };
     }
 
     const upsertedRecap = await storage.upsertLandingPageRecap({
@@ -170,10 +175,13 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
         console.warn(`[ProdRecap] Validation failed for "${epTitle?.slice(0, 50)}":`, valErr);
       }
 
-      await generateTabloidHeadlineWithRetry(upsertedRecap.id, epTitle, podcastName, recap.whatHappened, recap.keyInsights || []);
+      return {
+        success: true,
+        headlineInfo: { recapId: upsertedRecap.id, epTitle, podcastName, whatHappened: recap.whatHappened, keyInsights: recap.keyInsights || [] },
+      };
     }
 
-    return true;
+    return { success: true };
   } catch (err: any) {
     console.error(`[ProdRecap] Error processing "${epTitle?.slice(0, 50)}": ${err.message}`);
     try {
@@ -183,7 +191,7 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
         [podcastSlug, epSlug, epTitle, podcastName, err.message?.slice(0, 500)]
       );
     } catch {}
-    return false;
+    return { success: false };
   }
 }
 
@@ -251,15 +259,22 @@ async function runBatch() {
 
       console.log(`[ProdRecap] Processing: "${ep.episode_title?.slice(0, 60)}" (${podcastName})`);
 
-      const episodeTimeout = new Promise<boolean>((resolve) => setTimeout(() => {
+      const processPromise = processEpisode(ep, podcastSlug, podcastName, ep.podcast_id, hosts, artwork);
+
+      processPromise.then((res) => {
+        if (res.headlineInfo) {
+          const hi = res.headlineInfo;
+          generateTabloidHeadlineWithRetry(hi.recapId, hi.epTitle, hi.podcastName, hi.whatHappened, hi.keyInsights)
+            .catch(err => console.error(`[ProdRecap] Fire-and-forget headline generation error: ${err.message}`));
+        }
+      }).catch(() => {});
+
+      const episodeTimeout = new Promise<ProcessEpisodeResult>((resolve) => setTimeout(() => {
         console.warn(`[ProdRecap] Episode timed out after 4min: "${ep.episode_title?.slice(0, 60)}"`);
-        resolve(false);
+        resolve({ success: false });
       }, 4 * 60 * 1000));
-      const success = await Promise.race([
-        processEpisode(ep, podcastSlug, podcastName, ep.podcast_id, hosts, artwork),
-        episodeTimeout
-      ]);
-      if (success) generated++;
+      const result = await Promise.race([processPromise, episodeTimeout]);
+      if (result.success) generated++;
       else failed++;
 
       if (episodes.indexOf(ep) < episodes.length - 1) {

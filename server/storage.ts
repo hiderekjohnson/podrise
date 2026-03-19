@@ -600,8 +600,8 @@ export class DatabaseStorage implements IStorage {
       resources: data.resources,
       published: data.published,
       topicContexts: data.topicContexts,
-      tabloidHeadline: data.tabloidHeadline,
-      tabloidSubHeadline: data.tabloidSubHeadline,
+      tabloidHeadline: data.tabloidHeadline ?? sql`${landingPageRecaps.tabloidHeadline}`,
+      tabloidSubHeadline: data.tabloidSubHeadline ?? sql`${landingPageRecaps.tabloidSubHeadline}`,
     };
 
     const contentConditions = data.itunesId
