@@ -19,6 +19,11 @@ export const users = pgTable("users", {
   emailVerified: boolean("email_verified").notNull().default(false),
   signupSource: text("signup_source"),
   signupSourceDetail: text("signup_source_detail"),
+  utmSource: text("utm_source"),
+  utmMedium: text("utm_medium"),
+  utmCampaign: text("utm_campaign"),
+  utmContent: text("utm_content"),
+  utmTerm: text("utm_term"),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
   deviceType: text("device_type"),
@@ -153,6 +158,11 @@ export const quickSubscribeSchema = z.object({
   type: z.enum(["podcast", "industry", "interest", "role"]),
   slug: z.string().min(1),
   name: z.string().optional(),
+  utmSource: z.string().optional(),
+  utmMedium: z.string().optional(),
+  utmCampaign: z.string().optional(),
+  utmContent: z.string().optional(),
+  utmTerm: z.string().optional(),
 });
 export type QuickSubscribeRequest = z.infer<typeof quickSubscribeSchema>;
 

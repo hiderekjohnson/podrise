@@ -4,6 +4,7 @@ import { Mail, ArrowRight, Loader2, CheckCircle2, AlertCircle } from "lucide-rea
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { getGoogleOAuthUrl } from "@/lib/utmCapture";
 import { useMutation } from "@tanstack/react-query";
 import { PodRiseWordmark } from "@/components/PodRiseHeader";
 
@@ -123,7 +124,7 @@ export default function Login() {
 
       <div className="w-full max-w-sm glass-panel rounded-2xl p-6 sm:p-8">
         <a
-          href="/api/auth/google"
+          href={getGoogleOAuthUrl()}
           data-testid="button-google-login"
           className="w-full h-12 flex items-center justify-center gap-3 rounded-xl font-semibold text-[15px] bg-white dark:bg-zinc-900 border border-[#D4D4D8] dark:border-white/[0.15] text-foreground hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-all"
         >

@@ -30,6 +30,11 @@ declare module "express-session" {
     oauthState?: string;
     signupContext?: string;
     referralCode?: string;
+    utmSource?: string;
+    utmMedium?: string;
+    utmCampaign?: string;
+    utmContent?: string;
+    utmTerm?: string;
   }
 }
 
@@ -135,7 +140,14 @@ function extractSignupMetadata(req: any, signupSource?: string, signupSourceDeta
       detail = req.body?.slug || null;
     }
   }
-  return { ipAddress: ip, userAgent: ua, deviceType, signupSource: source, signupSourceDetail: detail };
+
+  const utmSource = req.body?.utmSource || req.session?.utmSource || "direct";
+  const utmMedium = req.body?.utmMedium || req.session?.utmMedium || "none";
+  const utmCampaign = req.body?.utmCampaign || req.session?.utmCampaign || "none";
+  const utmContent = req.body?.utmContent || req.session?.utmContent || null;
+  const utmTerm = req.body?.utmTerm || req.session?.utmTerm || null;
+
+  return { ipAddress: ip, userAgent: ua, deviceType, signupSource: source, signupSourceDetail: detail, utmSource, utmMedium, utmCampaign, utmContent, utmTerm };
 }
 
 async function sendNewUserNotification(user: any, req: any, signupSource?: string) {
@@ -1261,8 +1273,8 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
       const meta = extractSignupMetadata(req, req.body.signupSource, req.body.signupSourceDetail);
       pool.query(
-        `UPDATE users SET signup_source = $1, signup_source_detail = $2, ip_address = $3, user_agent = $4, device_type = $5 WHERE id = $6`,
-        [meta.signupSource, meta.signupSourceDetail, meta.ipAddress, meta.userAgent, meta.deviceType, user.id]
+        `UPDATE users SET signup_source = $1, signup_source_detail = $2, ip_address = $3, user_agent = $4, device_type = $5, utm_source = $6, utm_medium = $7, utm_campaign = $8, utm_content = $9, utm_term = $10 WHERE id = $11`,
+        [meta.signupSource, meta.signupSourceDetail, meta.ipAddress, meta.userAgent, meta.deviceType, meta.utmSource, meta.utmMedium, meta.utmCampaign, meta.utmContent, meta.utmTerm, user.id]
       ).catch(e => console.error("[SignupMeta] Failed:", e));
 
       if (meta.signupSource === "landing_page" && meta.signupSourceDetail) {
@@ -1752,8 +1764,8 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
           const qsMeta = extractSignupMetadata(req, `quick-subscribe-${input.type}`, input.slug);
           pool.query(
-            `UPDATE users SET signup_source = $1, signup_source_detail = $2, ip_address = $3, user_agent = $4, device_type = $5 WHERE id = $6`,
-            [qsMeta.signupSource, qsMeta.signupSourceDetail, qsMeta.ipAddress, qsMeta.userAgent, qsMeta.deviceType, user.id]
+            `UPDATE users SET signup_source = $1, signup_source_detail = $2, ip_address = $3, user_agent = $4, device_type = $5, utm_source = $6, utm_medium = $7, utm_campaign = $8, utm_content = $9, utm_term = $10 WHERE id = $11`,
+            [qsMeta.signupSource, qsMeta.signupSourceDetail, qsMeta.ipAddress, qsMeta.userAgent, qsMeta.deviceType, qsMeta.utmSource, qsMeta.utmMedium, qsMeta.utmCampaign, qsMeta.utmContent, qsMeta.utmTerm, user.id]
           ).catch(e => console.error("[SignupMeta] Failed:", e));
 
           sendVerificationEmail(user).catch((err) =>
@@ -1813,6 +1825,12 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
           message: "No account found with this email address.",
         });
       }
+
+      if (req.body.utmSource) req.session.utmSource = req.body.utmSource;
+      if (req.body.utmMedium) req.session.utmMedium = req.body.utmMedium;
+      if (req.body.utmCampaign) req.session.utmCampaign = req.body.utmCampaign;
+      if (req.body.utmContent) req.session.utmContent = req.body.utmContent;
+      if (req.body.utmTerm) req.session.utmTerm = req.body.utmTerm;
 
       const token = crypto.randomBytes(32).toString("hex");
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
@@ -1890,6 +1908,12 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     req.session.userId = user.id;
     pool.query(`UPDATE users SET last_login_at = NOW() WHERE id = $1`, [user.id]).catch(e => console.error("[LastLogin] Failed:", e));
 
+    delete req.session.utmSource;
+    delete req.session.utmMedium;
+    delete req.session.utmCampaign;
+    delete req.session.utmContent;
+    delete req.session.utmTerm;
+
     if (!user.emailVerified) {
       await pool.query(`UPDATE users SET email_verified = true WHERE id = $1`, [user.id]);
       // Verify any pending referral now that email is confirmed via magic link
@@ -1937,6 +1961,17 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     const scope = encodeURIComponent("openid email profile");
     const state = crypto.randomBytes(16).toString("hex");
     req.session.oauthState = state;
+
+    delete req.session.utmSource;
+    delete req.session.utmMedium;
+    delete req.session.utmCampaign;
+    delete req.session.utmContent;
+    delete req.session.utmTerm;
+    if (req.query.utm_source) req.session.utmSource = req.query.utm_source as string;
+    if (req.query.utm_medium) req.session.utmMedium = req.query.utm_medium as string;
+    if (req.query.utm_campaign) req.session.utmCampaign = req.query.utm_campaign as string;
+    if (req.query.utm_content) req.session.utmContent = req.query.utm_content as string;
+    if (req.query.utm_term) req.session.utmTerm = req.query.utm_term as string;
     const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}&state=${state}&access_type=offline&prompt=select_account`;
     res.redirect(url);
   });
@@ -2001,8 +2036,8 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
         });
         const meta = extractSignupMetadata(req, "google_oauth");
         await pool.query(
-          `UPDATE users SET google_id = $1, email_verified = true, signup_source = $2, signup_source_detail = $3, ip_address = $4, user_agent = $5, device_type = $6 WHERE id = $7`,
-          [googleUser.id, meta.signupSource, meta.signupSourceDetail, meta.ipAddress, meta.userAgent, meta.deviceType, user.id]
+          `UPDATE users SET google_id = $1, email_verified = true, signup_source = $2, signup_source_detail = $3, ip_address = $4, user_agent = $5, device_type = $6, utm_source = $7, utm_medium = $8, utm_campaign = $9, utm_content = $10, utm_term = $11 WHERE id = $12`,
+          [googleUser.id, meta.signupSource, meta.signupSourceDetail, meta.ipAddress, meta.userAgent, meta.deviceType, meta.utmSource, meta.utmMedium, meta.utmCampaign, meta.utmContent, meta.utmTerm, user.id]
         );
 
         sendNewUserNotification(user, req, "google_oauth").catch((err) =>
@@ -2030,6 +2065,11 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
         req.session.userId = user.id;
         pool.query(`UPDATE users SET last_login_at = NOW() WHERE id = $1`, [user.id]).catch(e => console.error("[LastLogin] Failed:", e));
+        delete req.session.utmSource;
+        delete req.session.utmMedium;
+        delete req.session.utmCampaign;
+        delete req.session.utmContent;
+        delete req.session.utmTerm;
         req.session.save(() => {
           res.redirect("/onboarding");
         });
@@ -2063,6 +2103,11 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
       req.session.userId = user.id;
       pool.query(`UPDATE users SET last_login_at = NOW() WHERE id = $1`, [user.id]).catch(e => console.error("[LastLogin] Failed:", e));
+      delete req.session.utmSource;
+      delete req.session.utmMedium;
+      delete req.session.utmCampaign;
+      delete req.session.utmContent;
+      delete req.session.utmTerm;
       req.session.save(() => {
         res.redirect(user.onboardingCompleted ? "/dashboard" : "/onboarding");
       });
@@ -2473,7 +2518,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
       const params4 = [...params];
       const recentSignupsResult = await pool.query(
-        `SELECT u.id, u.email, u.signup_source, u.signup_source_detail, u.device_type, u.created_at, pd.name as podcast_name FROM users u LEFT JOIN podcast_directory pd ON u.signup_source IN ('podcast_page', 'episode_page') AND pd.slug = u.signup_source_detail WHERE u.email_verified = true${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`).replace(/created_at/g, 'u.created_at')} ORDER BY u.created_at DESC LIMIT 50`,
+        `SELECT u.id, u.email, u.signup_source, u.signup_source_detail, u.device_type, u.created_at, u.utm_source, u.utm_medium, u.utm_campaign, pd.name as podcast_name FROM users u LEFT JOIN podcast_directory pd ON u.signup_source IN ('podcast_page', 'episode_page') AND pd.slug = u.signup_source_detail WHERE u.email_verified = true${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`).replace(/created_at/g, 'u.created_at')} ORDER BY u.created_at DESC LIMIT 50`,
         params4
       );
 
@@ -2483,12 +2528,19 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
         params5
       );
 
+      const params6 = [...params];
+      const utmBreakdownResult = await pool.query(
+        `SELECT COALESCE(utm_source, 'direct') as utm_source, COALESCE(utm_medium, 'none') as utm_medium, COALESCE(utm_campaign, 'none') as utm_campaign, COUNT(*) as count FROM users WHERE email_verified = true${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)} GROUP BY COALESCE(utm_source, 'direct'), COALESCE(utm_medium, 'none'), COALESCE(utm_campaign, 'none') ORDER BY count DESC`,
+        params6
+      );
+
       res.json({
         totalSignups: parseInt(totalResult.rows[0]?.count || "0"),
         bySource: bySourceResult.rows.map(r => ({ source: r.source, count: parseInt(r.count) })),
         byPodcast: byPodcastResult.rows.map(r => ({ detail: r.detail, source: r.source, count: parseInt(r.count) })),
         overTime: overTimeResult.rows.map(r => ({ period: r.period, source: r.source, count: parseInt(r.count) })),
         recentSignups: recentSignupsResult.rows,
+        utmBreakdown: utmBreakdownResult.rows.map(r => ({ utmSource: r.utm_source, utmMedium: r.utm_medium, utmCampaign: r.utm_campaign, count: parseInt(r.count) })),
       });
     } catch (err) {
       console.error("Acquisition analytics error:", err);

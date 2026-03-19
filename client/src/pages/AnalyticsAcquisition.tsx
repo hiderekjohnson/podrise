@@ -13,7 +13,8 @@ interface AcquisitionData {
   bySource: { source: string; count: number }[];
   byPodcast: { detail: string; source: string; count: number }[];
   overTime: { period: string; source: string; count: number }[];
-  recentSignups: { id: number; email: string; signup_source: string | null; signup_source_detail: string | null; podcast_name: string | null; device_type: string | null; created_at: string | null }[];
+  recentSignups: { id: number; email: string; signup_source: string | null; signup_source_detail: string | null; podcast_name: string | null; device_type: string | null; created_at: string | null; utm_source: string | null; utm_medium: string | null; utm_campaign: string | null }[];
+  utmBreakdown: { utmSource: string; utmMedium: string; utmCampaign: string; count: number }[];
 }
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -357,6 +358,36 @@ export default function AnalyticsAcquisition() {
         </div>
       </div>
 
+      <div className="glass-panel rounded-2xl p-6" data-testid="table-utm-breakdown">
+        <h3 className="text-sm font-bold text-foreground mb-4">UTM Breakdown</h3>
+        {(!filteredData.utmBreakdown || filteredData.utmBreakdown.length === 0) ? (
+          <p className="text-sm text-muted-foreground italic">No UTM data yet</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-black/[0.06] dark:border-white/[0.08]">
+                  <th className="text-left py-2 pr-4 text-xs font-semibold text-muted-foreground uppercase" data-testid="utm-header-source">Source</th>
+                  <th className="text-left py-2 pr-4 text-xs font-semibold text-muted-foreground uppercase" data-testid="utm-header-medium">Medium</th>
+                  <th className="text-left py-2 pr-4 text-xs font-semibold text-muted-foreground uppercase" data-testid="utm-header-campaign">Campaign</th>
+                  <th className="text-right py-2 text-xs font-semibold text-muted-foreground uppercase" data-testid="utm-header-count">Users</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredData.utmBreakdown.map((row, i) => (
+                  <tr key={i} className="border-b border-black/[0.03] dark:border-white/[0.04]" data-testid={`utm-row-${i}`}>
+                    <td className="py-2 pr-4 font-medium text-foreground" data-testid={`utm-source-${i}`}>{row.utmSource}</td>
+                    <td className="py-2 pr-4 text-muted-foreground" data-testid={`utm-medium-${i}`}>{row.utmMedium}</td>
+                    <td className="py-2 pr-4 text-muted-foreground" data-testid={`utm-campaign-${i}`}>{row.utmCampaign}</td>
+                    <td className="py-2 text-right font-bold text-foreground tabular-nums" data-testid={`utm-count-${i}`}>{row.count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
       <div className="glass-panel rounded-2xl p-6" data-testid="table-recent-signups">
         <h3 className="text-sm font-bold text-foreground mb-4">Recent Signups</h3>
         {filteredData.recentSignups.length === 0 ? (
@@ -368,6 +399,7 @@ export default function AnalyticsAcquisition() {
                 <tr className="border-b border-black/[0.06] dark:border-white/[0.08]">
                   <th className="text-left py-2 pr-4 text-xs font-semibold text-muted-foreground uppercase">Email</th>
                   <th className="text-left py-2 pr-4 text-xs font-semibold text-muted-foreground uppercase">Source</th>
+                  <th className="text-left py-2 pr-4 text-xs font-semibold text-muted-foreground uppercase">UTM</th>
                   <th className="text-left py-2 pr-4 text-xs font-semibold text-muted-foreground uppercase">Device</th>
                   <th className="text-left py-2 text-xs font-semibold text-muted-foreground uppercase">When</th>
                 </tr>
@@ -405,6 +437,15 @@ export default function AnalyticsAcquisition() {
                             </a>
                           )}
                         </div>
+                      </td>
+                      <td className="py-2 pr-4 text-xs" data-testid={`signup-utm-${i}`}>
+                        {user.utm_source && user.utm_source !== "direct" ? (
+                          <span className="inline-block px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-700 dark:text-blue-300 text-[10px] font-semibold" title={[user.utm_source, user.utm_medium, user.utm_campaign].filter(Boolean).join(" / ")}>
+                            {user.utm_source}{user.utm_campaign && user.utm_campaign !== "none" ? ` / ${user.utm_campaign}` : ""}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-[10px]">direct</span>
+                        )}
                       </td>
                       <td className="py-2 pr-4 text-muted-foreground text-xs capitalize" data-testid={`signup-device-${i}`}>{user.device_type || "\u2014"}</td>
                       <td className="py-2 text-muted-foreground text-xs" data-testid={`signup-time-${i}`}>

@@ -1,5 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { getStoredUtmParams } from "@/lib/utmCapture";
 import type { UserResponse } from "@shared/routes";
 
 export function useAuth() {
@@ -32,11 +33,13 @@ export function useRegister() {
       const lpMatch = pathname.match(/^\/lp\/([^/]+)$/);
       const signupSource = data.signupSource || (lpMatch ? "landing_page" : pathname);
       const signupSourceDetail = data.signupSourceDetail || (lpMatch ? lpMatch[1] : undefined);
+      const utm = getStoredUtmParams();
       const res = await apiRequest("POST", "/api/auth/register", {
         ...data,
         deliveryTimezone: detectedTimezone,
         signupSource,
         signupSourceDetail,
+        ...utm,
       });
       return await res.json();
     },
@@ -49,7 +52,8 @@ export function useRegister() {
 export function useLogin() {
   return useMutation({
     mutationFn: async (data: { email: string }) => {
-      const res = await apiRequest("POST", "/api/auth/login", data);
+      const utm = getStoredUtmParams();
+      const res = await apiRequest("POST", "/api/auth/login", { ...data, ...utm });
       return await res.json();
     },
     onSuccess: (user) => {

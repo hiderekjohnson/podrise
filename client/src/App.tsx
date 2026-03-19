@@ -7,6 +7,7 @@ import { lazy, Suspense } from "react";
 import Home from "./pages/Home";
 import NotFound from "./pages/not-found";
 import { ExitIntentPopup } from "@/components/ExitIntentPopup";
+import { captureUtmParams } from "@/lib/utmCapture";
 import { PageConversionProvider } from "@/contexts/PageConversionContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthAwareLayout } from "@/components/AuthAwareLayout";
@@ -62,6 +63,8 @@ function PageLoader() {
     </div>
   );
 }
+
+captureUtmParams();
 
 function MetaPixelEvents() {
   useMetaPixelEvents();
