@@ -18677,6 +18677,54 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     }
 
     try {
+      const missingArtwork = await pool.query(
+        `SELECT slug, itunes_id FROM podcast_directory WHERE (artwork_url IS NULL OR artwork_url = '') AND slug IS NOT NULL`
+      );
+      if (missingArtwork.rows.length > 0) {
+        console.log(`[ArtworkBackfill] Found ${missingArtwork.rows.length} podcasts missing artwork`);
+        const withIds = missingArtwork.rows.filter((r: any) => r.itunes_id);
+        const withoutIds = missingArtwork.rows.filter((r: any) => !r.itunes_id);
+        let fixed = 0;
+        if (withIds.length > 0) {
+          const ids = withIds.map((r: any) => r.itunes_id);
+          for (let i = 0; i < ids.length; i += 50) {
+            try {
+              const resp = await fetch(`https://itunes.apple.com/lookup?id=${ids.slice(i, i + 50).join(",")}`);
+              const data = await resp.json();
+              for (const r of (data.results || [])) {
+                const art = (r.artworkUrl600 || r.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb");
+                if (art) {
+                  await pool.query(`UPDATE podcast_directory SET artwork_url = $1 WHERE itunes_id = $2 AND (artwork_url IS NULL OR artwork_url = '')`, [art, String(r.collectionId)]);
+                  fixed++;
+                }
+              }
+            } catch (e: any) { console.warn(`[ArtworkBackfill] Batch lookup failed:`, e.message); }
+            if (i + 50 < ids.length) await new Promise(r => setTimeout(r, 1000));
+          }
+        }
+        for (const row of withoutIds) {
+          try {
+            const resp = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(row.slug.replace(/-/g, " "))}&media=podcast&limit=1`);
+            const data = await resp.json();
+            if (data.results?.[0]) {
+              const r = data.results[0];
+              const art = (r.artworkUrl600 || r.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb");
+              if (art) {
+                await pool.query(`UPDATE podcast_directory SET artwork_url = $1, itunes_id = COALESCE(NULLIF(itunes_id, ''), $2) WHERE slug = $3`, [art, String(r.collectionId), row.slug]);
+                fixed++;
+              }
+            }
+            await new Promise(r => setTimeout(r, 600));
+          } catch (e: any) { console.warn(`[ArtworkBackfill] Search failed for ${row.slug}:`, e.message); }
+        }
+        console.log(`[ArtworkBackfill] Fixed artwork for ${fixed}/${missingArtwork.rows.length} podcasts`);
+        directoryCache.podcastsDirectory.invalidate();
+      }
+    } catch (err) {
+      console.warn("[ArtworkBackfill] skipped:", err);
+    }
+
+    try {
       console.log("[Cache] Pre-warming directory caches on startup...");
       const [peopleData, companiesData, topicsData] = await Promise.all([
         computePeopleData(),
