@@ -18653,6 +18653,43 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
   });
 
   try {
+    const slugsToDelete = [
+      'pucks-the-powers-that-be', 'infinite-monkey-cage', 'skeptics-guide-to-the-universe',
+      'you-are-not-so-smart', 'choiceology-with-katy-milkman', 'daily-stoic',
+      'high-performance-podcast', 'lexicon-valley', 'checks-and-balance',
+      'no-stupid-questions', 'intelligence-squared-u-s-debates', 'rethinking-with-adam-grant',
+      'abc-world-news-this-week', 'daily-beans', 'democracy-now', 'majority-report',
+      'young-turks', 'bloomberg-technology', 'information-411', 'marketplace-tech',
+      'next-wave', 'redacted', 'slate-money', 'social-media-marketing-podcast',
+      'social-proof', 'white-coat-investor-podcast', 'goal-digger', 'marketing-book-podcast',
+      'mind-your-business-podcast', 'online-marketing-made-easy', 'motley-fool-money',
+    ];
+    const { rows: existingToDelete } = await pool.query(
+      `SELECT slug FROM podcast_directory WHERE slug = ANY($1)`, [slugsToDelete]
+    );
+    if (existingToDelete.length > 0) {
+      const slugs = existingToDelete.map((r: any) => r.slug);
+      const safeDelete = async (sql: string, params: any[]) => {
+        try { await pool.query(sql, params); } catch (e: any) { /* table may not exist in dev */ }
+      };
+      await safeDelete(`DELETE FROM bookmarks WHERE podcast_slug = ANY($1)`, [slugs]);
+      await safeDelete(`DELETE FROM podcast_hosts WHERE podcast_slug = ANY($1)`, [slugs]);
+      await safeDelete(`DELETE FROM podcaster_claims WHERE podcast_slug = ANY($1)`, [slugs]);
+      await safeDelete(`DELETE FROM episode_quotes WHERE podcast_slug = ANY($1)`, [slugs]);
+      await safeDelete(`DELETE FROM transcript_segments WHERE podcast_slug = ANY($1)`, [slugs]);
+      await safeDelete(`DELETE FROM landing_page_recaps WHERE slug = ANY($1)`, [slugs]);
+      await safeDelete(`DELETE FROM episode_transcripts WHERE podcast_id = ANY($1)`, [slugs]);
+      await safeDelete(`DELETE FROM transcript_logs WHERE podcast_id = ANY($1)`, [slugs]);
+      await safeDelete(`DELETE FROM recap_entity_mentions WHERE podcast_slug = ANY($1)`, [slugs]);
+      await safeDelete(`DELETE FROM recaps WHERE podcast_slug = ANY($1)`, [slugs]);
+      await safeDelete(`DELETE FROM episodes WHERE podcast_slug = ANY($1)`, [slugs]);
+      await safeDelete(`DELETE FROM feed_ads WHERE podcast_slug = ANY($1)`, [slugs]);
+      await safeDelete(`UPDATE podcast_lists SET podcast_slugs = ARRAY(SELECT unnest(podcast_slugs) EXCEPT SELECT unnest($1::text[])) WHERE podcast_slugs && $1`, [slugs]);
+      await safeDelete(`UPDATE rss_feeds SET podcast_slugs = ARRAY(SELECT unnest(podcast_slugs) EXCEPT SELECT unnest($1::text[])) WHERE podcast_slugs && $1`, [slugs]);
+      await pool.query(`DELETE FROM podcast_directory WHERE slug = ANY($1)`, [slugs]);
+      console.log(`[PodcastDelete] Removed ${slugs.length} broken podcasts and all related data: ${slugs.join(', ')}`);
+    }
+
     const needsFixWithId = await pool.query(
       `SELECT slug, itunes_id, name, artwork_url FROM podcast_directory
        WHERE slug IS NOT NULL AND itunes_id IS NOT NULL
