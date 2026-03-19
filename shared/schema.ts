@@ -126,6 +126,7 @@ export type ReferralFulfillment = typeof referralFulfillments.$inferSelect;
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
+  lastLoginAt: true,
   emailVerified: true,
   signupSource: true,
   signupSourceDetail: true,

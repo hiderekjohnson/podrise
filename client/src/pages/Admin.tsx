@@ -419,8 +419,16 @@ export default function Admin() {
     },
   });
 
+  const [userSortBy, setUserSortBy] = useState<"signedUp" | "lastLogin">("signedUp");
+
   const { data: users, isLoading: usersLoading } = useQuery<AdminUser[]>({
-    queryKey: ["/api/admin/users"],
+    queryKey: ["/api/admin/users", userSortBy],
+    queryFn: async () => {
+      const params = userSortBy === "lastLogin" ? "?sortBy=lastLogin" : "";
+      const res = await fetch(`/api/admin/users${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch users");
+      return res.json();
+    },
     enabled: isAdmin,
   });
 
@@ -837,7 +845,26 @@ export default function Admin() {
                         <thead>
                           <tr className="border-b border-black/[0.06] bg-black/[0.02]">
                             <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">User</th>
-                            <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">Signed Up</th>
+                            <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">
+                              <button
+                                data-testid="sort-signed-up"
+                                onClick={() => setUserSortBy("signedUp")}
+                                className={`flex items-center gap-1 hover:text-foreground transition-colors ${userSortBy === "signedUp" ? "text-foreground" : ""}`}
+                              >
+                                Signed Up
+                                {userSortBy === "signedUp" && <ArrowUpDown className="w-3 h-3" />}
+                              </button>
+                            </th>
+                            <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">
+                              <button
+                                data-testid="sort-last-login"
+                                onClick={() => setUserSortBy("lastLogin")}
+                                className={`flex items-center gap-1 hover:text-foreground transition-colors ${userSortBy === "lastLogin" ? "text-foreground" : ""}`}
+                              >
+                                Last Login
+                                {userSortBy === "lastLogin" && <ArrowUpDown className="w-3 h-3" />}
+                              </button>
+                            </th>
                             <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">Podcasts</th>
                             <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">Settings</th>
                             <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">Actions</th>
@@ -846,7 +873,7 @@ export default function Admin() {
                         <tbody className="divide-y divide-black/[0.04]">
                           {filteredUsers.length === 0 ? (
                             <tr>
-                              <td colSpan={5} className="px-5 py-12 text-center text-sm text-muted-foreground">
+                              <td colSpan={6} className="px-5 py-12 text-center text-sm text-muted-foreground">
                                 {searchTerm ? "No users match your search." : "No users yet."}
                               </td>
                             </tr>
@@ -868,6 +895,18 @@ export default function Admin() {
                                   <div className="flex items-center gap-1.5 text-sm text-foreground">
                                     <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                                     <span data-testid={`text-user-signup-${user.id}`}>{formatDate(user.createdAt)}</span>
+                                  </div>
+                                </td>
+                                <td className="px-5 py-4">
+                                  <div className="flex items-center gap-1.5 text-sm" data-testid={`text-user-last-login-${user.id}`}>
+                                    {user.lastLoginAt ? (
+                                      <>
+                                        <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                                        <span className="text-foreground">{formatDate(user.lastLoginAt)}</span>
+                                      </>
+                                    ) : (
+                                      <span className="text-muted-foreground italic">Never</span>
+                                    )}
                                   </div>
                                 </td>
                                 <td className="px-5 py-4">

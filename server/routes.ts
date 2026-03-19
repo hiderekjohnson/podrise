@@ -1254,6 +1254,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
       const user = await storage.createUser(input);
       req.session.userId = user.id;
+      pool.query(`UPDATE users SET last_login_at = NOW() WHERE id = $1`, [user.id]).catch(e => console.error("[LastLogin] Failed:", e));
       if (req.body.signupContext) {
         req.session.signupContext = req.body.signupContext;
       }
@@ -1760,6 +1761,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
           );
 
           req.session.userId = user.id;
+          pool.query(`UPDATE users SET last_login_at = NOW() WHERE id = $1`, [user.id]).catch(e => console.error("[LastLogin] Failed:", e));
           req.session.signupContext = `${input.type}:${input.slug}`;
         } catch (createErr: any) {
           if (createErr.code === "23505") {
