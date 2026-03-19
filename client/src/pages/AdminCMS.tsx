@@ -2082,29 +2082,55 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
   const [showBulkSpotifyConfirm, setShowBulkSpotifyConfirm] = useState(false);
   const { toast } = useToast();
 
+  const [dupSpotifyRunning, setDupSpotifyRunning] = useState(false);
+  const [dupSpotifyProgress, setDupSpotifyProgress] = useState<{ processed: number; cleared: number; total: number; podcastsChecked: number; totalPodcasts: number; complete: boolean } | null>(null);
+
   const spotifyStatusQuery = useQuery<{ count: number; total: number }>({
-    queryKey: ["/api/admin/cms/episodes/bulk-clear-spotify", "status"],
+    queryKey: ["/api/admin/cms/episodes/clear-all-duplicate-spotify", "count"],
     queryFn: async () => {
-      const res = await apiRequest("POST", "/api/admin/cms/episodes/bulk-clear-spotify", { mode: "count" });
+      const res = await apiRequest("POST", "/api/admin/cms/episodes/clear-all-duplicate-spotify", { mode: "count" });
       return res.json();
     },
   });
 
-  const bulkClearSpotifyMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/admin/cms/episodes/bulk-clear-spotify", { mode: "clear" });
-      return res.json();
-    },
-    onSuccess: (data) => {
-      setShowBulkSpotifyConfirm(false);
-      toast({ title: "Spotify links cleared", description: `${data.cleared} episode(s) had their invalid Spotify link removed.` });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/episodes/bulk-clear-spotify"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/all-episodes"] });
-    },
-    onError: (err: Error) => {
-      toast({ title: "Error", description: err.message || "Failed to process request", variant: "destructive" });
-    },
-  });
+  const startDupSpotifyClear = async () => {
+    setDupSpotifyRunning(true);
+    setDupSpotifyProgress({ processed: 0, cleared: 0, total: 0, podcastsChecked: 0, totalPodcasts: 0, complete: false });
+    let pollFailures = 0;
+    try {
+      const res = await apiRequest("POST", "/api/admin/cms/episodes/clear-all-duplicate-spotify", { mode: "clear" });
+      const startData = await res.json();
+      if (startData.started) {
+        setDupSpotifyProgress(p => p ? { ...p, totalPodcasts: startData.totalPodcasts } : p);
+      }
+      const poll = setInterval(async () => {
+        try {
+          const res = await fetch("/api/admin/cms/episodes/clear-all-duplicate-spotify/status", { credentials: "include" });
+          const data = await res.json();
+          pollFailures = 0;
+          setDupSpotifyProgress(data);
+          if (data.complete) {
+            clearInterval(poll);
+            setDupSpotifyRunning(false);
+            toast({ title: "Spotify cleanup complete", description: `Cleared ${data.cleared} duplicate links across ${data.podcastsChecked} podcasts.` });
+            queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/episodes/clear-all-duplicate-spotify"] });
+            queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/all-episodes"] });
+          }
+        } catch {
+          pollFailures++;
+          if (pollFailures >= 5) {
+            clearInterval(poll);
+            setDupSpotifyRunning(false);
+            toast({ title: "Lost connection", description: "Couldn't reach the server. The cleanup may still be running.", variant: "destructive" });
+          }
+        }
+      }, 2000);
+    } catch (err: any) {
+      setDupSpotifyRunning(false);
+      setDupSpotifyProgress(null);
+      toast({ title: "Error", description: err.message || "Failed", variant: "destructive" });
+    }
+  };
 
   const { data, isLoading } = useQuery<{ episodes: Array<{ id: number; slug: string; podcast_name: string; episode_title: string; episode_slug: string; publish_date: string; duration: string; status: string; artwork_url: string; view_count: number; enrichment_score: number }>; total: number }>({
     queryKey: ["/api/admin/cms/all-episodes", debouncedSearch, statusFilter, sortField, sortOrder, page],
@@ -2141,10 +2167,10 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
           <div className="flex items-center justify-between gap-4 mb-2">
             <div className="flex items-center gap-2">
               <Link className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-foreground">Invalid Spotify Links</span>
+              <span className="text-sm font-medium text-foreground">Duplicate Spotify Links</span>
             </div>
             <span className="text-xs text-muted-foreground" data-testid="text-spotify-invalid-count">
-              {spotifyStatusQuery.data.count.toLocaleString()} of {spotifyStatusQuery.data.total.toLocaleString()} episodes affected
+              {spotifyStatusQuery.data.count.toLocaleString()} of {spotifyStatusQuery.data.total.toLocaleString()} episodes have show URL instead of episode URL
             </span>
           </div>
           <div className="w-full h-2 bg-muted rounded-full overflow-hidden" data-testid="bar-spotify-status">
@@ -2153,39 +2179,49 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
               style={{ width: `${Math.max(1, (spotifyStatusQuery.data.count / spotifyStatusQuery.data.total) * 100)}%` }}
             />
           </div>
-          <div className="flex items-center justify-between mt-2">
-            <p className="text-xs text-muted-foreground">
-              These episodes have a show-level Spotify URL instead of an episode link.
-            </p>
-            {!showBulkSpotifyConfirm ? (
-              <button
-                data-testid="button-bulk-clear-spotify"
-                onClick={() => setShowBulkSpotifyConfirm(true)}
-                className="text-xs text-primary hover:underline whitespace-nowrap ml-3"
-              >
-                Clean up
-              </button>
-            ) : (
-              <div className="flex items-center gap-2 ml-3 shrink-0">
-                <span className="text-xs text-muted-foreground">Clear {spotifyStatusQuery.data.count} links?</span>
-                <button
-                  data-testid="button-confirm-bulk-clear-spotify"
-                  onClick={() => bulkClearSpotifyMutation.mutate()}
-                  disabled={bulkClearSpotifyMutation.isPending}
-                  className="text-xs px-2.5 py-1 bg-primary text-primary-foreground rounded-md hover:opacity-90 disabled:opacity-50"
-                >
-                  {bulkClearSpotifyMutation.isPending ? "Clearing..." : "Confirm"}
-                </button>
-                <button
-                  data-testid="button-cancel-bulk-clear-spotify"
-                  onClick={() => setShowBulkSpotifyConfirm(false)}
-                  className="text-xs px-2.5 py-1 border border-border rounded-md hover:bg-muted"
-                >
-                  Cancel
-                </button>
+          {dupSpotifyRunning && dupSpotifyProgress ? (
+            <div className="mt-2">
+              <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                <div className="h-full bg-green-500 rounded-full transition-all duration-300" style={{ width: `${dupSpotifyProgress.total > 0 ? (dupSpotifyProgress.processed / dupSpotifyProgress.total) * 100 : 0}%` }} />
               </div>
-            )}
-          </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Checking podcast {dupSpotifyProgress.podcastsChecked}/{dupSpotifyProgress.totalPodcasts} — {dupSpotifyProgress.processed.toLocaleString()} episodes scanned, {dupSpotifyProgress.cleared} cleared
+              </p>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between mt-2">
+              <p className="text-xs text-muted-foreground">
+                These episodes have the podcast's show-level Spotify URL instead of an individual episode link.
+              </p>
+              {!showBulkSpotifyConfirm ? (
+                <button
+                  data-testid="button-bulk-clear-spotify"
+                  onClick={() => setShowBulkSpotifyConfirm(true)}
+                  className="text-xs text-primary hover:underline whitespace-nowrap ml-3"
+                >
+                  Clear All
+                </button>
+              ) : (
+                <div className="flex items-center gap-2 ml-3 shrink-0">
+                  <span className="text-xs text-muted-foreground">Clear {spotifyStatusQuery.data.count} links across all podcasts?</span>
+                  <button
+                    data-testid="button-confirm-bulk-clear-spotify"
+                    onClick={() => { setShowBulkSpotifyConfirm(false); startDupSpotifyClear(); }}
+                    className="text-xs px-2.5 py-1 bg-primary text-primary-foreground rounded-md hover:opacity-90"
+                  >
+                    Confirm
+                  </button>
+                  <button
+                    data-testid="button-cancel-bulk-clear-spotify"
+                    onClick={() => setShowBulkSpotifyConfirm(false)}
+                    className="text-xs px-2.5 py-1 border border-border rounded-md hover:bg-muted"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">

@@ -10902,6 +10902,72 @@ Rules:
     }
   });
 
+  const clearAllDuplicateSpotifyState = { running: false, total: 0, processed: 0, cleared: 0, complete: false, podcastsChecked: 0, totalPodcasts: 0 };
+
+  app.post("/api/admin/cms/episodes/clear-all-duplicate-spotify", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { mode } = req.body;
+      if (mode === "count") {
+        const { rows } = await pool.query(`
+          SELECT COUNT(*) as cnt FROM landing_page_recaps lpr
+          JOIN podcast_directory pd ON pd.slug = lpr.slug
+          WHERE pd.spotify_url IS NOT NULL AND pd.spotify_url != ''
+            AND lpr.spotify_episode_url IS NOT NULL AND lpr.spotify_episode_url != ''
+            AND RTRIM(lpr.spotify_episode_url, '/') = RTRIM(pd.spotify_url, '/')
+        `);
+        const { rows: totalRows } = await pool.query(`SELECT COUNT(*) as cnt FROM landing_page_recaps WHERE spotify_episode_url IS NOT NULL AND spotify_episode_url != ''`);
+        return res.json({ count: parseInt(rows[0].cnt, 10), total: parseInt(totalRows[0].cnt, 10) });
+      }
+      if (mode === "clear") {
+        if (clearAllDuplicateSpotifyState.running) {
+          return res.status(409).json({ message: "Already running" });
+        }
+        const { rows: podcasts } = await pool.query(`SELECT slug, spotify_url FROM podcast_directory WHERE spotify_url IS NOT NULL AND spotify_url != ''`);
+        const state = clearAllDuplicateSpotifyState;
+        Object.assign(state, { running: true, total: 0, processed: 0, cleared: 0, complete: false, podcastsChecked: 0, totalPodcasts: podcasts.length });
+        res.json({ started: true, totalPodcasts: podcasts.length });
+
+        (async () => {
+          try {
+            for (const podcast of podcasts) {
+              const podUrl = podcast.spotify_url.trim().replace(/\/+$/, "");
+              const { rows: episodes } = await pool.query(
+                `SELECT id, spotify_episode_url FROM landing_page_recaps WHERE slug = $1 AND spotify_episode_url IS NOT NULL AND spotify_episode_url != ''`,
+                [podcast.slug]
+              );
+              state.total += episodes.length;
+              for (const ep of episodes) {
+                const epUrl = (ep.spotify_episode_url || "").trim().replace(/\/+$/, "");
+                if (epUrl === podUrl) {
+                  await pool.query(`UPDATE landing_page_recaps SET spotify_episode_url = '' WHERE id = $1`, [ep.id]);
+                  state.cleared++;
+                }
+                state.processed++;
+              }
+              state.podcastsChecked++;
+            }
+          } catch (err) {
+            console.error("[CMS] Clear all duplicate spotify error:", err);
+          } finally {
+            state.running = false;
+            state.complete = true;
+          }
+        })();
+        return;
+      }
+      return res.status(400).json({ message: "Invalid mode. Use 'count' or 'clear'." });
+    } catch (err: any) {
+      console.error("[CMS] Clear all duplicate spotify error:", err);
+      res.status(500).json({ message: err?.message || "Failed" });
+    }
+  });
+
+  app.get("/api/admin/cms/episodes/clear-all-duplicate-spotify/status", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    res.json(clearAllDuplicateSpotifyState);
+  });
+
   app.post("/api/admin/cms/episodes/:podcastSlug/:episodeSlug/quotes", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {
@@ -11475,7 +11541,7 @@ Rules:
       }
       const safeEnrichmentFields = EPISODE_ENRICHMENT_FIELDS.filter(f => f.key !== "transcript");
       const enrichmentCols = safeEnrichmentFields.map(f => `lpr.${f.key}`).join(', ');
-      const transcriptSubquery = `(EXISTS(SELECT 1 FROM episode_transcripts et WHERE et.podcast_id = lpr.slug AND et.episode_title = lpr.episode_title))::boolean AS has_transcript`;
+      const transcriptSubquery = `(EXISTS(SELECT 1 FROM episode_transcripts et JOIN podcast_directory pd ON pd.itunes_id::text = et.podcast_id WHERE pd.slug = lpr.slug AND ${SQL_NORMALIZE_TITLE('et.episode_title')} = ${SQL_NORMALIZE_TITLE('lpr.episode_title')} AND et.transcript IS NOT NULL AND et.transcript != ''))::boolean AS has_transcript`;
 
       let orderBy = "lpr.publish_date DESC NULLS LAST";
       if (sort === "title") orderBy = `lpr.episode_title ${order === "desc" ? "DESC" : "ASC"}`;
