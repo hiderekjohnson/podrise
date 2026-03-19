@@ -3963,7 +3963,7 @@ export const PODCAST_LANDINGS: PodcastLandingConfig[] = [
   {
     slug: "influencer-podcast",
     name: "The Influencer Podcast",
-    itunesId: "1229064009",
+    itunesId: "1229401800",
     category: "Business / Marketing",
     hosts: "Julie Solomon",
     description: "marketing insights, expert analysis, and in-depth discussions",
