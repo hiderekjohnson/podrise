@@ -13414,6 +13414,81 @@ Rules:
     }
   });
 
+  app.post("/api/admin/podcast-directory/lookup-itunes", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { urls } = req.body;
+      if (!Array.isArray(urls) || urls.length === 0) {
+        return res.status(400).json({ message: "urls array is required" });
+      }
+      if (urls.length > 50) {
+        return res.status(400).json({ message: "Maximum 50 URLs at a time" });
+      }
+      const itunesIdSet = new Set<string>();
+      const errors: string[] = [];
+      for (const url of urls) {
+        const trimmed = String(url).trim();
+        const idMatch = trimmed.match(/(?:id)(\d+)/);
+        if (idMatch) {
+          itunesIdSet.add(idMatch[1]);
+        } else if (/^\d+$/.test(trimmed)) {
+          itunesIdSet.add(trimmed);
+        } else {
+          errors.push(`Could not extract iTunes ID from: ${trimmed}`);
+        }
+      }
+      const itunesIds = Array.from(itunesIdSet);
+      if (itunesIds.length === 0) {
+        return res.status(400).json({ message: "No valid iTunes IDs found", errors });
+      }
+      const results: any[] = [];
+      for (let i = 0; i < itunesIds.length; i += 50) {
+        const batch = itunesIds.slice(i, i + 50);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
+        const resp = await fetch(`https://itunes.apple.com/lookup?id=${batch.join(",")}&entity=podcast`, { signal: controller.signal });
+        clearTimeout(timeout);
+        if (!resp.ok) {
+          errors.push(`iTunes API returned ${resp.status} for batch lookup`);
+          continue;
+        }
+        const data = await resp.json();
+        for (const r of (data.results || [])) {
+          if (r.wrapperType !== "collection" && r.kind !== "podcast") continue;
+          const art = (r.artworkUrl600 || r.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb");
+          const slug = (r.collectionName || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+          const existing = await pool.query(
+            `SELECT id, slug, name, itunes_id FROM podcast_directory WHERE itunes_id = $1 OR slug = $2 LIMIT 1`,
+            [String(r.collectionId), slug]
+          );
+          results.push({
+            itunesId: String(r.collectionId),
+            name: r.collectionName || "",
+            slug,
+            artworkUrl: art,
+            category: r.primaryGenreName || "",
+            feedUrl: r.feedUrl || "",
+            appleUrl: r.collectionViewUrl || "",
+            totalEpisodes: r.trackCount || null,
+            alreadyExists: existing.rows.length > 0,
+            existingEntry: existing.rows[0] || null,
+          });
+        }
+      }
+      const foundIds = results.map(r => r.itunesId);
+      for (const id of itunesIds) {
+        if (!foundIds.includes(id)) {
+          errors.push(`iTunes ID ${id} not found`);
+        }
+      }
+      res.json({ results, errors });
+    } catch (err: any) {
+      res.status(500).json({ message: "iTunes lookup failed", error: err.message });
+    }
+  });
+
   app.delete("/api/admin/podcast-directory/:id", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });

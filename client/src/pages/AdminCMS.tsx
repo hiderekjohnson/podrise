@@ -8,7 +8,7 @@ import {
   Save, RefreshCw, Plus, Trash2, GripVertical, ExternalLink,
   Image, Clock, Calendar, Hash, Eye, EyeOff, AlertCircle, Pencil,
   Globe, Star, Zap, CheckCircle, XCircle, Play, Copy, Check, Sparkles,
-  CircleDot, Link, Music, Headphones, MessageSquareQuote, BookOpen, Tag, HelpCircle, Brain, Newspaper
+  CircleDot, Link, Music, Headphones, MessageSquareQuote, BookOpen, Tag, HelpCircle, Brain, Newspaper, X
 } from "lucide-react";
 
 function useDebouncedValue(value: string, delay = 300) {
@@ -531,12 +531,278 @@ function ItunesFixButton() {
   );
 }
 
+interface ITunesResult {
+  itunesId: string;
+  name: string;
+  slug: string;
+  artworkUrl: string;
+  category: string;
+  feedUrl: string;
+  appleUrl: string;
+  totalEpisodes: number | null;
+  alreadyExists: boolean;
+  existingEntry: { id: number; slug: string; name: string; itunes_id: string } | null;
+}
+
+function ImportPodcastsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { toast } = useToast();
+  const [step, setStep] = useState<"input" | "preview">("input");
+  const [urlText, setUrlText] = useState("");
+  const [results, setResults] = useState<ITunesResult[]>([]);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [isLooking, setIsLooking] = useState(false);
+  const [addingIds, setAddingIds] = useState<Set<string>>(new Set());
+  const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
+
+  const handleLookup = async () => {
+    const lines = urlText.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+    if (lines.length === 0) {
+      toast({ title: "No links", description: "Paste at least one iTunes link or ID.", variant: "destructive" });
+      return;
+    }
+    setIsLooking(true);
+    try {
+      const res = await fetch("/api/admin/podcast-directory/lookup-itunes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ urls: lines }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast({ title: "Lookup failed", description: data.message || "Error", variant: "destructive" });
+        return;
+      }
+      setResults(data.results || []);
+      setErrors(data.errors || []);
+      setStep("preview");
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setIsLooking(false);
+    }
+  };
+
+  const handleAdd = async (result: ITunesResult) => {
+    setAddingIds(prev => new Set(prev).add(result.itunesId));
+    try {
+      const res = await fetch("/api/admin/podcast-directory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          itunesId: result.itunesId,
+          name: result.name,
+          slug: result.slug,
+          artworkUrl: result.artworkUrl,
+          category: result.category,
+          appleUrl: result.appleUrl,
+          totalEpisodes: result.totalEpisodes,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        toast({ title: "Failed to add", description: data.message || "Error", variant: "destructive" });
+        return;
+      }
+      setAddedIds(prev => new Set(prev).add(result.itunesId));
+      toast({ title: "Added", description: `${result.name} added to directory.` });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setAddingIds(prev => { const n = new Set(prev); n.delete(result.itunesId); return n; });
+    }
+  };
+
+  const [addingAll, setAddingAll] = useState(false);
+
+  const handleAddAll = async () => {
+    const toAdd = results.filter(r => !r.alreadyExists && !addedIds.has(r.itunesId));
+    setAddingAll(true);
+    for (const r of toAdd) {
+      await handleAdd(r);
+    }
+    setAddingAll(false);
+    toast({ title: "Batch complete", description: `Processed ${toAdd.length} podcast${toAdd.length !== 1 ? "s" : ""}.` });
+  };
+
+  const isBusy = isLooking || addingAll || addingIds.size > 0;
+
+  const handleClose = () => {
+    if (isBusy) return;
+    setStep("input");
+    setUrlText("");
+    setResults([]);
+    setErrors([]);
+    setAddingIds(new Set());
+    setAddedIds(new Set());
+    queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/podcasts"] });
+    onClose();
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={isBusy ? undefined : handleClose} data-testid="import-podcasts-overlay">
+      <div
+        className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-border w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+        data-testid="import-podcasts-modal"
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <div>
+            <h2 className="text-lg font-bold text-foreground">Import Podcasts</h2>
+            <p className="text-sm text-muted-foreground">
+              {step === "input" ? "Paste iTunes links or IDs, one per line" : `${results.length} podcast${results.length !== 1 ? "s" : ""} found`}
+            </p>
+          </div>
+          <button onClick={handleClose} className="p-2 rounded-lg hover:bg-muted transition-colors" data-testid="btn-close-import">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          {step === "input" && (
+            <div className="space-y-4">
+              <textarea
+                data-testid="input-itunes-urls"
+                value={urlText}
+                onChange={(e) => setUrlText(e.target.value)}
+                placeholder={"https://podcasts.apple.com/us/podcast/motley-fool-money/id306106212\nhttps://podcasts.apple.com/us/podcast/the-daily/id1200361736\n1441708044"}
+                className="w-full h-48 p-4 border border-border rounded-xl text-sm font-mono resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-muted/20"
+              />
+              <p className="text-xs text-muted-foreground">
+                Accepts Apple Podcasts URLs, iTunes links, or raw iTunes IDs. One per line or comma-separated. Max 50.
+              </p>
+            </div>
+          )}
+
+          {step === "preview" && (
+            <div className="space-y-3">
+              {errors.length > 0 && (
+                <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-xl p-3 space-y-1" data-testid="import-errors">
+                  {errors.map((err, i) => (
+                    <p key={i} className="text-sm text-red-700 dark:text-red-400 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      {err}
+                    </p>
+                  ))}
+                </div>
+              )}
+              {results.map((r) => {
+                const isAdded = addedIds.has(r.itunesId);
+                const isAdding = addingIds.has(r.itunesId);
+                return (
+                  <div
+                    key={r.itunesId}
+                    className={`flex items-center gap-4 p-4 rounded-xl border transition-colors ${
+                      r.alreadyExists || isAdded
+                        ? "bg-muted/30 border-border/50 opacity-70"
+                        : "bg-white dark:bg-zinc-800 border-border hover:border-primary/30"
+                    }`}
+                    data-testid={`import-result-${r.itunesId}`}
+                  >
+                    {r.artworkUrl ? (
+                      <img src={r.artworkUrl} alt={r.name} className="w-14 h-14 rounded-lg object-cover shrink-0" />
+                    ) : (
+                      <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                        <Podcast className="w-6 h-6 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-foreground truncate">{r.name}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-xs text-muted-foreground">{r.category}</span>
+                        {r.totalEpisodes && (
+                          <span className="text-xs text-muted-foreground">{r.totalEpisodes} episodes</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground/70 font-mono mt-0.5">ID: {r.itunesId} / {r.slug}</p>
+                    </div>
+                    <div className="shrink-0">
+                      {r.alreadyExists ? (
+                        <span className="text-xs font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                          <CheckCircle className="w-4 h-4" /> Already exists
+                        </span>
+                      ) : isAdded ? (
+                        <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1" data-testid={`import-added-${r.itunesId}`}>
+                          <CheckCircle className="w-4 h-4" /> Added
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleAdd(r)}
+                          disabled={isAdding}
+                          className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center gap-2"
+                          data-testid={`btn-add-podcast-${r.itunesId}`}
+                        >
+                          {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                          Add
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="px-6 py-4 border-t border-border flex items-center justify-between">
+          {step === "input" ? (
+            <>
+              <button onClick={handleClose} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="btn-cancel-import">
+                Cancel
+              </button>
+              <button
+                onClick={handleLookup}
+                disabled={isLooking || !urlText.trim()}
+                className="px-5 py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center gap-2"
+                data-testid="btn-lookup-itunes"
+              >
+                {isLooking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                Look Up Podcasts
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => { setStep("input"); setResults([]); setErrors([]); setAddedIds(new Set()); }}
+                className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="btn-back-to-input"
+              >
+                Back
+              </button>
+              <div className="flex items-center gap-3">
+                {results.filter(r => !r.alreadyExists && !addedIds.has(r.itunesId)).length > 1 && (
+                  <button
+                    onClick={handleAddAll}
+                    disabled={addingAll || addingIds.size > 0}
+                    className="px-4 py-2 text-sm font-medium text-primary border border-primary/30 rounded-xl hover:bg-primary/5 disabled:opacity-50 transition-colors flex items-center gap-2"
+                    data-testid="btn-add-all-podcasts"
+                  >
+                    {addingAll && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                    Add All New ({results.filter(r => !r.alreadyExists && !addedIds.has(r.itunesId)).length})
+                  </button>
+                )}
+                <button onClick={handleClose} className="px-5 py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors" data-testid="btn-done-import">
+                  Done
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search);
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortField, setSortField] = useState("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [showImport, setShowImport] = useState(false);
 
   const { data: podcasts, isLoading } = useQuery<CMSPodcast[]>({
     queryKey: ["/api/admin/cms/podcasts", debouncedSearch, statusFilter, sortField, sortOrder],
@@ -570,13 +836,25 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
   }
 
   return (
+    <>
+    <ImportPodcastsModal open={showImport} onClose={() => setShowImport(false)} />
     <div className="space-y-4" data-testid="cms-podcasts-list">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h3 className="text-lg font-bold text-foreground">Podcasts</h3>
           <p className="text-sm text-muted-foreground">{podcasts?.length || 0} podcasts</p>
-          <PodcastEnrichButton />
-          <ItunesFixButton />
+          <div className="flex items-center gap-2 mt-1">
+            <button
+              onClick={() => setShowImport(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white text-xs font-medium rounded-lg hover:bg-primary/90 transition-colors"
+              data-testid="btn-import-podcasts"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Import Podcasts
+            </button>
+            <PodcastEnrichButton />
+            <ItunesFixButton />
+          </div>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-56">
@@ -684,6 +962,7 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
         </table>
       </div>
     </div>
+    </>
   );
 }
 
