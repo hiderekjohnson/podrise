@@ -5,6 +5,7 @@ import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { PodRiseWordmark } from "@/components/PodRiseHeader";
 import { trackLandingPageVisit } from "@/lib/landingAnalytics";
+import headerImage from "@assets/IMG_9561_1773912784317.jpeg";
 
 export default function NewsletterLandingPage() {
   const [, navigate] = useLocation();
@@ -82,17 +83,29 @@ export default function NewsletterLandingPage() {
           0%, 100% { transform: scaleY(1); }
           50%      { transform: scaleY(0.55); }
         }
+        @media (max-width: 1023px) {
+          .nl1-input { padding: 8px 14px !important; font-size: 14px !important; }
+          .nl1-cta { padding: 8px 18px !important; font-size: 12px !important; }
+        }
       `}</style>
       <div
-        className="min-h-screen grid grid-cols-1 lg:grid-cols-2"
+        className="min-h-screen lg:min-h-screen h-[100dvh] lg:h-auto grid grid-cols-1 lg:grid-cols-2 overflow-hidden lg:overflow-visible"
         style={{ fontFamily: "'DM Sans', sans-serif" }}
         data-testid="page-newsletter-landing"
       >
         <div
-          className="bg-white flex flex-col justify-start relative z-[1] min-h-screen px-7 py-12 lg:px-[72px] lg:pt-12 lg:pb-16"
+          className="bg-white flex flex-col justify-start relative z-[1] h-[100dvh] lg:h-auto lg:min-h-screen px-5 py-3 lg:px-[72px] lg:pt-12 lg:pb-16 overflow-hidden lg:overflow-visible"
         >
+          <img
+            src={headerImage}
+            alt="PodRise newsletter preview"
+            className="block lg:hidden w-full rounded-lg object-cover mb-2 flex-shrink-0"
+            style={{ maxHeight: "24dvh" }}
+            data-testid="img-newsletter-header-mobile"
+          />
+
           <div
-            className="mb-12 pt-1"
+            className="hidden lg:block mb-12 pt-1"
             style={{ animation: "nl1-fadeUp 0.5s ease both", animationDelay: "0.1s" }}
           >
             <Link href="/" data-testid="link-newsletter-home">
@@ -101,25 +114,24 @@ export default function NewsletterLandingPage() {
           </div>
 
           <div
-            className="flex-1 flex flex-col justify-center pt-0"
+            className="flex-1 flex flex-col justify-center pt-0 min-h-0"
             style={{ animation: "nl1-fadeUp 0.6s ease both", animationDelay: "0.25s" }}
           >
             <h1
-              className="font-bold leading-[1.18] tracking-[-0.03em] text-[#09090B] mb-5 max-w-[520px]"
-              style={{ fontSize: "clamp(30px, 3.2vw, 46px)" }}
+              className="font-bold leading-[1.1] lg:leading-[1.18] tracking-[-0.03em] text-[#09090B] mb-1.5 lg:mb-5 max-w-[520px] text-[20px] lg:text-[clamp(30px,3.2vw,46px)]"
               data-testid="text-newsletter-headline"
             >
               Keep up with your favorite conversations—without listening to hours of podcasts
             </h1>
             <p
-              className="text-[16.5px] font-normal leading-[1.65] text-[#52525B] max-w-[460px] mb-9"
+              className="text-[13px] lg:text-[16.5px] font-normal leading-[1.45] lg:leading-[1.65] text-[#52525B] max-w-[460px] mb-3 lg:mb-9"
               data-testid="text-newsletter-subheadline"
             >
               Get a 2-minute daily briefing of the podcasts you love, so you stay sharp, informed, and ahead
             </p>
 
             <form onSubmit={handleSubmit} data-testid="form-newsletter-signup">
-              <div className="flex flex-col sm:flex-row gap-2.5 max-w-[480px]">
+              <div className="flex flex-col sm:flex-row gap-1.5 lg:gap-2.5 max-w-[480px]">
                 <label htmlFor="nl1-email" className="sr-only">Email address</label>
                 <input
                   id="nl1-email"
@@ -129,7 +141,7 @@ export default function NewsletterLandingPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter Your Email"
                   aria-label="Email address"
-                  className="flex-1 bg-white text-[#09090B] text-[15px] outline-none min-w-0 placeholder:text-[#A1A1AA]"
+                  className="flex-1 bg-white text-[#09090B] text-[15px] outline-none min-w-0 placeholder:text-[#A1A1AA] nl1-input"
                   style={{
                     border: "1.5px solid #E4E4E7",
                     borderRadius: "8px",
@@ -146,7 +158,7 @@ export default function NewsletterLandingPage() {
                   type="submit"
                   disabled={isPending}
                   aria-busy={isPending}
-                  className="text-white border-none cursor-pointer whitespace-nowrap flex items-center justify-center gap-1.5 hover:translate-y-[-1px] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="text-white border-none cursor-pointer whitespace-nowrap flex items-center justify-center gap-1.5 hover:translate-y-[-1px] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed nl1-cta"
                   style={{
                     background: "linear-gradient(145deg, #6366F1, #8B5CF6)",
                     borderRadius: "8px",
@@ -177,7 +189,7 @@ export default function NewsletterLandingPage() {
               </div>
             </form>
             <p
-              className="mt-3.5 text-[13px] text-[#A1A1AA] leading-[1.7]"
+              className="mt-1.5 lg:mt-3.5 text-[11px] lg:text-[13px] text-[#A1A1AA] leading-[1.4] lg:leading-[1.7]"
               data-testid="text-newsletter-footnote"
             >
               Free. No spam. Unsubscribe anytime.<br/>Built for and by podcast lovers 💜
@@ -186,7 +198,7 @@ export default function NewsletterLandingPage() {
         </div>
 
         <div
-          className="flex items-center justify-center p-10 lg:p-12 relative overflow-hidden min-h-[420px]"
+          className="hidden lg:flex items-center justify-center p-10 lg:p-12 relative overflow-hidden min-h-[420px]"
           style={{ background: "linear-gradient(145deg, #6366F1, #8B5CF6)" }}
         >
           <div
