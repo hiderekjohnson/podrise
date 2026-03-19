@@ -54,8 +54,8 @@ function AllPodcastsGrid({
   onFollow: (slug: string) => void;
   onUnfollow: (slug: string) => void;
 }) {
-  const [showAll, setShowAll] = useState(false);
-  const visible = showAll ? podcasts : podcasts.slice(0, 20);
+  const [visibleCount, setVisibleCount] = useState(20);
+  const visible = podcasts.slice(0, visibleCount);
 
   return (
     <div className="px-4 md:px-8 pt-2 pb-4" data-testid="all-podcasts-grid">
@@ -89,10 +89,10 @@ function AllPodcastsGrid({
           </div>
         ))}
       </div>
-      {!showAll && podcasts.length > 20 && (
+      {visibleCount < podcasts.length && (
         <div className="flex justify-center mt-6">
           <button
-            onClick={() => setShowAll(true)}
+            onClick={() => setVisibleCount((c) => c + 20)}
             className="px-8 py-3 bg-[#09090B] dark:bg-white text-white dark:text-[#09090B] font-semibold text-[15px] rounded-full hover:opacity-90 transition-opacity shadow-sm"
             data-testid="discover-see-more"
           >
