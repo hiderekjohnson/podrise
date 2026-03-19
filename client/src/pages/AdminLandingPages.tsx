@@ -226,8 +226,6 @@ const SUGGESTED_PAGES = [
   "/register",
   "/login",
   "/onboarding",
-  "/checkout",
-  "/upgrade",
 ];
 
 function ConversionEventsPanel() {

@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, topicPulses, advertisers, bookmarks, deviceTokens, refreshTokens, errorLogs, referrals, referralTiers, pulseSubscriptions, supportArticles, feedAds, feedAdSettings, featureFlags, userFeatureOverrides, adEvents, siteSettings, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type TopicPulse, type InsertTopicPulse, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog, type Referral, type ReferralTier, type InsertReferralTier, type PulseSubscription, type SupportArticle, type InsertSupportArticle, type FeedAd, type InsertFeedAd, type FeedAdSetting, type FeatureFlag, type InsertFeatureFlag, type UserFeatureOverride, type AdEvent, type InsertAdEvent, type SiteSetting } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, advertisers, bookmarks, deviceTokens, refreshTokens, errorLogs, referrals, referralTiers, supportArticles, feedAds, feedAdSettings, featureFlags, userFeatureOverrides, adEvents, siteSettings, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog, type Referral, type ReferralTier, type InsertReferralTier, type SupportArticle, type InsertSupportArticle, type FeedAd, type InsertFeedAd, type FeedAdSetting, type FeatureFlag, type InsertFeatureFlag, type UserFeatureOverride, type AdEvent, type InsertAdEvent, type SiteSetting } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull, asc, inArray } from "drizzle-orm";
 import { normalizeTitle } from "./utils/normalizeTitle";
 
@@ -66,10 +66,6 @@ export interface IStorage {
   getEpisodeQuotes(podcastSlug: string, episodeSlug: string): Promise<EpisodeQuote[]>;
   saveEpisodeQuotes(quotes: InsertEpisodeQuote[]): Promise<EpisodeQuote[]>;
   deleteEpisodeQuotes(podcastSlug: string, episodeSlug: string): Promise<void>;
-  getTopicPulses(topicSlug: string, limit?: number): Promise<TopicPulse[]>;
-  getTopicPulseByDate(topicSlug: string, publishDate: string): Promise<TopicPulse | undefined>;
-  getRecentPulsesAcrossTopics(excludeSlug: string, limit?: number): Promise<TopicPulse[]>;
-  upsertTopicPulse(data: InsertTopicPulse): Promise<TopicPulse>;
   getAdvertisers(): Promise<Advertiser[]>;
   createAdvertiser(data: InsertAdvertiser): Promise<Advertiser>;
   updateAdvertiser(id: number, data: InsertAdvertiser): Promise<Advertiser>;
@@ -107,10 +103,6 @@ export interface IStorage {
   createReferralTier(data: InsertReferralTier): Promise<ReferralTier>;
   updateReferralTier(id: number, data: Partial<InsertReferralTier>): Promise<ReferralTier>;
   deleteReferralTier(id: number): Promise<void>;
-  getPulseSubscriptions(userId: number): Promise<PulseSubscription[]>;
-  addPulseSubscription(userId: number, topicSlug: string): Promise<PulseSubscription>;
-  removePulseSubscription(userId: number, topicSlug: string): Promise<void>;
-  bulkUpdatePulseSubscriptions(userId: number, topicSlugs: string[]): Promise<PulseSubscription[]>;
   getSupportArticles(activeOnly?: boolean): Promise<SupportArticle[]>;
   getSupportArticleById(id: number): Promise<SupportArticle | undefined>;
   createSupportArticle(data: InsertSupportArticle): Promise<SupportArticle>;
@@ -790,39 +782,6 @@ export class DatabaseStorage implements IStorage {
     );
   }
 
-  async getTopicPulses(topicSlug: string, limit: number = 30): Promise<TopicPulse[]> {
-    return db.select().from(topicPulses)
-      .where(eq(topicPulses.topicSlug, topicSlug))
-      .orderBy(desc(topicPulses.publishDate))
-      .limit(limit);
-  }
-
-  async getRecentPulsesAcrossTopics(excludeSlug: string, limit: number = 3): Promise<TopicPulse[]> {
-    return db.select().from(topicPulses)
-      .where(sql`${topicPulses.topicSlug} != ${excludeSlug}`)
-      .orderBy(desc(topicPulses.publishDate))
-      .limit(limit);
-  }
-
-  async getTopicPulseByDate(topicSlug: string, publishDate: string): Promise<TopicPulse | undefined> {
-    const [pulse] = await db.select().from(topicPulses)
-      .where(and(eq(topicPulses.topicSlug, topicSlug), eq(topicPulses.publishDate, publishDate)));
-    return pulse;
-  }
-
-  async upsertTopicPulse(data: InsertTopicPulse): Promise<TopicPulse> {
-    const existing = await this.getTopicPulseByDate(data.topicSlug, data.publishDate);
-    if (existing) {
-      const [updated] = await db.update(topicPulses)
-        .set({ ...data, generatedAt: new Date() })
-        .where(eq(topicPulses.id, existing.id))
-        .returning();
-      return updated;
-    }
-    const [created] = await db.insert(topicPulses).values(data).returning();
-    return created;
-  }
-
   async getAdvertisers(): Promise<Advertiser[]> {
     return db.select().from(advertisers).orderBy(desc(advertisers.createdAt));
   }
@@ -1090,36 +1049,6 @@ export class DatabaseStorage implements IStorage {
     await db.delete(referralTiers).where(eq(referralTiers.id, id));
   }
 
-  async getPulseSubscriptions(userId: number): Promise<PulseSubscription[]> {
-    return db.select().from(pulseSubscriptions)
-      .where(eq(pulseSubscriptions.userId, userId))
-      .orderBy(asc(pulseSubscriptions.subscribedAt));
-  }
-
-  async addPulseSubscription(userId: number, topicSlug: string): Promise<PulseSubscription> {
-    const [sub] = await db.insert(pulseSubscriptions)
-      .values({ userId, topicSlug })
-      .onConflictDoNothing()
-      .returning();
-    if (sub) return sub;
-    const [existing] = await db.select().from(pulseSubscriptions)
-      .where(and(eq(pulseSubscriptions.userId, userId), eq(pulseSubscriptions.topicSlug, topicSlug)))
-      .limit(1);
-    return existing;
-  }
-
-  async removePulseSubscription(userId: number, topicSlug: string): Promise<void> {
-    await db.delete(pulseSubscriptions)
-      .where(and(eq(pulseSubscriptions.userId, userId), eq(pulseSubscriptions.topicSlug, topicSlug)));
-  }
-
-  async bulkUpdatePulseSubscriptions(userId: number, topicSlugs: string[]): Promise<PulseSubscription[]> {
-    await db.delete(pulseSubscriptions).where(eq(pulseSubscriptions.userId, userId));
-    if (topicSlugs.length === 0) return [];
-    const values = topicSlugs.map(slug => ({ userId, topicSlug: slug }));
-    return db.insert(pulseSubscriptions).values(values).returning();
-  }
-
   async getSupportArticles(activeOnly?: boolean): Promise<SupportArticle[]> {
     if (activeOnly) {
       return db.select().from(supportArticles)
@@ -1218,8 +1147,7 @@ export class DatabaseStorage implements IStorage {
 
   async seedDefaultFeatureFlags(): Promise<void> {
     const defaults = [
-      { key: "pulse", description: "Controls visibility of Pulse features (My Pulse page, topic pulse routes, sidebar nav)", enabled: false },
-      { key: "upgrade", description: "Controls visibility of upgrade/pricing flow and Stripe checkout", enabled: false },
+      { key: "upgrade", description: "Controls visibility of upgrade/pricing flow", enabled: false },
       { key: "show_non_book_products", description: "Show non-book products (tools, physical products, experiences) in the shop. When off, only books are shown.", enabled: false },
     ];
     for (const flag of defaults) {

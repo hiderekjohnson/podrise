@@ -1,4 +1,4 @@
-import { Switch, Route, Redirect } from "wouter";
+import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -11,7 +11,6 @@ import { PageConversionProvider } from "@/contexts/PageConversionContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthAwareLayout } from "@/components/AuthAwareLayout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { useMetaPixelEvents } from "@/hooks/use-meta-pixel-events";
 
 const Login = lazy(() => import("./pages/Login"));
@@ -36,8 +35,6 @@ const GetStarted = lazy(() => import("./pages/GetStarted"));
 const Register = lazy(() => import("./pages/Register"));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 const Enterprise = lazy(() => import("./pages/Enterprise"));
-const TopicsDirectory = lazy(() => import("./pages/TopicsDirectory"));
-const TopicDetailPage = lazy(() => import("./pages/TopicDetailPage"));
 const PodcasterClaim = lazy(() => import("./pages/PodcasterClaim"));
 const PodcasterDashboard = lazy(() => import("./pages/PodcasterDashboard"));
 const ShopPage = lazy(() => import("./pages/Bookstore"));
@@ -51,12 +48,10 @@ const HelpPage = lazy(() => import("./pages/HelpPage"));
 const BookmarksPage = lazy(() => import("./pages/BookmarksPage"));
 const LogoutPage = lazy(() => import("./pages/LogoutPage"));
 
-const TopicPulsePage = lazy(() => import("./pages/TopicPulsePage"));
 const CategoryDirectory = lazy(() => import("./pages/CategoryDirectory"));
 const Advertise = lazy(() => import("./pages/Advertise"));
 const Disclosure = lazy(() => import("./pages/Disclosure"));
 const PodSquad = lazy(() => import("./pages/PodSquad"));
-const MyPulsePage = lazy(() => import("./pages/MyPulsePage"));
 const MyPodcastsPage = lazy(() => import("./pages/MyPodcastsPage"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const HowItWorks = lazy(() => import("./pages/HowItWorks"));
@@ -69,22 +64,6 @@ function PageLoader() {
     </div>
   );
 }
-
-function FeatureFlagGuard({ flag, children }: { flag: string; children: React.ReactNode }) {
-  const { isEnabled, isLoading } = useFeatureFlags();
-  if (isLoading) return <PageLoader />;
-  if (!isEnabled(flag)) return <Redirect to="/dashboard" />;
-  return <>{children}</>;
-}
-
-function PulseGatedTopicPulsePage() {
-  return <FeatureFlagGuard flag="pulse"><TopicPulsePage /></FeatureFlagGuard>;
-}
-
-function PulseGatedMyPulsePage() {
-  return <FeatureFlagGuard flag="pulse"><MyPulsePage /></FeatureFlagGuard>;
-}
-
 
 function MetaPixelEvents() {
   useMetaPixelEvents();
@@ -160,7 +139,6 @@ function Router() {
         <Route path="/topics/:slug">{() => { window.location.replace("/"); return null; }}</Route>
         <Route path="/topics">{() => { window.location.replace("/"); return null; }}</Route>
         <Route path="/upgrade">{() => { window.location.replace("/dashboard"); return null; }}</Route>
-        <Route path="/pulse">{() => { window.location.replace("/"); return null; }}</Route>
         <Route path="/podcaster/claim" component={PodcasterClaim} />
         <Route path="/podcaster/verify" component={PodcasterDashboard} />
         <Route path="/podcaster/dashboard/:slug" component={PodcasterDashboard} />

@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import {
   Home, Compass, ShoppingBag, HelpCircle, Bookmark,
-  Zap, Users, Settings, Radio, Menu, X
+  Users, Settings, Radio, Menu, X
 } from "lucide-react";
 import { RightSidebar } from "@/components/RightSidebar";
 
@@ -15,7 +15,6 @@ interface DashboardLayoutProps {
 const ALL_NAV_ITEMS = [
   { key: "feed", path: "/dashboard", label: "Home", Icon: Home },
   { key: "discover", path: "/discover", label: "Discover", Icon: Compass },
-  { key: "pulse", path: "/pulse", label: "My Pulse", Icon: Zap, featureFlag: "pulse" as const },
   { key: "shop", path: "/shop", label: "Shop", Icon: ShoppingBag },
   { key: "bookmarks", path: "/bookmarks", label: "Saved Episodes", Icon: Bookmark },
   { key: "my-podcasts", path: "/my-podcasts", label: "My Podcasts", Icon: Radio },

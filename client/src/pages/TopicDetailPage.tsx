@@ -1,7 +1,6 @@
 import { useMemo, useEffect } from "react";
 import { Link, useParams } from "wouter";
-import { ArrowRight, Brain, Rocket, Lightbulb, TrendingUp, TrendingDown, Minus, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork, Mic, MessageSquare, Users, Building2, Quote, Activity, ArrowUpRight, Tag, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, Radio, Podcast, ChevronRight, Clock, BookOpen, Package, Mail } from "lucide-react";
-import { useFeatureFlags } from "@/hooks/use-feature-flags";
+import { ArrowRight, Brain, Rocket, Lightbulb, TrendingUp, TrendingDown, Minus, BarChart3, Wallet, Crown, Megaphone, Handshake, Zap, Cpu, LineChart, Heart, Flame, ArrowUpCircle, Scale, GraduationCap, Palette, Video, Globe, Sparkles, GitFork, Mic, MessageSquare, Users, Building2, Quote, ArrowUpRight, Tag, UserPlus, Cloud, GitBranch, Layout, Target, Cog, Bot, Coins, Leaf, Shield, Hammer, Briefcase, Radio, Podcast, ChevronRight, Clock, BookOpen, Package, Mail } from "lucide-react";
 import { BookCoverFill } from "@/components/BookCover";
 import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { motion } from "framer-motion";
@@ -138,9 +137,6 @@ function TrendBadge({ trend, changePercent }: { trend: string; changePercent: nu
 
 export default function TopicDetailPage() {
   const params = useParams<{ slug: string }>();
-  const { isEnabled: isFlagEnabled } = useFeatureFlags();
-  const pulseEnabled = isFlagEnabled("pulse");
-
   const topic = TOPICS.find(t => t.slug === params.slug);
   const isDynamic = !topic;
   const dynamicTopicName = isDynamic
@@ -153,17 +149,6 @@ export default function TopicDetailPage() {
     enabled: !isDynamic,
   });
 
-  const { data: latestPulses } = useQuery<{ publishDate: string; headline: string; summary: string }[]>({
-    queryKey: ["/api/topics", params.slug, "pulse"],
-    queryFn: async () => {
-      const res = await fetch(`/api/topics/${params.slug}/pulse`);
-      if (!res.ok) return [];
-      return res.json();
-    },
-    enabled: !!params.slug,
-  });
-
-  const latestPulseDate = latestPulses?.[0]?.publishDate;
 
   const { data: rawTopicEpisodes, isLoading: episodesLoading } = useQuery<TopicEpisode[]>({
     queryKey: ["/api/topics", params.slug, "episodes"],
@@ -435,37 +420,6 @@ export default function TopicDetailPage() {
           </div>
         </motion.div>
 
-        {topic && pulseEnabled && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.06 }}
-            className="mb-8"
-          >
-            <Link
-              href={latestPulseDate ? `${categoryBasePath}/${params.slug}/pulse/${latestPulseDate}` : `${categoryBasePath}/${params.slug}/pulse`}
-              className="block group"
-              data-testid="link-topic-pulse"
-            >
-              <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] p-4 sm:p-5">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-white/[0.05] rounded-full -translate-y-1/2 translate-x-1/3" />
-                <div className="relative flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <Activity className="w-5 h-5 text-white/80 flex-shrink-0" />
-                    <div>
-                      <span className="text-[15px] font-bold text-white">The Pulse</span>
-                      <span className="text-[14px] text-white/60 ml-2">Get the daily Pulse on {topicDisplayName.toLowerCase()}</span>
-                    </div>
-                  </div>
-                  <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-white text-[#6366F1] rounded-lg text-[14px] font-semibold group-hover:shadow-lg transition-all whitespace-nowrap">
-                    Read <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                  </span>
-                </div>
-              </div>
-            </Link>
-          </motion.div>
-        )}
-
         {!isDynamic && hasWeeklyContent && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
@@ -474,62 +428,23 @@ export default function TopicDetailPage() {
             className="mb-10 space-y-5"
             data-testid="snapshot-dashboard"
           >
-            {(weeklyIntel.quotes.length > 0 || (latestPulses && latestPulses.length > 0)) && (
+            {weeklyIntel.quotes.length > 0 && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                {weeklyIntel.quotes.length > 0 && (
-                  <div className="rounded-xl bg-gradient-to-br from-[#F8F7FF] to-[#F0EFFF] dark:from-[#6366F1]/[0.06] dark:to-[#8B5CF6]/[0.04] border border-[#6366F1]/[0.08] p-5 sm:p-6 flex flex-col" data-testid="snapshot-quote">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Quote className="w-4 h-4 text-[#6366F1]" />
-                      <span className="text-[12px] font-bold uppercase tracking-[0.12em] text-[#6366F1]">Quote of the Day</span>
-                    </div>
-                    <blockquote className="text-[16px] sm:text-[18px] font-display text-foreground leading-relaxed italic mb-3 flex-1">
-                      "{weeklyIntel.quotes[0].quoteText}"
-                    </blockquote>
-                    <Link href={`/podcasts/${weeklyIntel.quotes[0].podcastSlug}/${weeklyIntel.quotes[0].episodeSlug}`} className="flex items-center gap-2 group" data-testid="link-snapshot-quote">
-                      <span className="text-[14px] font-semibold text-foreground">{weeklyIntel.quotes[0].speakerName}</span>
-                      <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-                      <span className="text-[13px] text-muted-foreground group-hover:text-primary transition-colors">{weeklyIntel.quotes[0].podcastName}</span>
-                      <ArrowUpRight className="w-3 h-3 text-muted-foreground/30 group-hover:text-primary transition-colors" />
-                    </Link>
+                <div className="rounded-xl bg-gradient-to-br from-[#F8F7FF] to-[#F0EFFF] dark:from-[#6366F1]/[0.06] dark:to-[#8B5CF6]/[0.04] border border-[#6366F1]/[0.08] p-5 sm:p-6 flex flex-col" data-testid="snapshot-quote">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Quote className="w-4 h-4 text-[#6366F1]" />
+                    <span className="text-[12px] font-bold uppercase tracking-[0.12em] text-[#6366F1]">Quote of the Day</span>
                   </div>
-                )}
-
-                {pulseEnabled && latestPulses && latestPulses.length > 0 && (
-                  <div className="rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-card p-5 sm:p-6 flex flex-col" data-testid="snapshot-pulse">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <Activity className="w-4 h-4 text-[#6366F1]" />
-                        <span className="text-[14px] font-bold text-foreground">The Pulse</span>
-                      </div>
-                      <Link
-                        href={latestPulseDate ? `${categoryBasePath}/${params.slug}/pulse/${latestPulseDate}` : `${categoryBasePath}/${params.slug}/pulse`}
-                        className="text-[12px] font-medium text-primary hover:text-primary/80 transition-colors"
-                        data-testid="snapshot-read-pulse"
-                      >
-                        Read all →
-                      </Link>
-                    </div>
-                    <div className="space-y-3 flex-1">
-                      {latestPulses.slice(0, 3).map((pulse, i) => {
-                        const d = new Date(pulse.publishDate + "T00:00:00");
-                        const formattedDate = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-                        return (
-                          <Link
-                            key={i}
-                            href={`${categoryBasePath}/${params.slug}/pulse/${pulse.publishDate}`}
-                            className="block group"
-                            data-testid={`snapshot-pulse-${i}`}
-                          >
-                            <div className="flex items-baseline gap-2 mb-0.5">
-                              <span className="text-[12px] font-semibold text-primary/60 uppercase tracking-wide flex-shrink-0">{formattedDate}</span>
-                            </div>
-                            <p className="text-[14px] text-foreground/80 leading-relaxed group-hover:text-primary transition-colors line-clamp-2">{pulse.summary || pulse.headline}</p>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
+                  <blockquote className="text-[16px] sm:text-[18px] font-display text-foreground leading-relaxed italic mb-3 flex-1">
+                    "{weeklyIntel.quotes[0].quoteText}"
+                  </blockquote>
+                  <Link href={`/podcasts/${weeklyIntel.quotes[0].podcastSlug}/${weeklyIntel.quotes[0].episodeSlug}`} className="flex items-center gap-2 group" data-testid="link-snapshot-quote">
+                    <span className="text-[14px] font-semibold text-foreground">{weeklyIntel.quotes[0].speakerName}</span>
+                    <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                    <span className="text-[13px] text-muted-foreground group-hover:text-primary transition-colors">{weeklyIntel.quotes[0].podcastName}</span>
+                    <ArrowUpRight className="w-3 h-3 text-muted-foreground/30 group-hover:text-primary transition-colors" />
+                  </Link>
+                </div>
               </div>
             )}
 
