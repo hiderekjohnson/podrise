@@ -9,7 +9,7 @@ import {
   Save, RefreshCw, Plus, Trash2, GripVertical, ExternalLink,
   Image, Clock, Calendar, Hash, Eye, EyeOff, AlertCircle,
   Globe, Star, Zap, CheckCircle, XCircle, Play, Copy, Check, Sparkles,
-  CircleDot, Link, Music, Headphones, BookOpen, Tag, HelpCircle, Brain, Newspaper, X
+  CircleDot, Link, Music, Headphones, BookOpen, Tag, HelpCircle, Brain, Newspaper, X, Shield, ShieldOff
 } from "lucide-react";
 
 function useDebouncedValue(value: string, delay = 300) {
@@ -861,6 +861,31 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
     }
   };
 
+  const handleToggleProtection = async (protect: boolean) => {
+    if (selectedSlugs.size === 0) return;
+    setIsBulkUpdating(true);
+    try {
+      const res = await fetch("/api/admin/cms/podcasts/toggle-protection", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ slugs: Array.from(selectedSlugs), isProtected: protect }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast({ title: "Failed", description: data.message, variant: "destructive" });
+        return;
+      }
+      toast({ title: `${protect ? "Protected" : "Unprotected"} ${data.updated} podcasts` });
+      setSelectedSlugs(new Set());
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/podcasts"] });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
   const handleBulkUpdate = async (fields: { status?: string }) => {
     if (selectedSlugs.size === 0) return;
     setIsBulkUpdating(true);
@@ -969,6 +994,24 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
               <option value="needs_review">Needs Review</option>
               <option value="requested">Requested</option>
             </select>
+            <button
+              onClick={() => handleToggleProtection(true)}
+              disabled={isBulkUpdating}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+              data-testid="btn-protect-selected"
+            >
+              <Shield className="w-3.5 h-3.5" />
+              Protect
+            </button>
+            <button
+              onClick={() => handleToggleProtection(false)}
+              disabled={isBulkUpdating}
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-border text-xs font-medium rounded-lg hover:bg-muted/50 disabled:opacity-50 transition-colors"
+              data-testid="btn-unprotect-selected"
+            >
+              <ShieldOff className="w-3.5 h-3.5" />
+              Unprotect
+            </button>
             {!showDeleteConfirm ? (
               <button
                 onClick={() => setShowDeleteConfirm(true)}

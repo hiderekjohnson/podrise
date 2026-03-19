@@ -380,6 +380,7 @@ export const podcastDirectory = pgTable("podcast_directory", {
   appleRatingCount: integer("apple_rating_count"),
   hasLandingPage: boolean("has_landing_page").default(false),
   status: text("status").notNull().default("published"),
+  isProtected: boolean("is_protected").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

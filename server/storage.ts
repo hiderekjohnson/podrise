@@ -542,6 +542,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deletePodcastDirectoryEntry(id: number): Promise<void> {
+    const [entry] = await db.select({ isProtected: podcastDirectory.isProtected, name: podcastDirectory.name })
+      .from(podcastDirectory).where(eq(podcastDirectory.id, id)).limit(1);
+    if (entry?.isProtected) {
+      throw new Error(`Cannot delete protected podcast "${entry.name}". Remove protection first.`);
+    }
     await db.delete(podcastDirectory).where(eq(podcastDirectory.id, id));
   }
 

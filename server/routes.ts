@@ -623,6 +623,7 @@ export async function registerRoutes(
       ALTER TABLE podcast_directory ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'published';
       ALTER TABLE podcast_directory ADD COLUMN IF NOT EXISTS followers_count INTEGER DEFAULT 0;
       ALTER TABLE podcast_directory ADD COLUMN IF NOT EXISTS feed_url TEXT;
+      ALTER TABLE podcast_directory ADD COLUMN IF NOT EXISTS is_protected BOOLEAN DEFAULT false;
     `);
     
     // Note: podcast_directory has no legacy 'published' boolean column to backfill from.
@@ -13178,12 +13179,18 @@ Rules:
         return res.status(400).json({ message: "Maximum 100 podcasts at a time" });
       }
       const { rows: existing } = await pool.query(
-        `SELECT slug, name FROM podcast_directory WHERE slug = ANY($1)`, [slugs]
+        `SELECT slug, name, is_protected FROM podcast_directory WHERE slug = ANY($1)`, [slugs]
       );
       if (existing.length === 0) {
         return res.status(404).json({ message: "No matching podcasts found" });
       }
-      const foundSlugs = existing.map((r: any) => r.slug);
+      const protectedOnes = existing.filter((r: any) => r.is_protected);
+      const deletable = existing.filter((r: any) => !r.is_protected);
+      if (deletable.length === 0) {
+        const protectedNames = protectedOnes.map((r: any) => r.name).join(", ");
+        return res.status(403).json({ message: `All selected podcasts are protected and cannot be deleted: ${protectedNames}` });
+      }
+      const foundSlugs = deletable.map((r: any) => r.slug);
       const safeDelete = async (sql: string, params: any[]) => {
         try { await pool.query(sql, params); } catch (e: any) { }
       };
@@ -13200,10 +13207,15 @@ Rules:
       await safeDelete(`DELETE FROM episodes WHERE podcast_slug = ANY($1)`, [foundSlugs]);
       await safeDelete(`DELETE FROM feed_ads WHERE podcast_slug = ANY($1)`, [foundSlugs]);
       await safeDelete(`UPDATE rss_feeds SET podcast_slugs = ARRAY(SELECT unnest(podcast_slugs) EXCEPT SELECT unnest($1::text[])) WHERE podcast_slugs && $1`, [foundSlugs]);
-      await pool.query(`DELETE FROM podcast_directory WHERE slug = ANY($1)`, [foundSlugs]);
-      const names = existing.map((r: any) => r.name).join(", ");
+      await pool.query(`DELETE FROM podcast_directory WHERE slug = ANY($1) AND (is_protected IS NOT TRUE)`, [foundSlugs]);
+      const names = deletable.map((r: any) => r.name).join(", ");
       console.log(`[CMS] Admin bulk-deleted ${foundSlugs.length} podcasts: ${names}`);
-      res.json({ deleted: foundSlugs.length, names: existing.map((r: any) => r.name) });
+      const result: any = { deleted: foundSlugs.length, names: deletable.map((r: any) => r.name) };
+      if (protectedOnes.length > 0) {
+        result.skippedProtected = protectedOnes.map((r: any) => r.name);
+        console.log(`[CMS] Skipped ${protectedOnes.length} protected podcasts: ${protectedOnes.map((r: any) => r.name).join(", ")}`);
+      }
+      res.json(result);
     } catch (err: any) {
       console.error("[CMS] Bulk delete error:", err);
       res.status(500).json({ message: err?.message || "Failed to delete podcasts" });
@@ -13245,6 +13257,28 @@ Rules:
     } catch (err: any) {
       console.error("[CMS] Bulk update error:", err);
       res.status(500).json({ message: err?.message || "Failed to update podcasts" });
+    }
+  });
+
+  app.post("/api/admin/cms/podcasts/toggle-protection", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { slugs, isProtected } = req.body;
+      if (!Array.isArray(slugs) || slugs.length === 0) {
+        return res.status(400).json({ message: "No slugs provided" });
+      }
+      if (typeof isProtected !== "boolean") {
+        return res.status(400).json({ message: "isProtected must be a boolean" });
+      }
+      const { rowCount } = await pool.query(
+        `UPDATE podcast_directory SET is_protected = $2, updated_at = NOW() WHERE slug = ANY($1)`,
+        [slugs, isProtected]
+      );
+      const action = isProtected ? "protected" : "unprotected";
+      console.log(`[CMS] Admin ${action} ${rowCount} podcasts: ${slugs.join(", ")}`);
+      res.json({ updated: rowCount, isProtected });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to toggle protection" });
     }
   });
 
