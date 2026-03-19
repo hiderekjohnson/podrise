@@ -159,6 +159,19 @@ interface FeedAdData {
   podcastName: string | null;
   weight: number;
   isActive: boolean;
+  spotifyEpisodeUrl?: string | null;
+  spotifyUrl?: string | null;
+  youtubeUrl?: string | null;
+  whatHappened?: string | null;
+  hosts?: string | null;
+  totalEpisodes?: number | null;
+  yearStarted?: number | null;
+  tabloidSubHeadline?: string | null;
+  mentions?: {
+    people: MentionEntry[];
+    companies: MentionEntry[];
+    products: ProductEntry[];
+  };
 }
 
 function trackAdEvent(adId: number, eventType: "view" | "click" | "follow") {
@@ -290,95 +303,51 @@ function RegularAdCard({ ad }: { ad: FeedAdData }) {
   );
 }
 
-function EpisodeRecapAdCard({ ad, onFollow }: { ad: FeedAdData; onFollow: (slug: string, adId?: number) => void }) {
+function EpisodeRecapAdCard({ ad, onFollow, bookmarkedKeys, onBookmarkToggle, followedPodcastSlugs, toast }: {
+  ad: FeedAdData;
+  onFollow: (slug: string, follow: boolean, adId?: number) => void;
+  bookmarkedKeys: Set<string>;
+  onBookmarkToggle: (episodeSlug: string, podcastSlug: string) => void;
+  followedPodcastSlugs: Set<string>;
+  toast: ReturnType<typeof useToast>["toast"];
+}) {
   const viewRef = useAdViewTracking(ad.id);
-  const insights = ad.episodeKeyInsights || [];
+  const isBookmarked = ad.podcastSlug && ad.episodeSlug
+    ? bookmarkedKeys.has(`${ad.podcastSlug}::${ad.episodeSlug}`)
+    : false;
+  const isFollowing = ad.podcastSlug ? followedPodcastSlugs.has(ad.podcastSlug) : false;
+
   return (
-    <div
-      ref={viewRef}
-      className="rounded-2xl overflow-hidden mb-4 border border-[#F5E6B8]"
-      style={{ background: "#FFFBEB" }}
-      data-testid={`feed-episode-recap-ad-${ad.id}`}
-    >
-      <div className="p-5">
-        <div className="flex items-start gap-4 mb-3">
-          <img
-            src={ad.imageUrl}
-            alt={ad.podcastName || ad.title}
-            className="w-[72px] h-[72px] rounded-xl object-cover shrink-0"
-            onError={(e) => { (e.target as HTMLImageElement).style.background = "#ddd"; }}
-          />
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-[12px] text-[#A1A1AA] font-medium mb-0.5" data-testid={`text-recap-ad-podcast-${ad.id}`}>
-                  {ad.podcastName || ad.title}
-                </div>
-                <div className="font-bold text-[16px] text-[#09090B] leading-tight" data-testid={`text-recap-ad-episode-${ad.id}`}>
-                  {ad.episodeTitle || ad.title}
-                </div>
-              </div>
-              <span className="text-[12px] text-[#A1A1AA] font-medium shrink-0 ml-2" data-testid={`label-ad-${ad.id}`}>Ad</span>
-            </div>
-          </div>
-        </div>
-
-        {ad.episodeTldl && (
-          <div className="mb-3">
-            <div className="text-[11px] font-bold text-[#6366F1] uppercase tracking-wide mb-1">TL;DL</div>
-            <div className="text-[14px] text-[#52525B] leading-[1.6]" data-testid={`text-recap-ad-tldl-${ad.id}`}>
-              {ad.episodeTldl}
-            </div>
-          </div>
-        )}
-
-        {insights.length > 0 && (
-          <div className="mb-3">
-            <div className="text-[11px] font-bold text-[#6366F1] uppercase tracking-wide mb-1">Key Insights</div>
-            <ul className="space-y-1">
-              {insights.slice(0, 3).map((insight, i) => (
-                <li key={i} className="text-[13px] text-[#52525B] leading-[1.5] flex items-start gap-2">
-                  <span className="text-[#6366F1] mt-0.5 shrink-0">•</span>
-                  <span>{insight}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {ad.episodeQuote && (
-          <div className="mb-3 pl-3 border-l-2 border-[#6366F1]/30">
-            <div className="text-[13px] text-[#52525B] italic leading-[1.5]" data-testid={`text-recap-ad-quote-${ad.id}`}>
-              "{ad.episodeQuote}"
-            </div>
-            {ad.episodeQuoteAttribution && (
-              <div className="text-[12px] text-[#A1A1AA] mt-1">— {ad.episodeQuoteAttribution}</div>
-            )}
-          </div>
-        )}
-
-        <div className="flex items-center justify-between pt-2 border-t border-black/[0.06]">
-          {ad.podcastSlug && ad.episodeSlug ? (
-            <Link
-              href={`/podcasts/${ad.podcastSlug}/${ad.episodeSlug}`}
-              className="text-[13px] font-bold text-[#6366F1] hover:text-[#4F46E5]"
-              onClick={() => trackAdEvent(ad.id, "click")}
-              data-testid={`link-recap-ad-${ad.id}`}
-            >
-              Read Full Recap →
-            </Link>
-          ) : <div />}
-          {ad.podcastSlug && (
-            <button
-              onClick={() => onFollow(ad.podcastSlug!, ad.id)}
-              className="inline-flex items-center px-5 py-[7px] rounded-full text-[14px] font-bold transition-all bg-[#6366F1] text-white hover:bg-[#4F46E5]"
-              data-testid={`feed-ad-follow-btn-${ad.id}`}
-            >
-              Follow
-            </button>
-          )}
-        </div>
-      </div>
+    <div ref={viewRef} data-testid={`feed-episode-recap-ad-${ad.id}`}>
+      <RecapCard
+        id={`ad-${ad.id}`}
+        podcastSlug={ad.podcastSlug || ""}
+        episodeSlug={ad.episodeSlug || ""}
+        podcastName={ad.podcastName || ad.title}
+        episodeTitle={ad.episodeTitle || ad.title}
+        publishDate={null}
+        artworkUrl={ad.imageUrl}
+        tldl={ad.episodeTldl}
+        tabloidSubHeadline={ad.tabloidSubHeadline}
+        keyInsights={ad.episodeKeyInsights}
+        quote={ad.episodeQuote}
+        quoteAttribution={ad.episodeQuoteAttribution}
+        hosts={ad.hosts}
+        totalEpisodes={ad.totalEpisodes}
+        yearStarted={ad.yearStarted}
+        whatHappened={ad.whatHappened}
+        spotifyEpisodeUrl={ad.spotifyEpisodeUrl}
+        spotifyUrl={ad.spotifyUrl}
+        youtubeUrl={ad.youtubeUrl}
+        mentions={ad.mentions}
+        isFollowing={isFollowing}
+        isBookmarked={isBookmarked}
+        onFollowToggle={(slug, follow) => onFollow(slug, follow, ad.id)}
+        onBookmarkToggle={onBookmarkToggle}
+        toast={toast}
+        testIdPrefix="feed-recap-ad"
+        adBadge
+      />
     </div>
   );
 }
@@ -408,6 +377,13 @@ export default function FeedPage() {
   });
 
   const bookmarkedKeys = new Set((bookmarksData || []).map((b) => `${b.podcastSlug}::${b.episodeSlug}`));
+
+  const followedPodcastSlugs = useMemo(() => {
+    if (!user?.podcasts) return new Set<string>();
+    return new Set(user.podcasts.map((p: string) => {
+      try { const parsed = JSON.parse(p); return parsed?.id || p; } catch { return p; }
+    }));
+  }, [user?.podcasts]);
 
   const addBookmark = useMutation({
     mutationFn: async ({ episodeSlug, podcastSlug }: { episodeSlug: string; podcastSlug: string }) => {
@@ -634,7 +610,11 @@ export default function FeedPage() {
                         <EpisodeRecapAdCard
                           key={`ad-${ad.id}-${index}`}
                           ad={ad}
-                          onFollow={(slug, adId) => handleFollowToggle(slug, true, adId)}
+                          onFollow={handleFollowToggle}
+                          bookmarkedKeys={bookmarkedKeys}
+                          onBookmarkToggle={handleBookmarkToggle}
+                          followedPodcastSlugs={followedPodcastSlugs}
+                          toast={toast}
                         />
                       );
                     } else {

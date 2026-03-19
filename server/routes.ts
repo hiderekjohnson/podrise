@@ -17116,7 +17116,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
           if (random <= 0) { results.push(ad); break; }
         }
       }
-      let enriched = results;
+      let enriched: any[] = results;
       try {
         const podcastSlugs = [...new Set(results.filter(a => a.type === "podcast" && a.podcastSlug).map(a => a.podcastSlug!))];
         if (podcastSlugs.length > 0) {
@@ -17140,6 +17140,95 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       } catch (artworkErr) {
         console.log("[FeedAds] Artwork enrichment skipped (podcasts table may not exist)");
       }
+
+      try {
+        const episodeRecapAds = enriched.filter((a: any) => a.type === "episode_recap" && a.podcastSlug && a.episodeSlug);
+        if (episodeRecapAds.length > 0) {
+          const epSlugs = [...new Set(episodeRecapAds.map((a: any) => a.episodeSlug!))];
+          const podSlugs = [...new Set(episodeRecapAds.map((a: any) => a.podcastSlug!))];
+          const recapResult = await pool.query(
+            `SELECT lpr.id, lpr.slug as podcast_slug, lpr.episode_slug, lpr.what_happened, lpr.spotify_episode_url,
+                    lpr.youtube_url, lpr.hosts as recap_hosts, lpr.tabloid_sub_headline,
+                    pd.spotify_url as pd_spotify_url, pd.total_episodes as pd_total_episodes,
+                    pd.year_started as pd_year_started, pd.hosts as pd_hosts
+             FROM landing_page_recaps lpr
+             LEFT JOIN podcast_directory pd ON pd.slug = lpr.slug
+             WHERE lpr.episode_slug = ANY($1) AND lpr.slug = ANY($2)`,
+            [epSlugs, podSlugs]
+          );
+          const recapMap: Record<string, any> = {};
+          const recapIds: number[] = [];
+          for (const r of recapResult.rows) {
+            const key = `${r.podcast_slug}:${r.episode_slug}`;
+            recapMap[key] = r;
+            recapIds.push(r.id);
+          }
+
+          let mentionsMap: Record<number, { people: any[]; companies: any[] }> = {};
+          let productsMap: Record<string, any[]> = {};
+          if (recapIds.length > 0) {
+            const mentionsResult = await pool.query(
+              `SELECT eem.recap_id, eem.entity_type, eem.entity_slug, eem.context,
+                      CASE WHEN eem.entity_type = 'person' THEN ep.name ELSE ec.name END as entity_name,
+                      CASE WHEN eem.entity_type = 'person' THEN ep.title ELSE ec.industry END as entity_role,
+                      CASE WHEN eem.entity_type = 'person' THEN ep.company ELSE NULL END as entity_company
+               FROM entity_episode_mentions eem
+               LEFT JOIN entity_people ep ON eem.entity_type = 'person' AND eem.entity_slug = ep.slug
+               LEFT JOIN entity_companies ec ON eem.entity_type = 'company' AND eem.entity_slug = ec.slug
+               WHERE eem.recap_id = ANY($1)`,
+              [recapIds]
+            );
+            for (const m of mentionsResult.rows) {
+              if (!mentionsMap[m.recap_id]) mentionsMap[m.recap_id] = { people: [], companies: [] };
+              const entry = { slug: m.entity_slug, name: m.entity_name, role: m.entity_role, company: m.entity_company, context: m.context };
+              if (m.entity_type === 'person') mentionsMap[m.recap_id].people.push(entry);
+              else mentionsMap[m.recap_id].companies.push(entry);
+            }
+
+            const productsResult = await pool.query(
+              `SELECT podcast_slug, episode_slug, name, company, description, image_url, category, purchase_url
+               FROM extracted_products
+               WHERE status = 'approved' AND episode_slug = ANY($1) AND podcast_slug = ANY($2)`,
+              [epSlugs, podSlugs]
+            );
+            for (const p of productsResult.rows) {
+              const key = `${p.podcast_slug}:${p.episode_slug}`;
+              if (!productsMap[key]) productsMap[key] = [];
+              productsMap[key].push({
+                name: p.name, company: p.company, description: p.description,
+                imageUrl: p.image_url, category: p.category, purchaseUrl: p.purchase_url,
+              });
+            }
+          }
+
+          enriched = enriched.map((ad: any) => {
+            if (ad.type === "episode_recap" && ad.podcastSlug && ad.episodeSlug) {
+              const key = `${ad.podcastSlug}:${ad.episodeSlug}`;
+              const recap = recapMap[key];
+              if (recap) {
+                const mentions = mentionsMap[recap.id] || { people: [], companies: [] };
+                const products = productsMap[key] || [];
+                return {
+                  ...ad,
+                  whatHappened: recap.what_happened || null,
+                  spotifyEpisodeUrl: recap.spotify_episode_url || null,
+                  spotifyUrl: recap.pd_spotify_url || null,
+                  youtubeUrl: recap.youtube_url || null,
+                  hosts: recap.pd_hosts || recap.recap_hosts || null,
+                  totalEpisodes: recap.pd_total_episodes || null,
+                  yearStarted: recap.pd_year_started || null,
+                  tabloidSubHeadline: recap.tabloid_sub_headline || null,
+                  mentions: { people: mentions.people, companies: mentions.companies, products },
+                };
+              }
+            }
+            return ad;
+          });
+        }
+      } catch (recapErr) {
+        console.log("[FeedAds] Episode recap enrichment skipped:", recapErr);
+      }
+
       res.json({ ads: enriched, frequency: freq });
     } catch (err) {
       console.error("[FeedAds] Batch error:", err);

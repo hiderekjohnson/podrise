@@ -113,6 +113,7 @@ export interface FeedEpisodeCardProps {
   hosts?: string;
   totalEpisodes?: number;
   yearStarted?: number;
+  adBadge?: boolean;
 }
 
 export function FeedEpisodeCard({
@@ -134,6 +135,7 @@ export function FeedEpisodeCard({
   hosts,
   totalEpisodes,
   yearStarted,
+  adBadge = false,
 }: FeedEpisodeCardProps) {
   const headerTint = getHeaderTint(artworkUrl || podcastSlug);
   const insights = keyInsights || [];
@@ -156,6 +158,11 @@ export function FeedEpisodeCard({
         <div className="flex-1 min-w-0 flex flex-col justify-center min-h-[80px] sm:min-h-[120px]">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
+              {adBadge && (
+                <span className="inline-block text-[10px] font-bold uppercase tracking-[0.08em] text-[#A1A1AA] bg-[#F4F4F5] dark:bg-[#27272A] px-2 py-0.5 rounded mb-1.5" data-testid={`${testIdPrefix}-ad-badge`}>
+                  Ad
+                </span>
+              )}
               <Link href={`/podcasts/${podcastSlug}`}>
                 <span className="text-[18px] font-extrabold text-[#09090B] dark:text-white tracking-[-0.02em] leading-[1.1] mb-2 block hover:text-[#6366F1] transition-colors overflow-hidden text-ellipsis" data-testid={`${testIdPrefix}-podcast-name-${episodeSlug}`}>
                   {podcastName}

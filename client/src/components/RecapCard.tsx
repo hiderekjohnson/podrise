@@ -160,6 +160,7 @@ export interface RecapCardProps {
   testIdPrefix?: string;
   className?: string;
   isLoggedIn?: boolean;
+  adBadge?: boolean;
 }
 
 export function RecapCard({
@@ -193,6 +194,7 @@ export function RecapCard({
   testIdPrefix = "recap",
   className = "mb-5",
   isLoggedIn = false,
+  adBadge = false,
 }: RecapCardProps) {
   const headerAction = onFollowToggle ? (
     isFollowing ? (
@@ -286,6 +288,7 @@ export function RecapCard({
         yearStarted={yearStarted || undefined}
         testIdPrefix={testIdPrefix}
         headerAction={headerAction}
+        adBadge={adBadge}
         bottomActions={
           <CardBottomAccordion
             item={accordionItem}
