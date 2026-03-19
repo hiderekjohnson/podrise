@@ -1172,6 +1172,202 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
   );
 }
 
+function HostProfilesSection({ slug, hosts }: { slug: string; hosts: PodcastHost[] }) {
+  const { toast } = useToast();
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [newHost, setNewHost] = useState({ name: "", bio: "", photoUrl: "", twitterHandle: "", linkedinUrl: "", websiteUrl: "" });
+
+  const deleteHostMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/admin/podcasts/hosts/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/podcasts", slug] });
+      toast({ title: "Host deleted" });
+      setDeletingId(null);
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+      setDeletingId(null);
+    },
+  });
+
+  const addHostMutation = useMutation({
+    mutationFn: (data: typeof newHost) => apiRequest("POST", `/api/admin/podcasts/${slug}/hosts`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/podcasts", slug] });
+      toast({ title: "Host added" });
+      setNewHost({ name: "", bio: "", photoUrl: "", twitterHandle: "", linkedinUrl: "", websiteUrl: "" });
+      setShowAddForm(false);
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
+  return (
+    <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-bold text-foreground">Host Profiles</h4>
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
+          data-testid="button-add-host"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          Add Host
+        </button>
+      </div>
+
+      {hosts.map((host: PodcastHost) => (
+        <div key={host.id} className="flex items-start gap-3 p-3 bg-muted/20 rounded-lg" data-testid={`host-card-${host.id}`}>
+          {host.photo_url && <img src={host.photo_url} alt="" className="w-12 h-12 rounded-full object-cover flex-shrink-0" />}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">{host.name}</p>
+            {host.bio && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{host.bio}</p>}
+            <div className="flex flex-wrap gap-2 mt-1">
+              {host.twitter_handle && <span className="text-xs text-primary">@{host.twitter_handle}</span>}
+              {host.linkedin_url && <a href={host.linkedin_url} target="_blank" rel="noopener" className="text-xs text-blue-600 hover:underline">LinkedIn</a>}
+              {host.website_url && <a href={host.website_url} target="_blank" rel="noopener" className="text-xs text-blue-600 hover:underline">Website</a>}
+            </div>
+          </div>
+          {deletingId === host.id ? (
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <button
+                onClick={() => deleteHostMutation.mutate(host.id)}
+                disabled={deleteHostMutation.isPending}
+                className="px-2 py-1 text-xs font-medium text-white bg-red-500 hover:bg-red-600 rounded-md transition-colors disabled:opacity-50"
+                data-testid={`button-confirm-delete-host-${host.id}`}
+              >
+                {deleteHostMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Delete"}
+              </button>
+              <button
+                onClick={() => setDeletingId(null)}
+                className="px-2 py-1 text-xs font-medium text-muted-foreground hover:text-foreground rounded-md transition-colors"
+                data-testid={`button-cancel-delete-host-${host.id}`}
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setDeletingId(host.id)}
+              className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors flex-shrink-0"
+              title="Delete host"
+              data-testid={`button-delete-host-${host.id}`}
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      ))}
+
+      {hosts.length === 0 && !showAddForm && (
+        <p className="text-xs text-muted-foreground" data-testid="text-no-hosts">No hosts added yet. Click "Add Host" to add one.</p>
+      )}
+
+      {showAddForm && (
+        <div className="border border-border rounded-lg p-4 space-y-3" data-testid="form-add-host">
+          <div>
+            <label className="text-xs font-medium text-foreground">Name *</label>
+            <input
+              type="text"
+              value={newHost.name}
+              onChange={(e) => setNewHost({ ...newHost, name: e.target.value })}
+              className="w-full px-3 py-2 border border-border rounded-lg text-sm mt-1"
+              placeholder="Host name"
+              data-testid="input-host-name"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-foreground">Bio</label>
+            <textarea
+              value={newHost.bio}
+              onChange={(e) => setNewHost({ ...newHost, bio: e.target.value })}
+              className="w-full px-3 py-2 border border-border rounded-lg text-sm mt-1"
+              rows={2}
+              placeholder="Short bio"
+              data-testid="input-host-bio"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-foreground">Photo URL</label>
+            <input
+              type="text"
+              value={newHost.photoUrl}
+              onChange={(e) => setNewHost({ ...newHost, photoUrl: e.target.value })}
+              className="w-full px-3 py-2 border border-border rounded-lg text-sm mt-1"
+              placeholder="https://..."
+              data-testid="input-host-photo-url"
+            />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="text-xs font-medium text-foreground">Twitter Handle</label>
+              <input
+                type="text"
+                value={newHost.twitterHandle}
+                onChange={(e) => setNewHost({ ...newHost, twitterHandle: e.target.value })}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm mt-1"
+                placeholder="@handle"
+                data-testid="input-host-twitter"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-foreground">LinkedIn URL</label>
+              <input
+                type="text"
+                value={newHost.linkedinUrl}
+                onChange={(e) => setNewHost({ ...newHost, linkedinUrl: e.target.value })}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm mt-1"
+                placeholder="https://linkedin.com/in/..."
+                data-testid="input-host-linkedin"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-foreground">Website URL</label>
+              <input
+                type="text"
+                value={newHost.websiteUrl}
+                onChange={(e) => setNewHost({ ...newHost, websiteUrl: e.target.value })}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm mt-1"
+                placeholder="https://..."
+                data-testid="input-host-website"
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              onClick={() => {
+                if (!newHost.name.trim()) {
+                  toast({ title: "Name is required", variant: "destructive" });
+                  return;
+                }
+                addHostMutation.mutate(newHost);
+              }}
+              disabled={addHostMutation.isPending}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              data-testid="button-save-host"
+            >
+              {addHostMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              Save Host
+            </button>
+            <button
+              onClick={() => {
+                setShowAddForm(false);
+                setNewHost({ name: "", bio: "", photoUrl: "", twitterHandle: "", linkedinUrl: "", websiteUrl: "" });
+              }}
+              className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              data-testid="button-cancel-add-host"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: CMSView) => void }) {
   const { toast } = useToast();
   const { data: podcast, isLoading } = useQuery<CMSPodcastDetail>({
@@ -1546,8 +1742,8 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">Hosts</label>
-                  <input data-testid="input-cms-podcast-hosts" type="text" value={form.hosts} onChange={(e) => setForm({ ...form, hosts: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm" />
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Hosts <span className="font-normal text-muted-foreground/60">(display text)</span></label>
+                  <input data-testid="input-cms-podcast-hosts" type="text" value={form.hosts} onChange={(e) => setForm({ ...form, hosts: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm" placeholder="e.g. Joe Rogan, Jamie Vernon" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-muted-foreground mb-1">Artwork URL</label>
@@ -1646,25 +1842,7 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
             </button>
           </div>
 
-          {podcast?.hosts_data && podcast.hosts_data.length > 0 && (
-            <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
-              <h4 className="text-sm font-bold text-foreground">Host Profiles</h4>
-              {podcast.hosts_data.map((host: PodcastHost) => (
-                <div key={host.id} className="flex items-start gap-3 p-3 bg-muted/20 rounded-lg" data-testid={`host-card-${host.id}`}>
-                  {host.photo_url && <img src={host.photo_url} alt="" className="w-12 h-12 rounded-full object-cover flex-shrink-0" />}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground">{host.name}</p>
-                    {host.bio && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{host.bio}</p>}
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {host.twitter_handle && <span className="text-xs text-primary">@{host.twitter_handle}</span>}
-                      {host.linkedin_url && <a href={host.linkedin_url} target="_blank" rel="noopener" className="text-xs text-blue-600 hover:underline">LinkedIn</a>}
-                      {host.website_url && <a href={host.website_url} target="_blank" rel="noopener" className="text-xs text-blue-600 hover:underline">Website</a>}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <HostProfilesSection slug={slug} hosts={podcast?.hosts_data || []} />
 
 
         </div>
