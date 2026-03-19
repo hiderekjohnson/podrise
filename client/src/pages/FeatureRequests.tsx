@@ -30,20 +30,6 @@ const changelog: ChangelogEntry[] = [
     date: "Mar 13, 2026",
   },
   {
-    title: "Topic Pulse — AI-synthesized daily intelligence briefings",
-    description: "Pick any topic you care about and Topic Pulse delivers a concise, AI-written intelligence briefing every day — synthesized from dozens of podcast episodes so you don't have to listen to all of them. Each briefing links back to its source episodes, and you can browse the full archive to track how conversations have evolved over time.",
-    link: { url: "/podcasts", label: "Browse podcasts" },
-    emoji: "⚡",
-    date: "Mar 9, 2026",
-  },
-  {
-    title: "Subscribe to The Pulse for any industry, topic, or role",
-    description: "You can now sign up to receive regular Pulse briefings tailored to your world — whether that's a specific industry like fintech, a topic like climate tech, or a professional role like product manager. It's like having a research assistant who listens to hundreds of podcasts and sends you only what matters.",
-    link: { url: "/podcasts", label: "Browse podcasts" },
-    emoji: "📬",
-    date: "Mar 7, 2026",
-  },
-  {
     title: "Shop search by podcast",
     description: "Wondering which books your favorite podcast has recommended over the years? You can now search the Shop by podcast name to see every book mentioned across all episodes of a specific show. It's a great way to build a reading list curated by hosts you trust.",
     link: { url: "/shop", label: "Search books by podcast" },
