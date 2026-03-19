@@ -3634,11 +3634,14 @@ function safeDecode(segment: string): string {
 }
 
 function parseCmsPath(pathname: string): CMSView {
+  let rest = pathname;
   const cmsPrefix = "/admin/cms/";
-  if (!pathname.startsWith(cmsPrefix)) {
-    return { tab: "podcasts" };
+  if (rest.startsWith(cmsPrefix)) {
+    rest = rest.slice(cmsPrefix.length);
+  } else if (rest.startsWith("/")) {
+    rest = rest.slice(1);
   }
-  const rest = pathname.slice(cmsPrefix.length).replace(/\/+$/, "");
+  rest = rest.replace(/\/+$/, "");
   const segments = rest.split("/").filter(Boolean);
 
   if (segments[0] === "podcasts") {
@@ -3657,16 +3660,16 @@ function parseCmsPath(pathname: string): CMSView {
 
 function cmsViewToPath(view: CMSView): string {
   switch (view.tab) {
-    case "podcasts": return "/admin/cms/podcasts";
-    case "podcast-detail": return `/admin/cms/podcasts/${encodeURIComponent(view.podcastSlug)}`;
+    case "podcasts": return "/podcasts";
+    case "podcast-detail": return `/podcasts/${encodeURIComponent(view.podcastSlug)}`;
     case "episodes":
-      if (view.podcastSlug) return `/admin/cms/podcasts/${encodeURIComponent(view.podcastSlug)}/episodes`;
-      return "/admin/cms/episodes";
-    case "episode-detail": return `/admin/cms/podcasts/${encodeURIComponent(view.podcastSlug)}/episodes/${encodeURIComponent(view.episodeSlug)}`;
-    case "people": return "/admin/cms/people";
-    case "companies": return "/admin/cms/companies";
-    case "products": return "/admin/cms/products";
-    default: return "/admin/cms/podcasts";
+      if (view.podcastSlug) return `/podcasts/${encodeURIComponent(view.podcastSlug)}/episodes`;
+      return "/episodes";
+    case "episode-detail": return `/podcasts/${encodeURIComponent(view.podcastSlug)}/episodes/${encodeURIComponent(view.episodeSlug)}`;
+    case "people": return "/people";
+    case "companies": return "/companies";
+    case "products": return "/products";
+    default: return "/podcasts";
   }
 }
 
@@ -3680,8 +3683,8 @@ export default function AdminCMS() {
   const [location, navigate] = useLocation();
 
   useEffect(() => {
-    if (location === "/admin/cms" || location === "/admin/cms/") {
-      navigate("/admin/cms/podcasts", { replace: true });
+    if (location === "/admin/cms" || location === "/admin/cms/" || location === "/" || location === "") {
+      navigate("/podcasts", { replace: true });
     }
   }, [location, navigate]);
 
@@ -3702,11 +3705,11 @@ export default function AdminCMS() {
 
   const handleSectionClick = useCallback((key: CMSSection) => {
     if (key === "podcasts") {
-      navigate("/admin/cms/podcasts");
+      navigate("/podcasts");
     } else if (key === "episodes") {
-      navigate("/admin/cms/episodes");
+      navigate("/episodes");
     } else {
-      navigate(`/admin/cms/${key}`);
+      navigate(`/${key}`);
     }
   }, [navigate]);
 
