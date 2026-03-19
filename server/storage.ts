@@ -536,7 +536,22 @@ export class DatabaseStorage implements IStorage {
     const updateFields: Record<string, any> = { updatedAt: new Date() };
     for (const [key, value] of Object.entries(rest)) {
       if (value !== undefined) {
+        if (key === 'artworkUrl' && (value === null || value === '')) continue;
+        if (key === 'name' && (value === null || value === '')) continue;
         updateFields[key] = value;
+      }
+    }
+    const safeUpdateFields = { ...updateFields };
+    if (safeUpdateFields.artworkUrl !== undefined) {
+      safeUpdateFields.artworkUrl = sql`COALESCE(NULLIF(${safeUpdateFields.artworkUrl}, ''), ${podcastDirectory.artworkUrl})`;
+    }
+    if (safeUpdateFields.name !== undefined) {
+      const newName = safeUpdateFields.name;
+      const slug = data.slug;
+      const isSlugLike = typeof newName === 'string' && typeof slug === 'string' &&
+        newName.toLowerCase().replace(/[\s-]+/g, '') === slug.toLowerCase().replace(/[\s-]+/g, '');
+      if (isSlugLike) {
+        safeUpdateFields.name = sql`COALESCE(NULLIF(${podcastDirectory.name}, ${podcastDirectory.slug}), ${newName})`;
       }
     }
     try {
@@ -545,7 +560,7 @@ export class DatabaseStorage implements IStorage {
         .values(data)
         .onConflictDoUpdate({
           target: podcastDirectory.itunesId,
-          set: updateFields,
+          set: safeUpdateFields,
         })
         .returning();
       return entry;
@@ -553,7 +568,7 @@ export class DatabaseStorage implements IStorage {
       if (err?.code === '23505' && err?.constraint?.includes('slug')) {
         const [existing] = await db.select().from(podcastDirectory).where(eq(podcastDirectory.slug, data.slug)).limit(1);
         if (existing) {
-          const [updated] = await db.update(podcastDirectory).set(updateFields).where(eq(podcastDirectory.slug, data.slug)).returning();
+          const [updated] = await db.update(podcastDirectory).set(safeUpdateFields).where(eq(podcastDirectory.slug, data.slug)).returning();
           return updated;
         }
       }

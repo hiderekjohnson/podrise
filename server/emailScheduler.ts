@@ -2230,19 +2230,22 @@ async function ensureLandingPageDirectoryEntries() {
         const lookupRes = await fetch(`https://itunes.apple.com/lookup?id=${itunesId}&media=podcast`);
         const lookupData = await lookupRes.json();
         const info = lookupData.results?.[0];
+        const artUrl = (info?.artworkUrl600 || info?.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb") || null;
         await storage.upsertPodcastDirectoryEntry({
           itunesId,
           slug,
           name: info?.collectionName || slug,
-          artworkUrl: (info?.artworkUrl600 || info?.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb") || null,
+          artworkUrl: artUrl,
           hasLandingPage: true,
         });
         updated++;
       } catch {
+        const existingBySlug = allDir.find((p: any) => p.slug === slug);
         await storage.upsertPodcastDirectoryEntry({
           itunesId,
           slug,
-          name: slug,
+          name: existingBySlug?.name || slug,
+          artworkUrl: existingBySlug?.artworkUrl || undefined,
           hasLandingPage: true,
         });
         updated++;

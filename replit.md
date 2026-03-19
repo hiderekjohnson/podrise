@@ -31,6 +31,13 @@ PodRise is a full-stack web application designed to provide personalized daily p
 **Recap Validator** (`server/recapValidator.ts`): Unified post-creation validation that runs after every episode recap creation across all 4 code paths (emailScheduler, productionRecapScheduler, backgroundRecapGenerator, admin routes). Checks 14 fields and auto-fills gaps: tabloid headlines, Spotify URLs, Apple URLs, audio URLs, and quotes DB entries. Admin batch validation endpoint at `POST /api/admin/validate-recaps` supports `dateRange`, `limit`, and `dryRun` options.
 **YouTube URL Matching Tool (Mechanical Turk)**: A worker-based review system for matching podcast episodes with YouTube video URLs. Workers access unique token-based review pages at `/youtube-review/:token` to verify auto-searched YouTube matches. Admin manages workers, generates links, and tracks per-worker stats via the "Mech. Turk" tab. Database tables: `mturk_workers`, `youtube_review_log`. Requires `YOUTUBE_API_KEY` env var for auto-search.
 
+## Podcast Directory Upsert Safety
+- **`upsertPodcastDirectoryEntry` (storage.ts)** has built-in guards:
+  - **Artwork**: Never overwrites existing artwork with null/empty — uses SQL `COALESCE(new, existing)`.
+  - **Name**: Never downgrades a real name to a slug-like name (e.g. "Motley Fool Money" → "motley-fool-money") — uses SQL `COALESCE(NULLIF(existing_name, slug), new_name)`.
+  - These guards prevent the `ensureLandingPageDirectoryEntries()` 30s-delayed function from wiping backfill data.
+- **DirectoryBackfill** (routes.ts): Runs synchronously at startup, fixes both missing artwork AND slug-style names for all directory entries via iTunes batch lookup.
+
 ## Critical Rules for Data Changes
 - **Dev DB ≠ Production DB**: The development database is completely separate from production. One-time scripts that only modify the dev database will NOT affect production.
 - **NEVER use one-time scripts for data fixes**: Any database data change (artwork URLs, YouTube URLs, iTunes IDs, slug corrections, etc.) MUST be written as **startup migration code** synchronously inside `registerRoutes()` in `server/routes.ts` (before the `return httpServer` line, but OUTSIDE the `setTimeout` block). This ensures the fix runs on every environment before any traffic is served.

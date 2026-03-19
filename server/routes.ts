@@ -18466,50 +18466,48 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
   });
 
   try {
-    const missingArtwork = await pool.query(
-      `SELECT slug, itunes_id FROM podcast_directory WHERE (artwork_url IS NULL OR artwork_url = '') AND slug IS NOT NULL`
+    const needsFix = await pool.query(
+      `SELECT slug, itunes_id, name, artwork_url FROM podcast_directory
+       WHERE slug IS NOT NULL AND itunes_id IS NOT NULL
+       AND ((artwork_url IS NULL OR artwork_url = '') OR name = slug)`
     );
-    if (missingArtwork.rows.length > 0) {
-      console.log(`[ArtworkBackfill] Found ${missingArtwork.rows.length} podcasts missing artwork`);
-      const withIds = missingArtwork.rows.filter((r: any) => r.itunes_id);
-      const withoutIds = missingArtwork.rows.filter((r: any) => !r.itunes_id);
+    if (needsFix.rows.length > 0) {
+      console.log(`[DirectoryBackfill] Found ${needsFix.rows.length} podcasts needing artwork or name fix`);
+      const ids = needsFix.rows.map((r: any) => r.itunes_id);
       let fixed = 0;
-      if (withIds.length > 0) {
-        const ids = withIds.map((r: any) => r.itunes_id);
-        for (let i = 0; i < ids.length; i += 50) {
-          try {
-            const resp = await fetch(`https://itunes.apple.com/lookup?id=${ids.slice(i, i + 50).join(",")}`);
-            const data = await resp.json();
-            for (const r of (data.results || [])) {
-              const art = (r.artworkUrl600 || r.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb");
-              if (art) {
-                await pool.query(`UPDATE podcast_directory SET artwork_url = $1 WHERE itunes_id = $2 AND (artwork_url IS NULL OR artwork_url = '')`, [art, String(r.collectionId)]);
-                fixed++;
-              }
-            }
-          } catch (e: any) { console.warn(`[ArtworkBackfill] Batch lookup failed:`, e.message); }
-          if (i + 50 < ids.length) await new Promise(r => setTimeout(r, 1000));
-        }
-      }
-      for (const row of withoutIds) {
+      for (let i = 0; i < ids.length; i += 50) {
         try {
-          const resp = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(row.slug.replace(/-/g, " "))}&media=podcast&limit=1`);
+          const resp = await fetch(`https://itunes.apple.com/lookup?id=${ids.slice(i, i + 50).join(",")}`);
           const data = await resp.json();
-          if (data.results?.[0]) {
-            const r = data.results[0];
-            const art = (r.artworkUrl600 || r.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb");
-            if (art) {
-              await pool.query(`UPDATE podcast_directory SET artwork_url = $1, itunes_id = COALESCE(NULLIF(itunes_id, ''), $2) WHERE slug = $3`, [art, String(r.collectionId), row.slug]);
+          for (const r of (data.results || [])) {
+            const itunesIdStr = String(r.collectionId);
+            const row = needsFix.rows.find((x: any) => x.itunes_id === itunesIdStr);
+            if (!row) continue;
+            const sets: string[] = [];
+            const params: any[] = [];
+            const missingArt = !row.artwork_url || row.artwork_url === '';
+            const slugName = row.name === row.slug;
+            if (missingArt) {
+              const art = (r.artworkUrl600 || r.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb");
+              if (art) { params.push(art); sets.push(`artwork_url = $${params.length}`); }
+            }
+            if (slugName && r.collectionName) {
+              params.push(r.collectionName);
+              sets.push(`name = $${params.length}`);
+            }
+            if (sets.length > 0) {
+              params.push(itunesIdStr);
+              await pool.query(`UPDATE podcast_directory SET ${sets.join(', ')} WHERE itunes_id = $${params.length}`, params);
               fixed++;
             }
           }
-          await new Promise(r => setTimeout(r, 600));
-        } catch (e: any) { console.warn(`[ArtworkBackfill] Search failed for ${row.slug}:`, e.message); }
+        } catch (e: any) { console.warn(`[DirectoryBackfill] Batch lookup failed:`, e.message); }
+        if (i + 50 < ids.length) await new Promise(r => setTimeout(r, 1000));
       }
-      console.log(`[ArtworkBackfill] Fixed artwork for ${fixed}/${missingArtwork.rows.length} podcasts`);
+      console.log(`[DirectoryBackfill] Fixed ${fixed}/${needsFix.rows.length} podcasts`);
     }
   } catch (err) {
-    console.warn("[ArtworkBackfill] skipped:", err);
+    console.warn("[DirectoryBackfill] skipped:", err);
   }
 
   try {
