@@ -17665,6 +17665,117 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     }
   });
 
+  interface OpenAICostBucket {
+    start_time: number;
+    results?: Array<{ amount?: { value?: number; currency?: string } }>;
+  }
+
+  interface OpenAICostsResponse {
+    data?: OpenAICostBucket[];
+    has_more?: boolean;
+    next_page?: string;
+  }
+
+  interface OpenAICostsCacheData {
+    daily: { date: string; cost: number }[];
+    summary: { today: number; week: number; month: number };
+  }
+
+  const openaiCostsCache: { data: OpenAICostsCacheData | null; timestamp: number } = { data: null, timestamp: 0 };
+  const OPENAI_COSTS_CACHE_TTL = 5 * 60 * 1000;
+
+  app.get("/api/admin/api-usage/openai-actual", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const now = Date.now();
+      if (openaiCostsCache.data && (now - openaiCostsCache.timestamp) < OPENAI_COSTS_CACHE_TTL) {
+        return res.json(openaiCostsCache.data);
+      }
+
+      const apiKey = process.env.OPENAI_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({ error: "OpenAI API key not configured" });
+      }
+
+      const endTime = Math.floor(now / 1000);
+      const startTime = endTime - (30 * 24 * 60 * 60);
+
+      let allBuckets: OpenAICostBucket[] = [];
+      let pageToken: string | undefined;
+      let attempts = 0;
+
+      do {
+        const url = new URL("https://api.openai.com/v1/organization/costs");
+        url.searchParams.set("start_time", String(startTime));
+        url.searchParams.set("end_time", String(endTime));
+        url.searchParams.set("bucket_width", "1d");
+        url.searchParams.set("limit", "30");
+        if (pageToken) url.searchParams.set("page", pageToken);
+
+        const resp = await fetch(url.toString(), {
+          headers: { "Authorization": `Bearer ${apiKey}` },
+        });
+
+        if (!resp.ok) {
+          const errorText = await resp.text();
+          console.error("[OpenAI Costs] API error:", resp.status, errorText);
+          return res.status(502).json({ error: "Failed to fetch OpenAI costs", status: resp.status });
+        }
+
+        const json = (await resp.json()) as OpenAICostsResponse;
+        if (json.data) allBuckets = allBuckets.concat(json.data);
+        pageToken = json.has_more ? json.next_page : undefined;
+        attempts++;
+      } while (pageToken && attempts < 5);
+
+      const dailyCosts: { date: string; cost: number }[] = [];
+      let todayCost = 0;
+      let weekCost = 0;
+      let monthCost = 0;
+
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+      weekAgo.setHours(0, 0, 0, 0);
+
+      for (const bucket of allBuckets) {
+        const bucketDate = new Date(bucket.start_time * 1000);
+        const dateStr = bucketDate.toISOString().split("T")[0];
+
+        let totalCents = 0;
+        if (bucket.results) {
+          for (const result of bucket.results) {
+            if (result.amount && result.amount.value != null) {
+              totalCents += result.amount.value;
+            }
+          }
+        }
+        const costDollars = totalCents / 100;
+
+        dailyCosts.push({ date: dateStr, cost: costDollars });
+
+        if (bucketDate >= todayStart) todayCost += costDollars;
+        if (bucketDate >= weekAgo) weekCost += costDollars;
+        monthCost += costDollars;
+      }
+
+      dailyCosts.sort((a, b) => a.date.localeCompare(b.date));
+
+      const result = {
+        daily: dailyCosts,
+        summary: { today: todayCost, week: weekCost, month: monthCost },
+      };
+
+      openaiCostsCache.data = result;
+      openaiCostsCache.timestamp = now;
+
+      res.json(result);
+    } catch (err) {
+      console.error("[OpenAI Costs] Error:", err);
+      res.status(500).json({ error: "Failed to fetch OpenAI actual costs" });
+    }
+  });
+
   app.get("/api/admin/advertisers", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     try {

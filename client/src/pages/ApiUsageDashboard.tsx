@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, DollarSign, Zap, Activity, Cpu, BarChart3 } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { Loader2, DollarSign, Zap, Activity, Cpu, BarChart3, AlertTriangle, TrendingUp } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 
 const BUDGET_MONTHLY = 100;
 
@@ -48,6 +48,11 @@ interface RecapMetrics {
   cost_week: number;
   recaps_month: number;
   cost_month: number;
+}
+
+interface OpenAIActualData {
+  daily: { date: string; cost: number }[];
+  summary: { today: number; week: number; month: number };
 }
 
 function formatCost(val: number | string): string {
@@ -98,6 +103,12 @@ export default function ApiUsageDashboard() {
     queryKey: ["/api/admin/api-usage/recaps"],
   });
 
+  const { data: openaiActual, isLoading: openaiLoading, error: openaiError } = useQuery<OpenAIActualData>({
+    queryKey: ["/api/admin/api-usage/openai-actual"],
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+  });
+
   if (summaryLoading) {
     return (
       <div className="flex items-center justify-center py-20" data-testid="api-usage-loading">
@@ -106,70 +117,56 @@ export default function ApiUsageDashboard() {
     );
   }
 
-  const monthCost = parseFloat(String(summary?.month || "0"));
-  const budgetPercent = Math.min((monthCost / BUDGET_MONTHLY) * 100, 100);
+  const internalMonthCost = parseFloat(String(summary?.month || "0"));
+  const openaiMonthCost = openaiActual?.summary?.month || 0;
+  const actualMonthCost = openaiMonthCost > 0 ? openaiMonthCost : internalMonthCost;
+  const budgetPercent = Math.min((actualMonthCost / BUDGET_MONTHLY) * 100, 100);
 
-  const chartData = (daily || []).map((d) => ({
-    date: new Date(d.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-    cost: parseFloat(d.cost) || 0,
-    calls: d.calls || 0,
-  }));
+  const replitOther = {
+    today: Math.max(0, (openaiActual?.summary?.today || 0) - parseFloat(String(summary?.today || "0"))),
+    week: Math.max(0, (openaiActual?.summary?.week || 0) - parseFloat(String(summary?.week || "0"))),
+    month: Math.max(0, openaiMonthCost - internalMonthCost),
+  };
+
+  const internalDailyMap = new Map<string, number>();
+  (daily || []).forEach((d) => {
+    const dateStr = typeof d.date === "string" && d.date.match(/^\d{4}-\d{2}-\d{2}/)
+      ? d.date.substring(0, 10)
+      : new Date(d.date).toISOString().split("T")[0];
+    internalDailyMap.set(dateStr, parseFloat(d.cost) || 0);
+  });
+
+  const openaiDailyMap = new Map<string, number>();
+  (openaiActual?.daily || []).forEach((d) => {
+    openaiDailyMap.set(d.date, d.cost);
+  });
+
+  const allDatesSet = new Set<string>();
+  internalDailyMap.forEach((_, k) => allDatesSet.add(k));
+  openaiDailyMap.forEach((_, k) => allDatesSet.add(k));
+  const chartData = Array.from(allDatesSet)
+    .sort()
+    .map((date) => {
+      const openaiCost = openaiDailyMap.get(date) || 0;
+      const internalCost = internalDailyMap.get(date) || 0;
+      const gap = Math.max(0, openaiCost - internalCost);
+      return {
+        date: new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+        openai: openaiCost,
+        internal: internalCost,
+        gap,
+      };
+    });
 
   return (
     <div className="space-y-6" data-testid="api-usage-dashboard">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-testid="api-usage-summary-cards">
-        <div className="glass-panel rounded-2xl p-4">
-          <div className="flex items-center gap-2 mb-1">
-            <DollarSign className="w-4 h-4 text-green-500" />
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Today</span>
-          </div>
-          <p className="text-xl font-bold text-foreground" data-testid="text-cost-today">
-            {formatCostShort(summary?.today || 0)}
-          </p>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {summary?.calls_today || 0} calls
-          </p>
-        </div>
-
-        <div className="glass-panel rounded-2xl p-4">
-          <div className="flex items-center gap-2 mb-1">
-            <Activity className="w-4 h-4 text-blue-500" />
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Week</span>
-          </div>
-          <p className="text-xl font-bold text-foreground" data-testid="text-cost-week">
-            {formatCostShort(summary?.week || 0)}
-          </p>
-        </div>
-
-        <div className="glass-panel rounded-2xl p-4">
-          <div className="flex items-center gap-2 mb-1">
-            <BarChart3 className="w-4 h-4 text-purple-500" />
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Month</span>
-          </div>
-          <p className="text-xl font-bold text-foreground" data-testid="text-cost-month">
-            {formatCostShort(summary?.month || 0)}
-          </p>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {summary?.calls_month || 0} calls
-          </p>
-        </div>
-
-        <div className="glass-panel rounded-2xl p-4">
-          <div className="flex items-center gap-2 mb-1">
-            <Zap className="w-4 h-4 text-amber-500" />
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Tokens (30d)</span>
-          </div>
-          <p className="text-xl font-bold text-foreground" data-testid="text-tokens-month">
-            {formatTokens(summary?.tokens_month || 0)}
-          </p>
-        </div>
-      </div>
-
       <div className="glass-panel rounded-2xl p-5" data-testid="api-usage-budget">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-bold text-foreground">Monthly Budget</h3>
+          <h3 className="text-sm font-bold text-foreground">
+            Monthly Budget {openaiMonthCost > 0 ? "(OpenAI Actual)" : "(Internal Estimate)"}
+          </h3>
           <span className="text-xs font-semibold text-muted-foreground">
-            {formatCostShort(monthCost)} / {formatCostShort(BUDGET_MONTHLY)}
+            {formatCostShort(actualMonthCost)} / {formatCostShort(BUDGET_MONTHLY)}
           </span>
         </div>
         <div className="w-full h-3 bg-black/[0.06] rounded-full overflow-hidden">
@@ -186,29 +183,186 @@ export default function ApiUsageDashboard() {
         </p>
       </div>
 
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <TrendingUp className="w-4 h-4 text-blue-500" />
+          <h2 className="text-sm font-bold text-foreground uppercase tracking-wide">OpenAI Actual</h2>
+          {openaiLoading && <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />}
+        </div>
+
+        {openaiError ? (
+          <div className="glass-panel rounded-2xl p-4 flex items-center gap-3 text-amber-600" data-testid="openai-actual-error">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+            <p className="text-xs">Could not fetch OpenAI actual costs. Showing internal tracking only.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3" data-testid="openai-actual-summary">
+            <div className="glass-panel rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <DollarSign className="w-4 h-4 text-green-500" />
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Today</span>
+              </div>
+              <p className="text-xl font-bold text-foreground" data-testid="text-openai-cost-today">
+                {formatCostShort(openaiActual?.summary?.today || 0)}
+              </p>
+            </div>
+            <div className="glass-panel rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <Activity className="w-4 h-4 text-blue-500" />
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Week</span>
+              </div>
+              <p className="text-xl font-bold text-foreground" data-testid="text-openai-cost-week">
+                {formatCostShort(openaiActual?.summary?.week || 0)}
+              </p>
+            </div>
+            <div className="glass-panel rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <BarChart3 className="w-4 h-4 text-purple-500" />
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Month</span>
+              </div>
+              <p className="text-xl font-bold text-foreground" data-testid="text-openai-cost-month">
+                {formatCostShort(openaiActual?.summary?.month || 0)}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {openaiActual && !openaiError && (
+        <div className="glass-panel rounded-2xl p-4 border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20" data-testid="replit-other-callout">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertTriangle className="w-4 h-4 text-amber-500" />
+            <h3 className="text-sm font-bold text-foreground">Replit / Other Spend</h3>
+          </div>
+          <p className="text-xs text-muted-foreground mb-3">
+            Difference between OpenAI actual bill and PodCap's internal tracking (other services using the same API key)
+          </p>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <p className="text-xs text-muted-foreground">Today</p>
+              <p className="text-lg font-bold text-amber-600 dark:text-amber-400" data-testid="text-other-cost-today">
+                {formatCostShort(replitOther.today)}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Week</p>
+              <p className="text-lg font-bold text-amber-600 dark:text-amber-400" data-testid="text-other-cost-week">
+                {formatCostShort(replitOther.week)}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Month</p>
+              <p className="text-lg font-bold text-amber-600 dark:text-amber-400" data-testid="text-other-cost-month">
+                {formatCostShort(replitOther.month)}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="glass-panel rounded-2xl p-5" data-testid="api-usage-daily-chart">
-        <h3 className="text-sm font-bold text-foreground mb-4">Daily Spend (Last 30 Days)</h3>
-        {dailyLoading ? (
+        <h3 className="text-sm font-bold text-foreground mb-4">Daily Spend Comparison (Last 30 Days)</h3>
+        {dailyLoading && openaiLoading ? (
           <div className="flex items-center justify-center py-10">
             <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
           </div>
         ) : chartData.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-10">No usage data yet</p>
         ) : (
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer width="100%" height={260}>
             <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
               <XAxis dataKey="date" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
               <YAxis tick={{ fontSize: 11 }} tickFormatter={(v: number) => `$${v.toFixed(2)}`} />
               <Tooltip
-                formatter={(value: number) => [`$${value.toFixed(4)}`, "Cost"]}
+                formatter={(value: number, name: string) => {
+                  const labels: Record<string, string> = {
+                    openai: "OpenAI Actual",
+                    internal: "PodCap Tracked",
+                    gap: "Replit / Other",
+                  };
+                  return [`$${value.toFixed(4)}`, labels[name] || name];
+                }}
                 labelStyle={{ fontWeight: 600, fontSize: 12 }}
                 contentStyle={{ borderRadius: 12, fontSize: 12, border: "1px solid rgba(0,0,0,0.08)" }}
               />
-              <Bar dataKey="cost" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+              <Legend
+                formatter={(value: string) => {
+                  const labels: Record<string, string> = {
+                    openai: "OpenAI Actual",
+                    internal: "PodCap Tracked",
+                    gap: "Replit / Other",
+                  };
+                  return labels[value] || value;
+                }}
+                wrapperStyle={{ fontSize: 12 }}
+              />
+              {openaiActual ? (
+                <>
+                  <Bar dataKey="internal" fill="hsl(var(--primary))" radius={[0, 0, 0, 0]} stackId="stack" />
+                  <Bar dataKey="gap" fill="#f59e0b" radius={[4, 4, 0, 0]} stackId="stack" />
+                </>
+              ) : (
+                <Bar dataKey="internal" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+              )}
             </BarChart>
           </ResponsiveContainer>
         )}
+      </div>
+
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <Cpu className="w-4 h-4 text-primary" />
+          <h2 className="text-sm font-bold text-foreground uppercase tracking-wide">PodCap Internal Tracking</h2>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-testid="api-usage-summary-cards">
+          <div className="glass-panel rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <DollarSign className="w-4 h-4 text-green-500" />
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Today</span>
+            </div>
+            <p className="text-xl font-bold text-foreground" data-testid="text-cost-today">
+              {formatCostShort(summary?.today || 0)}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {summary?.calls_today || 0} calls
+            </p>
+          </div>
+
+          <div className="glass-panel rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Activity className="w-4 h-4 text-blue-500" />
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Week</span>
+            </div>
+            <p className="text-xl font-bold text-foreground" data-testid="text-cost-week">
+              {formatCostShort(summary?.week || 0)}
+            </p>
+          </div>
+
+          <div className="glass-panel rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <BarChart3 className="w-4 h-4 text-purple-500" />
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Month</span>
+            </div>
+            <p className="text-xl font-bold text-foreground" data-testid="text-cost-month">
+              {formatCostShort(summary?.month || 0)}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {summary?.calls_month || 0} calls
+            </p>
+          </div>
+
+          <div className="glass-panel rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Zap className="w-4 h-4 text-amber-500" />
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Tokens (30d)</span>
+            </div>
+            <p className="text-xl font-bold text-foreground" data-testid="text-tokens-month">
+              {formatTokens(summary?.tokens_month || 0)}
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
