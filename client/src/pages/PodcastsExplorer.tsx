@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
-import { Search, Mic, ArrowRight, Sparkles, Cpu, TrendingUp, Briefcase, Heart, Globe, BookOpen, DollarSign, Lightbulb, Megaphone, ChevronRight, Clock, Users, X, Flame, Zap, Star, Play, ArrowUpRight, Headphones, Filter, User, Building2 } from "lucide-react";
+import { Search, Mic, ArrowRight, Sparkles, Cpu, TrendingUp, Briefcase, Heart, Globe, BookOpen, DollarSign, Lightbulb, Megaphone, ChevronRight, Clock, Users, X, Flame, Zap, Star, Play, ArrowUpRight, Headphones, Filter } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Footer } from "@/components/Footer";
 import { PODCAST_LANDINGS, type PodcastLandingConfig } from "@/data/podcastLandingData";
@@ -547,12 +547,6 @@ export default function PodcastsExplorer() {
               {globalSearchData && globalSearchData.episodes.length > 0 && (
                 <span> · <span className="font-semibold text-foreground">{globalSearchData.episodes.length}</span> episode{globalSearchData.episodes.length !== 1 ? "s" : ""}</span>
               )}
-              {globalSearchData && globalSearchData.people.length > 0 && (
-                <span> · <span className="font-semibold text-foreground">{globalSearchData.people.length}</span> {globalSearchData.people.length !== 1 ? "people" : "person"}</span>
-              )}
-              {globalSearchData && globalSearchData.companies.length > 0 && (
-                <span> · <span className="font-semibold text-foreground">{globalSearchData.companies.length}</span> {globalSearchData.companies.length !== 1 ? "companies" : "company"}</span>
-              )}
             </p>
           </div>
         )}
@@ -586,68 +580,6 @@ export default function PodcastsExplorer() {
           </div>
         )}
 
-        {isSearching && globalSearchData && (globalSearchData.people.length > 0 || globalSearchData.companies.length > 0) && (
-          <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {globalSearchData.people.length > 0 && (
-              <div data-testid="people-search-results">
-                <h3 className="text-[15px] font-bold text-foreground mb-3 flex items-center gap-2"><User className="w-4 h-4 text-primary" /> People</h3>
-                <div className="space-y-2">
-                  {globalSearchData.people.map((person) => (
-                    <Link
-                      key={person.slug}
-                      href={`/people/${person.slug}`}
-                      className="flex items-center gap-3 p-3 rounded-xl bg-card border border-black/[0.06] dark:border-white/[0.06] hover:border-primary/20 hover:shadow-sm transition-all no-underline"
-                      data-testid={`search-person-${person.slug}`}
-                    >
-                      <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-muted">
-                        {person.photoUrl ? (
-                          <img src={person.photoUrl} alt={person.name} className="w-full h-full object-cover" loading="lazy" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center"><User className="w-4 h-4 text-muted-foreground" /></div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[13px] font-semibold text-foreground truncate">{person.name}</div>
-                        {(person.title || person.company) && (
-                          <div className="text-[11px] text-muted-foreground mt-0.5 truncate">{[person.title, person.company].filter(Boolean).join(" at ")}</div>
-                        )}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-            {globalSearchData.companies.length > 0 && (
-              <div data-testid="companies-search-results">
-                <h3 className="text-[15px] font-bold text-foreground mb-3 flex items-center gap-2"><Building2 className="w-4 h-4 text-primary" /> Companies</h3>
-                <div className="space-y-2">
-                  {globalSearchData.companies.map((company) => (
-                    <Link
-                      key={company.slug}
-                      href={`/companies/${company.slug}`}
-                      className="flex items-center gap-3 p-3 rounded-xl bg-card border border-black/[0.06] dark:border-white/[0.06] hover:border-primary/20 hover:shadow-sm transition-all no-underline"
-                      data-testid={`search-company-${company.slug}`}
-                    >
-                      <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
-                        {company.logoUrl ? (
-                          <img src={company.logoUrl} alt={company.name} className="w-full h-full object-cover" loading="lazy" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center"><Building2 className="w-4 h-4 text-muted-foreground" /></div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[13px] font-semibold text-foreground truncate">{company.name}</div>
-                        {company.industry && (
-                          <div className="text-[11px] text-muted-foreground mt-0.5 truncate">{company.industry}</div>
-                        )}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         {isSearching && filteredPodcasts.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-12" data-testid="search-results">

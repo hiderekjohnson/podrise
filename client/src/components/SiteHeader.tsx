@@ -86,8 +86,6 @@ export function SiteHeader() {
                 Shop
                 <span className="text-[12px] font-bold uppercase tracking-wide bg-primary/[0.1] text-primary px-1.5 py-0.5 rounded-md leading-none">Beta</span>
               </Link>
-              <Link href="/people" className="block text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-people">People</Link>
-              <Link href="/companies" className="block text-[17px] font-medium text-foreground py-3 px-3 rounded-lg hover:bg-muted/60 transition-colors" onClick={() => setMobileMenuOpen(false)} data-testid="mobile-nav-companies">Companies</Link>
             </div>
             <div className="pt-2 border-t border-black/[0.06] dark:border-white/[0.06] mt-2">
               {user ? (

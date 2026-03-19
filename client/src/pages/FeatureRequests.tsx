@@ -30,13 +30,6 @@ const changelog: ChangelogEntry[] = [
     date: "Mar 13, 2026",
   },
   {
-    title: "Trends — see what's gaining momentum across podcasts",
-    description: "The Discovery Radar tracks which people, companies, and topics are surging (or fading) across the podcast landscape in real time. Each trend gets a momentum score and a rising or falling badge so you can spot what's heating up before it hits the mainstream. Whether you're a researcher, investor, or just curious, Trends gives you a bird's-eye view of where podcast conversations are heading.",
-    link: { url: "/podcasts", label: "Browse podcasts" },
-    emoji: "📈",
-    date: "Mar 11, 2026",
-  },
-  {
     title: "Topic Pulse — AI-synthesized daily intelligence briefings",
     description: "Pick any topic you care about and Topic Pulse delivers a concise, AI-written intelligence briefing every day — synthesized from dozens of podcast episodes so you don't have to listen to all of them. Each briefing links back to its source episodes, and you can browse the full archive to track how conversations have evolved over time.",
     link: { url: "/podcasts", label: "Browse podcasts" },
@@ -49,27 +42,6 @@ const changelog: ChangelogEntry[] = [
     link: { url: "/podcasts", label: "Browse podcasts" },
     emoji: "📬",
     date: "Mar 7, 2026",
-  },
-  {
-    title: "Topics directory — explore what podcasts are talking about",
-    description: "We organized every discussion topic across all podcasts into a single browsable directory. Whether you want to dive into AI, leadership, health, or crypto, the Topics page surfaces the most active conversations happening right now and connects you to the episodes driving them.",
-    link: { url: "/podcasts", label: "Browse podcasts" },
-    emoji: "🔍",
-    date: "Mar 5, 2026",
-  },
-  {
-    title: "Roles directory — podcast intelligence for your profession",
-    description: "Not everyone listens to podcasts the same way. The Roles directory lets you filter podcast knowledge by professional role — whether you're a founder, product manager, investor, engineer, or marketer. Find the episodes and insights most relevant to how you work, not just what you're interested in.",
-    link: { url: "/people", label: "Find people" },
-    emoji: "💼",
-    date: "Mar 3, 2026",
-  },
-  {
-    title: "Industries directory — podcast intelligence organized by sector",
-    description: "We mapped podcast conversations to real industries so you can quickly find intelligence relevant to your field. Browse Tech, Finance, Healthcare, Energy, Media, and more — each industry page surfaces the latest episodes, trending topics, and key people shaping that sector's narrative.",
-    link: { url: "/companies", label: "Browse companies" },
-    emoji: "🏢",
-    date: "Mar 1, 2026",
   },
   {
     title: "Shop search by podcast",
@@ -105,13 +77,6 @@ const changelog: ChangelogEntry[] = [
     link: { url: "/podcasts", label: "Try it on your phone" },
     emoji: "📱",
     date: "Feb 19, 2026",
-  },
-  {
-    title: "Notable people and companies in every episode",
-    description: "Episode recaps now highlight the key people and organizations discussed, turning name-drops into clickable profiles. If a guest mentions Elon Musk, a16z, or any notable figure or company, you'll see them called out with context — so you can follow the threads that matter to you without re-listening to the whole episode.",
-    link: { url: "/podcasts/joerogan", label: "See people and companies in action" },
-    emoji: "👥",
-    date: "Feb 17, 2026",
   },
   {
     title: "Curated book recommendations from episodes",

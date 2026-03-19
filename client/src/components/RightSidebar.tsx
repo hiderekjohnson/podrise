@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
-import { Search, X, Loader2, Mic, User, Building2 } from "lucide-react";
+import { Search, X, Loader2, Mic } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
@@ -261,62 +261,6 @@ function SidebarSearch() {
                       <div className="flex-1 min-w-0">
                         <div className="text-[12px] font-semibold text-[#09090B] truncate">{ep.episodeTitle}</div>
                         <div className="text-[10px] text-[#A1A1AA] mt-[1px] truncate">{ep.podcastName}</div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-              {searchData!.people.length > 0 && (
-                <div>
-                  <div className="px-3 py-1.5 text-[10px] font-bold text-[#A1A1AA] uppercase tracking-wider bg-[#FAFAFA]">People</div>
-                  {searchData!.people.map((person) => (
-                    <Link
-                      key={person.slug}
-                      href={`/people/${person.slug}`}
-                      className="flex items-center gap-2.5 px-3 py-2 hover:bg-[#F7F7FC] transition-colors border-b border-[#F0F0F2] last:border-b-0 no-underline"
-                      onClick={() => setQuery("")}
-                      data-testid={`sidebar-result-person-${person.slug}`}
-                    >
-                      <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-[#F0F0F2]">
-                        {person.photoUrl ? (
-                          <img src={person.photoUrl} alt={person.name} className="w-full h-full object-cover" loading="lazy" />
-                        ) : (
-                          <div className="w-full h-full bg-[#E4E4E7] flex items-center justify-center"><User className="w-3 h-3 text-[#A1A1AA]" /></div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[12px] font-semibold text-[#09090B] truncate">{person.name}</div>
-                        {(person.title || person.company) && (
-                          <div className="text-[10px] text-[#A1A1AA] mt-[1px] truncate">{[person.title, person.company].filter(Boolean).join(" at ")}</div>
-                        )}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-              {searchData!.companies.length > 0 && (
-                <div>
-                  <div className="px-3 py-1.5 text-[10px] font-bold text-[#A1A1AA] uppercase tracking-wider bg-[#FAFAFA]">Companies</div>
-                  {searchData!.companies.map((company) => (
-                    <Link
-                      key={company.slug}
-                      href={`/companies/${company.slug}`}
-                      className="flex items-center gap-2.5 px-3 py-2 hover:bg-[#F7F7FC] transition-colors border-b border-[#F0F0F2] last:border-b-0 no-underline"
-                      onClick={() => setQuery("")}
-                      data-testid={`sidebar-result-company-${company.slug}`}
-                    >
-                      <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-[#F0F0F2]">
-                        {company.logoUrl ? (
-                          <img src={company.logoUrl} alt={company.name} className="w-full h-full object-cover" loading="lazy" />
-                        ) : (
-                          <div className="w-full h-full bg-[#E4E4E7] flex items-center justify-center"><Building2 className="w-3 h-3 text-[#A1A1AA]" /></div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[12px] font-semibold text-[#09090B] truncate">{company.name}</div>
-                        {company.industry && (
-                          <div className="text-[10px] text-[#A1A1AA] mt-[1px] truncate">{company.industry}</div>
-                        )}
                       </div>
                     </Link>
                   ))}

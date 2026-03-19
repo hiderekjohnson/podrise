@@ -11,7 +11,6 @@ import { BookCover } from "@/components/BookCover";
 import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
-import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import { trackAffiliateUrl } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
@@ -64,26 +63,9 @@ interface ShopData {
   total: number;
 }
 
-const PEOPLE_SLUG_MAP: Record<string, string> = {};
-PEOPLE_DIRECTORY.forEach(p => { PEOPLE_SLUG_MAP[p.name.toLowerCase()] = p.slug; });
-
 function AuthorWithLinks({ author }: { author: string }) {
-  const parts = author.split(/(\s+and\s+)/i);
-  return (
-    <>
-      {parts.map((part, i) => {
-        const slug = PEOPLE_SLUG_MAP[part.trim().toLowerCase()];
-        if (slug) {
-          return (
-            <Link key={i} href={`/people/${slug}`} className="text-[#6366F1] hover:underline">
-              {part}
-            </Link>
-          );
-        }
-        return <span key={i}>{part}</span>;
-      })}
-    </>
-  );
+  if (!author) return null;
+  return <span>{author}</span>;
 }
 
 const SORT_OPTIONS = [
@@ -641,7 +623,7 @@ function ShelfRow({ books, keyPrefix }: { books: ShopBook[]; keyPrefix: string }
               </div>
             </div>
           );
-          const testId = `shelf-${keyPrefix}-${(book.slug || book.name.toLowerCase().replace(/\s+/g, '-').slice(0, 30))}-${i}`;
+          const testId = `shelf-${keyPrefix}-${(book.slug || (book.name || '').toLowerCase().replace(/\s+/g, '-').slice(0, 30))}-${i}`;
           return book.slug ? (
             <Link href={`/shop/${book.slug}`} className="block shrink-0" key={`${keyPrefix}-${book.name}-${i}`} data-testid={testId}>
               {inner}
@@ -820,12 +802,12 @@ function PublicShopPage() {
       result = result.filter(item => {
         if (item.itemType === "book") {
           const b = item as ShopBook;
-          return b.name.toLowerCase().includes(q) ||
+          return (b.name || '').toLowerCase().includes(q) ||
             (b.author && b.author.toLowerCase().includes(q)) ||
             (b.topics || []).some(t => t.toLowerCase().includes(q));
         } else {
           const p = item as ShopProduct;
-          return p.name.toLowerCase().includes(q) ||
+          return (p.name || '').toLowerCase().includes(q) ||
             (p.company && p.company.toLowerCase().includes(q)) ||
             (p.description && p.description.toLowerCase().includes(q));
         }

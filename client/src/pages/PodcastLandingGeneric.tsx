@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "wouter";
-import { Loader2, ArrowRight, Clock, Mic, Users, Headphones, Building2, Tag, UserCircle, BookOpen, Mail, ShoppingBag, ExternalLink } from "lucide-react";
+import { Loader2, ArrowRight, Clock, Mic, Headphones, UserCircle, BookOpen, Mail, ShoppingBag, ExternalLink } from "lucide-react";
 import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { BookCoverFill } from "@/components/BookCover";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -13,8 +13,6 @@ import { PodcastPageLayout } from "@/components/PodcastPageLayout";
 import { FeedStyleCard, FeedStyleCardHeader } from "@/components/FeedStyleCard";
 
 import { getPodcastBySlug, PODCAST_LANDINGS } from "@/data/podcastLandingData";
-import { getTopicBySlug, getCategoryPath } from "@/data/topicData";
-import { PEOPLE_DIRECTORY } from "@/data/entityDirectoryData";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import { RecapCard } from "@/components/RecapCard";
@@ -719,17 +717,12 @@ export default function PodcastLandingGeneric() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {entityLinks.guests.map((guest, i) => {
-                  const personSlug = entityLinks.people.find(p => p.name === guest.name)?.slug;
                   const date = new Date(guest.publishDate + "T00:00:00");
                   const formatted = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
                   return (
                     <div key={i} className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-4 flex flex-col gap-1.5" data-testid={`card-guest-${i}`}>
                       <div className="flex items-center justify-between gap-2">
-                        {personSlug ? (
-                          <Link href={`/people/${personSlug}`} className="text-[16px] font-bold text-foreground hover:text-primary transition-colors" data-testid={`link-guest-person-${i}`}>{guest.name}</Link>
-                        ) : (
-                          <span className="text-[16px] font-bold text-foreground">{guest.name}</span>
-                        )}
+                        <span className="text-[16px] font-bold text-foreground" data-testid={`link-guest-person-${i}`}>{guest.name}</span>
                       </div>
                       {guest.title && <p className="text-[16px] text-[#52525B] leading-snug">{guest.title}</p>}
                       <Link href={`/podcasts/${slug}/${guest.episodeSlug}`} className="text-[16px] text-primary/70 hover:text-primary transition-colors line-clamp-1 mt-0.5" data-testid={`link-guest-episode-${i}`}>
@@ -739,85 +732,6 @@ export default function PodcastLandingGeneric() {
                     </div>
                   );
                 })}
-              </div>
-            </div>
-          )}
-
-          {entityLinks?.companies && entityLinks.companies.length > 0 && (
-            <div data-testid="section-top-companies">
-              <div className="flex items-center gap-2.5 mb-4">
-                <Building2 className="w-5 h-5 text-primary" />
-                <h3 className="text-[17px] font-display font-bold text-foreground">Most Discussed Companies</h3>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {entityLinks.companies.map((company, i) => (
-                  <Link key={company.slug} href={`/companies/${company.slug}`} className="block" data-testid={`link-company-${company.slug}`}>
-                    <div className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-4 flex items-center gap-4 hover:border-primary/[0.15] hover:shadow-md hover:shadow-black/[0.04] transition-all group">
-                      <img
-                        src={`/logos/${company.slug}.png`}
-                        alt={company.name}
-                        className="w-10 h-10 rounded-lg object-contain bg-white p-1 border border-black/[0.06] shrink-0"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[16px] font-bold text-foreground group-hover:text-primary transition-colors">{company.name}</p>
-                        <p className="text-[16px] text-[#52525B] mt-0.5 line-clamp-1">{company.description}</p>
-                      </div>
-                      <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-lg text-[16px] font-bold bg-primary/[0.08] text-primary">{company.count} ep{company.count !== 1 ? "s" : ""}</span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {entityLinks?.people && entityLinks.people.length > 0 && (
-            <div data-testid="section-top-people">
-              <div className="flex items-center gap-2.5 mb-4">
-                <Users className="w-5 h-5 text-primary" />
-                <h3 className="text-[17px] font-display font-bold text-foreground">Most Mentioned People</h3>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {entityLinks.people.map((person) => (
-                  <Link key={person.slug} href={`/people/${person.slug}`} className="block" data-testid={`link-person-${person.slug}`}>
-                    <div className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-4 flex items-center gap-4 hover:border-primary/[0.15] hover:shadow-md hover:shadow-black/[0.04] transition-all group">
-                      <img
-                        src={`/people/${person.slug}.png`}
-                        alt={person.name}
-                        className="w-10 h-10 rounded-full object-cover shrink-0"
-                        onError={(e) => {
-                          const el = e.target as HTMLImageElement;
-                          el.onerror = null;
-                          el.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=6366f1&color=fff&size=80`;
-                        }}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[16px] font-bold text-foreground group-hover:text-primary transition-colors">{person.name}</p>
-                        {person.title && <p className="text-[16px] text-[#52525B] mt-0.5 line-clamp-1">{person.title}</p>}
-                      </div>
-                      <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-lg text-[16px] font-bold bg-primary/[0.08] text-primary">{person.count} ep{person.count !== 1 ? "s" : ""}</span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {entityLinks?.topics && entityLinks.topics.length > 0 && (
-            <div data-testid="section-top-topics">
-              <div className="flex items-center gap-2.5 mb-4">
-                <Tag className="w-5 h-5 text-primary" />
-                <h3 className="text-[17px] font-display font-bold text-foreground">Top Topics Discussed</h3>
-              </div>
-              <div className="flex flex-wrap gap-2.5">
-                {entityLinks.topics.map((t: any, i: number) => (
-                  <Link key={i} href={`${getCategoryPath(getTopicBySlug(t.slug || t.topic)?.category || "interest")}/${t.slug || t.topic}`}>
-                    <span className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl text-[16px] font-medium text-foreground hover:border-primary/30 hover:bg-primary/[0.03] transition-all cursor-pointer" data-testid={`tag-topic-${i}`}>
-                      {t.topic}
-                      <span className="text-muted-foreground/40 text-[16px] font-bold">({t.count})</span>
-                    </span>
-                  </Link>
-                ))}
               </div>
             </div>
           )}

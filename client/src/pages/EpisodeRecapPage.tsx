@@ -7,7 +7,7 @@ import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { getPodcastBySlug, type PodcastLandingConfig } from "../data/podcastLandingData";
-import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "../data/entityDirectoryData";
+import { PEOPLE_DIRECTORY } from "../data/entityDirectoryData";
 import { Link, useLocation } from "wouter";
 import { GetRecapsModal } from "@/components/GetRecapsModal";
 import { FeedStyleCard, FeedStyleCardHeader, FeedStyleCardSection } from "@/components/FeedStyleCard";
@@ -499,8 +499,7 @@ export default function EpisodeRecapPage() {
   const episodeSlug = params.episodeSlug || "";
   const [, navigate] = useLocation();
   const [activeSection, setActiveSection] = useState("section-key-insights");
-  const [showAllPeople, setShowAllPeople] = useState(false);
-  const [showAllCompanies, setShowAllCompanies] = useState(false);
+
   const [showAllBooks, setShowAllBooks] = useState(false);
   const [showAllProducts, setShowAllProducts] = useState(false);
   const chatRef = useRef<ChatContextRef | null>(null);
@@ -689,71 +688,7 @@ export default function EpisodeRecapPage() {
     enabled: !!podcastSlug,
   });
 
-  const notablePeople = useMemo(() => {
-    if (!episode) return [];
-    const serverSlugs: string[] = (episode as any).matchedPeopleSlugs || [];
-    if (serverSlugs.length > 0) {
-      const slugSet = new Set(serverSlugs);
-      return PEOPLE_DIRECTORY.filter(p => slugSet.has(p.slug)).slice(0, 12);
-    }
-    const searchText = `${episode.whatHappened || ""} ${episode.tldl || ""} ${episode.episodeTitle || ""}`;
-    const guestNames = guests.map(g => g.name?.toLowerCase().trim()).filter(Boolean);
-    const hostNameSet = new Set((podcastHosts || []).map((h: any) => h.name?.toLowerCase().trim()).filter(Boolean));
-    return PEOPLE_DIRECTORY.filter(p => {
-      const nameLower = p.name.toLowerCase();
-      if (hostNameSet.has(nameLower)) return false;
-      if (p.searchTerms.some(term => hostNameSet.has(term.toLowerCase()))) return false;
-      return guestNames.some(gn => gn === nameLower) ||
-        p.searchTerms.some(term => {
-          const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          const regex = new RegExp(`\\b${escaped}\\b`, 'i');
-          return regex.test(searchText);
-        });
-    }).slice(0, 12);
-  }, [episode, guests, podcastHosts]);
 
-  const getPersonSlug = useMemo(() => {
-    const nameMap = new Map<string, string>();
-    for (const p of PEOPLE_DIRECTORY) {
-      nameMap.set(p.name.toLowerCase().trim(), p.slug);
-      for (const term of p.searchTerms) {
-        nameMap.set(term.toLowerCase().trim(), p.slug);
-      }
-    }
-    return (name: string): string | null => {
-      if (!name) return null;
-      return nameMap.get(name.toLowerCase().trim()) || null;
-    };
-  }, []);
-
-  const notableCompanies = useMemo(() => {
-    if (!episode) return [];
-    const serverSlugs: string[] = (episode as any).matchedCompanySlugs || [];
-    if (serverSlugs.length > 0) {
-      const slugSet = new Set(serverSlugs);
-      return COMPANIES_DIRECTORY.filter(c => slugSet.has(c.slug)).slice(0, 12);
-    }
-    const AMBIGUOUS_TERMS = new Set([
-      "Notion", "Oracle", "Square", "Chase", "Visa", "Benchmark", "Snowflake",
-      "Perplexity", "Bain", "Citadel", "Accel", "Sequoia",
-      "The Information", "The Economist",
-      "Claude", "Gemini", "Slack", "Discord", "Zoom", "Toast", "Runway",
-      "Cursor", "Box", "Circle"
-    ]);
-    const originalText = `${episode.whatHappened || ""} ${episode.tldl || ""} ${episode.episodeTitle || ""}`;
-    return COMPANIES_DIRECTORY.filter(c => {
-      const allTerms = [...c.searchTerms, ...(c.associatedTerms || [])];
-      return allTerms.some(term => {
-        const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        if (AMBIGUOUS_TERMS.has(term)) {
-          return new RegExp(`\\b${escaped}\\b`).test(originalText);
-        }
-        return new RegExp(`\\b${escaped}\\b`, 'i').test(originalText);
-      });
-    }).slice(0, 12);
-  }, [episode]);
-
-  const entityContexts: Record<string, string> = (episode as any)?.entityContexts || {};
   const hasHosts = (podcastHosts && podcastHosts.length > 0) || false;
 
   useEffect(() => {
@@ -964,15 +899,6 @@ export default function EpisodeRecapPage() {
                 Participants
               </button>
             )}
-            {(notablePeople.length > 0 || notableCompanies.length > 0) && (
-              <button
-                onClick={() => scrollTo("section-mentions")}
-                className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-mentions" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-                data-testid="nav-mentions"
-              >
-                Mentions
-              </button>
-            )}
             {(hasBooks || hasShopProducts) && (
               <button
                 onClick={() => scrollTo("section-shop")}
@@ -1031,25 +957,14 @@ export default function EpisodeRecapPage() {
                   <h3 className="text-base font-bold text-muted-foreground uppercase tracking-wider mb-4" data-testid="participants-hosts-label">Hosts</h3>
                   <div className="space-y-5">
                     {podcastHosts.map((host: any, i: number) => {
-                      const hostPersonSlug = getPersonSlug(host.name);
                       return (
                       <div key={i} className="flex items-start gap-4" data-testid={`host-card-${i}`}>
-                        {hostPersonSlug ? (
-                          <Link href={`/people/${hostPersonSlug}`} className="flex-shrink-0">
-                            <GuestPhoto name={host.name} photoUrl={host.photoUrl} testId={`host-photo-${i}`} />
-                          </Link>
-                        ) : (
-                          <div className="flex-shrink-0">
-                            <GuestPhoto name={host.name} photoUrl={host.photoUrl} testId={`host-photo-${i}`} />
-                          </div>
-                        )}
+                        <div className="flex-shrink-0">
+                          <GuestPhoto name={host.name} photoUrl={host.photoUrl} testId={`host-photo-${i}`} />
+                        </div>
                         <div className="flex-1 min-w-0">
                           <h4 className="text-[17px] font-bold text-foreground" data-testid={`host-name-${i}`}>
-                            {hostPersonSlug ? (
-                              <Link href={`/people/${hostPersonSlug}`} className="hover:text-primary transition-colors" data-testid={`host-link-${i}`}>
-                                {host.name}
-                              </Link>
-                            ) : host.name}
+                            {host.name}
                           </h4>
                           {host.bio && (
                             <p className="text-[16px] leading-[1.8] text-muted-foreground mt-1">{host.bio.replace(/<[^>]*>/g, "").split("\n")[0]}</p>
@@ -1095,25 +1010,14 @@ export default function EpisodeRecapPage() {
                   <h3 className="text-base font-bold text-muted-foreground uppercase tracking-wider mb-4" data-testid="participants-guest-label">{guests.length > 1 ? "Guests" : "Guest"}</h3>
                   <div className="space-y-5">
                     {guests.map((guest, i) => {
-                      const personSlug = getPersonSlug(guest.name);
                       return (
                       <div key={i} className="flex items-start gap-4" data-testid={`guest-card-${i}`}>
-                        {personSlug ? (
-                          <Link href={`/people/${personSlug}`} className="flex-shrink-0">
-                            <GuestPhoto name={guest.name} photoUrl={guest.photoUrl} testId={`guest-photo-${i}`} />
-                          </Link>
-                        ) : (
-                          <div className="flex-shrink-0">
-                            <GuestPhoto name={guest.name} photoUrl={guest.photoUrl} testId={`guest-photo-${i}`} />
-                          </div>
-                        )}
+                        <div className="flex-shrink-0">
+                          <GuestPhoto name={guest.name} photoUrl={guest.photoUrl} testId={`guest-photo-${i}`} />
+                        </div>
                         <div className="flex-1 min-w-0">
                           <h4 className="text-[17px] font-bold text-foreground" data-testid={`guest-name-${i}`}>
-                            {personSlug ? (
-                              <Link href={`/people/${personSlug}`} className="hover:text-primary transition-colors" data-testid={`guest-link-${i}`}>
-                                {guest.name}
-                              </Link>
-                            ) : guest.name}
+                            {guest.name}
                           </h4>
                           {(guest.title || guest.bio) && (
                             <p className="text-[16px] leading-[1.8] text-muted-foreground mt-1">
@@ -1160,101 +1064,6 @@ export default function EpisodeRecapPage() {
           </section>
         )}
 
-        {(notablePeople.length > 0 || notableCompanies.length > 0) && (
-          <section id="section-mentions" className="bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-sm shadow-black/[0.02]" data-testid="section-mentions">
-            <div className="px-4 sm:px-6 py-4 bg-orange-500/[0.04] border-b border-orange-500/[0.08]">
-              <div className="flex items-center gap-2.5">
-                <Users className="w-4 h-4 text-orange-500 shrink-0" />
-                <h2 className="text-base font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider m-0">{`Top Mentions in This ${episode.podcastName} Episode`}</h2>
-              </div>
-            </div>
-            <div className="px-4 sm:px-6 py-5 space-y-8">
-              {notablePeople.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Users className="w-3.5 h-3.5 text-orange-500" />
-                    <h3 className="text-[16px] font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider m-0">People</h3>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {(showAllPeople ? notablePeople : notablePeople.slice(0, INITIAL_SHOW)).map((person, i) => (
-                      <div key={person.slug} className="group/card rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-orange-500/30 bg-black/[0.01] dark:bg-white/[0.02] hover:bg-orange-500/[0.03] transition-all" data-testid={`notable-person-${i}`}>
-                        <Link href={`/people/${person.slug}`}>
-                          <div className="flex items-center gap-3.5 px-4 pt-4 pb-2.5 cursor-pointer">
-                            <img
-                              src={person.imageUrl}
-                              alt={person.name}
-                              className="w-[72px] h-[72px] sm:w-24 sm:h-24 rounded-full object-cover flex-shrink-0 bg-muted ring-2 ring-black/[0.04] dark:ring-white/[0.08]"
-                              loading="lazy"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-base font-bold text-foreground group-hover/card:text-orange-600 dark:group-hover/card:text-orange-400 transition-colors truncate">{person.name}</p>
-                              <p className="text-base text-[#52525B] dark:text-[#A1A1AA]/80 truncate mt-0.5">{person.title}</p>
-                            </div>
-                          </div>
-                        </Link>
-                        <div className="px-4 pb-3.5">
-                          {entityContexts[person.slug] && (
-                            <p className="text-base leading-relaxed text-muted-foreground mb-2.5">{entityContexts[person.slug]}</p>
-                          )}
-                          <DeepDiveButton entityName={person.name} entityType="person" chatRef={chatRef} podcastName={episode?.podcastName} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  {notablePeople.length > INITIAL_SHOW && (
-                    <button onClick={() => setShowAllPeople(p => !p)} className="mt-4 text-[16px] font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors" data-testid="show-more-people">
-                      {showAllPeople ? "Show Less" : `Show ${notablePeople.length - INITIAL_SHOW} More`}
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {notablePeople.length > 0 && notableCompanies.length > 0 && (
-                <hr className="border-black/[0.06] dark:border-white/[0.08]" />
-              )}
-
-              {notableCompanies.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Building2 className="w-3.5 h-3.5 text-blue-500" />
-                    <h3 className="text-[16px] font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider m-0">Companies</h3>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {(showAllCompanies ? notableCompanies : notableCompanies.slice(0, INITIAL_SHOW)).map((company, i) => (
-                      <div key={company.slug} className="group/card rounded-xl border border-black/[0.06] dark:border-white/[0.08] hover:border-blue-500/30 bg-black/[0.01] dark:bg-white/[0.02] hover:bg-blue-500/[0.03] transition-all" data-testid={`notable-company-${i}`}>
-                        <Link href={`/companies/${company.slug}`}>
-                          <div className="flex items-center gap-3.5 px-4 pt-4 pb-2.5 cursor-pointer">
-                            <img
-                              src={company.logoUrl}
-                              alt={company.name}
-                              className="w-[72px] h-[72px] sm:w-24 sm:h-24 rounded-lg object-contain flex-shrink-0 bg-muted p-2 ring-2 ring-black/[0.04] dark:ring-white/[0.08]"
-                              loading="lazy"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-base font-bold text-foreground group-hover/card:text-blue-600 dark:group-hover/card:text-blue-400 transition-colors truncate">{company.name}</p>
-                              <p className="text-base text-[#52525B] dark:text-[#A1A1AA]/80 truncate mt-0.5">{company.details.industry}</p>
-                            </div>
-                          </div>
-                        </Link>
-                        <div className="px-4 pb-3.5">
-                          {entityContexts[company.slug] && (
-                            <p className="text-base leading-relaxed text-muted-foreground mb-2.5">{entityContexts[company.slug]}</p>
-                          )}
-                          <DeepDiveButton entityName={company.name} entityType="company" chatRef={chatRef} podcastName={episode?.podcastName} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  {notableCompanies.length > INITIAL_SHOW && (
-                    <button onClick={() => setShowAllCompanies(c => !c)} className="mt-4 text-[16px] font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors" data-testid="show-more-companies">
-                      {showAllCompanies ? "Show Less" : `Show ${notableCompanies.length - INITIAL_SHOW} More`}
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          </section>
-        )}
 
 
 

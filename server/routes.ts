@@ -3871,523 +3871,27 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     }
   }
 
-  app.get("/api/entities/people", async (_req, res) => {
-    try {
-      const cached = directoryCache.people.get();
-      if (cached) return res.json(cached);
-      const results = await computePeopleData();
-      directoryCache.people.set(results);
-      res.json(results);
-    } catch (err: any) {
-      res.status(500).json({ error: err?.message || "Failed to fetch people" });
-    }
+  app.get("/api/entities/people", (_req, res) => {
+    res.status(410).json({ error: "This endpoint has been removed" });
   });
 
-  app.get("/api/entities/people/:slug", async (req, res) => {
-    try {
-      const { slug } = req.params;
-      const person = ENTITY_PEOPLE.find(p => p.slug === slug);
-      if (!person) return res.status(404).json({ error: "Person not found" });
-
-      const { pool: dbPool } = await import("./db");
-      const client = await dbPool.connect();
-
-      try {
-        const excludeCondition = person.hostedSlugs.length > 0
-          ? ` AND slug NOT IN (${person.hostedSlugs.map((_, i) => `$${person.searchTerms.length + i + 1}`).join(",")})`
-          : "";
-        const extraParams = person.hostedSlugs;
-
-        const guestConditions = person.searchTerms.map((_, i) => {
-          const p = `$${i + 1}`;
-          return `guests ~* ${p}`;
-        }).join(" OR ");
-        const guestParams = [...person.searchTerms.map(t => {
-          const escaped = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          return `\\m${escaped}\\M`;
-        }), ...extraParams];
-        const { rows: guestEpisodes } = await client.query(
-          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text, key_topics, resources FROM landing_page_recaps WHERE published = true AND guests IS NOT NULL AND (${guestConditions})${excludeCondition} ORDER BY publish_date DESC`,
-          guestParams
-        );
-
-        const mentionParts = person.searchTerms.map((t, i) => buildSearchCondition(["what_happened", "tldl", "key_insights::text", "episode_title"], i + 1, t));
-        const mentionConditions = mentionParts.map(p => `(${p.sql})`).join(" OR ");
-        const mentionParams = [...mentionParts.map(p => p.param), ...extraParams];
-        const { rows: mentionEpisodes } = await client.query(
-          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text, key_topics, resources FROM landing_page_recaps WHERE published = true AND (${mentionConditions})${excludeCondition} ORDER BY publish_date DESC`,
-          mentionParams
-        );
-
-        const guestKeys = new Set(guestEpisodes.map((e: any) => `${e.slug}/${e.episode_slug}`));
-        const allRelevantEpisodes = [...guestEpisodes, ...mentionEpisodes.filter((e: any) => !guestKeys.has(`${e.slug}/${e.episode_slug}`))];
-
-        const allEpSlugs = allRelevantEpisodes.map((e: any) => e.episode_slug);
-        const transcriptSet = new Set<string>();
-        if (allEpSlugs.length > 0) {
-          const placeholders = allEpSlugs.map((_: any, i: number) => `$${i + 1}`).join(",");
-          const { rows: transcriptRows } = await client.query(
-            `SELECT DISTINCT episode_slug FROM transcript_segments WHERE episode_slug IN (${placeholders})`,
-            allEpSlugs
-          );
-          for (const r of transcriptRows) transcriptSet.add(r.episode_slug);
-        }
-
-        const computeRelevanceScore = (e: any, type: "guest" | "mention") => {
-          if (type === "guest") return 100;
-          const titleLower = (e.episode_title || "").toLowerCase();
-          const titleMatch = person.searchTerms.some(term => titleLower.includes(term.toLowerCase()));
-          if (titleMatch) return 50;
-          const bodyText = [e.what_happened || "", e.tldl || ""].join(" ").toLowerCase();
-          const mentionCount = person.searchTerms.reduce((acc: number, term: string) => {
-            const regex = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
-            return acc + (bodyText.match(regex) || []).length;
-          }, 0);
-          if (mentionCount >= 3) return 25;
-          return 10;
-        };
-
-        const mapEpisode = (e: any, type: "guest" | "mention") => ({
-          slug: e.slug,
-          episode_slug: e.episode_slug,
-          podcast_name: e.podcast_name,
-          episode_title: e.episode_title,
-          publish_date: e.publish_date,
-          artwork_url: e.artwork_url,
-          context: extractMentionContext([e.what_happened, e.tldl, e.key_insights_text].filter(Boolean), person.searchTerms),
-          tldl: e.tldl || "",
-          type,
-          hasTranscript: transcriptSet.has(e.episode_slug),
-          relevanceScore: computeRelevanceScore(e, type),
-        });
-
-        const guestAppearancesWithContext = guestEpisodes.map((e: any) => mapEpisode(e, "guest"));
-        const mentionsOnly = mentionEpisodes
-          .filter((e: any) => !guestKeys.has(`${e.slug}/${e.episode_slug}`))
-          .map((e: any) => mapEpisode(e, "mention"));
-
-        const canonicalTopics: Record<string, { name: string; keywords: string[] }> = {
-          "ai": { name: "Artificial Intelligence", keywords: ["artificial intelligence", "machine learning", "deep learning", "neural network", "large language model", "GPT", "LLM", "ChatGPT", "OpenAI", "Anthropic", "Claude", "AI agent", "AI model", "generative AI"] },
-          "entrepreneurship": { name: "Entrepreneurship", keywords: ["entrepreneurship", "entrepreneur", "founded", "co-founded", "founder", "startup", "bootstrap", "side hustle", "building a business"] },
-          "startups": { name: "Startups", keywords: ["startup", "startups", "product-market fit", "seed round", "series A", "early-stage", "pivot", "incubator", "accelerator", "Y Combinator"] },
-          "venture-capital": { name: "Venture Capital", keywords: ["venture capital", "venture capitalist", "VC firm", "fundraising round", "series A", "series B", "seed funding", "term sheet", "cap table", "valuation"] },
-          "investing": { name: "Investing", keywords: ["investing", "investment strategy", "stock market", "portfolio management", "stocks", "bonds", "ETF", "hedge fund", "asset allocation", "returns"] },
-          "personal-finance": { name: "Personal Finance", keywords: ["personal finance", "financial independence", "wealth building", "financial planning", "budgeting", "saving", "retirement", "debt", "net worth", "FIRE"] },
-          "leadership": { name: "Leadership", keywords: ["leadership", "leading teams", "executive leadership", "CEO", "executive", "organizational culture", "management"] },
-          "marketing": { name: "Marketing", keywords: ["marketing strategy", "digital marketing", "brand strategy", "marketing", "growth hacking", "advertising", "SEO", "content marketing"] },
-          "sales": { name: "Sales", keywords: ["sales strategy", "sales process", "selling", "sales", "revenue", "pipeline", "B2B sales", "closing deals"] },
-          "productivity": { name: "Productivity", keywords: ["productivity", "time management", "deep work", "habits", "routines", "efficiency", "focus", "workflow"] },
-          "technology": { name: "Technology", keywords: ["technology", "software engineering", "tech industry", "software", "engineering", "computing", "cloud", "infrastructure", "developer"] },
-          "economics": { name: "Economics", keywords: ["economics", "economic policy", "macroeconomics", "economy", "monetary policy", "inflation", "recession", "GDP", "Federal Reserve"] },
-          "future-of-work": { name: "Future of Work", keywords: ["future of work", "remote work", "workplace transformation", "gig economy", "hybrid work", "automation replacing"] },
-          "health-longevity": { name: "Health & Longevity", keywords: ["longevity", "healthspan", "lifespan", "nutrition", "fitness", "sleep", "wellness", "anti-aging", "biohacking"] },
-          "psychology": { name: "Psychology", keywords: ["psychology", "psychological", "neuroscience", "behavior", "mental health", "cognitive", "therapy", "emotional intelligence"] },
-          "self-improvement": { name: "Self-Improvement", keywords: ["self-improvement", "personal development", "personal growth", "mindset", "motivation", "discipline"] },
-          "media-content": { name: "Media & Content", keywords: ["media industry", "content creation", "journalism", "media", "streaming", "podcast", "newsletter", "content strategy"] },
-          "geopolitics": { name: "Geopolitics", keywords: ["geopolitics", "geopolitical", "foreign policy", "international relations", "diplomacy", "sanctions", "trade war", "national security"] },
-          "creator-economy": { name: "Creator Economy", keywords: ["creator economy", "content creator", "creator", "influencer", "newsletter", "monetize", "audience building", "personal brand"] },
-          "saas": { name: "SaaS", keywords: ["saas", "software as a service", "recurring revenue", "churn", "ARR", "MRR", "subscription", "B2B software"] },
-          "crypto-web3": { name: "Crypto & Web3", keywords: ["cryptocurrency", "bitcoin", "blockchain", "web3", "crypto", "ethereum", "DeFi", "NFT", "token", "decentralized"] },
-          "climate-energy": { name: "Climate & Energy", keywords: ["climate change", "clean energy", "renewable energy", "climate", "solar", "nuclear", "carbon", "sustainability", "electric vehicle"] },
-          "defense-tech": { name: "Defense Tech", keywords: ["defense tech", "defense technology", "military technology", "defense", "military", "cybersecurity", "national security", "pentagon"] },
-          "product-management": { name: "Product Management", keywords: ["product management", "product manager", "product strategy", "roadmap", "user research", "product-led"] },
-          "open-source": { name: "Open Source", keywords: ["open source", "open-source", "free software", "GitHub", "Linux", "open model", "open weights"] },
-          "automation": { name: "Automation", keywords: ["automation", "workflow automation", "process automation", "automate", "automated", "RPA", "no-code", "low-code"] },
-          "robotics": { name: "Robotics", keywords: ["robotics", "robot", "autonomous vehicle", "humanoid", "drone", "self-driving", "autonomous"] },
-          "bootstrapping": { name: "Bootstrapping", keywords: ["bootstrapping", "bootstrapped", "self-funded", "profitable", "no funding", "indie hacker", "revenue-funded"] },
-          "side-hustles": { name: "Side Hustles", keywords: ["side hustle", "side project", "passive income", "freelance", "extra income", "side business"] },
-        };
-
-        const canonicalTopicCounts: Record<string, number> = {};
-        for (const ep of allRelevantEpisodes) {
-          const combinedText = [ep.what_happened, ep.tldl, ep.key_insights_text, ep.episode_title].filter(Boolean).join(" ").toLowerCase();
-          for (const [slug, config] of Object.entries(canonicalTopics)) {
-            const matchCount = config.keywords.filter(kw => combinedText.includes(kw.toLowerCase())).length;
-            if (matchCount >= 2) {
-              canonicalTopicCounts[slug] = (canonicalTopicCounts[slug] || 0) + 1;
-            }
-          }
-        }
-        const topTopics = Object.entries(canonicalTopicCounts)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 5)
-          .map(([slug, count]) => ({ topic: canonicalTopics[slug].name, count, slug }));
-
-        const podcastCounts: Record<string, { name: string; count: number; artwork_url: string; latestDate: string; latestTitle: string; latestEpisodeSlug: string; podcastSlug: string }> = {};
-        for (const ep of allRelevantEpisodes) {
-          const key = ep.slug;
-          if (!podcastCounts[key]) {
-            podcastCounts[key] = {
-              name: ep.podcast_name,
-              count: 0,
-              artwork_url: ep.artwork_url,
-              latestDate: ep.publish_date || "",
-              latestTitle: ep.episode_title,
-              latestEpisodeSlug: ep.episode_slug,
-              podcastSlug: ep.slug,
-            };
-          }
-          podcastCounts[key].count++;
-          if (ep.publish_date && ep.publish_date > podcastCounts[key].latestDate) {
-            podcastCounts[key].latestDate = ep.publish_date;
-            podcastCounts[key].latestTitle = ep.episode_title;
-            podcastCounts[key].latestEpisodeSlug = ep.episode_slug;
-          }
-        }
-        const podcastsFeaturingPerson = Object.values(podcastCounts)
-          .sort((a, b) => b.count - a.count);
-
-        const quotes: { text: string; podcastName: string; episodeTitle: string; date: string; slug: string; episodeSlug: string; isFromGuestEpisode: boolean }[] = [];
-        const seenQuotes = new Set<string>();
-        const addQuote = (text: string, ep: any, isGuest: boolean) => {
-          if (quotes.length >= 6) return;
-          const clean = text.trim();
-          if (clean.length < 40 || clean.length > 400 || seenQuotes.has(clean)) return;
-          seenQuotes.add(clean);
-          quotes.push({
-            text: clean,
-            podcastName: ep.podcast_name,
-            episodeTitle: ep.episode_title,
-            date: ep.publish_date || "",
-            slug: ep.slug,
-            episodeSlug: ep.episode_slug,
-            isFromGuestEpisode: isGuest,
-          });
-        };
-        for (const ep of guestEpisodes) {
-          if (quotes.length >= 6) break;
-          const insights = ep.key_insights_text;
-          if (insights) {
-            try {
-              const parsed = JSON.parse(insights);
-              if (Array.isArray(parsed)) {
-                for (const insight of parsed) {
-                  const text = typeof insight === "string" ? insight : "";
-                  if (person.searchTerms.some(term => new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(text))) {
-                    addQuote(text, ep, true);
-                  }
-                }
-              }
-            } catch {}
-          }
-        }
-        for (const ep of allRelevantEpisodes) {
-          if (quotes.length >= 6) break;
-          const isGuest = guestKeys.has(`${ep.slug}/${ep.episode_slug}`);
-          const insights = ep.key_insights_text;
-          if (insights) {
-            try {
-              const parsed = JSON.parse(insights);
-              if (Array.isArray(parsed)) {
-                for (const insight of parsed) {
-                  const text = typeof insight === "string" ? insight : "";
-                  if (person.searchTerms.some(term => new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(text))) {
-                    addQuote(text, ep, isGuest);
-                  }
-                }
-              }
-            } catch {}
-          }
-        }
-        if (quotes.length < 6) {
-          for (const ep of allRelevantEpisodes) {
-            if (quotes.length >= 6) break;
-            const isGuest = guestKeys.has(`${ep.slug}/${ep.episode_slug}`);
-            const context = extractMentionContext([ep.what_happened, ep.tldl].filter(Boolean), person.searchTerms);
-            if (context && context.length > 40) {
-              addQuote(context, ep, isGuest);
-            }
-          }
-        }
-
-        let hostedEpisodesWithResources: any[] = [];
-        if (person.hostedSlugs.length > 0) {
-          const hostedPlaceholders = person.hostedSlugs.map((_, i) => `$${i + 1}`).join(",");
-          const { rows: hostedRows } = await client.query(
-            `SELECT slug, resources FROM landing_page_recaps WHERE slug IN (${hostedPlaceholders}) AND resources IS NOT NULL AND resources::text != '[]'`,
-            person.hostedSlugs
-          );
-          hostedEpisodesWithResources = hostedRows;
-        }
-
-        const bookMentionMap = new Map<string, { name: string; author: string | null; url: string; context: string; mentionCount: number; podcastSlugs: Set<string> }>();
-        const allEpisodesForBooks = [...allRelevantEpisodes, ...hostedEpisodesWithResources];
-        for (const ep of allEpisodesForBooks) {
-          if (!ep.resources) continue;
-          let resources: any[];
-          try {
-            const parsed = typeof ep.resources === 'string' ? JSON.parse(ep.resources) : ep.resources;
-            if (!Array.isArray(parsed)) continue;
-            resources = parsed;
-          } catch { continue; }
-          for (const r of resources) {
-            if (!r || r.type !== 'book' || !r.name || r.name === '_books_checked') continue;
-            const key = r.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
-            const existing = bookMentionMap.get(key);
-            if (existing) {
-              existing.mentionCount++;
-              existing.podcastSlugs.add(ep.slug);
-              if (!existing.author && r.author) existing.author = r.author;
-              if (!existing.context && r.context) existing.context = r.context;
-              if (r.url && r.url.includes('/dp/') && !existing.url?.includes('/dp/')) existing.url = r.url;
-            } else {
-              const podcastSlugs = new Set<string>();
-              podcastSlugs.add(ep.slug);
-              bookMentionMap.set(key, {
-                name: r.name,
-                author: r.author || null,
-                url: r.url || "",
-                context: r.context || "",
-                mentionCount: 1,
-                podcastSlugs,
-              });
-            }
-          }
-        }
-
-        let recommendedBooks: { name: string; author: string | null; slug: string | null; amazonUrl: string; asin: string | null; googleBooksId: string | null; isbn: string | null; hasCover: boolean | null; context: string; mentionCount: number; podcastCount: number }[] = [];
-        if (bookMentionMap.size > 0) {
-          const bookKeys = Array.from(bookMentionMap.keys());
-          const aliasPlaceholders = bookKeys.map((_, i) => `$${i + 1}`).join(",");
-          const { rows: aliasRows } = await client.query(
-            `SELECT alias_key, canonical_key FROM book_aliases WHERE alias_key IN (${aliasPlaceholders})`,
-            bookKeys
-          );
-          const aliasMap = new Map(aliasRows.map((a: any) => [a.alias_key, a.canonical_key]));
-          const resolvedKeys = bookKeys.map(k => aliasMap.get(k) || k);
-          const uniqueKeys = [...new Set(resolvedKeys)];
-          const placeholders = uniqueKeys.map((_, i) => `$${i + 1}`).join(",");
-          const { rows: enrichRows } = await client.query(
-            `SELECT book_key, slug, author, asin, amazon_url, google_books_id, isbn, has_cover FROM book_enrichments WHERE book_key IN (${placeholders})`,
-            uniqueKeys
-          );
-          const enrichByKey = new Map(enrichRows.map((e: any) => [e.book_key, e]));
-
-          recommendedBooks = Array.from(bookMentionMap.entries())
-            .map(([key, b]) => {
-              const resolvedKey = aliasMap.get(key) || key;
-              const enrich = enrichByKey.get(resolvedKey) as any;
-              const asin = enrich?.asin || extractAsinFromUrl(b.url);
-              const amazonUrl = `https://www.amazon.com/s?k=${encodeURIComponent(`${b.name}${enrich?.author ? ` ${enrich.author}` : ""} book`)}&tag=podcap-20`;
-              return {
-                name: b.name,
-                author: enrich?.author || b.author,
-                slug: enrich?.slug || null,
-                amazonUrl,
-                asin,
-                googleBooksId: enrich?.google_books_id || null,
-                isbn: enrich?.isbn || null,
-                hasCover: enrich?.has_cover ?? null,
-                context: b.context,
-                mentionCount: b.mentionCount,
-                podcastCount: b.podcastSlugs.size,
-              };
-            })
-            .filter(b => b.slug)
-            .sort((a, b) => b.mentionCount - a.mentionCount || b.podcastCount - a.podcastCount)
-            .slice(0, 12);
-        }
-
-        res.json({
-          name: person.name,
-          title: person.title,
-          slug,
-          guestAppearances: guestAppearancesWithContext,
-          mentions: mentionsOnly,
-          guestCount: guestAppearancesWithContext.length,
-          mentionCount: mentionsOnly.length,
-          topTopics,
-          podcastsFeaturingPerson,
-          quotes,
-          recommendedBooks,
-        });
-      } finally {
-        client.release();
-      }
-    } catch (err: any) {
-      res.status(500).json({ error: err?.message || "Failed to fetch person" });
-    }
+  app.get("/api/entities/people/:slug", (_req, res) => {
+    res.status(410).json({ error: "This endpoint has been removed" });
   });
 
-  async function computeCompaniesData() {
-    const { pool: dbPool } = await import("./db");
-    const client = await dbPool.connect();
-    try {
-      const { rows: allRecaps } = await client.query(
-        `SELECT what_happened, tldl, key_insights::text as key_insights_text, publish_date FROM landing_page_recaps WHERE published = true`
-      );
+  async function computeCompaniesData(): Promise<any[]> { return []; }
+  async function computeTopicsData(): Promise<any[]> { return []; }
 
-      const results = [];
-      for (const company of ENTITY_COMPANIES) {
-        let mentionCount = 0;
-        let recentCount = 0;
-        let olderCount = 0;
-        for (const row of allRecaps) {
-          const texts = [row.what_happened, row.tldl, row.key_insights_text].filter(Boolean);
-          const allTerms = [...company.searchTerms, ...((company as any).associatedTerms || [])];
-          const matched = allTerms.some(term =>
-            texts.some(t => termMatchesInText(t, term))
-          );
-          if (matched) {
-            mentionCount++;
-            if (isRecent(row.publish_date)) recentCount++;
-            else olderCount++;
-          }
-        }
-        const trend = computeTrendDirection(recentCount, olderCount);
-        results.push({
-          slug: company.slug,
-          name: company.name,
-          description: company.description,
-          mentionCount,
-          recentMentions: recentCount,
-          trend: trend.direction,
-          changePercent: trend.changePercent,
-        });
-      }
-      results.sort((a, b) => b.mentionCount - a.mentionCount);
-      return results;
-    } finally {
-      client.release();
-    }
-  }
-
-  app.get("/api/entities/companies", async (_req, res) => {
-    try {
-      const cached = directoryCache.companies.get();
-      if (cached) return res.json(cached);
-      const results = await computeCompaniesData();
-      directoryCache.companies.set(results);
-      res.json(results);
-    } catch (err: any) {
-      res.status(500).json({ error: err?.message || "Failed to fetch companies" });
-    }
+  app.get("/api/entities/companies", (_req, res) => {
+    res.status(410).json({ error: "This endpoint has been removed" });
   });
 
-  const TRENDING_TOPIC_KEYWORDS: Record<string, { name: string; primary: string[]; secondary: string[]; minScore: number }> = {
-    "ai": { name: "Artificial Intelligence", primary: ["artificial intelligence", "machine learning", "deep learning", "neural network", "large language model"], secondary: ["GPT", "LLM", "ChatGPT", "OpenAI", "Anthropic", "Claude", "AI agent", "AI model", "generative AI"], minScore: 4 },
-    "startups": { name: "Startups", primary: ["startup", "startups", "product-market fit", "seed round", "series A"], secondary: ["early-stage", "pivot", "launch", "incubator", "accelerator", "Y Combinator"], minScore: 3 },
-    "venture-capital": { name: "Venture Capital", primary: ["venture capital", "venture capitalist", "VC firm", "fundraising round"], secondary: ["VC", "series A", "series B", "seed funding", "term sheet", "cap table", "valuation"], minScore: 3 },
-    "investing": { name: "Investing", primary: ["investing", "investment strategy", "stock market", "portfolio management"], secondary: ["stocks", "bonds", "ETF", "hedge fund", "asset allocation", "returns"], minScore: 3 },
-    "entrepreneurship": { name: "Entrepreneurship", primary: ["entrepreneurship", "entrepreneur", "founded", "co-founded"], secondary: ["founder", "startup", "bootstrap", "bootstrapped", "side hustle", "building a business"], minScore: 3 },
-    "leadership": { name: "Leadership", primary: ["leadership", "leading teams", "executive leadership"], secondary: ["CEO", "executive", "leader", "vision", "organizational culture", "management"], minScore: 3 },
-    "marketing": { name: "Marketing", primary: ["marketing strategy", "digital marketing", "brand strategy"], secondary: ["marketing", "brand", "growth hacking", "advertising", "SEO", "content marketing"], minScore: 3 },
-    "crypto-web3": { name: "Crypto & Web3", primary: ["cryptocurrency", "bitcoin", "blockchain", "web3"], secondary: ["crypto", "ethereum", "DeFi", "NFT", "token", "decentralized"], minScore: 3 },
-    "health-longevity": { name: "Health & Longevity", primary: ["longevity", "healthspan", "lifespan"], secondary: ["nutrition", "fitness", "sleep", "wellness", "anti-aging", "biohacking", "metabolic health"], minScore: 3 },
-    "technology": { name: "Technology", primary: ["technology", "software engineering", "tech industry"], secondary: ["software", "engineering", "computing", "cloud", "infrastructure", "developer"], minScore: 3 },
-    "economics": { name: "Economics", primary: ["economics", "economic policy", "macroeconomics"], secondary: ["economy", "monetary policy", "inflation", "recession", "GDP", "Federal Reserve"], minScore: 3 },
-    "climate-energy": { name: "Climate & Energy", primary: ["climate change", "clean energy", "renewable energy"], secondary: ["climate", "solar", "nuclear", "carbon", "sustainability", "electric vehicle"], minScore: 3 },
-    "defense-tech": { name: "Defense Tech", primary: ["defense tech", "defense technology", "military technology"], secondary: ["defense", "military", "cybersecurity", "national security", "pentagon"], minScore: 3 },
-    "robotics": { name: "Robotics", primary: ["robotics", "robot", "autonomous vehicle"], secondary: ["humanoid", "drone", "manufacturing automation", "self-driving", "autonomous"], minScore: 3 },
-    "psychology": { name: "Psychology", primary: ["psychology", "psychological", "neuroscience"], secondary: ["behavior", "mental health", "cognitive", "therapy", "emotional intelligence"], minScore: 3 },
-    "geopolitics": { name: "Geopolitics", primary: ["geopolitics", "geopolitical", "foreign policy", "international relations"], secondary: ["diplomacy", "international", "sanctions", "trade war", "national security"], minScore: 3 },
-    "saas": { name: "SaaS", primary: ["saas", "software as a service", "recurring revenue"], secondary: ["churn", "ARR", "MRR", "subscription", "B2B software"], minScore: 3 },
-    "creator-economy": { name: "Creator Economy", primary: ["creator economy", "content creator", "creator"], secondary: ["influencer", "newsletter", "monetize", "audience building", "personal brand"], minScore: 3 },
-    "automation": { name: "Automation", primary: ["automation", "workflow automation", "process automation"], secondary: ["automate", "automated", "RPA", "no-code", "low-code", "Zapier"], minScore: 3 },
-    "personal-finance": { name: "Personal Finance", primary: ["personal finance", "financial independence", "wealth building"], secondary: ["budgeting", "saving", "retirement", "debt", "credit score", "FIRE"], minScore: 3 },
-  };
-
-  async function computeTopicsData() {
-    const { pool: dbPool } = await import("./db");
-    const client = await dbPool.connect();
-    try {
-      const { rows: allRecaps } = await client.query(
-        `SELECT what_happened, tldl, key_insights::text as key_insights_text, episode_title, publish_date FROM landing_page_recaps WHERE published = true`
-      );
-
-      const results = [];
-      for (const [slug, config] of Object.entries(TRENDING_TOPIC_KEYWORDS)) {
-        const allKeywords = [...config.primary, ...config.secondary];
-        let mentionCount = 0;
-        let recentCount = 0;
-        let olderCount = 0;
-
-        for (const row of allRecaps) {
-          const texts = [row.what_happened, row.tldl, row.key_insights_text, row.episode_title].filter(Boolean);
-          let score = 0;
-          for (const kw of config.primary) {
-            if (texts.some(t => t.toLowerCase().includes(kw.toLowerCase()))) score += 3;
-          }
-          for (const kw of config.secondary) {
-            if (texts.some(t => t.toLowerCase().includes(kw.toLowerCase()))) score += 1;
-          }
-          if (score >= config.minScore) {
-            mentionCount++;
-            if (isRecent(row.publish_date)) recentCount++;
-            else olderCount++;
-          }
-        }
-
-        const trend = computeTrendDirection(recentCount, olderCount);
-        results.push({
-          slug,
-          name: config.name,
-          mentionCount,
-          recentMentions: recentCount,
-          trend: trend.direction,
-          changePercent: trend.changePercent,
-        });
-      }
-      results.sort((a, b) => b.mentionCount - a.mentionCount);
-      return results;
-    } finally {
-      client.release();
-    }
-  }
-
-  app.get("/api/entities/topics", async (_req, res) => {
-    try {
-      const cached = directoryCache.topics.get();
-      if (cached) return res.json(cached);
-      const results = await computeTopicsData();
-      directoryCache.topics.set(results);
-      res.json(results);
-    } catch (err: any) {
-      res.status(500).json({ error: err?.message || "Failed to fetch topics" });
-    }
+  app.get("/api/entities/companies/:slug", (_req, res) => {
+    res.status(410).json({ error: "This endpoint has been removed" });
   });
 
-  app.get("/api/entities/companies/:slug", async (req, res) => {
-    try {
-      const { slug } = req.params;
-      const company = ENTITY_COMPANIES.find(c => c.slug === slug);
-      if (!company) return res.status(404).json({ error: "Company not found" });
-
-      const { pool: dbPool } = await import("./db");
-      const client = await dbPool.connect();
-      try {
-        const allTerms = [...company.searchTerms, ...((company as any).associatedTerms || [])];
-        const parts = allTerms.map((t, i) => buildSearchCondition(["what_happened", "tldl", "key_insights::text"], i + 1, t));
-        const conditions = parts.map(p => `(${p.sql})`).join(" OR ");
-        const params = parts.map(p => p.param);
-        const { rows: mentionEpisodes } = await client.query(
-          `SELECT slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights::text as key_insights_text FROM landing_page_recaps WHERE ${conditions} ORDER BY publish_date DESC`,
-          params
-        );
-
-        const mentions = mentionEpisodes.map((e: any) => ({
-          slug: e.slug,
-          episode_slug: e.episode_slug,
-          podcast_name: e.podcast_name,
-          episode_title: e.episode_title,
-          publish_date: e.publish_date,
-          artwork_url: e.artwork_url,
-          context: extractMentionContext([e.what_happened, e.tldl, e.key_insights_text].filter(Boolean), allTerms),
-        }));
-
-        res.json({
-          name: company.name,
-          description: company.description,
-          slug,
-          mentions,
-          mentionCount: mentions.length,
-        });
-      } finally {
-        client.release();
-      }
-    } catch (err: any) {
-      res.status(500).json({ error: err?.message || "Failed to fetch company" });
-    }
+  app.get("/api/entities/topics", (_req, res) => {
+    res.status(410).json({ error: "This endpoint has been removed" });
   });
 
   app.get("/api/podcasts/:slug/:episodeSlug/transcript-segments", (_req, res) => {
@@ -18739,52 +18243,98 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
        WHERE slug IS NOT NULL AND itunes_id IS NOT NULL
        AND ((artwork_url IS NULL OR artwork_url = '') OR name = slug)`
     );
-    const brokenStubs = await pool.query(
-      `SELECT id, slug FROM podcast_directory
-       WHERE (itunes_id IS NULL OR itunes_id = '')
-       AND (artwork_url IS NULL OR artwork_url = '')
-       AND slug IS NOT NULL`
+    const needsFixNoId = await pool.query(
+      `SELECT slug, name, artwork_url FROM podcast_directory
+       WHERE slug IS NOT NULL AND (itunes_id IS NULL OR itunes_id = '')
+       AND ((artwork_url IS NULL OR artwork_url = '') OR name = slug)`
     );
-    if (brokenStubs.rows.length > 0) {
-      const ids = brokenStubs.rows.map((r: any) => r.id);
-      await pool.query(`DELETE FROM podcast_directory WHERE id = ANY($1)`, [ids]);
-      console.log(`[DirectoryCleanup] Removed ${brokenStubs.rows.length} stub entries with no iTunes ID and no artwork: ${brokenStubs.rows.map((r: any) => r.slug).join(', ')}`);
-    }
-
-    if (needsFixWithId.rows.length > 0) {
-      console.log(`[DirectoryBackfill] Found ${needsFixWithId.rows.length} podcasts with iTunes ID needing artwork or name fix`);
+    const totalNeedsFix = needsFixWithId.rows.length + needsFixNoId.rows.length;
+    if (totalNeedsFix > 0) {
+      console.log(`[DirectoryBackfill] Found ${totalNeedsFix} podcasts needing fix (${needsFixWithId.rows.length} with iTunes ID, ${needsFixNoId.rows.length} without)`);
       let fixed = 0;
-      const ids = needsFixWithId.rows.map((r: any) => r.itunes_id);
-      for (let i = 0; i < ids.length; i += 50) {
+
+      if (needsFixWithId.rows.length > 0) {
+        const ids = needsFixWithId.rows.map((r: any) => r.itunes_id);
+        for (let i = 0; i < ids.length; i += 50) {
+          try {
+            const resp = await fetch(`https://itunes.apple.com/lookup?id=${ids.slice(i, i + 50).join(",")}`);
+            const data = await resp.json();
+            for (const r of (data.results || [])) {
+              const itunesIdStr = String(r.collectionId);
+              const row = needsFixWithId.rows.find((x: any) => x.itunes_id === itunesIdStr);
+              if (!row) continue;
+              const sets: string[] = [];
+              const params: any[] = [];
+              const missingArt = !row.artwork_url || row.artwork_url === '';
+              const slugName = row.name === row.slug;
+              if (missingArt) {
+                const art = (r.artworkUrl600 || r.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb");
+                if (art) { params.push(art); sets.push(`artwork_url = $${params.length}`); }
+              }
+              if (slugName && r.collectionName) {
+                params.push(r.collectionName);
+                sets.push(`name = $${params.length}`);
+              }
+              if (sets.length > 0) {
+                params.push(itunesIdStr);
+                await pool.query(`UPDATE podcast_directory SET ${sets.join(', ')} WHERE itunes_id = $${params.length}`, params);
+                fixed++;
+              }
+            }
+          } catch (e: any) { console.warn(`[DirectoryBackfill] Batch lookup failed:`, e.message); }
+          if (i + 50 < ids.length) await new Promise(r => setTimeout(r, 1000));
+        }
+      }
+
+      const ITUNES_OVERRIDES: Record<string, string> = {
+        'information-411': '1035041995',
+        'abc-world-news-this-week': '91959525',
+      };
+
+      for (const row of needsFixNoId.rows) {
         try {
-          const resp = await fetch(`https://itunes.apple.com/lookup?id=${ids.slice(i, i + 50).join(",")}`);
-          const data = await resp.json();
-          for (const r of (data.results || [])) {
-            const itunesIdStr = String(r.collectionId);
-            const row = needsFixWithId.rows.find((x: any) => x.itunes_id === itunesIdStr);
-            if (!row) continue;
+          let match: any = null;
+          const overrideId = ITUNES_OVERRIDES[row.slug];
+          if (overrideId) {
+            const resp = await fetch(`https://itunes.apple.com/lookup?id=${overrideId}`);
+            const data = await resp.json();
+            match = (data.results || [])[0] || null;
+          } else {
+            const searchTerm = row.slug.replace(/-/g, ' ');
+            const resp = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(searchTerm)}&media=podcast&limit=5`);
+            const data = await resp.json();
+            const results = data.results || [];
+            match = results.find((r: any) => {
+              const feedSlug = (r.collectionName || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+              const feedNorm = feedSlug.replace(/-/g, '');
+              const slugNorm = row.slug.replace(/-/g, '');
+              return feedSlug === row.slug || feedNorm === slugNorm || feedSlug.includes(row.slug) || row.slug.includes(feedSlug);
+            }) || null;
+          }
+          if (match) {
             const sets: string[] = [];
             const params: any[] = [];
+            const itunesId = String(match.collectionId);
+            params.push(itunesId);
+            sets.push(`itunes_id = $${params.length}`);
             const missingArt = !row.artwork_url || row.artwork_url === '';
-            const slugName = row.name === row.slug;
             if (missingArt) {
-              const art = (r.artworkUrl600 || r.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb");
+              const art = (match.artworkUrl600 || match.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb");
               if (art) { params.push(art); sets.push(`artwork_url = $${params.length}`); }
             }
-            if (slugName && r.collectionName) {
-              params.push(r.collectionName);
+            if (row.name === row.slug && match.collectionName) {
+              params.push(match.collectionName);
               sets.push(`name = $${params.length}`);
             }
-            if (sets.length > 0) {
-              params.push(itunesIdStr);
-              await pool.query(`UPDATE podcast_directory SET ${sets.join(', ')} WHERE itunes_id = $${params.length}`, params);
-              fixed++;
-            }
+            params.push(row.slug);
+            await pool.query(`UPDATE podcast_directory SET ${sets.join(', ')} WHERE slug = $${params.length}`, params);
+            fixed++;
           }
-        } catch (e: any) { console.warn(`[DirectoryBackfill] Batch lookup failed:`, e.message); }
-        if (i + 50 < ids.length) await new Promise(r => setTimeout(r, 1000));
+          await new Promise(r => setTimeout(r, 300));
+        } catch (e: any) { console.warn(`[DirectoryBackfill] Search failed for ${row.slug}:`, e.message); }
       }
-      console.log(`[DirectoryBackfill] Fixed ${fixed}/${needsFixWithId.rows.length} podcasts`);
+
+      console.log(`[DirectoryBackfill] Fixed ${fixed}/${totalNeedsFix} podcasts`);
     }
   } catch (err) {
     console.warn("[DirectoryBackfill] skipped:", err);

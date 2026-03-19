@@ -18,16 +18,6 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/people" className={linkClass} data-testid="link-people">
-                  People
-                </Link>
-              </li>
-              <li>
-                <Link href="/companies" className={linkClass} data-testid="link-companies">
-                  Companies
-                </Link>
-              </li>
-              <li>
                 <Link href="/shop" className={`inline-flex items-center gap-1.5 ${linkClass}`} data-testid="link-shop">
                   Shop
                   <span className="text-[12px] font-bold uppercase tracking-wider bg-amber-500/[0.12] text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-full leading-none">Beta</span>
@@ -100,6 +90,12 @@ export function Footer() {
                   Contact Us
                 </Link>
               </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className={headingClass}>Legal</h3>
+            <ul className="space-y-3">
               <li>
                 <Link href="/privacy" className={linkClass} data-testid="link-privacy">
                   Privacy Policy
@@ -110,12 +106,6 @@ export function Footer() {
                   Terms
                 </Link>
               </li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className={headingClass}>Legal</h3>
-            <ul className="space-y-3">
               <li>
                 <Link href="/cookies" className={linkClass} data-testid="link-cookies">
                   Cookie Policy

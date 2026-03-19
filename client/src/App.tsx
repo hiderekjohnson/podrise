@@ -32,10 +32,6 @@ const FeatureRequests = lazy(() => import("./pages/FeatureRequests"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
 const WeHeartPodcasters = lazy(() => import("./pages/ForPodcasters"));
-const PeopleDirectory = lazy(() => import("./pages/PeopleDirectory"));
-const PersonDetailPage = lazy(() => import("./pages/PersonDetailPage"));
-const CompaniesDirectory = lazy(() => import("./pages/CompaniesDirectory"));
-const CompanyDetailPage = lazy(() => import("./pages/CompanyDetailPage"));
 const GetStarted = lazy(() => import("./pages/GetStarted"));
 const Register = lazy(() => import("./pages/Register"));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
@@ -135,10 +131,10 @@ function Router() {
         <Route path="/advertise" component={Advertise} />
         <Route path="/disclosure" component={Disclosure} />
         <Route path="/we-heart-podcasters" component={WeHeartPodcasters} />
-        <Route path="/people/:slug">{() => <AuthAwareLayout><Suspense fallback={<PageLoader />}><PersonDetailPage /></Suspense></AuthAwareLayout>}</Route>
-        <Route path="/people" component={PeopleDirectory} />
-        <Route path="/companies/:slug">{() => <AuthAwareLayout><Suspense fallback={<PageLoader />}><CompanyDetailPage /></Suspense></AuthAwareLayout>}</Route>
-        <Route path="/companies" component={CompaniesDirectory} />
+        <Route path="/people/:slug">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/people">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/companies/:slug">{() => { window.location.replace("/"); return null; }}</Route>
+        <Route path="/companies">{() => { window.location.replace("/"); return null; }}</Route>
         <Route path="/get-started">{() => { window.location.replace("/register"); return null; }}</Route>
         <Route path="/lp/:slug" component={LandingPage} />
         <Route path="/register" component={Register} />
