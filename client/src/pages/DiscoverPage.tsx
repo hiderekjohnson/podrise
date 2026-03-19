@@ -528,77 +528,90 @@ export default function DiscoverPage() {
                 </div>
               )}
 
-              {filteredPodcasts.length > 0 && (
-                <div>
-                  <h3 className="text-[13px] font-bold text-[#A1A1AA] uppercase tracking-wide mb-2">Podcasts</h3>
-                  <div className="divide-y divide-[#F4F4F5] dark:divide-[#1C1C22]">
-                    {filteredPodcasts.slice(0, 20).map((p) => (
-                      <div key={p.slug} className="flex items-center gap-3 py-3" data-testid={`search-podcast-${p.slug}`}>
-                        <Link href={`/podcasts/${p.slug}`} className="w-12 h-12 rounded-xl overflow-hidden bg-[#F4F4F5] dark:bg-[#1C1C22] flex-shrink-0 ring-[0.5px] ring-black/5 block">
-                          <img src={p.artworkUrl} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
-                        </Link>
-                        <div className="flex-1 min-w-0">
-                          <Link href={`/podcasts/${p.slug}`}>
-                            <p className="text-[15px] md:text-[16px] font-semibold text-[#09090B] dark:text-white truncate hover:text-[#6366F1] transition-colors" data-testid={`search-podcast-name-${p.slug}`}>{p.name}</p>
-                          </Link>
-                          {p.category && <p className="text-[12px] text-[#A1A1AA] mt-0.5">{p.category}</p>}
-                        </div>
-                        <FollowButton
-                          slug={p.slug}
-                          isFollowing={resolvedFollowedSlugs.has(p.slug)}
-                          onFollow={handleFollow}
-                          onUnfollow={handleUnfollow}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {itunesSearchResults.length > 0 && (
-                <div className="mt-2">
-                  <h3 className="text-[13px] font-bold text-[#A1A1AA] uppercase tracking-wide mb-2">
-                    {filteredPodcasts.length > 0 ? "More from iTunes" : "Podcasts"}
-                  </h3>
-                  <div className="divide-y divide-[#F4F4F5] dark:divide-[#1C1C22]">
-                    {itunesSearchResults
-                      .filter((r: any) => !filteredPodcasts.some(fp => fp.slug === r.slug))
-                      .slice(0, 10)
-                      .map((result: any) => (
-                      <div key={result.id} className="flex items-center gap-3 py-3" data-testid={`itunes-result-${result.id}`}>
-                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#F4F4F5] dark:bg-[#1C1C22] flex-shrink-0 ring-[0.5px] ring-black/5">
-                          {result.artworkUrl ? (
-                            <img src={result.artworkUrl} alt={result.name} className="w-full h-full object-cover" loading="lazy" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-[#E4E4E7]">
-                              <Search className="w-4 h-4 text-[#A1A1AA]" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          {result.onPlatform && result.slug ? (
-                            <Link href={`/podcasts/${result.slug}`}>
-                              <p className="text-[15px] md:text-[16px] font-semibold text-[#09090B] dark:text-white truncate hover:text-[#6366F1] transition-colors">{result.name}</p>
+              {(() => {
+                const localResults = filteredPodcasts.slice(0, 20).map((p) => ({
+                  key: `local-${p.slug}`,
+                  slug: p.slug,
+                  name: p.name,
+                  artworkUrl: p.artworkUrl,
+                  subtitle: p.category || "",
+                  onPlatform: true,
+                  source: "local" as const,
+                  raw: p,
+                }));
+                const dedupedItunes = itunesSearchResults
+                  .filter((r: any) => !filteredPodcasts.some(fp => fp.slug === r.slug))
+                  .slice(0, 10)
+                  .map((r: any) => ({
+                    key: `itunes-${r.id}`,
+                    slug: r.onPlatform && r.slug ? r.slug : null,
+                    name: r.name,
+                    artworkUrl: r.artworkUrl,
+                    subtitle: r.artistName || r.genre || "",
+                    onPlatform: !!(r.onPlatform && r.slug),
+                    source: "itunes" as const,
+                    raw: r,
+                  }));
+                const allResults = [...localResults, ...dedupedItunes];
+                if (allResults.length === 0) return null;
+                return (
+                  <div>
+                    <h3 className="text-[13px] font-bold text-[#A1A1AA] uppercase tracking-wide mb-2">Podcasts</h3>
+                    <div className="divide-y divide-[#F4F4F5] dark:divide-[#1C1C22]">
+                      {allResults.map((item) => (
+                        <div key={item.key} className="flex items-center gap-3 py-3" data-testid={item.onPlatform ? `search-podcast-${item.slug}` : `itunes-result-${item.raw.id}`}>
+                          {item.onPlatform && item.slug ? (
+                            <Link href={`/podcasts/${item.slug}`} className="w-12 h-12 rounded-xl overflow-hidden bg-[#F4F4F5] dark:bg-[#1C1C22] flex-shrink-0 ring-[0.5px] ring-black/5 block">
+                              {item.artworkUrl ? (
+                                <img src={item.artworkUrl} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-[#E4E4E7]">
+                                  <Search className="w-4 h-4 text-[#A1A1AA]" />
+                                </div>
+                              )}
                             </Link>
                           ) : (
-                            <p className="text-[15px] md:text-[16px] font-semibold text-[#09090B] dark:text-white truncate">{result.name}</p>
+                            <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#F4F4F5] dark:bg-[#1C1C22] flex-shrink-0 ring-[0.5px] ring-black/5">
+                              {item.artworkUrl ? (
+                                <img src={item.artworkUrl} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-[#E4E4E7]">
+                                  <Search className="w-4 h-4 text-[#A1A1AA]" />
+                                </div>
+                              )}
+                            </div>
                           )}
-                          <p className="text-[12px] text-[#A1A1AA] mt-0.5 truncate">
-                            {result.artistName || result.genre || ""}
-                          </p>
+                          <div className="flex-1 min-w-0">
+                            {item.onPlatform && item.slug ? (
+                              <Link href={`/podcasts/${item.slug}`}>
+                                <p className="text-[15px] md:text-[16px] font-semibold text-[#09090B] dark:text-white truncate hover:text-[#6366F1] transition-colors" data-testid={`search-podcast-name-${item.slug}`}>{item.name}</p>
+                              </Link>
+                            ) : (
+                              <p className="text-[15px] md:text-[16px] font-semibold text-[#09090B] dark:text-white truncate">{item.name}</p>
+                            )}
+                            {item.subtitle && <p className="text-[12px] text-[#A1A1AA] mt-0.5 truncate">{item.subtitle}</p>}
+                          </div>
+                          {item.onPlatform && item.slug ? (
+                            <FollowButton
+                              slug={item.slug}
+                              isFollowing={resolvedFollowedSlugs.has(item.slug)}
+                              onFollow={handleFollow}
+                              onUnfollow={handleUnfollow}
+                            />
+                          ) : (
+                            <FollowButton
+                              slug={`itunes-${item.raw.id}`}
+                              isFollowing={false}
+                              onFollow={() => handleFollowExternal(item.raw)}
+                              onUnfollow={() => {}}
+                            />
+                          )}
                         </div>
-                        <button
-                          onClick={() => handleFollowExternal(result)}
-                          className="flex-shrink-0 px-4 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95 bg-[#09090B] dark:bg-white text-white dark:text-[#09090B]"
-                          data-testid={`follow-itunes-${result.id}`}
-                        >
-                          Follow
-                        </button>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {isItunesSearching && itunesSearchResults.length === 0 && filteredPodcasts.length === 0 && searchedLists.length === 0 && (
                 <div className="flex justify-center py-12">
