@@ -16,7 +16,7 @@ import { PodcastPageLayout } from "@/components/PodcastPageLayout";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth, useRegister, useLogin } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
 import { useSetConversion } from "@/contexts/PageConversionContext";
 
 interface BookResource {
@@ -161,31 +161,7 @@ function DeepDiveButton({ label, entityName, entityType, chatRef, podcastName, i
   );
 }
 
-function AuthGatePanel({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
-  const [email, setEmail] = useState("");
-  const registerMutation = useRegister();
-  const loginMutation = useLogin();
-  const [error, setError] = useState("");
-
-  const handleSubmit = async () => {
-    const trimmed = email.trim();
-    if (!trimmed) return;
-    setError("");
-    try {
-      await registerMutation.mutateAsync({ email: trimmed, podcasts: [], signupContext: "ask_ai", signupSource: "ask_ai_gate" });
-      onSuccess();
-    } catch {
-      try {
-        await loginMutation.mutateAsync({ email: trimmed });
-        onSuccess();
-      } catch {
-        setError("Something went wrong. Please try again.");
-      }
-    }
-  };
-
-  const isPending = registerMutation.isPending || loginMutation.isPending;
-
+function AuthGatePanel({ onClose }: { onClose: () => void; onSuccess?: () => void }) {
   return (
     <div className="fixed bottom-[calc(50px+env(safe-area-inset-bottom,0px))] md:bottom-0 right-0 sm:bottom-6 sm:right-6 z-50 w-full sm:w-[380px] sm:max-w-[calc(100vw-2rem)] rounded-t-2xl sm:rounded-2xl border border-black/[0.08] dark:border-white/[0.12] bg-background shadow-2xl shadow-black/[0.12] flex flex-col overflow-hidden" data-testid="auth-gate-panel">
       <div className="flex items-center justify-between px-4 py-3 border-b border-black/[0.06] dark:border-white/[0.08] bg-primary/[0.03]">
@@ -205,30 +181,16 @@ function AuthGatePanel({ onClose, onSuccess }: { onClose: () => void; onSuccess:
             <Sparkles className="w-6 h-6 text-primary" />
           </div>
           <h3 className="text-[18px] font-bold text-foreground">Ask AI requires an account</h3>
-          <p className="text-[14px] text-muted-foreground leading-relaxed">Enter your email to create a free account and start chatting with AI about this episode.</p>
+          <p className="text-[14px] text-muted-foreground leading-relaxed">Create a free account to start chatting with AI about this episode.</p>
         </div>
-        <div className="space-y-3">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }}
-            placeholder="you@email.com"
-            className="w-full px-4 py-3 rounded-xl border border-black/[0.08] dark:border-white/[0.12] bg-muted/30 text-[16px] text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition-all"
-            data-testid="auth-gate-email-input"
-            disabled={isPending}
-          />
-          {error && <p className="text-[13px] text-red-500" data-testid="auth-gate-error">{error}</p>}
-          <button
-            onClick={handleSubmit}
-            disabled={!email.trim() || isPending}
-            className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-[15px] font-semibold hover:bg-primary/90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-            data-testid="auth-gate-submit"
-          >
-            {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-            {isPending ? "Setting up..." : "Get Started — It's Free"}
-          </button>
-        </div>
+        <a
+          href="https://podrise.com/register"
+          className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-[15px] font-semibold hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
+          data-testid="auth-gate-register"
+        >
+          <Sparkles className="w-4 h-4" />
+          Get Started — It's Free
+        </a>
       </div>
     </div>
   );
@@ -603,11 +565,9 @@ export default function EpisodeRecapPage() {
   const chatRef = useRef<ChatContextRef | null>(null);
   const { toast } = useToast();
   const { data: authUser } = useAuth();
-  const registerMutation = useRegister();
   const isLoggedIn = !!authUser;
   const [showAuthGatePanel, setShowAuthGatePanel] = useState(false);
   const [showUpdatesModal, setShowUpdatesModal] = useState(false);
-  const [ctaEmail, setCtaEmail] = useState("");
 
   const { data: bookmarksData } = useQuery<{ id: number; episodeSlug: string; podcastSlug: string }[]>({
     queryKey: ["/api/bookmarks"],
@@ -752,31 +712,6 @@ export default function EpisodeRecapPage() {
     artworkUrl: episode?.artworkUrl || "",
     hosts: epHostNames,
   });
-
-  const handleCtaSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!ctaEmail.trim() || !/^\S+@\S+\.\S+$/.test(ctaEmail)) {
-      toast({ title: "Invalid email", description: "Please enter a valid email address.", variant: "destructive" });
-      return;
-    }
-    if (!podcastConfig) return;
-    registerMutation.mutate(
-      {
-        podcasts: [JSON.stringify({ id: podcastConfig.itunesId, name: podcastConfig.name, artworkUrl: podcastConfig.artworkUrl || "" })],
-        email: ctaEmail.trim(),
-      },
-      {
-        onSuccess: () => navigate("/dashboard?welcome=true"),
-        onError: (err: any) => {
-          toast({
-            title: "Something went wrong",
-            description: err.message?.includes("400") ? "This email is already registered. Try logging in." : "Please try again.",
-            variant: "destructive",
-          });
-        },
-      }
-    );
-  };
 
   const { data: podcastHosts } = useQuery<any[]>({
     queryKey: ["/api/podcasts", podcastSlug, "hosts"],
@@ -1603,23 +1538,14 @@ export default function EpisodeRecapPage() {
                   We'll send a recap whenever a new episode drops.
                 </p>
               </div>
-              <form onSubmit={handleCtaSubmit} className="flex gap-2.5 w-full sm:w-auto" data-testid="form-signup-episode">
-                <input
-                  data-testid="input-email-episode"
-                  type="email"
-                  value={ctaEmail}
-                  onChange={(e) => setCtaEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  className="flex-1 sm:w-56 h-11 px-4 bg-white border border-black/[0.08] rounded-xl text-foreground text-base focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
-                />
-                <button
-                  data-testid="button-signup-episode"
-                  type="submit"
-                  className="h-11 px-5 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 transition-all active:scale-[0.98] whitespace-nowrap"
-                >
-                  Get Started
-                </button>
-              </form>
+              <a
+                href="https://podrise.com/register"
+                className="h-11 px-5 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98] whitespace-nowrap"
+                data-testid="button-signup-episode-register"
+              >
+                Get Started
+                <ArrowRight className="w-4 h-4" />
+              </a>
             </div>
           </div>
         </motion.div>

@@ -1,10 +1,9 @@
-import { useEffect, useState, useRef, useCallback } from "react";
-import { Link, useLocation } from "wouter";
+import { useState, useRef } from "react";
+import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Calendar, Clock, ArrowRight, ListChecks, ExternalLink } from "lucide-react";
 import { SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
-import { useAuth, useRegister } from "@/hooks/use-auth";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { SiteHeader } from "@/components/SiteHeader";
 import { GetRecapsModal } from "@/components/GetRecapsModal";
 import { Footer } from "@/components/Footer";
@@ -53,17 +52,10 @@ export function EpisodePageLayout({
   podcastHosts = [],
   children,
 }: EpisodePageLayoutProps) {
-  const [, navigate] = useLocation();
-  const { toast } = useToast();
   const { data: authUser } = useAuth();
   const isLoggedIn = !!authUser;
-  const [email, setEmail] = useState("");
-  const [stickyEmail, setStickyEmail] = useState("");
-  const [showStickyBar, setShowStickyBar] = useState(false);
-  const [stickyDismissed, setStickyDismissed] = useState(false);
   const [showRecapsModal, setShowRecapsModal] = useState(false);
   const ctaSectionRef = useRef<HTMLDivElement>(null);
-  const register = useRegister();
 
   useSetConversion({
     pageType: "episode",
@@ -90,69 +82,6 @@ export function EpisodePageLayout({
   const spotifyLink = episode.spotifyEpisodeUrl || `https://open.spotify.com/search/${episodeSearchQuery}`;
   const youtubeSearchLink = `https://www.youtube.com/results?search_query=${episodeSearchQuery}`;
   const effectiveYoutubeUrl = podcastConfig.youtubeUrl ? youtubeSearchLink : undefined;
-
-  useEffect(() => {
-    if (stickyDismissed) return;
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const threshold = 600;
-      const ctaEl = ctaSectionRef.current;
-      const ctaInView = ctaEl
-        ? ctaEl.getBoundingClientRect().top < window.innerHeight - 60 && ctaEl.getBoundingClientRect().bottom > 60
-        : false;
-      setShowStickyBar(scrollY > threshold && !ctaInView);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [stickyDismissed]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email)) {
-      toast({ title: "Invalid email", description: "Please enter a valid email address.", variant: "destructive" });
-      return;
-    }
-    register.mutate(
-      {
-        podcasts: [JSON.stringify({ id: podcastConfig.itunesId, name: podcastConfig.name, artworkUrl: podcastConfig.artworkUrl || "" })],
-        email: email.trim(),
-      },
-      {
-        onSuccess: () => navigate("/dashboard?welcome=true"),
-        onError: (err: any) => {
-          toast({
-            title: "Something went wrong",
-            description: err.message?.includes("400") ? "This email is already registered. Try logging in." : "Please try again.",
-            variant: "destructive",
-          });
-        },
-      }
-    );
-  };
-
-  const handleStickySubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    if (!stickyEmail.trim() || !/^\S+@\S+\.\S+$/.test(stickyEmail)) {
-      toast({ title: "Invalid email", description: "Please enter a valid email address.", variant: "destructive" });
-      return;
-    }
-    register.mutate(
-      {
-        podcasts: [JSON.stringify({ id: podcastConfig.itunesId, name: podcastConfig.name, artworkUrl: podcastConfig.artworkUrl || "" })],
-        email: stickyEmail.trim(),
-      },
-      {
-        onSuccess: () => navigate("/dashboard?welcome=true"),
-        onError: (err: any) => {
-          toast({
-            title: "Something went wrong",
-            description: err.message?.includes("400") ? "This email is already registered. Try logging in." : "Please try again.",
-            variant: "destructive",
-          });
-        },
-      }
-    );
-  }, [stickyEmail, podcastConfig, register, navigate, toast]);
 
   return (
     <div className={`min-h-screen bg-background ${isLoggedIn ? "pb-[calc(80px+env(safe-area-inset-bottom,0px))] md:pb-0" : ""}`}>
@@ -298,23 +227,14 @@ export function EpisodePageLayout({
                     We'll send a recap whenever a new episode drops.
                   </p>
                 </div>
-                <form onSubmit={handleSubmit} className="flex gap-2.5 w-full sm:w-auto" data-testid="form-signup-episode">
-                  <input
-                    data-testid="input-email-episode"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    className="flex-1 sm:w-56 h-11 px-4 bg-white border border-black/[0.08] rounded-xl text-foreground text-base focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-muted-foreground/40 shadow-sm shadow-black/[0.03]"
-                  />
-                  <button
-                    data-testid="button-signup-episode"
-                    type="submit"
-                    className="h-11 px-5 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 transition-all active:scale-[0.98] whitespace-nowrap"
-                  >
-                    Get Started
-                  </button>
-                </form>
+                <a
+                  href="https://podrise.com/register"
+                  className="h-11 px-5 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-base bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98] whitespace-nowrap"
+                  data-testid="button-signup-episode-register"
+                >
+                  Get Started
+                  <ArrowRight className="w-4 h-4" />
+                </a>
               </div>
             </div>
           </motion.div>
@@ -359,8 +279,6 @@ export function EpisodePageLayout({
       </main>
 
       {!isLoggedIn && <Footer />}
-
-      {/* Sticky subscribe bar removed to avoid overlapping with AI chat panel */}
 
       <GetRecapsModal
         open={showRecapsModal}

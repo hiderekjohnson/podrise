@@ -1,12 +1,10 @@
-import { useState } from "react";
 import { useLocation } from "wouter";
-import { ArrowRight, Mail, Sparkles, Clock, TrendingUp, Headphones, CheckCircle2, Zap, Loader2 } from "lucide-react";
+import { ArrowRight, Mail, Sparkles, Clock, TrendingUp, Headphones, CheckCircle2, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
-import { useAuth, useRegister } from "@/hooks/use-auth";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 const FEATURED_PODCAST_SLUGS = [
   "joerogan", "melrobbins", "hubermanlab", "myfirstmillion",
@@ -50,74 +48,17 @@ const stagger = {
   item: { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] } } },
 };
 
-function InlineEmailForm({ testIdPrefix, signupSourceDetail }: { testIdPrefix: string; signupSourceDetail: string }) {
-  const [email, setEmail] = useState("");
-  const [, navigate] = useLocation();
-  const { mutate: register, isPending } = useRegister();
-  const { toast } = useToast();
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email)) {
-      toast({ title: "Invalid email", description: "Please enter a valid email address.", variant: "destructive" });
-      return;
-    }
-
-    register(
-      { email: email.trim(), podcasts: [], signupSource: "homepage", signupSourceDetail },
-      {
-        onSuccess: () => navigate("/verify-email"),
-        onError: (err) => {
-          const isDuplicate = err.message?.includes("already exists");
-          toast({
-            title: isDuplicate ? "Account already exists" : "Something went wrong",
-            description: isDuplicate
-              ? "An account with this email already exists. Try logging in instead."
-              : "Please try again in a moment.",
-            variant: "destructive",
-          });
-        },
-      }
-    );
-  };
-
+function RegisterCTA({ testIdPrefix, label = "Get Started" }: { testIdPrefix: string; label?: string }) {
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full max-w-md"
-      data-testid={`form-${testIdPrefix}-email`}
+    <a
+      href="https://podrise.com/register"
+      className="inline-flex items-center justify-center gap-2 px-6 sm:px-7 py-3 sm:py-3.5 rounded-xl bg-gradient-to-r from-[#6366F1] to-[#7C3AED] text-white text-[15px] font-bold hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-[1px] transition-all duration-200 active:scale-[0.97] whitespace-nowrap"
+      style={{ minHeight: '48px' }}
+      data-testid={`button-${testIdPrefix}-register`}
     >
-      <div className="relative flex-1">
-        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted-foreground/40 pointer-events-none" />
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Enter your email address"
-          className="w-full pl-11 pr-4 py-3 sm:py-3.5 rounded-xl bg-card border border-border text-[15px] font-medium text-foreground placeholder:text-muted-foreground/50 outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all"
-          style={{ minHeight: '48px' }}
-          data-testid={`input-${testIdPrefix}-email`}
-          disabled={isPending}
-        />
-      </div>
-      <button
-        type="submit"
-        disabled={isPending}
-        className="flex items-center justify-center gap-2 px-6 sm:px-7 py-3 sm:py-3.5 rounded-xl bg-gradient-to-r from-[#6366F1] to-[#7C3AED] text-white text-[15px] font-bold hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-[1px] transition-all duration-200 active:scale-[0.97] disabled:opacity-60 whitespace-nowrap"
-        style={{ minHeight: '48px' }}
-        data-testid={`button-${testIdPrefix}-submit`}
-      >
-        {isPending ? (
-          <Loader2 className="w-5 h-5 animate-spin" />
-        ) : (
-          <>
-            Get Started
-            <ArrowRight className="w-4 h-4" />
-          </>
-        )}
-      </button>
-    </form>
+      {label}
+      <ArrowRight className="w-4 h-4" />
+    </a>
   );
 }
 
@@ -173,7 +114,7 @@ export default function Home() {
             </motion.p>
 
             <motion.div variants={stagger.item} className="w-full flex justify-center mt-1">
-              <InlineEmailForm testIdPrefix="hero" signupSourceDetail="hero_inline_form" />
+              <RegisterCTA testIdPrefix="hero" />
             </motion.div>
 
             <motion.p variants={stagger.item} className="text-[14px] text-muted-foreground/70" data-testid="text-hero-note">
@@ -345,7 +286,7 @@ export default function Home() {
               <p className="text-[15px] sm:text-[16px] text-[#52525B] dark:text-[#A1A1AA] max-w-lg leading-relaxed">
                 Sign up free, pick the podcasts you want to follow, and tomorrow morning you'll wake up to a daily recap of everything you missed — the key insights, notable quotes, and takeaways that matter.
               </p>
-              <InlineEmailForm testIdPrefix="bottom-cta" signupSourceDetail="bottom_cta_inline_form" />
+              <RegisterCTA testIdPrefix="bottom-cta" />
               <p className="text-[13px] sm:text-[14px] text-muted-foreground/60">No credit card required. Unsubscribe anytime.</p>
             </motion.div>
           </div>

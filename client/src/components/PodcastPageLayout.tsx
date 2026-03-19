@@ -1,9 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useLocation } from "wouter";
-import { Loader2, Mic, Compass, Mail, X, ShoppingBag, Shield, ArrowLeft } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Mic, Compass, Mail, X, ShoppingBag, Shield, ArrowLeft, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRegister, useAuth } from "@/hooks/use-auth";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { GetRecapsModal } from "@/components/GetRecapsModal";
@@ -23,13 +21,8 @@ export function PodcastPageLayout({
   config,
   children,
 }: PodcastPageLayoutProps) {
-  const [, navigate] = useLocation();
-  const { toast } = useToast();
   const { data: authUser } = useAuth();
   const isLoggedIn = !!authUser;
-  const { mutate: register, isPending } = useRegister();
-  const [email, setEmail] = useState("");
-  const [stickyEmail, setStickyEmail] = useState("");
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [stickyDismissed, setStickyDismissed] = useState(false);
   const [showRecapsModal, setShowRecapsModal] = useState(false);
@@ -93,41 +86,6 @@ export function PodcastPageLayout({
     const offset = headerHeight + navHeight + 16;
     const top = el.getBoundingClientRect().top + window.scrollY - offset;
     window.scrollTo({ top, behavior: "smooth" });
-  };
-
-  const doRegister = useCallback((emailVal: string) => {
-    if (!emailVal.trim() || !/^\S+@\S+\.\S+$/.test(emailVal)) {
-      toast({ title: "Invalid email", description: "Please enter a valid email address.", variant: "destructive" });
-      return;
-    }
-    register(
-      {
-        podcasts: [JSON.stringify({ id: itunesId, name, artworkUrl: artworkUrl || "" })],
-        email: emailVal.trim(),
-      },
-      {
-        onSuccess: () => navigate("/dashboard?welcome=true"),
-        onError: (err) => {
-          toast({
-            title: "Something went wrong",
-            description: err.message?.includes("400")
-              ? "An account with this email already exists. Try logging in."
-              : err.message,
-            variant: "destructive",
-          });
-        },
-      }
-    );
-  }, [itunesId, name, artworkUrl, register, navigate, toast]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    doRegister(email);
-  };
-
-  const handleStickySubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    doRegister(stickyEmail);
   };
 
   const navItems: { id: string; label: string; icon: typeof Mic; accent?: boolean; action?: () => void; beta?: boolean }[] = [
@@ -208,24 +166,14 @@ export function PodcastPageLayout({
                     We'll send a recap whenever a new episode drops.
                   </p>
                 </div>
-                <form onSubmit={handleSubmit} className="flex gap-2.5 w-full sm:w-auto" data-testid="form-signup-bottom">
-                  <input
-                    data-testid="input-email-bottom"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    className="flex-1 sm:w-56 h-[52px] px-4 bg-white border-[1.5px] border-[#D4D4D8] rounded-xl text-foreground text-[17px] focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/25 transition-all font-medium placeholder:text-[#71717A] shadow-sm shadow-black/[0.03]"
-                  />
-                  <button
-                    data-testid="button-signup-bottom"
-                    type="submit"
-                    disabled={isPending}
-                    className="min-h-[52px] px-6 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[17px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 disabled:opacity-40 transition-all active:scale-[0.98] whitespace-nowrap"
-                  >
-                    {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Get Started"}
-                  </button>
-                </form>
+                <a
+                  href="https://podrise.com/register"
+                  className="min-h-[52px] px-6 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-[17px] bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:brightness-105 transition-all active:scale-[0.98] whitespace-nowrap"
+                  data-testid="button-signup-bottom-register"
+                >
+                  Get Started
+                  <ArrowRight className="w-5 h-5" />
+                </a>
               </div>
             </div>
           </motion.section>
@@ -253,23 +201,14 @@ export function PodcastPageLayout({
                   Never miss a <span className="text-primary">{name}</span> recap
                 </p>
               </div>
-              <form onSubmit={handleStickySubmit} className="flex flex-1 gap-2 w-full sm:w-auto" data-testid="form-sticky-signup">
-                <input
-                  data-testid="input-email-sticky"
-                  type="email"
-                  value={stickyEmail}
-                  onChange={(e) => setStickyEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  className="flex-1 h-[44px] px-4 bg-black/[0.03] dark:bg-white/[0.06] border-[1.5px] border-[#D4D4D8] dark:border-white/[0.08] rounded-lg text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all placeholder:text-[#71717A]"
-                />
-                <button
-                  data-testid="button-sticky-signup"
-                  type="submit"
-                  className="min-h-[44px] px-5 rounded-lg font-bold text-base bg-primary text-primary-foreground shadow-sm hover:brightness-105 transition-all active:scale-[0.98] whitespace-nowrap"
-                >
-                  Subscribe free
-                </button>
-              </form>
+              <a
+                href="https://podrise.com/register"
+                className="min-h-[44px] px-5 rounded-lg font-bold text-base bg-primary text-primary-foreground shadow-sm hover:brightness-105 transition-all active:scale-[0.98] whitespace-nowrap flex items-center gap-2"
+                data-testid="button-sticky-signup-register"
+              >
+                Sign Up Free
+                <ArrowRight className="w-4 h-4" />
+              </a>
               <button
                 onClick={() => setStickyDismissed(true)}
                 className="absolute top-2 right-2 sm:relative sm:top-auto sm:right-auto p-2 rounded-md text-[#52525B] dark:text-[#A1A1AA] hover:text-foreground hover:bg-black/[0.04] transition-colors shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"

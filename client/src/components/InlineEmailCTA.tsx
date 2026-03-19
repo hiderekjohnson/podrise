@@ -1,9 +1,4 @@
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link } from "wouter";
-import { Mail, ArrowRight, Loader2, Check, Zap } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { ArrowRight, Zap } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 interface InlineEmailCTAProps {
@@ -17,47 +12,7 @@ interface InlineEmailCTAProps {
 }
 
 export function InlineEmailCTA({ type, slug, name, artworkUrl, hosts, variant = "card", className = "" }: InlineEmailCTAProps) {
-  const [email, setEmail] = useState("");
-  const [success, setSuccess] = useState(false);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const { data: user } = useAuth();
-
-  const [isNewUser, setIsNewUser] = useState(false);
-
-  const subscribe = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/subscriptions/quick-subscribe", {
-        email,
-        type,
-        slug,
-        name,
-      });
-      return res.json();
-    },
-    onSuccess: (data) => {
-      setSuccess(true);
-      setIsNewUser(data.isNew);
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      toast({
-        title: data.isNew ? `Subscribed to ${name}` : `Added to your daily ${label}!`,
-        description: data.isNew ? "Your account has been created." : "Go to your dashboard to manage all your subscriptions.",
-      });
-    },
-    onError: (err: any) => {
-      toast({
-        title: "Couldn't subscribe",
-        description: err.message || "Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim()) return;
-    subscribe.mutate();
-  };
 
   if (user) return null;
 
@@ -68,26 +23,6 @@ export function InlineEmailCTA({ type, slug, name, artworkUrl, hosts, variant = 
   const hostDisplay = hostList.length > 2
     ? `${hostList.slice(0, 2).join(", ")} & more`
     : hostList.length > 0 ? hostList.join(" & ") : "";
-
-  if (success) {
-    return (
-      <div className={`rounded-2xl border border-[#6366F1]/20 bg-[#EEF2FF] p-5 ${className}`} data-testid="inline-cta-success">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#6366F1]/10 flex items-center justify-center shrink-0">
-            <Check className="w-5 h-5 text-[#6366F1]" />
-          </div>
-          <div>
-            <p className="text-[15px] font-semibold text-foreground">
-              {isNewUser ? `Subscribed to ${name}` : `Added to your daily ${label}!`}
-            </p>
-            <Link href="/dashboard" className="text-[14px] font-medium text-primary hover:underline flex items-center gap-1 mt-0.5" data-testid="link-inline-cta-dashboard">
-              {isNewUser ? "Manage your subscriptions" : "Go to your dashboard"} <ArrowRight className="w-3 h-3" />
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (variant === "gradient") {
     return (
@@ -118,28 +53,15 @@ export function InlineEmailCTA({ type, slug, name, artworkUrl, hosts, variant = 
               )}
             </div>
           </div>
-          <form onSubmit={handleSubmit} className="flex gap-2 mt-4" data-testid="form-inline-cta">
-            <div className="relative flex-1">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
-                required
-                className="w-full pl-10 pr-4 py-3 text-[14px] bg-white dark:bg-card border border-black/[0.08] dark:border-white/[0.08] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
-                data-testid="input-inline-cta-email"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={subscribe.isPending}
-              className="px-5 py-3 bg-primary text-primary-foreground font-bold text-[14px] rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 whitespace-nowrap flex items-center gap-1.5"
-              data-testid="button-inline-cta-subscribe"
+          <div className="mt-4">
+            <a
+              href="https://podrise.com/register"
+              className="inline-flex items-center gap-1.5 px-5 py-3 bg-primary text-primary-foreground font-bold text-[14px] rounded-xl hover:bg-primary/90 transition-colors whitespace-nowrap"
+              data-testid="button-inline-cta-register"
             >
-              {subscribe.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Subscribe free <ArrowRight className="w-3.5 h-3.5" /></>}
-            </button>
-          </form>
+              Subscribe free <ArrowRight className="w-3.5 h-3.5" />
+            </a>
+          </div>
         </div>
       </div>
     );
@@ -148,35 +70,23 @@ export function InlineEmailCTA({ type, slug, name, artworkUrl, hosts, variant = 
   if (variant === "minimal") {
     return (
       <div className={`rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-card p-3 sm:p-4 ${className}`} data-testid="inline-email-cta-minimal">
-        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5" data-testid="form-inline-cta-minimal">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <Mail className="w-4 h-4 text-primary shrink-0" />
+            <Zap className="w-4 h-4 text-primary shrink-0" />
             <span className="text-[14px] font-medium text-foreground whitespace-nowrap">
               {isPodcast
                 ? `Get ${name} recaps free`
                 : `Get the weekly ${name.toLowerCase()} ${label}`}
             </span>
           </div>
-          <div className="flex gap-2 shrink-0">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              required
-              className="flex-1 sm:w-44 h-9 px-3 text-[14px] bg-background border border-black/[0.08] dark:border-white/[0.08] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-              data-testid="input-inline-cta-email-minimal"
-            />
-            <button
-              type="submit"
-              disabled={subscribe.isPending}
-              className="h-9 px-4 bg-primary text-primary-foreground font-semibold text-[13px] rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 whitespace-nowrap"
-              data-testid="button-inline-cta-subscribe-minimal"
-            >
-              {subscribe.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Subscribe"}
-            </button>
-          </div>
-        </form>
+          <a
+            href="https://podrise.com/register"
+            className="h-9 px-4 bg-primary text-primary-foreground font-semibold text-[13px] rounded-lg hover:bg-primary/90 transition-colors whitespace-nowrap inline-flex items-center justify-center"
+            data-testid="button-inline-cta-register-minimal"
+          >
+            Sign Up Free
+          </a>
+        </div>
       </div>
     );
   }
@@ -212,28 +122,15 @@ export function InlineEmailCTA({ type, slug, name, artworkUrl, hosts, variant = 
             </p>
           </div>
         </div>
-        <form onSubmit={handleSubmit} className="flex gap-2 mt-5" data-testid="form-inline-cta-card">
-          <div className="relative flex-1">
-            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required
-              className="w-full pl-10 pr-4 py-3 text-[15px] bg-card border border-black/[0.08] dark:border-white/[0.08] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
-              data-testid="input-inline-cta-email-card"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={subscribe.isPending}
-            className="px-6 py-3 bg-primary text-primary-foreground font-bold text-[15px] rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 whitespace-nowrap flex items-center gap-1.5"
-            data-testid="button-inline-cta-subscribe-card"
+        <div className="mt-5">
+          <a
+            href="https://podrise.com/register"
+            className="inline-flex items-center gap-1.5 px-6 py-3 bg-primary text-primary-foreground font-bold text-[15px] rounded-xl hover:bg-primary/90 transition-colors whitespace-nowrap"
+            data-testid="button-inline-cta-register-card"
           >
-            {subscribe.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Subscribe free <ArrowRight className="w-3.5 h-3.5" /></>}
-          </button>
-        </form>
+            Subscribe free <ArrowRight className="w-3.5 h-3.5" />
+          </a>
+        </div>
         <p className="text-[12px] text-muted-foreground/40 mt-2.5">
           No spam. Unsubscribe anytime.
         </p>

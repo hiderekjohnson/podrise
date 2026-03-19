@@ -1,11 +1,9 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useLocation, Link, useParams } from "wouter";
-import { Loader2, ArrowRight, CheckCircle2 } from "lucide-react";
-import { useRegister, useAuth } from "@/hooks/use-auth";
-import { useToast } from "@/hooks/use-toast";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 import { PodRiseWordmark } from "@/components/PodRiseHeader";
 import { LANDING_PAGES, getLandingPageBySlug, type LandingPageConfig } from "@/data/landingPageConfig";
-import { apiRequest } from "@/lib/queryClient";
 import { trackLandingPageVisit } from "@/lib/landingAnalytics";
 import NotFound from "./not-found";
 import NewsletterLandingPage from "./NewsletterLandingPage";
@@ -13,9 +11,6 @@ import NewsletterLandingPage from "./NewsletterLandingPage";
 function LandingPageContent({ config }: { config: LandingPageConfig }) {
   const [, navigate] = useLocation();
   const { data: user } = useAuth();
-  const { toast } = useToast();
-  const { mutate: register, isPending } = useRegister();
-  const [email, setEmail] = useState("");
 
   useEffect(() => {
     trackLandingPageVisit(config.slug);
@@ -37,35 +32,6 @@ function LandingPageContent({ config }: { config: LandingPageConfig }) {
       else navigate("/dashboard");
     }
   }, [user]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isPending) return;
-    if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email)) {
-      toast({ title: "Invalid email", description: "Please enter a valid email address.", variant: "destructive" });
-      return;
-    }
-
-    register(
-      {
-        email: email.trim(),
-        podcasts: [],
-        signupContext: `landing_page_${config.slug}`,
-      },
-      {
-        onSuccess: () => navigate("/verify-email"),
-        onError: (err) => {
-          toast({
-            title: "Something went wrong",
-            description: err.message?.includes("400")
-              ? "An account with this email already exists. Try logging in instead."
-              : "Please try again in a moment.",
-            variant: "destructive",
-          });
-        },
-      }
-    );
-  };
 
   const benefits = config.features.map(f => f.title);
 
@@ -115,54 +81,23 @@ function LandingPageContent({ config }: { config: LandingPageConfig }) {
             {config.subheadline}
           </p>
 
-          <form
-            onSubmit={handleSubmit}
-            className="w-full mt-1 sm:mt-2"
-            data-testid="form-lp-signup"
-          >
-            <div className="flex flex-col gap-2.5">
-              <label htmlFor="lp-email" className="sr-only">Email address</label>
-              <input
-                id="lp-email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                aria-label="Email address"
-                className="w-full h-[52px] sm:h-[54px] px-4 bg-white border border-[#E4E4E7] rounded-xl text-[#09090B] text-[16px] focus:outline-none focus:ring-2 focus:border-transparent transition-all placeholder:text-[#A1A1AA] shadow-sm"
-                style={{ "--tw-ring-color": `${config.heroAccent}50` } as React.CSSProperties}
-                required
-                data-testid="input-lp-email"
-              />
-              <button
-                type="submit"
-                disabled={isPending}
-                aria-busy={isPending}
-                className="w-full h-[52px] sm:h-[54px] flex items-center justify-center gap-2.5 rounded-xl font-bold text-[15px] sm:text-[16px] text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98] shadow-lg"
-                style={{
-                  background: `linear-gradient(135deg, ${config.heroGradientFrom}, ${config.heroGradientTo})`,
-                  boxShadow: `0 4px 14px ${config.heroAccent}35`,
-                }}
-                data-testid="button-lp-submit"
-              >
-                {isPending ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Signing up...</span>
-                  </>
-                ) : (
-                  <>
-                    {config.ctaText}
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-            </div>
+          <div className="w-full mt-1 sm:mt-2" data-testid="lp-cta-container">
+            <a
+              href="https://podrise.com/register"
+              className="w-full h-[52px] sm:h-[54px] flex items-center justify-center gap-2.5 rounded-xl font-bold text-[15px] sm:text-[16px] text-white transition-all active:scale-[0.98] shadow-lg"
+              style={{
+                background: `linear-gradient(135deg, ${config.heroGradientFrom}, ${config.heroGradientTo})`,
+                boxShadow: `0 4px 14px ${config.heroAccent}35`,
+              }}
+              data-testid="button-lp-register"
+            >
+              {config.ctaText}
+              <ArrowRight className="w-4 h-4" />
+            </a>
             <p className="text-[12px] text-[#A1A1AA] mt-2.5 text-center">
               Free forever. No credit card needed.
             </p>
-          </form>
+          </div>
 
           <div className="w-full mt-2 sm:mt-3 space-y-2">
             {benefits.map((item, i) => (

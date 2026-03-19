@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useLocation, Link } from "wouter";
-import { Loader2 } from "lucide-react";
-import { useRegister, useAuth } from "@/hooks/use-auth";
-import { useToast } from "@/hooks/use-toast";
+import { ArrowRight } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 import { PodRiseWordmark } from "@/components/PodRiseHeader";
 import { trackLandingPageVisit } from "@/lib/landingAnalytics";
 import headerImage from "@assets/IMG_9561_1773912784317.jpeg";
@@ -10,9 +9,6 @@ import headerImage from "@assets/IMG_9561_1773912784317.jpeg";
 export default function NewsletterLandingPage() {
   const [, navigate] = useLocation();
   const { data: user } = useAuth();
-  const { toast } = useToast();
-  const { mutate: register, isPending } = useRegister();
-  const [email, setEmail] = useState("");
 
   useEffect(() => {
     trackLandingPageVisit("newsletter-1");
@@ -39,35 +35,6 @@ export default function NewsletterLandingPage() {
     }
   }, [user]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isPending) return;
-    if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email)) {
-      toast({ title: "Invalid email", description: "Please enter a valid email address.", variant: "destructive" });
-      return;
-    }
-
-    register(
-      {
-        email: email.trim(),
-        podcasts: [],
-        signupContext: "landing_page_newsletter-1",
-      },
-      {
-        onSuccess: () => navigate("/verify-email"),
-        onError: (err) => {
-          toast({
-            title: "Something went wrong",
-            description: err.message?.includes("400")
-              ? "An account with this email already exists. Try logging in instead."
-              : "Please try again in a moment.",
-            variant: "destructive",
-          });
-        },
-      }
-    );
-  };
-
   return (
     <>
       <style>{`
@@ -82,10 +49,6 @@ export default function NewsletterLandingPage() {
         @keyframes nl1-wave {
           0%, 100% { transform: scaleY(1); }
           50%      { transform: scaleY(0.55); }
-        }
-        @media (max-width: 1023px) {
-          .nl1-input { padding: 8px 14px !important; font-size: 14px !important; }
-          .nl1-cta { padding: 8px 18px !important; font-size: 12px !important; }
         }
       `}</style>
       <div
@@ -130,64 +93,27 @@ export default function NewsletterLandingPage() {
               Get a 2-minute daily briefing of the podcasts you love, so you stay sharp, informed, and ahead
             </p>
 
-            <form onSubmit={handleSubmit} data-testid="form-newsletter-signup">
-              <div className="flex flex-col sm:flex-row gap-1.5 lg:gap-2.5 max-w-[480px]">
-                <label htmlFor="nl1-email" className="sr-only">Email address</label>
-                <input
-                  id="nl1-email"
-                  type="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter Your Email"
-                  aria-label="Email address"
-                  className="flex-1 bg-white text-[#09090B] text-[15px] outline-none min-w-0 placeholder:text-[#A1A1AA] nl1-input"
-                  style={{
-                    border: "1.5px solid #E4E4E7",
-                    borderRadius: "8px",
-                    padding: "13px 16px",
-                    fontFamily: "'DM Sans', sans-serif",
-                    transition: "border-color 0.18s ease",
-                  }}
-                  onFocus={(e) => (e.target.style.borderColor = "#6366F1")}
-                  onBlur={(e) => (e.target.style.borderColor = "#E4E4E7")}
-                  required
-                  data-testid="input-newsletter-email"
-                />
-                <button
-                  type="submit"
-                  disabled={isPending}
-                  aria-busy={isPending}
-                  className="text-white border-none cursor-pointer whitespace-nowrap flex items-center justify-center gap-1.5 hover:translate-y-[-1px] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed nl1-cta"
-                  style={{
-                    background: "linear-gradient(145deg, #6366F1, #8B5CF6)",
-                    borderRadius: "8px",
-                    padding: "13px 22px",
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontSize: "13px",
-                    fontWeight: 700,
-                    letterSpacing: "0.06em",
-                    textTransform: "uppercase" as const,
-                    transition: "all 0.18s ease",
-                  }}
-                  data-testid="button-newsletter-submit"
-                >
-                  {isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Signing up...</span>
-                    </>
-                  ) : (
-                    <>
-                      GET YOUR FREE DAILY RECAP
-                      <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                        <path d="M2.5 6.5h8M7 3l3.5 3.5L7 10" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
+            <div className="max-w-[480px]" data-testid="newsletter-cta-container">
+              <a
+                href="https://podrise.com/register"
+                className="inline-flex items-center justify-center gap-1.5 text-white border-none cursor-pointer whitespace-nowrap hover:translate-y-[-1px] active:scale-[0.98]"
+                style={{
+                  background: "linear-gradient(145deg, #6366F1, #8B5CF6)",
+                  borderRadius: "8px",
+                  padding: "13px 22px",
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase" as const,
+                  transition: "all 0.18s ease",
+                }}
+                data-testid="button-newsletter-register"
+              >
+                GET YOUR FREE DAILY RECAP
+                <ArrowRight className="w-4 h-4" />
+              </a>
+            </div>
             <p
               className="mt-1.5 lg:mt-3.5 text-[11px] lg:text-[13px] text-[#A1A1AA] leading-[1.4] lg:leading-[1.7]"
               data-testid="text-newsletter-footnote"
