@@ -9,7 +9,7 @@ import {
   Save, RefreshCw, Plus, Trash2, GripVertical, ExternalLink,
   Image, Clock, Calendar, Hash, Eye, EyeOff, AlertCircle,
   Globe, Star, Zap, CheckCircle, XCircle, Play, Copy, Check, Sparkles,
-  CircleDot, Link, Music, Headphones, BookOpen, Tag, HelpCircle, Brain, Newspaper, X, Shield, ShieldOff
+  CircleDot, Link, BookOpen, Tag, Newspaper, X, Shield, ShieldOff
 } from "lucide-react";
 
 function useDebouncedValue(value: string, delay = 300) {
@@ -2022,18 +2022,7 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
     setForm({ ...form, resources: [...form.resources, { name: "", type, description: "" }] });
   };
 
-  const MENTION_TYPES = ["book", "tool", "product", "service", "app", "website"] as const;
-  const MENTION_TYPE_LABELS: Record<string, string> = {
-    book: "Book", tool: "Tool", product: "Product", service: "Service", app: "App", website: "Website",
-  };
-  const MENTION_TYPE_COLORS: Record<string, string> = {
-    book: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400",
-    tool: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400",
-    product: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
-    service: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
-    app: "bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-400",
-    website: "bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400",
-  };
+  const BOOK_TYPE_COLOR = "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400";
 
   return (
     <div className="space-y-6" data-testid="cms-episode-detail">
@@ -2093,14 +2082,8 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
           { label: "Key Insights", icon: Star, ok: Array.isArray(episode.key_insights) ? episode.key_insights.length > 0 : hasArr(episode.key_insights as any) },
           { label: "Guests", icon: Users, ok: hasArr(episode.guests) },
           { label: "Resources", icon: BookOpen, ok: hasArr(episode.resources) },
-          { label: "Questions", icon: HelpCircle, ok: hasArr(episode.top_questions) },
-          { label: "Topic Context", icon: Brain, ok: hasVal(episode.topic_contexts) },
           { label: "Show Notes", icon: FileText, ok: hasVal(episode.show_notes) },
-          { label: "Apple URL", icon: Link, ok: hasVal(episode.apple_episode_url) },
-          { label: "Spotify URL", icon: Music, ok: hasVal(episode.spotify_episode_url) },
-          { label: "Audio", icon: Headphones, ok: hasVal(episode.audio_url) },
           { label: "Tabloid", icon: Newspaper, ok: hasVal(episode.tabloid_headline) },
-          { label: "Products", icon: ShoppingBag, ok: episode.extractedProducts && episode.extractedProducts.length > 0 },
         ];
         const done = checks.filter(c => c.ok).length;
         const pct = Math.round((done / checks.length) * 100);
@@ -2420,74 +2403,37 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
           </div>
 
           <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-3">
-            <h4 className="text-sm font-bold text-foreground">Topics</h4>
-            <div className="flex flex-wrap gap-1">
-              {(form.keyTopics || []).map((t: string, i: number) => (
-                <span key={i} className="px-2 py-0.5 bg-primary/10 text-primary rounded-md text-xs font-medium" data-testid={`text-key-topic-${i}`}>{t}</span>
-              ))}
-              {(!form.keyTopics || form.keyTopics.length === 0) && (
-                <p className="text-xs text-muted-foreground">No topics.</p>
-              )}
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-bold text-foreground">Mentions</h4>
-              <div className="flex items-center gap-1">
-                {MENTION_TYPES.map((mt) => (
-                  <button key={mt} onClick={() => addResource(mt)} className="px-2 py-1 text-[10px] font-semibold rounded-md bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" data-testid={`button-add-mention-${mt}`}>
-                    + {MENTION_TYPE_LABELS[mt]}
-                  </button>
-                ))}
-              </div>
+              <h4 className="text-sm font-bold text-foreground">Books</h4>
+              <button onClick={() => addResource("book")} className="px-2 py-1 text-[10px] font-semibold rounded-md bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" data-testid="button-add-mention-book">
+                + Book
+              </button>
             </div>
-            {form.resources.length === 0 && <p className="text-xs text-muted-foreground">No mentions.</p>}
-            {form.resources.map((r, ri) => (
+            {form.resources.filter((r: any) => r.type === "book").length === 0 && <p className="text-xs text-muted-foreground">No books.</p>}
+            {form.resources.map((r, ri) => r.type !== "book" ? null : (
               <div key={ri} className="border border-border rounded-lg p-2 space-y-1" data-testid={`mention-item-${ri}`}>
                 <div className="flex items-center gap-2">
-                  <select
-                    value={r.type}
-                    onChange={(e) => updateResource(ri, "type", e.target.value)}
-                    className="px-2 py-1 border border-border rounded text-xs bg-white dark:bg-zinc-900 flex-shrink-0"
-                    data-testid={`select-mention-type-${ri}`}
-                  >
-                    {MENTION_TYPES.map((mt) => (
-                      <option key={mt} value={mt}>{MENTION_TYPE_LABELS[mt]}</option>
-                    ))}
-                  </select>
                   <input
-                    placeholder={r.type === "book" ? "Book title" : "Name"}
+                    placeholder="Book title"
                     value={r.name}
                     onChange={(e) => updateResource(ri, "name", e.target.value)}
                     className="flex-1 px-2 py-1 border border-border rounded text-xs"
                     data-testid={`input-mention-name-${ri}`}
                   />
-                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold flex-shrink-0 ${MENTION_TYPE_COLORS[r.type] || "bg-gray-100 text-gray-600"}`}>
-                    {MENTION_TYPE_LABELS[r.type] || r.type}
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold flex-shrink-0 ${BOOK_TYPE_COLOR}`}>
+                    Book
                   </span>
                   <button onClick={() => removeResource(ri)} className="text-muted-foreground hover:text-red-500 flex-shrink-0" data-testid={`button-delete-mention-${ri}`}>
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
-                {r.type === "book" && (
-                  <input
-                    placeholder="Author"
-                    value={r.author || ""}
-                    onChange={(e) => updateResource(ri, "author", e.target.value)}
-                    className="w-full px-2 py-1 border border-border rounded text-xs"
-                    data-testid={`input-mention-author-${ri}`}
-                  />
-                )}
-                {r.type !== "book" && (
-                  <input
-                    placeholder="Category (e.g. SaaS, Hardware, Finance)"
-                    value={r.category || ""}
-                    onChange={(e) => updateResource(ri, "category", e.target.value)}
-                    className="w-full px-2 py-1 border border-border rounded text-xs"
-                    data-testid={`input-mention-category-${ri}`}
-                  />
-                )}
+                <input
+                  placeholder="Author"
+                  value={r.author || ""}
+                  onChange={(e) => updateResource(ri, "author", e.target.value)}
+                  className="w-full px-2 py-1 border border-border rounded text-xs"
+                  data-testid={`input-mention-author-${ri}`}
+                />
                 <input
                   placeholder="Description"
                   value={r.description || ""}
@@ -2495,15 +2441,6 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
                   className="w-full px-2 py-1 border border-border rounded text-xs"
                   data-testid={`input-mention-desc-${ri}`}
                 />
-                {r.type !== "book" && (
-                  <input
-                    placeholder="Context (how it was mentioned)"
-                    value={r.context || ""}
-                    onChange={(e) => updateResource(ri, "context", e.target.value)}
-                    className="w-full px-2 py-1 border border-border rounded text-xs"
-                    data-testid={`input-mention-context-${ri}`}
-                  />
-                )}
               </div>
             ))}
           </div>
