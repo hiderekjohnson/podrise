@@ -1,11 +1,12 @@
-import { useLocation, Link } from "wouter";
-import { ArrowRight, Mail, Sparkles, Clock, Users, TrendingUp, Building2, Mic, Headphones, CheckCircle2, Zap } from "lucide-react";
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { ArrowRight, Mail, Sparkles, Clock, TrendingUp, Headphones, CheckCircle2, Zap, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
-import { EmailSignupBanner } from "@/components/EmailSignupBanner";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, useRegister } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
 
 const FEATURED_PODCAST_SLUGS = [
   "joerogan", "melrobbins", "hubermanlab", "myfirstmillion",
@@ -49,6 +50,77 @@ const stagger = {
   item: { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] } } },
 };
 
+function InlineEmailForm({ testIdPrefix, signupSourceDetail }: { testIdPrefix: string; signupSourceDetail: string }) {
+  const [email, setEmail] = useState("");
+  const [, navigate] = useLocation();
+  const { mutate: register, isPending } = useRegister();
+  const { toast } = useToast();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email)) {
+      toast({ title: "Invalid email", description: "Please enter a valid email address.", variant: "destructive" });
+      return;
+    }
+
+    register(
+      { email: email.trim(), podcasts: [], signupSource: "homepage", signupSourceDetail },
+      {
+        onSuccess: () => navigate("/verify-email"),
+        onError: (err) => {
+          const isDuplicate = err.message?.includes("already exists");
+          toast({
+            title: isDuplicate ? "Account already exists" : "Something went wrong",
+            description: isDuplicate
+              ? "An account with this email already exists. Try logging in instead."
+              : "Please try again in a moment.",
+            variant: "destructive",
+          });
+        },
+      }
+    );
+  };
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full max-w-md"
+      data-testid={`form-${testIdPrefix}-email`}
+    >
+      <div className="relative flex-1">
+        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted-foreground/40 pointer-events-none" />
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Enter your email address"
+          className="w-full pl-11 pr-4 py-3 sm:py-3.5 rounded-xl bg-card border border-border text-[15px] font-medium text-foreground placeholder:text-muted-foreground/50 outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all"
+          style={{ minHeight: '48px' }}
+          data-testid={`input-${testIdPrefix}-email`}
+          disabled={isPending}
+        />
+      </div>
+      <button
+        type="submit"
+        disabled={isPending}
+        className="flex items-center justify-center gap-2 px-6 sm:px-7 py-3 sm:py-3.5 rounded-xl bg-gradient-to-r from-[#6366F1] to-[#7C3AED] text-white text-[15px] font-bold hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-[1px] transition-all duration-200 active:scale-[0.97] disabled:opacity-60 whitespace-nowrap"
+        style={{ minHeight: '48px' }}
+        data-testid={`button-${testIdPrefix}-submit`}
+      >
+        {isPending ? (
+          <Loader2 className="w-5 h-5 animate-spin" />
+        ) : (
+          <>
+            Get Started
+            <ArrowRight className="w-4 h-4" />
+          </>
+        )}
+      </button>
+    </form>
+  );
+}
+
 export default function Home() {
   const [, navigate] = useLocation();
   const { data: user } = useAuth();
@@ -65,7 +137,6 @@ export default function Home() {
     <div className="min-h-screen flex flex-col bg-background overflow-x-clip">
       <SEOHead />
       <SiteHeader />
-      <EmailSignupBanner />
 
       <main className="flex-1">
 
@@ -101,23 +172,8 @@ export default function Home() {
               Pick your favorite podcasts, and we'll send you a daily email with the key takeaways from every new episode. No more falling behind.
             </motion.p>
 
-            <motion.div variants={stagger.item} className="flex flex-col sm:flex-row items-center gap-3 mt-1 w-full sm:w-auto">
-              <button
-                data-testid="button-hero-get-started"
-                onClick={() => navigate("/register")}
-                className="w-full sm:w-auto min-h-[52px] px-8 flex items-center justify-center gap-2.5 rounded-xl font-display font-bold text-[16px] bg-gradient-to-r from-[#6366F1] to-[#7C3AED] text-white hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-[1px] transition-all duration-200 active:scale-[0.98]"
-              >
-                Start Getting Daily Recaps
-                <ArrowRight className="w-[18px] h-[18px]" />
-              </button>
-              <button
-                data-testid="button-hero-browse"
-                onClick={() => navigate("/podcasts")}
-                className="w-full sm:w-auto min-h-[52px] px-6 flex items-center justify-center gap-2.5 rounded-xl font-display font-bold text-[16px] border-2 border-border text-foreground hover:border-foreground/20 hover:bg-muted/40 transition-all duration-200 active:scale-[0.98]"
-              >
-                <Headphones className="w-[18px] h-[18px]" />
-                Browse Podcasts
-              </button>
+            <motion.div variants={stagger.item} className="w-full flex justify-center mt-1">
+              <InlineEmailForm testIdPrefix="hero" signupSourceDetail="hero_inline_form" />
             </motion.div>
 
             <motion.p variants={stagger.item} className="text-[14px] text-muted-foreground/70" data-testid="text-hero-note">
@@ -276,85 +332,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── Browse By Category ── */}
-        <section className="w-full py-14 sm:py-16 lg:py-20 border-y border-border bg-gradient-to-b from-card/40 to-background" data-testid="section-nav-grid">
-          <div className="max-w-6xl mx-auto px-5 sm:px-6">
-            <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.4 }} className="text-center mb-8 sm:mb-10">
-              <p className="text-[13px] font-bold uppercase tracking-[0.14em] text-primary mb-2.5">Browse</p>
-              <h2 className="text-[1.375rem] sm:text-[1.75rem] lg:text-[2rem] font-display font-extrabold text-foreground tracking-[-0.02em]" data-testid="text-explore-heading">
-                Find podcasts for your world
-              </h2>
-              <p className="text-[15px] sm:text-[16px] text-[#52525B] dark:text-[#A1A1AA] mt-3 max-w-lg mx-auto leading-relaxed">
-                Browse by what matters to you and start getting daily recaps right away.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={stagger.container}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-            >
-              {[
-                { href: "/podcasts", icon: Mic, title: "By Podcast", desc: "Already know what you listen to? Search for specific shows and start getting their recaps delivered daily." },
-                { href: "/people", icon: Users, title: "By Person", desc: "Find guests, hosts, and experts mentioned across top podcasts — see who's shaping the conversation." },
-                { href: "/companies", icon: Building2, title: "By Company", desc: "Track what podcasts are saying about the companies you follow — from startups to public giants." },
-                { href: "/shop", icon: Sparkles, title: "Shop", desc: "Discover the best books, tools, and products recommended by top podcast hosts and guests." },
-              ].map((card) => (
-                <motion.div key={card.href} variants={stagger.item}>
-                  <Link href={card.href} className="block h-full">
-                    <div
-                      className="group bg-card border border-border rounded-xl p-5 sm:p-6 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/[0.04] hover:-translate-y-[2px] transition-all duration-300 cursor-pointer h-full"
-                      data-testid={`nav-card-${card.title.split(' ')[1]?.toLowerCase()}`}
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/12 to-accent/8 flex items-center justify-center mb-3.5">
-                        <card.icon className="w-5 h-5 text-primary" />
-                      </div>
-                      <h3 className="text-[16px] sm:text-[17px] font-bold text-foreground group-hover:text-primary transition-colors duration-200">{card.title}</h3>
-                      <p className="text-[14px] sm:text-[15px] text-[#52525B] dark:text-[#A1A1AA] mt-1.5 leading-relaxed">{card.desc}</p>
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-
-        {/* ── Vision ── */}
-        <section className="w-full relative overflow-hidden py-16 sm:py-20 lg:py-24" data-testid="section-vision">
-          <div className="absolute inset-0 bg-foreground" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(99,102,241,0.15),transparent_60%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(139,92,246,0.1),transparent_60%)]" />
-
-          <div className="relative max-w-3xl mx-auto px-5 sm:px-6 text-center">
-            <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }} className="flex flex-col items-center gap-5 sm:gap-6">
-              <div className="w-12 h-12 rounded-2xl bg-white/[0.08] border border-white/[0.08] flex items-center justify-center">
-                <Headphones className="w-6 h-6 text-white/70" />
-              </div>
-              <h2 className="text-[1.375rem] sm:text-[1.75rem] lg:text-[2rem] font-display font-extrabold text-white leading-[1.12] tracking-[-0.02em]" data-testid="text-vision-heading">
-                You love podcasts. You just don't have time to listen to all of them.
-              </h2>
-              <div className="flex flex-col gap-4 max-w-xl">
-                <p className="text-[15px] sm:text-[17px] text-white/60 leading-[1.7]">
-                  The average podcast listener follows 7 shows but only has time to listen to 2 or 3. That means you're constantly missing episodes packed with ideas, trends, and conversations that matter.
-                </p>
-                <p className="text-[15px] sm:text-[17px] text-white/60 leading-[1.7]">
-                  PodRise fixes that. We recap every episode of every podcast you follow and deliver it all to your inbox each morning — so you stay fully up to date without needing an extra hour in the day.
-                </p>
-              </div>
-              <a
-                href="/about"
-                className="inline-flex items-center gap-2 text-[15px] font-semibold text-white/40 hover:text-white/80 transition-colors duration-200 mt-1 min-h-[44px]"
-                data-testid="link-about-vision"
-              >
-                Read our story
-                <ArrowRight className="w-4 h-4" />
-              </a>
-            </motion.div>
-          </div>
-        </section>
-
         {/* ── Bottom CTA ── */}
         <section className="w-full py-16 sm:py-20 lg:py-24" data-testid="section-cta-bottom">
           <div className="max-w-3xl mx-auto px-5 sm:px-6 text-center">
@@ -368,14 +345,7 @@ export default function Home() {
               <p className="text-[15px] sm:text-[16px] text-[#52525B] dark:text-[#A1A1AA] max-w-lg leading-relaxed">
                 Sign up free, pick the podcasts you want to follow, and tomorrow morning you'll wake up to a daily recap of everything you missed — the key insights, notable quotes, and takeaways that matter.
               </p>
-              <button
-                data-testid="button-bottom-cta"
-                onClick={() => navigate("/register")}
-                className="min-h-[52px] px-8 flex items-center justify-center gap-2.5 rounded-xl font-display font-bold text-[16px] bg-gradient-to-r from-[#6366F1] to-[#7C3AED] text-white hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-[1px] transition-all duration-200 active:scale-[0.98]"
-              >
-                Get Your Daily Recap — Free
-                <ArrowRight className="w-[18px] h-[18px]" />
-              </button>
+              <InlineEmailForm testIdPrefix="bottom-cta" signupSourceDetail="bottom_cta_inline_form" />
               <p className="text-[13px] sm:text-[14px] text-muted-foreground/60">No credit card required. Unsubscribe anytime.</p>
             </motion.div>
           </div>
