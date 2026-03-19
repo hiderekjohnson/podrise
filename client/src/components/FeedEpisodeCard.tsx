@@ -49,8 +49,8 @@ export function EpisodeContentSection({ podcastSlug, episodeSlug, episodeTitle, 
   return (
     <div className="px-5 md:px-6 py-[18px] border-t border-[#F0F0F2] dark:border-[#1C1C22] border-b border-b-[#F0F0F2] dark:border-b-[#1C1C22]">
       <Link href={`/podcasts/${podcastSlug}/${episodeSlug}`} className="block group">
-        <div className="flex items-baseline justify-between gap-3 mb-[9px]">
-          <span className="text-[12px] text-[#A1A1AA] overflow-hidden text-ellipsis line-clamp-2 flex-1 min-w-0" style={{ fontFamily: "var(--font-mono)" }} data-testid={`${testIdPrefix}-episode-title-${episodeSlug}`}>
+        <div className="flex items-baseline justify-between gap-3 mb-[10px]">
+          <span className="text-[13px] text-[#71717A] dark:text-[#8B8B95] overflow-hidden text-ellipsis line-clamp-2 flex-1 min-w-0 leading-[1.4]" style={{ fontFamily: "var(--font-mono)" }} data-testid={`${testIdPrefix}-episode-title-${episodeSlug}`}>
             {episodeTitle}
           </span>
           {publishDate && (
@@ -61,7 +61,7 @@ export function EpisodeContentSection({ podcastSlug, episodeSlug, episodeTitle, 
         </div>
       </Link>
       {tldl && (
-        <h3 className="text-[26px] font-normal text-[#09090B] dark:text-white leading-[1.2] tracking-[-0.01em]" style={{ fontFamily: "var(--font-serif)" }} data-testid={`${testIdPrefix}-tldl-${episodeSlug}`}>
+        <h3 className="text-[25px] sm:text-[26px] font-normal text-[#09090B] dark:text-white leading-[1.22] tracking-[-0.015em]" style={{ fontFamily: "var(--font-serif)" }} data-testid={`${testIdPrefix}-tldl-${episodeSlug}`}>
           {tldl}
         </h3>
       )}
@@ -147,7 +147,7 @@ export function FeedEpisodeCard({
 
   return (
     <article
-      className="bg-white dark:bg-[#111114] border border-[#E4E4E7] dark:border-[#1C1C22] rounded-2xl overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
+      className="bg-white dark:bg-[#111114] border border-[#E4E4E7] dark:border-[#1C1C22] rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)]"
       data-testid={`${testIdPrefix}-${episodeSlug}`}
     >
       <div
@@ -200,32 +200,34 @@ export function FeedEpisodeCard({
         testIdPrefix={testIdPrefix}
       />
 
-      <div className="px-5 md:px-6 py-[22px]">
-        {insights.length > 0 && (
-          <div className="mb-5">
-            <div className="text-[11px] font-medium tracking-[0.1em] uppercase text-[#A1A1AA] mb-3" style={{ fontFamily: "var(--font-mono)" }}>Key Takeaways</div>
-            <ul className="list-none p-0">
-              {insights.map((insight, i) => (
-                <li key={i} className="flex items-start gap-3 py-[10px] border-b border-[#F0F0F2] dark:border-[#1C1C22] text-[16px] text-[#52525B] dark:text-[#A1A1AA] leading-[1.6] first:pt-0 last:border-b-0 last:pb-0">
-                  <div className="w-[7px] h-[7px] rounded-full bg-[#6366F1] flex-shrink-0 mt-[8px]" />
-                  <div>{insight}</div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {quote && (
-          <div className="border-l-[3px] border-[#8B5CF6] rounded-r-[10px] px-[18px] py-[14px] bg-[#F7F7FC] dark:bg-[#1C1C22]">
-            <div className="text-[18px] italic text-[#52525B] dark:text-[#A1A1AA] leading-[1.65] mb-2" style={{ fontFamily: "var(--font-serif)" }} data-testid={`${testIdPrefix}-quote-${episodeSlug}`}>
-              "{quote}"
+      {(insights.length > 0 || quote) && (
+        <div className="px-5 md:px-6 pt-5 pb-5">
+          {insights.length > 0 && (
+            <div className={quote ? "mb-5" : ""}>
+              <div className="text-[11px] font-semibold tracking-[0.1em] uppercase text-[#A1A1AA] dark:text-[#71717A] mb-3" style={{ fontFamily: "var(--font-mono)" }}>Key Takeaways</div>
+              <ul className="list-none p-0">
+                {insights.map((insight, i) => (
+                  <li key={i} className="flex items-start gap-3 py-[10px] border-b border-[#F0F0F2] dark:border-[#1C1C22] text-[16px] text-[#3F3F46] dark:text-[#A1A1AA] leading-[1.6] first:pt-0 last:border-b-0 last:pb-0">
+                    <div className="w-[6px] h-[6px] rounded-full bg-[#6366F1] flex-shrink-0 mt-[9px]" />
+                    <div>{insight}</div>
+                  </li>
+                ))}
+              </ul>
             </div>
-            {quoteAttribution && (
-              <div className="text-[12px] text-[#A1A1AA]" style={{ fontFamily: "var(--font-mono)" }}>— {quoteAttribution}</div>
-            )}
-          </div>
-        )}
-      </div>
+          )}
+
+          {quote && (
+            <div className="border-l-[3px] border-[#8B5CF6] rounded-r-[10px] px-[18px] py-[14px] bg-[#F7F7FC] dark:bg-[#18181B]">
+              <div className="text-[17px] italic text-[#52525B] dark:text-[#A1A1AA] leading-[1.65] mb-2" style={{ fontFamily: "var(--font-serif)" }} data-testid={`${testIdPrefix}-quote-${episodeSlug}`}>
+                "{quote}"
+              </div>
+              {quoteAttribution && (
+                <div className="text-[12px] text-[#A1A1AA] dark:text-[#71717A]" style={{ fontFamily: "var(--font-mono)" }}>— {quoteAttribution}</div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {additionalContent}
 

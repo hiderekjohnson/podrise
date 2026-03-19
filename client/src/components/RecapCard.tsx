@@ -34,7 +34,7 @@ function SharePopover({ episodeTitle, podcastSlug, episodeSlug, itemId, testIdPr
       <button
         onClick={() => setOpen(!open)}
         aria-label="Share episode"
-        className="w-8 h-8 rounded-[7px] flex items-center justify-center text-[#A1A1AA] hover:bg-white hover:text-[#6366F1] transition-all"
+        className="w-8 h-8 rounded-[7px] flex items-center justify-center text-[#A1A1AA] hover:bg-[#F4F4F5] dark:hover:bg-[#1C1C22] hover:text-[#6366F1] transition-all"
         data-testid={`${testIdPrefix}-share-${itemId}`}
       >
         <Share className="w-[15px] h-[15px]" />
@@ -96,7 +96,7 @@ function FollowMenuDropdown({ onUnfollow, itemId, testIdPrefix }: { onUnfollow: 
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="w-11 h-11 rounded-full flex items-center justify-center border border-[#D4D4D8] text-[#71717A] hover:text-[#6366F1] hover:border-[#6366F1]/30 transition-all bg-white"
+        className="w-11 h-11 rounded-full flex items-center justify-center border border-[#D4D4D8] dark:border-[#3F3F46] text-[#71717A] hover:text-[#6366F1] hover:border-[#6366F1]/30 transition-all bg-white dark:bg-[#1C1C22]"
         aria-label="Podcast options"
         data-testid={`${testIdPrefix}-follow-menu-${itemId}`}
       >
@@ -109,7 +109,7 @@ function FollowMenuDropdown({ onUnfollow, itemId, testIdPrefix }: { onUnfollow: 
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 4 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full right-0 mt-1 w-[160px] bg-white rounded-xl shadow-lg border border-[#E4E4E7] overflow-hidden z-50"
+            className="absolute top-full right-0 mt-1 w-[160px] bg-white dark:bg-[#1C1C22] rounded-xl shadow-lg border border-[#E4E4E7] dark:border-[#3F3F46] overflow-hidden z-50"
           >
             <button
               onClick={() => { onUnfollow(); setOpen(false); }}
@@ -207,13 +207,12 @@ export function RecapCard({
   ) : undefined;
 
   const bottomBar = (
-    <div className="border-t border-[#E4E4E7] flex items-center justify-between px-3 md:px-4 py-2">
-      <div />
+    <div className="border-t border-[#E4E4E7] dark:border-[#1C1C22] flex items-center justify-end px-3 md:px-4 py-2">
       <div className="flex items-center gap-[2px]">
         {onBookmarkRemove ? (
           <button
             onClick={() => onBookmarkRemove(podcastSlug, episodeSlug)}
-            className="w-8 h-8 rounded-[7px] flex items-center justify-center text-[#A1A1AA] hover:bg-white dark:hover:bg-[#1C1C22] hover:text-red-500 transition-all"
+            className="w-8 h-8 rounded-[7px] flex items-center justify-center text-[#A1A1AA] hover:bg-[#F4F4F5] dark:hover:bg-[#1C1C22] hover:text-red-500 transition-all"
             aria-label="Remove saved episode"
             data-testid={`${testIdPrefix}-bookmark-remove-${id}`}
           >
@@ -222,7 +221,7 @@ export function RecapCard({
         ) : onBookmarkToggle ? (
           <button
             onClick={() => onBookmarkToggle(episodeSlug, podcastSlug)}
-            className={`w-8 h-8 rounded-[7px] flex items-center justify-center transition-all ${isBookmarked ? "text-[#6366F1]" : "text-[#A1A1AA] hover:bg-[#F4F4F5] hover:text-[#6366F1]"}`}
+            className={`w-8 h-8 rounded-[7px] flex items-center justify-center transition-all ${isBookmarked ? "text-[#6366F1]" : "text-[#A1A1AA] hover:bg-[#F4F4F5] dark:hover:bg-[#1C1C22] hover:text-[#6366F1]"}`}
             data-testid={`${testIdPrefix}-bookmark-${id}`}
           >
             {isBookmarked ? <BookmarkCheck className="w-[15px] h-[15px]" /> : <Bookmark className="w-[15px] h-[15px]" />}
@@ -236,19 +235,6 @@ export function RecapCard({
           testIdPrefix={testIdPrefix}
           toast={toast}
         />
-        {onFollowToggle && (
-          <button
-            onClick={() => onFollowToggle(podcastSlug, !isFollowing)}
-            className={`ml-2 px-4 py-[6px] rounded-full text-[13px] font-bold transition-all whitespace-nowrap ${
-              isFollowing
-                ? "bg-white text-[#52525B] border-[1.5px] border-[#E4E4E7] hover:border-[#6366F1] hover:text-[#6366F1]"
-                : "bg-[#6366F1] text-white hover:bg-[#4F46E5]"
-            }`}
-            data-testid={`${testIdPrefix}-follow-toggle-${id}`}
-          >
-            {isFollowing ? "Following" : "Follow"}
-          </button>
-        )}
       </div>
     </div>
   );

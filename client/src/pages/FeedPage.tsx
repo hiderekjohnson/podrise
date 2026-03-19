@@ -523,7 +523,8 @@ export default function FeedPage() {
   return (
     <DashboardLayout>
       <div className="min-h-screen flex flex-col" data-testid="feed-page">
-        <div className="sticky top-0 z-30 flex-shrink-0 border-b border-[#F0F0F2] flex items-stretch h-[54px] pr-4" style={{ background: "rgba(255,255,255,0.94)", backdropFilter: "blur(16px)" }}>
+        <div className="sticky top-0 z-30 flex-shrink-0 border-b border-[#F0F0F2] dark:border-[#1C1C22] flex items-stretch h-[54px] pr-4" style={{ background: "var(--feed-header-bg, rgba(255,255,255,0.94))", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
+          <style>{`.dark [data-testid="feed-page"] > div:first-child { --feed-header-bg: rgba(17,17,20,0.92); }`}</style>
           <div className="flex flex-1">
             {(["foryou", "following"] as const).map((tab) => (
               <button
@@ -531,8 +532,8 @@ export default function FeedPage() {
                 onClick={() => setActiveTab(tab)}
                 className={`feed-tab-btn flex-1 flex items-center justify-center text-[16px] font-medium border-b-2 select-none transition-colors relative ${
                   activeTab === tab
-                    ? "text-[#09090B] border-[#6366F1] font-semibold"
-                    : "text-[#A1A1AA] border-transparent hover:text-[#52525B] hover:bg-[#FAFAFA]"
+                    ? "text-[#09090B] dark:text-white border-[#6366F1] font-semibold"
+                    : "text-[#A1A1AA] border-transparent hover:text-[#52525B] dark:hover:text-[#D4D4D8] hover:bg-[#FAFAFA] dark:hover:bg-white/[0.04]"
                 }`}
                 data-testid={`feed-tab-${tab}`}
                 data-tour={tab === "following" ? "following-tab" : tab === "foryou" ? "foryou-tab" : undefined}
@@ -565,7 +566,7 @@ export default function FeedPage() {
 
         <PodSquadBanner />
 
-        <div className="flex-1 bg-white px-4 md:px-5 py-4">
+        <div className="flex-1 bg-[#FAFAFA] dark:bg-[#0A0A0C] px-4 md:px-5 py-4">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
               <Loader2 className="w-7 h-7 animate-spin text-[#6366F1]" />
@@ -573,13 +574,13 @@ export default function FeedPage() {
             </div>
           ) : allItems.length === 0 ? (
             <div className="text-center py-20 px-8">
-              <div className="w-16 h-16 rounded-full bg-[#F4F4F5] flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 rounded-full bg-[#F4F4F5] dark:bg-[#1C1C22] flex items-center justify-center mx-auto mb-4">
                 <MessageCircle className="w-7 h-7 text-[#A1A1AA]" />
               </div>
-              <p className="text-[17px] font-bold text-[#09090B] mb-1">
+              <p className="text-[17px] font-bold text-[#09090B] dark:text-white mb-1">
                 {activeTab === "following" ? "No followed podcasts yet" : "Nothing here yet"}
               </p>
-              <p className="text-[14px] text-[#71717A] leading-relaxed">
+              <p className="text-[14px] text-[#71717A] dark:text-[#A1A1AA] leading-relaxed">
                 {activeTab === "following"
                   ? "Follow podcasts from the For You tab or Discover to see their recaps here."
                   : "Check back soon for fresh podcast recaps."}
