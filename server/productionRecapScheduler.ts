@@ -2,7 +2,6 @@ import { pool } from "./db";
 import { storage } from "./storage";
 import { generateRecapFromFullTranscript } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
-import { isLikelySponsorProduct } from "./productFilter";
 
 const INTERVAL_MS = 5 * 60 * 1000;
 const BATCH_SIZE = 3;
@@ -30,10 +29,9 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
   try {
     const recap = await generateRecapFromFullTranscript(
       ep.transcript,
-      epTitle,
       podcastName,
-      hosts,
-      ep.description || ""
+      epTitle,
+      ep.description || null,
     );
 
     if (!recap) return false;
@@ -41,21 +39,6 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
     const publishDate = ep.date_published
       ? new Date(ep.date_published * 1000).toISOString().slice(0, 10)
       : new Date().toISOString().slice(0, 10);
-
-    let tabloidHeadline: string | null = null;
-    let tabloidSubHeadline: string | null = null;
-    try {
-      const { generateTabloidHeadline } = await import("./emailScheduler");
-      const tabloidResult = await generateTabloidHeadline(
-        epTitle, podcastName, recap.tldl, recap.whatHappened, recap.keyInsights || []
-      );
-      if (tabloidResult) {
-        tabloidHeadline = tabloidResult.tabloidHeadline;
-        tabloidSubHeadline = tabloidResult.tabloidSubHeadline;
-      }
-    } catch (err: any) {
-      console.warn(`[ProdRecap] Tabloid headline generation failed for "${epTitle?.slice(0, 50)}": ${err.message}`);
-    }
 
     const { rows: existingRows } = await pool.query(
       `SELECT id FROM landing_page_recaps WHERE itunes_id = $1 AND lower(trim(episode_title)) = lower(trim($2)) LIMIT 1`,
@@ -76,73 +59,20 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
       duration: ep.duration ? String(ep.duration) : null,
       artworkUrl: artwork,
       hosts: hosts || "",
-      tldl: recap.tldl,
+      tldl: "",
       whatHappened: recap.whatHappened,
       keyInsights: recap.keyInsights || [],
-      quote: recap.quote,
-      quoteAttribution: recap.quoteAttribution,
-      keyTopics: recap.keyTopics || [],
+      quote: "",
+      quoteAttribution: "",
+      keyTopics: [],
       guests: JSON.stringify(recap.guests || []),
-      tabloidHeadline,
-      tabloidSubHeadline,
+      resources: JSON.stringify(recap.resources || []),
+      tabloidHeadline: null,
+      tabloidSubHeadline: null,
       showNotes: ep.description || null,
       published: true,
     });
     const canonicalSlug = upsertedRecap.episodeSlug;
-
-    if (recap.quotes && recap.quotes.length > 0) {
-      for (const q of recap.quotes.slice(0, 5)) {
-        await pool.query(
-          `INSERT INTO episode_quotes (podcast_slug, episode_slug, episode_title, speaker_name, quote_text, context)
-           VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT DO NOTHING`,
-          [podcastSlug, canonicalSlug, epTitle, q.speaker || recap.quoteAttribution || podcastName, q.text, q.context || ""]
-        ).catch(() => {});
-      }
-    }
-
-    if (recap.products && recap.products.length > 0) {
-      for (const p of recap.products) {
-        if (!p.name || !p.context) continue;
-        const filterResult = isLikelySponsorProduct(p);
-        const initialStatus = filterResult.isFiltered ? "rejected" : "pending";
-        const rejectionReason = filterResult.reason;
-
-        try {
-          const { rows: existing } = await pool.query(
-            `SELECT id FROM extracted_products WHERE LOWER(name) = LOWER($1) AND podcast_slug = $2 AND episode_title = $3 LIMIT 1`,
-            [p.name, podcastSlug, epTitle]
-          );
-          if (existing.length > 0) continue;
-
-          let imageUrl: string | null = null;
-          if (!filterResult.isFiltered && p.purchaseUrl) {
-            try {
-              const { resolveProductImage } = await import("./productImageResolver");
-              imageUrl = await resolveProductImage(p.purchaseUrl);
-            } catch {}
-          }
-
-          await pool.query(
-            `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, category, episode_title, episode_slug, podcast_slug, status, rejection_reason, image_url)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) ON CONFLICT DO NOTHING`,
-            [p.name, p.company || null, p.description || null, p.purchaseUrl || null, p.context, p.mentionType || "personal_use", p.category || "service_or_tool", epTitle, canonicalSlug, podcastSlug, initialStatus, rejectionReason, imageUrl]
-          );
-        } catch {}
-      }
-    }
-
-    if (recap.books && recap.books.length > 0) {
-      for (const book of recap.books) {
-        if (!book.title) continue;
-        try {
-          await pool.query(
-            `INSERT INTO book_insights (podcast_slug, episode_slug, episode_title, book_title, author, context)
-             VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT DO NOTHING`,
-            [podcastSlug, canonicalSlug, epTitle, book.title, book.author || null, book.context || ""]
-          ).catch(() => {});
-        } catch {}
-      }
-    }
 
     if (upsertedRecap?.id) {
       try {

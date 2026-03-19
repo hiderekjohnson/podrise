@@ -76,16 +76,6 @@ export interface EpisodeStats {
   details: { podcast: string; status: "included" | "no_new_episode" | "error"; episodeCount?: number; errorMessage?: string }[];
 }
 
-export interface ExtractedProduct {
-  name: string;
-  company: string;
-  description: string;
-  purchaseUrl: string;
-  context: string;
-  mentionType: "recommendation" | "personal_use" | "discussion";
-  category: "physical_product" | "service_or_tool" | "experience";
-}
-
 export interface ExtractedQuote {
   speakerName: string;
   speakerRole: string;
@@ -99,18 +89,10 @@ export interface ParsedEpisode {
   episodeTitle: string;
   episodeDuration?: string;
   episodeDate?: string;
-  tldl: string;
   whatHappened: string;
   keyInsights: string[];
-  quote?: string;
-  quoteAttribution?: string;
-  keyTopics?: string[];
-  topicContexts?: Record<string, string>;
-  sponsors?: { name: string; description: string; couponCode?: string; url?: string; howToRedeem?: string }[];
-  guests?: { name: string; title: string; bio: string; twitter?: string; linkedin?: string; instagram?: string; website?: string; photoUrl?: string; topicsDiscussed: string[] }[];
+  guests?: { name: string; title: string }[];
   resources?: { name: string; type: string; description: string; url?: string; author?: string; context?: string }[];
-  products?: ExtractedProduct[];
-  extractedQuotes?: ExtractedQuote[];
 }
 
 interface RecapResult {
@@ -477,87 +459,38 @@ export async function generateRecapFromTranscript(
 ): Promise<ParsedEpisode | null> {
   const showNotesSection = showNotes ? `\nShow Notes (use for guest full names, social links, and additional context):\n${showNotes}\n` : "";
 
-  const pass1Prompt = `You are PodRise, an AI that writes comprehensive podcast episode recaps. Generate a complete recap for this episode.
-
-All facts, quotes, and insights MUST come directly from the provided transcript. NEVER fabricate content. Use the show notes to find guest full names, social media handles, and links.
+  const pass1Prompt = `You are PodRise, an AI that writes comprehensive podcast episode recaps. All content MUST come from the transcript. Use show notes for guest full names.
 
 Podcast: ${podcastName}
 Episode: "${episodeTitle}"${showNotesSection}
 Transcript:
 ${transcript}
 
-Respond ONLY with a valid JSON object (no markdown, no code fences):
-
+Respond ONLY with valid JSON (no markdown, no code fences):
 {
   "podcastName": "${podcastName}",
   "episodeTitle": "${episodeTitle}",
-  "tldl": "2-3 sentence summary of the core thesis.",
-  "whatHappened": "The episode recap. 6-8 paragraphs, each 2-4 sentences. Separate paragraphs with \\n\\n.",
-  "quote": "The single most surprising, counterintuitive, or shareable line from the transcript. Something that makes you stop scrolling.",
-  "quoteAttribution": "Speaker Name",
-  "keyTopics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4", "Topic 5"],
-  "topicContexts": {"ai": "Episode-specific description of how AI was covered...", "startups": "Episode-specific description of how startups were covered..."},
-  "sponsors": [
-    {"name": "Sponsor Name", "description": "What the sponsor does.", "couponCode": "CODE or null", "url": "https://sponsor.com or null", "howToRedeem": "How to use the offer or null"}
-  ],
-  "guests": [
-    {"name": "Full Name", "title": "Professional Title / Position at Company", "bio": "2-3 sentence bio based on how they are introduced or described in the transcript.", "twitter": "@handle or null", "linkedin": "https://linkedin.com/in/handle or null", "instagram": "@handle or null", "website": "https://their-site.com or null", "topicsDiscussed": ["Topic 1", "Topic 2"]}
-  ],
+  "whatHappened": "6-8 paragraphs, each 2-4 sentences. Separate with \\n\\n.",
   "keyInsights": ["insight1", "insight2", "insight3", "insight4"],
-  "resources": [
-    {"name": "Resource Name", "type": "book|tool|product", "description": "Brief description of the item.", "url": "URL if mentioned or null", "author": "Author/creator if known or null", "context": "3-5 sentences: WHO mentioned it, WHY they brought it up, what SPECIFIC argument or story it supported."}
-  ],
-  "products": [
-    {"name": "Specific Product Name", "company": "Brand/Company", "description": "1 sentence what it is", "purchaseUrl": "best URL to buy or null", "context": "3-5 sentence editorial summary of why they use/recommend it", "mentionType": "recommendation|personal_use", "category": "physical_product|service_or_tool|experience"}
-  ],
-  "extractedQuotes": [
-    {"speakerName": "Full Name", "speakerRole": "Their title (e.g. CEO of Acme)", "quoteText": "Verbatim quote from transcript", "context": "On why...", "quoteType": "Hero Quote|Hot Take|Prediction|Spicy|Tweetable"}
-  ]
+  "guests": [{"name": "Full Name", "title": "Title at Company"}],
+  "resources": [{"name": "Book Title", "type": "book", "description": "Brief description.", "url": "URL or null", "author": "Author or null", "context": "3-5 sentences on WHO mentioned it, WHY, and what SPECIFIC argument it supported."}]
 }
 
-RULES FOR whatHappened (THE RECAP):
-- The recap has one job: give the reader the actual knowledge from the episode without them needing to listen
-- Write like a well-informed friend walking you through the best parts of the conversation
-- Every paragraph must contain at least one specific idea, fact, number, or insight
-- If a paragraph only describes what was talked about without saying what was actually said, delete it and rewrite with the real content
-- Start with the most interesting idea, NOT with "In this episode of [show name]..."
-- 6-8 paragraphs, each 2-4 sentences, flowing naturally from one idea to the next
-- BANNED PHRASES: "In this episode...", "The conversation explores/shifts/turns to...", "The hosts discuss/touch on/delve into...", "The discussion shifts to...", "They also highlight/emphasize/underscore...", "The episode wraps up with...", "Ultimately, the episode...", "The duo reflects on...", "Later, the group...", "A memorable segment explores...", "[Person] shares/reveals/explains that...", "broader themes like...", "actionable insights on..."
-- BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, underscores, delves, touches on, reflects on, recounts, acknowledges, showcases, illustrates, demonstrates, stresses, leveraging, revolutionizing, pioneering, groundbreaking, innovative, game-changing
-- BANNED CHARACTERS: Never use em dashes (\u2014). Use regular dashes (-) instead. Never use curly/smart quotes (\u2018 \u2019 \u201C \u201D). Use straight quotes (' ") instead
-- BAD PARAGRAPH: "The conversation shifts to AI, where the guest maps out the landscape. He identifies key players like OpenAI, Anthropic, and Google, analyzing their strategies."
-- GOOD PARAGRAPH: "The AI landscape right now looks like a three-way war. OpenAI owns consumers - ChatGPT has become the default for most people - while Anthropic is quietly winning enterprise deals. Google, which looked dead six months ago, has surged back with Gemini and has one massive advantage nobody else can match: distribution through Search, Android, and Gmail reaching billions of users daily."
+RECAP RULES (whatHappened):
+- Give the reader actual knowledge from the episode without needing to listen
+- Every paragraph must contain specific ideas, facts, numbers, or insights - not just what topics were discussed
+- Start with the most interesting idea, NOT "In this episode..."
+- Use speakers' full names. Never say "the guest" or "the host"
+- BANNED PHRASES: "In this episode...", "The conversation explores/shifts to...", "The hosts discuss...", "[Person] shares/reveals/explains that..."
+- BANNED WORDS: discusses, explores, highlights, shares, emphasizes, delves, leveraging, groundbreaking, game-changing
+- No em dashes or smart quotes. Use regular dashes (-) and straight quotes
+- BAD: "The conversation shifts to AI, where the guest maps out the landscape."
+- GOOD: "The AI landscape looks like a three-way war. OpenAI owns consumers, Anthropic is winning enterprise deals, and Google surged back with Gemini plus distribution through Search, Android, and Gmail."
 
 OTHER RULES:
-- All core fields required: tldl, whatHappened (6-8 paragraphs), quote, quoteAttribution, keyTopics (4-6), keyInsights (exactly 4), extractedQuotes (3-5), resources (search the ENTIRE transcript for every book mentioned)
-- BOOKS ARE CRITICAL: Before writing resources, scan the FULL transcript for genuine book references. Include books that are discussed, recommended, or referenced for their content. IMPORTANT: Do NOT extract a book if the speaker merely uses the book title as a concept, metaphor, or adjective (e.g., "you need grit" is NOT a reference to Angela Duckworth's book "Grit"; "have more range" is NOT a reference to David Epstein's "Range"). Only extract when the actual book, its author, or its thesis/content is specifically discussed
-- quote: Find the single most SHAREABLE line from the transcript. Look for something surprising, counterintuitive, provocative, funny, or profound - the kind of line someone would screenshot and post. It MUST be verbatim from the transcript. Prefer lines with a strong point of view, a vivid metaphor, or a surprising claim. Avoid generic motivational statements like "believe in yourself" or "hard work pays off." The quote should make someone curious about the episode. BAD: "I think self-belief has gotten me so far." GOOD: "Six out of ten people would choose a completely different career if they could start over. Six out of ten." quoteAttribution should be just the speaker's name (e.g. "Bill Gurley"), not "Speaker Name on topic"
-- keyInsights: Exactly 4 standalone insights. Each must teach the reader something specific they did not know. 2-3 tight sentences of straight-to-the-point information. Include concrete details (a name, a number, a company, a mechanism). NEVER start with a person's name. Write in a NEUTRAL, INFORMATIVE tone like a news brief. NEVER use conversational hooks ("Dude, did you know...", "Here's the thing:", "Here's a twist:", "Imagine...", "Turns out..."). NEVER address the reader with "you" or rhetorical questions. NEVER use exclamation marks. NEVER editorialize with "proving that...", "showing that...", "a reminder that...". BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, points out, leveraging, revolutionizing, pioneering, groundbreaking, innovative, game-changing. BANNED PATTERNS: "[Person] [verb] [topic]", "The importance of X". BANNED PHRASES: "Here's a twist", "Here's the thing", "Turns out", "Imagine", "Dude", "The kicker", "proving that", "showing that", "a reminder that". BAD: "Dude, did you know a $500,000 ad with Mr. Beast initially tanked?" BAD: "Here's a twist: ocean defense is the real deal." BAD: "Imagine being 19 and selling your AI app!" GOOD: "AI acts as a multiplier for curious, proactive people and a threat to passive ones. The gap between those two groups is going to widen quickly, and which side you land on is largely a choice." GOOD: "Cal AI hit $30M in annual revenue before its founder turned 20, primarily by paying fitness influencers for performance-based posts rather than traditional ads. The playbook was simple - find creators whose audiences already want what you sell, and pay per result, not per post."
-- extractedQuotes: 3-5 verbatim quotes from the transcript. QUALITY GATE: Each quote must be AT LEAST 15 words long and contain a specific claim, opinion, number, or insight. If it could be said in any conversation about any topic, it is NOT a quote worth extracting.
-  SPEAKER IDENTIFICATION IS MANDATORY: "Unknown" is NEVER acceptable as a speakerName. Use context clues: who was just introduced, who is the guest vs host, who has the expertise being discussed, whose perspective is being shared. The podcast hosts are mentioned in the episode metadata - any non-host speaker is likely the guest. If the episode title names a person, most quotes likely come from them.
-  Prefer GUESTS over hosts. Exactly ONE must be quoteType "Hero Quote". At least ONE must be "Hot Take" or "Prediction". Other types: "Spicy", "Tweetable". quoteText MUST be verbatim from transcript. context must be a short phrase starting with "On..." (e.g. "On why AI will replace managers"). speakerRole must be specific (not just "Guest" or "Episode Host" - use their actual title like "CEO of Acme" or "Venture Capitalist").
-  BAD QUOTES (never extract these - they are conversational filler, NOT shareable):
-    - "I think your biggest skill is your audacity." (compliment, not insight)
-    - "I'm impressed with your decision making." (reaction, not content)
-    - "That's really interesting." (filler)
-    - "I think the CEO job is the loneliest job in America." (vague, no specifics)
-  GOOD QUOTES (these have substance, specifics, and a point of view):
-    - "Six out of ten people would choose a completely different career if they could start over. Six out of ten. That number floored me."
-    - "We did $30 million in revenue before I turned 20, and the entire playbook was paying fitness influencers per result, not per post."
-    - "The only thing Jeff Bezos looks for when hiring is insane determinism. Not intelligence, not credentials - just the refusal to accept that something can't be done."
-- keyTopics: 4-6 specific phrases that read like search queries. Include the specific company, person, or concept name. BAD: "Engineering in sports", "Financial dynamics of racing". GOOD: "Liberty Media acquisition of F1", "Formula 1 engineering competition". Always be specific - never generic
-- topicContexts: DO NOT create slugs from keyTopics. Instead, identify which of these predefined broad categories apply to this episode, and write a 1-2 sentence episode-specific description for each relevant one. ONLY use these exact slugs as keys: ${CURATED_TOPIC_SLUGS.map(s => `"${s}"`).join(", ")}. Only include categories that are genuinely discussed in the episode (typically 3-6). Reference specific points, people, or perspectives from this episode. Write like a sharp analyst, not generic marketing copy
-- sponsors: Extract ALL sponsors/advertisers. Include coupon codes and URLs when mentioned. Return empty array [] if none
-- guests: Extract ALL guests (NOT regular hosts). CRITICAL: Use FULL NAME (first AND last). Search the entire transcript for last names — check show notes too. A guest is anyone who is interviewed, joins the conversation, or is introduced on the show - even if they only appear briefly. Look for: (1) introductions like "joining us", "our guest", "we have", "[Name] is here", (2) anyone addressed by name who shares opinions or answers questions ("Andrew, you want to go next?", "What do you think, Sarah?"), (3) anyone in the episode title by name or title (e.g. "$450M VC", "$100B Founder"). If someone is addressed by first name only and contributes to the discussion, they are a guest — search the transcript and show notes for their last name. Return empty array [] ONLY if the episode truly has no guests (e.g. hosts-only discussion episodes)
-- products: Extract GENUINE personal endorsements of products, services, tools, apps, experiences — NOT sponsors/ads. The speaker must have personal experience ("I use this", "I bought one", "Game changer for me"). SKIP anything near "sponsored by", "use code", "promo code", "brought to you by", "quick break". SKIP books (tracked in resources), stocks/crypto, social media platforms, generic categories without brand names. 0-5 items per episode is normal. Context must be 3-5 sentences explaining WHY the hosts/guests use or recommend it — do NOT restate what the product or company is (that info is already displayed separately in the UI). Focus on: what drew them to it, what problem it solves for them, what they said about it, and any specific results or opinions. Written as an editorial summary, NOT a raw transcript pull. BAD context: "Yeah, yeah. My friend's got a very, very interesting startup called Wild Type, which is like sustainable sushi grade salmon." (raw transcript). BAD context: "Wild Type produces lab-grown sushi-grade salmon that eliminates the need for traditional fishing. The hosts noted..." (restates what it is). GOOD context: "The hosts said they are fans of this company and its approach to producing sustainable, lab-grown sushi-grade salmon using cultivated seafood technology. By eliminating the need for traditional fishing or ocean farming, they viewed it as a promising solution to overfishing and damage to marine ecosystems. They noted that innovations like this could allow people to enjoy sushi without the environmental cost, and highlighted that the company's first product is already being served."
-- resources: Extract ALL books mentioned - even briefly. Include full title and author name. THE CONTEXT FIELD IS THE MOST IMPORTANT PART OF EVERY BOOK ENTRY. Each context MUST be 3-5 sentences of RICH, EPISODE-SPECIFIC detail. MINIMUM 3 full sentences per book - one-sentence contexts are a SERIOUS ERROR. It must answer: (1) WHO specifically mentioned this book (full name), (2) WHY they brought it up - what argument they were making, (3) What SPECIFIC story, anecdote, statistic, or claim from the book they referenced.
-  NEVER start context with "Referenced to...", "Mentioned as...", "Discussed in the context of...", "Highlighted as...", "Brought up to...". ALWAYS start with a speaker's full name.
-  BAD context (too short, generic): "Mentioned as a recommended read."
-  BAD context (1 sentence, vague): "James Clear's concept was referenced to emphasize the importance of systems."
-  BAD context (no speaker, passive voice): "Discussed in the context of its original emphasis on perseverance, with a shift to highlight the importance of passion in achieving success."
-  GOOD context (3 sentences, specific, named speaker): "Bill Gurley brings up 'Grit' to challenge its central thesis. While Angela Duckworth argues that grit is the key to success, Gurley points out that perseverance without genuine passion leads to burnout and career regret. He connects this to his research showing six out of ten people would choose a different career, arguing that many grind through jobs they hate because they were told perseverance alone would pay off."
-  GOOD context: "Morgan Housel frames James Clear not merely as an author but as an entrepreneur who treats his books as products. This perspective shifts the conversation from traditional writing to the strategic elements of launching and marketing a book. Housel admires Clear's scientific thinking in structuring Atomic Habits, emphasizing how Clear meticulously crafted the table of contents."
-  Do NOT include sponsors, SaaS products, or abstract concepts. Return empty array [] if none`;
+- keyInsights: 4 standalone insights, each 2-3 sentences with concrete details (numbers, names, mechanisms). Neutral tone, no hooks ("Here's the thing:"), no "you", no exclamation marks
+- guests: ALL guests (not hosts), full names only. Empty array if none
+- resources: Books only, with 3-5 sentence context starting with speaker's full name. Include Amazon URL if known. No sponsors or SaaS products`;
 
   console.log(`[RecapGenerator] Pass 1: Generating recap + structured data for "${episodeTitle}"...`);
 
@@ -613,67 +546,11 @@ OTHER RULES:
         return obj;
       }
 
-      const rawProducts = Array.isArray(parsed.products) ? parsed.products : [];
-      const validProducts: ExtractedProduct[] = [];
-      const seenNames = new Set<string>();
-      for (const p of rawProducts) {
-        if (!p.name || typeof p.name !== "string") continue;
-        const key = p.name.toLowerCase().trim();
-        if (seenNames.has(key)) continue;
-        seenNames.add(key);
-        const validCategories = ["physical_product", "service_or_tool", "experience"];
-        const validMentionTypes = ["recommendation", "personal_use"];
-        validProducts.push({
-          name: p.name,
-          company: p.company || "",
-          description: p.description || "",
-          purchaseUrl: p.purchaseUrl || "",
-          context: p.context || "",
-          mentionType: validMentionTypes.includes(p.mentionType) ? p.mentionType : "personal_use",
-          category: validCategories.includes(p.category) ? p.category : "service_or_tool",
-        });
-      }
-
-      const rawQuotes = Array.isArray(parsed.extractedQuotes) ? parsed.extractedQuotes : [];
-      const guestNames = Array.isArray(parsed.guests) ? parsed.guests.map((g: any) => g.name).filter(Boolean) : [];
-      const validQuotes: ExtractedQuote[] = rawQuotes
-        .filter((q: any) => q.speakerName && q.quoteText && q.context && q.quoteType)
-        .filter((q: any) => {
-          const wordCount = q.quoteText.trim().split(/\s+/).length;
-          if (wordCount < 12) {
-            console.log(`[RecapGenerator] Filtered short quote (${wordCount} words): "${q.quoteText.slice(0, 60)}..."`);
-            return false;
-          }
-          return true;
-        })
-        .map((q: any) => {
-          let name = q.speakerName;
-          let role = q.speakerRole || "";
-          if (name === "Unknown" || name === "Episode Host" || name === "Host") {
-            if (guestNames.length === 1) {
-              name = guestNames[0];
-              role = parsed.guests[0]?.title || role;
-              console.log(`[RecapGenerator] Fixed "Unknown" speaker -> "${name}"`);
-            }
-          }
-          return { speakerName: name, speakerRole: role, quoteText: q.quoteText, context: q.context, quoteType: q.quoteType };
-        })
-        .filter((q: ExtractedQuote) => q.speakerName !== "Unknown");
-
-      const pass2Insights = await generateKeyInsightsFromRecap(whatHappened, podcastName, episodeTitle);
-      const finalInsights = pass2Insights.length === 4 ? pass2Insights : keyInsights;
-
       return sanitizeDeep({
         podcastName: parsed.podcastName || podcastName,
         episodeTitle: parsed.episodeTitle || episodeTitle,
-        tldl: parsed.tldl || "",
         whatHappened,
-        keyInsights: finalInsights,
-        quote: parsed.quote,
-        quoteAttribution: parsed.quoteAttribution,
-        keyTopics: Array.isArray(parsed.keyTopics) ? parsed.keyTopics : [],
-        topicContexts: parsed.topicContexts && typeof parsed.topicContexts === "object" ? parsed.topicContexts : {},
-        sponsors: Array.isArray(parsed.sponsors) ? parsed.sponsors : [],
+        keyInsights,
         guests: Array.isArray(parsed.guests) ? parsed.guests.filter((g: any) => {
           if (!g.name || !g.name.trim()) return false;
           const nameParts = g.name.trim().split(/\s+/);
@@ -682,10 +559,8 @@ OTHER RULES:
             return false;
           }
           return true;
-        }) : [],
+        }).map((g: any) => ({ name: g.name, title: g.title || "" })) : [],
         resources,
-        products: validProducts,
-        extractedQuotes: validQuotes,
       });
     } catch (err) {
       if (attempt < maxAttempts) {
@@ -725,35 +600,18 @@ Podcast: ${podcastName}
 Episode: "${episodeTitle}"
 
 For this segment, extract:
-1. KEY FACTS & INSIGHTS: Every specific claim, number, statistic, story, or insight. Include the actual substance — not "they discussed AI" but "GPT-4 costs 10x less than GPT-3 per token and processes images"
-2. BEST QUOTES: Memorable, surprising, or shareable lines — copy them VERBATIM with speaker attribution (use full name, NEVER "Unknown"). Each quote must be at least 15 words and contain a specific claim, opinion, number, or insight. SKIP conversational filler like "That's amazing", compliments like "Your biggest skill is your audacity", and reactions like "I'm impressed". If the episode title names a person, that person is likely the guest — attribute their quotes to them by name
-3. BOOKS MENTIONED: Books that are genuinely discussed, recommended, or referenced for their content. For each book, extract rich context: WHO mentioned it, WHY they brought it up, and what SPECIFIC argument, story, or claim it supported. CRITICAL: Do NOT extract a book if the speaker is merely using the book's title as a concept, metaphor, or adjective rather than actually talking about the book itself. For example, if someone says "you need grit to succeed" they are using the word "grit" as a concept, NOT recommending Angela Duckworth's book. Only extract it if they specifically reference the book, the author, or the book's content/thesis
-4. GUESTS: Anyone introduced as a guest, interviewee, or joining the show — full name and title if mentioned. Also include anyone addressed by first name who shares opinions or answers questions (e.g. "Andrew, you want to go next?") — they are participating as a guest even without formal introduction
-5. SPONSORS: Any ad reads, sponsor mentions, coupon codes, or "brought to you by" segments
-6. RESOURCES: Tools, products, services, websites, companies discussed substantively (not just name-dropped)
-7. GENUINE PRODUCT ENDORSEMENTS: Products, services, tools, apps, or experiences that hosts/guests discuss substantively, recommend, or endorse (NOT sponsors/ads)
-
-PRODUCT ENDORSEMENT RULES:
-- Extract products that hosts/guests discuss substantively: personal experience ("I use this", "we switched to"), specific recommendations ("you should try", "highly recommend"), detailed discussion of features/benefits, or comparison with alternatives. The key test is: did they say something SPECIFIC and SUBSTANTIVE about this product beyond just naming it?
-- NEVER extract items that are clearly ads/sponsors — look for phrases like "this episode is sponsored by", "use code", "promo code", "brought to you by", "quick word from our sponsor", "let's take a quick break", "special offer", "free trial"
-- NEVER extract books (tracked separately), stocks/ETFs/crypto, social media platforms, or companies discussed only as business cases
-- NEVER extract generic categories without specific brand names ("standing desks" vs "FlexiSpot standing desk")
-- The context field must be 3-5 sentences explaining WHY the hosts/guests use or recommend it — do NOT restate what the product or company is (that info is already displayed separately). Focus on what drew them to it, what problem it solves, what they said about it, and any specific results or opinions. Write as an editorial summary, NOT a raw transcript pull.
-- Categories: "physical_product" (tangible items), "service_or_tool" (digital/SaaS/apps), "experience" (places, events, memberships)
-- Extract ALL qualifying products — podcasts often mention several tools, services, or products in a single segment.
+1. KEY FACTS & INSIGHTS: Every specific claim, number, statistic, story, or insight. Include the actual substance - not "they discussed AI" but "GPT-4 costs 10x less than GPT-3 per token and processes images"
+2. BOOKS MENTIONED: Books that are genuinely discussed, recommended, or referenced for their content. For each book, extract rich context: WHO mentioned it, WHY they brought it up, and what SPECIFIC argument, story, or claim it supported. CRITICAL: Do NOT extract a book if the speaker is merely using the book's title as a concept or metaphor
+3. GUESTS: Anyone introduced as a guest, interviewee, or joining the show - full name and title if mentioned
 
 Respond with JSON:
 {
   "notes": ["Specific fact or insight 1", "Specific fact or insight 2", ...],
-  "quotes": [{"text": "Verbatim quote", "speaker": "Name"}],
-  "books": [{"title": "Book Title", "author": "Author Name", "context": "3-5 sentences: WHO mentioned it, WHY they brought it up, what SPECIFIC argument or story it supported. Include concrete details from the conversation."}],
-  "guests": [{"name": "Full Name", "title": "Their title/role"}],
-  "sponsors": [{"name": "Sponsor", "description": "What they do", "code": "COUPON or null", "url": "url or null"}],
-  "resources": [{"name": "Resource Name", "type": "tool|product|website", "description": "What it is", "url": "url or null", "context": "How it was mentioned"}],
-  "products": [{"name": "Specific Product Name", "company": "Brand/Company", "description": "1 sentence what it is", "purchaseUrl": "best URL to buy or null", "context": "3-5 sentence editorial summary of why they use/recommend it", "mentionType": "recommendation|personal_use|discussion", "category": "physical_product|service_or_tool|experience"}]
+  "books": [{"title": "Book Title", "author": "Author Name", "context": "3-5 sentences: WHO mentioned it, WHY they brought it up, what SPECIFIC argument or story it supported."}],
+  "guests": [{"name": "Full Name", "title": "Their title/role"}]
 }
 
-Be EXHAUSTIVE. Include everything noteworthy — it's better to include too much than miss something. Every paragraph of the transcript should yield at least one note.`;
+Be EXHAUSTIVE. Include everything noteworthy - it's better to include too much than miss something. Every paragraph of the transcript should yield at least one note.`;
 
   const { results: chunkNotes, coverage } = await processFullTranscript<any>(
     fullText,
@@ -785,63 +643,26 @@ Be EXHAUSTIVE. Include everything noteworthy — it's better to include too much
   console.log(`[RecapGenerator] Extracted notes from ${coverage.chunkCount} chunks (${coverage.totalChars} chars, ${coverage.coveragePct}% coverage)`);
 
   const allNotes: string[] = [];
-  const allQuotes: any[] = [];
   const allBooks: any[] = [];
   const allGuests: any[] = [];
-  const allSponsors: any[] = [];
-  const allResources: any[] = [];
-  const allProducts: ExtractedProduct[] = [];
 
   for (const cn of chunkNotes) {
     if (cn.notes) allNotes.push(...cn.notes);
-    if (cn.quotes) allQuotes.push(...cn.quotes);
     if (cn.books) allBooks.push(...cn.books);
     if (cn.guests) allGuests.push(...cn.guests);
-    if (cn.sponsors) allSponsors.push(...cn.sponsors);
-    if (cn.resources) allResources.push(...cn.resources);
-    if (cn.products && Array.isArray(cn.products)) {
-      for (const p of cn.products) {
-        if (p.name && typeof p.name === "string") {
-          const validCategories = ["physical_product", "service_or_tool", "experience"];
-          const validMentionTypes = ["recommendation", "personal_use", "discussion"];
-          allProducts.push({
-            name: p.name,
-            company: p.company || "",
-            description: p.description || "",
-            purchaseUrl: p.purchaseUrl || "",
-            context: p.context || "",
-            mentionType: validMentionTypes.includes(p.mentionType) ? p.mentionType : "personal_use",
-            category: validCategories.includes(p.category) ? p.category : "service_or_tool",
-          });
-        }
-      }
-    }
   }
 
-  const dedupedProducts: ExtractedProduct[] = [];
-  const seenProductNames = new Set<string>();
-  for (const p of allProducts) {
-    const key = p.name.toLowerCase().trim();
-    if (!seenProductNames.has(key)) {
-      seenProductNames.add(key);
-      dedupedProducts.push(p);
-    }
-  }
-
-  console.log(`[RecapGenerator] Merged: ${allNotes.length} notes, ${allQuotes.length} quotes, ${allBooks.length} books, ${allGuests.length} guests, ${allSponsors.length} sponsors, ${dedupedProducts.length} products`);
+  console.log(`[RecapGenerator] Merged: ${allNotes.length} notes, ${allBooks.length} books, ${allGuests.length} guests`);
 
   const showNotesSection = showNotes ? `\nShow Notes:\n${showNotes}\n` : "";
 
-  const synthesisPrompt = `You are PodRise, an AI that writes comprehensive podcast episode recaps. You have been given EXHAUSTIVE NOTES extracted from the FULL transcript of this episode (every word was read). Now synthesize them into a complete, high-quality recap.
+  const synthesisPrompt = `You are PodRise, an AI that writes comprehensive podcast episode recaps. Synthesize the extracted notes into a complete recap.
 
 Podcast: ${podcastName}
 Episode: "${episodeTitle}"${showNotesSection}
 
-=== EXTRACTED NOTES FROM FULL TRANSCRIPT ===
+=== NOTES FROM FULL TRANSCRIPT ===
 ${allNotes.map((n, i) => `${i + 1}. ${n}`).join("\n")}
-
-=== BEST QUOTES ===
-${allQuotes.map(q => `"${q.text}" - ${q.speaker}`).join("\n") || "None extracted"}
 
 === BOOKS MENTIONED ===
 ${allBooks.map(b => `- "${b.title}" by ${b.author || "Unknown"}: ${b.context || ""}`).join("\n") || "None"}
@@ -849,84 +670,31 @@ ${allBooks.map(b => `- "${b.title}" by ${b.author || "Unknown"}: ${b.context || 
 === GUESTS ===
 ${allGuests.map(g => `- ${g.name}${g.title ? ` (${g.title})` : ""}`).join("\n") || "None"}
 
-=== SPONSORS ===
-${allSponsors.map(s => `- ${s.name}: ${s.description || ""}${s.code ? ` (code: ${s.code})` : ""}${s.url ? ` ${s.url}` : ""}`).join("\n") || "None"}
-
-=== OTHER RESOURCES ===
-${allResources.map(r => `- ${r.name} (${r.type || "resource"}): ${r.description || ""} — ${r.context || ""}`).join("\n") || "None"}
-
-Respond ONLY with a valid JSON object:
+Respond ONLY with valid JSON:
 {
   "podcastName": "${podcastName}",
   "episodeTitle": "${episodeTitle}",
-  "tldl": "2-3 sentence summary of the core thesis.",
-  "whatHappened": "The episode recap. 6-8 paragraphs, each 2-4 sentences. Separate paragraphs with \\n\\n.",
-  "quote": "The single most surprising, counterintuitive, or shareable line. Must be from the quotes above.",
-  "quoteAttribution": "Speaker Name",
+  "whatHappened": "6-8 paragraphs, each 2-4 sentences. Separate with \\n\\n.",
   "keyInsights": ["insight1", "insight2", "insight3", "insight4"],
-  "keyTopics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4", "Topic 5"],
-  "topicContexts": {"slug": "Episode-specific description..."},
-  "sponsors": [{"name": "Sponsor Name", "description": "What they do.", "couponCode": "CODE or null", "url": "url or null", "howToRedeem": "How to use or null"}],
-  "guests": [{"name": "Full Name", "title": "Title", "bio": "2-3 sentence bio.", "twitter": "@handle or null", "linkedin": "url or null", "instagram": "@handle or null", "website": "url or null", "topicsDiscussed": ["Topic"]}],
-  "resources": [{"name": "Name", "type": "book|tool|product", "description": "Brief description.", "url": "URL or null", "author": "Author or null", "context": "3-5 sentences: WHO mentioned it, WHY they brought it up, what SPECIFIC argument or story it supported."}],
-  "extractedQuotes": [
-    {"speakerName": "Full Name", "speakerRole": "Their title (e.g. CEO of Acme)", "quoteText": "Verbatim quote from transcript", "context": "On why...", "quoteType": "Hero Quote|Hot Take|Prediction|Spicy|Tweetable"}
-  ]
+  "guests": [{"name": "Full Name", "title": "Title"}],
+  "resources": [{"name": "Name", "type": "book", "description": "Brief description.", "url": "URL or null", "author": "Author or null", "context": "3-5 sentences on WHO mentioned it, WHY, and what SPECIFIC argument it supported."}]
 }
 
-RULES FOR whatHappened (THE RECAP - MOST IMPORTANT OUTPUT):
-- The recap has one job: give the reader the actual knowledge from the episode without them needing to listen
-- Write like a well-informed friend walking you through the best parts of the conversation
-- Every paragraph must contain at least one specific idea, fact, number, or insight from the notes
-- If a paragraph only describes what was talked about without saying what was actually said, delete it and rewrite with the real content
-- Start with the most interesting idea, NOT with "In this episode of [show name]..."
-- 6-8 paragraphs, each 2-4 sentences, flowing naturally from one idea to the next
-- ALWAYS use speakers' full names. NEVER say "the guest", "the host", "the speaker", "the duo", "the group" - always use their actual name
-- BANNED PHRASES: "In this episode...", "The conversation explores/shifts/turns to...", "The hosts discuss/touch on/delve into...", "The discussion shifts to...", "They also highlight/emphasize/underscore...", "The episode wraps up with...", "Ultimately, the episode...", "The duo reflects on...", "Later, the group...", "A memorable segment explores...", "[Person] shares/reveals/explains that...", "broader themes like...", "actionable insights on...", "The guest highlights...", "The host notes..."
-- BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, underscores, delves, touches on, reflects on, recounts, acknowledges, showcases, illustrates, demonstrates, stresses, leveraging, revolutionizing, pioneering, groundbreaking, innovative, game-changing
-- BANNED CHARACTERS: Never use em dashes. Use regular dashes (-) instead. Never use curly/smart quotes. Use straight quotes (' ") instead
-- BAD PARAGRAPH: "The conversation shifts to AI, where the guest maps out the landscape. He identifies key players like OpenAI, Anthropic, and Google, analyzing their strategies."
-- BAD PARAGRAPH: "The guest highlights that legal constraints on naming can actually aid the process."
-- GOOD PARAGRAPH: "The AI landscape right now looks like a three-way war. OpenAI owns consumers - ChatGPT has become the default for most people - while Anthropic is quietly winning enterprise deals. Google, which looked dead six months ago, has surged back with Gemini and has one massive advantage nobody else can match: distribution through Search, Android, and Gmail reaching billions of users daily."
-- GOOD PARAGRAPH: "Legal constraints on naming turn out to be an unexpected ally. About 80% of candidate names get killed by trademark conflicts, which forces the team toward stranger, more distinctive options - exactly the kind that tend to win in the market."
+RECAP RULES (whatHappened):
+- Give the reader actual knowledge from the episode without needing to listen
+- Every paragraph must contain specific ideas, facts, numbers, or insights - not just what topics were discussed
+- Start with the most interesting idea, NOT "In this episode..."
+- Use speakers' full names. Never say "the guest" or "the host"
+- BANNED PHRASES: "In this episode...", "The conversation explores/shifts to...", "The hosts discuss...", "[Person] shares/reveals/explains that..."
+- BANNED WORDS: discusses, explores, highlights, shares, emphasizes, delves, leveraging, groundbreaking, game-changing
+- No em dashes or smart quotes. Use regular dashes (-) and straight quotes
+- BAD: "The conversation shifts to AI, where the guest maps out the landscape."
+- GOOD: "The AI landscape looks like a three-way war. OpenAI owns consumers, Anthropic is winning enterprise deals, and Google surged back with Gemini plus distribution through Search, Android, and Gmail."
 
 OTHER RULES:
-- quote: Pick the most SHAREABLE line from the quotes list above. Something surprising, counterintuitive, or profound
-- keyInsights: THE MOST IMPORTANT FIELD. Exactly 4 standalone insights a reader walks away having LEARNED. Each must be 2-3 tight sentences of straight-to-the-point information. Each insight must contain at least one concrete detail (a specific number, company name, dollar amount, person, mechanism, or framework). NEVER start an insight with a person's name followed by a verb. NEVER describe what someone said - instead deliver the actual knowledge. LITMUS TEST: "If I removed the podcast name and episode title, would this insight still be worth reading on its own?" If not, rewrite it.
-  TONE RULES - CRITICAL:
-  - Write in a NEUTRAL, INFORMATIVE tone. Like a news brief or research summary.
-  - NEVER use conversational hooks: "Dude, did you know...", "Here's the thing:", "Here's a twist:", "Imagine...", "Turns out...", "The kicker?", "The takeaway?", "The strategy?", "The result?", "The secret?", "What's wild is..."
-  - NEVER address the reader with "you" or use rhetorical questions
-  - NEVER use exclamation marks
-  - NEVER editorialize with "proving that...", "showing that...", "a reminder that...", "it's closer than you think", "it's not what you'd expect"
-  BANNED WORDS: discusses, explores, highlights, shares, emphasizes, explains, points out, praises, recounts, acknowledges, underscores, reveals, showcases, illustrates, demonstrates, notes, stresses, leveraging, revolutionizing, pioneering, groundbreaking, innovative, game-changing, crucial, critical, essential, important
-  BANNED PATTERNS: "[Person] [verb] [topic]" (NEVER start with a speaker name), "The importance of X", "[Company] is [verb]ing [industry]", "X is crucial/critical/essential for Y"
-  BANNED PHRASES: "Here's a twist", "Here's the thing", "Turns out", "Imagine", "Dude", "The kicker", "The takeaway", "The strategy?", "The secret?", "proving that", "showing that", "a reminder that"
-  BAD: "Dude, did you know a $500,000 ad with Mr. Beast initially tanked?" (conversational hook)
-  BAD: "Here's a twist: while space gets the glamour, ocean defense is the real deal." (hook + editorial)
-  BAD: "Imagine being 19 and selling your AI app after being rejected by Ivy League schools!" (hook + exclamation)
-  BAD: "Lab-grown seafood could be the future - it's closer than you think." (editorial punchline)
-  GOOD: "Swiffer is a $5 billion brand. Clorox's Ready Mop does a couple hundred million. The products are nearly identical - the difference is almost entirely the name. The team behind Swiffer generated over 2,000 candidate names before landing on one that was short, surprising, and sounded like the motion of mopping."
-  GOOD: "The most counterintuitive part of naming a billion-dollar brand is that legal constraints actually help. Roughly 80% of candidate names get killed by trademark conflicts, which forces the team toward stranger, more distinctive options - exactly the kind that tend to win in the market."
-- extractedQuotes: 3-5 quotes from the BEST QUOTES above. QUALITY GATE: Each quote must be AT LEAST 15 words long and contain a specific claim, opinion, number, or insight. Conversational filler, compliments, and reactions are NOT quotes.
-  SPEAKER IDENTIFICATION IS MANDATORY: "Unknown" is NEVER acceptable as a speakerName. Use the episode title, guest list, and host names to determine who said each quote. If the episode title names a person (e.g. "Bill Gurley: ..."), most substantive quotes come from that person. Any speaker who is not a known host is the guest.
-  Prefer GUESTS over hosts. Exactly ONE must be quoteType "Hero Quote". At least ONE must be "Hot Take" or "Prediction". Other types: "Spicy", "Tweetable". quoteText MUST be verbatim. context must start with "On..." (e.g. "On why AI will replace managers"). speakerRole must be specific (their actual title, not "Guest" or "Episode Host").
-  BAD QUOTES (never select these): "I think your biggest skill is your audacity." / "I'm impressed with your decision making." / "That's a great point." — these are conversational reactions with no substance.
-  GOOD QUOTES: Lines with specific numbers, contrarian claims, vivid metaphors, or predictions that someone would screenshot and share
-- keyTopics: 4-6 specific phrases that read like search queries with specific names
-- topicContexts: Use ONLY these slugs as keys: ${CURATED_TOPIC_SLUGS.map(s => `"${s}"`).join(", ")}. Only include categories genuinely discussed (typically 3-6)
-- resources: Include books from the === BOOKS MENTIONED === section above ONLY if the speaker genuinely discussed the book, its author, or its content. Do NOT include a book if the title was merely used as a concept, metaphor, or adjective (e.g., "you need grit" is using the word, not referencing Angela Duckworth's book; "have more range" is a general concept, not a reference to David Epstein's "Range"). Each book's context MUST be 3-5 sentences of RICH, EPISODE-SPECIFIC detail. It must answer THREE questions: (1) WHO specifically mentioned this book (use their full name), (2) WHY did they bring it up - what argument were they making, (3) What SPECIFIC story, anecdote, statistic, or claim from the book did they reference.
-  CONTEXT QUALITY RULES:
-  - MINIMUM 3 full sentences per book. One-sentence contexts are a SERIOUS ERROR.
-  - NEVER start with "Referenced to...", "Mentioned as...", "Discussed in the context of...", "Highlighted as...", "Brought up to..."
-  - ALWAYS start with a speaker's name and what they actually said about the book
-  - Include specific details from the conversation: numbers, anecdotes, quotes about the book
-  BAD CONTEXT (1 sentence, generic, no specifics): "Referenced to support the idea that having a diverse set of skills and interests can lead to more innovative thinking."
-  BAD CONTEXT (1 sentence, vague): "Bill Gurley discusses 'Grit' to highlight how perseverance, without passion, can lead to burnout."
-  BAD CONTEXT (no speaker, no specifics): "Discussed in the context of its original emphasis on perseverance, with a shift to highlight the importance of passion."
-  GOOD CONTEXT (3+ sentences, specific, named speaker): "Bill Gurley brings up 'Grit' to challenge its central thesis. While Angela Duckworth argues that grit - passion plus perseverance - is the key to success, Gurley points out that perseverance without genuine passion leads to burnout and career regret. He connects this directly to his research finding that six out of ten people would choose a different career, arguing that many grind through jobs they hate because they were told perseverance alone would pay off."
-  GOOD CONTEXT: "Sam Parr calls 'Mastery' a life-changing book that fundamentally shifted how he thinks about career development. He credits Robert Greene's framework of apprenticeship, creative-active, and mastery phases with helping him recognize that true expertise requires a period of deliberate, sometimes painful, learning. Parr specifically ties Greene's concept of finding one's 'Life's Task' to Bill Gurley's point about the cost of ignoring your real calling."
-  For books, include Amazon URL if you know the ASIN`;
+- keyInsights: 4 standalone insights, each 2-3 sentences with concrete details (numbers, names, mechanisms). Neutral tone, no hooks ("Here's the thing:"), no "you", no exclamation marks
+- guests: ALL guests (not hosts), full names only. Empty array if none
+- resources: Books only, with 3-5 sentence context starting with speaker's full name. Include Amazon URL if known`;
 
   try {
     const completion = await openai.chat.completions.create({
@@ -970,48 +738,13 @@ OTHER RULES:
       return obj;
     }
 
-    const rawQuotes = Array.isArray(parsed.extractedQuotes) ? parsed.extractedQuotes : [];
-    const synthGuestNames = Array.isArray(parsed.guests) ? parsed.guests.map((g: any) => g.name).filter(Boolean) : [];
-    const validQuotes: ExtractedQuote[] = rawQuotes
-      .filter((q: any) => q.speakerName && q.quoteText && q.context && q.quoteType)
-      .filter((q: any) => {
-        const wordCount = q.quoteText.trim().split(/\s+/).length;
-        if (wordCount < 12) {
-          console.log(`[RecapGenerator] Filtered short quote (${wordCount} words): "${q.quoteText.slice(0, 60)}..."`);
-          return false;
-        }
-        return true;
-      })
-      .map((q: any) => {
-        let name = q.speakerName;
-        let role = q.speakerRole || "";
-        if (name === "Unknown" || name === "Episode Host" || name === "Host") {
-          if (synthGuestNames.length === 1) {
-            name = synthGuestNames[0];
-            role = parsed.guests[0]?.title || role;
-            console.log(`[RecapGenerator] Fixed "Unknown" speaker -> "${name}"`);
-          }
-        }
-        return { speakerName: name, speakerRole: role, quoteText: q.quoteText, context: q.context, quoteType: q.quoteType };
-      })
-      .filter((q: ExtractedQuote) => q.speakerName !== "Unknown");
-
     console.log(`[RecapGenerator] Full-transcript recap complete for "${episodeTitle}" (${coverage.chunkCount} chunks, ${coverage.totalChars} chars)`);
-
-    const pass2Insights = await generateKeyInsightsFromRecap(whatHappened, podcastName, episodeTitle);
-    const finalInsights = pass2Insights.length === 4 ? pass2Insights : keyInsights;
 
     return sanitizeDeep({
       podcastName: parsed.podcastName || podcastName,
       episodeTitle: parsed.episodeTitle || episodeTitle,
-      tldl: parsed.tldl || "",
       whatHappened,
-      keyInsights: finalInsights,
-      quote: parsed.quote,
-      quoteAttribution: parsed.quoteAttribution,
-      keyTopics: Array.isArray(parsed.keyTopics) ? parsed.keyTopics : [],
-      topicContexts: parsed.topicContexts && typeof parsed.topicContexts === "object" ? parsed.topicContexts : {},
-      sponsors: Array.isArray(parsed.sponsors) ? parsed.sponsors : [],
+      keyInsights,
       guests: Array.isArray(parsed.guests) ? parsed.guests.filter((g: any) => {
           if (!g.name || !g.name.trim()) return false;
           const nameParts = g.name.trim().split(/\s+/);
@@ -1020,10 +753,8 @@ OTHER RULES:
             return false;
           }
           return true;
-        }) : [],
+        }).map((g: any) => ({ name: g.name, title: g.title || "" })) : [],
       resources: Array.isArray(parsed.resources) ? parsed.resources : [],
-      products: dedupedProducts,
-      extractedQuotes: validQuotes,
     });
   } catch (err) {
     console.error(`[RecapGenerator] Full-transcript synthesis failed for "${episodeTitle}":`, err);
@@ -1119,37 +850,12 @@ export function validateRecap(
 ): { passed: boolean; issues: RecapQAIssue[] } {
   const issues: RecapQAIssue[] = [];
 
-  if (!recap.tldl || recap.tldl.length < 50) {
-    issues.push({ field: "tldl", severity: "critical", message: `tldl too short (${recap.tldl?.length || 0} chars, need 50+)` });
-  }
-
   if (!recap.whatHappened || recap.whatHappened.length < 200) {
     issues.push({ field: "whatHappened", severity: "critical", message: `whatHappened too short (${recap.whatHappened?.length || 0} chars, need 200+)` });
   }
 
   if (!recap.keyInsights || recap.keyInsights.length < 3) {
     issues.push({ field: "keyInsights", severity: "critical", message: `Only ${recap.keyInsights?.length || 0} key insights (need 3+)` });
-  }
-
-  if (!recap.quote || recap.quote.length < 10) {
-    issues.push({ field: "quote", severity: "critical", message: "Missing or too short hero quote" });
-  }
-
-  if (!recap.quoteAttribution || recap.quoteAttribution.length < 3) {
-    issues.push({ field: "quoteAttribution", severity: "critical", message: "Missing quote attribution" });
-  }
-
-  if (recap.quoteAttribution && /^speaker\s*\d/i.test(recap.quoteAttribution)) {
-    issues.push({ field: "quoteAttribution", severity: "critical", message: `Generic speaker attribution: "${recap.quoteAttribution}"` });
-  }
-
-  if (!recap.keyTopics || recap.keyTopics.length < 3) {
-    issues.push({ field: "keyTopics", severity: "warning", message: `Only ${recap.keyTopics?.length || 0} key topics (want 3+)` });
-  }
-
-
-  if (quoteCount < 3) {
-    issues.push({ field: "quotes", severity: "critical", message: `Only ${quoteCount} episode quotes (need 3+)` });
   }
 
   const guestPattern = /\|\s*([A-Z][a-z]+ [A-Z][a-z]+)|ft\.?\s+([A-Z][a-z]+ [A-Z])|[-:]\s*([A-Z][a-z]+ [A-Z][a-z]+)\s*$/;

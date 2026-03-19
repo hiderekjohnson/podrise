@@ -138,47 +138,15 @@ export async function validateAndEnrichRecap(
     const recap = rows[0];
     const isEmpty = (v: any) => v === null || v === undefined || v === "" || v === "[]";
 
-    if (isEmpty(recap.tldl)) result.missing.push("tldl");
-    if (isEmpty(recap.quote)) result.missing.push("quote");
     if (isEmpty(recap.apple_episode_url)) result.missing.push("apple_url");
     if (isEmpty(recap.spotify_episode_url)) result.missing.push("spotify_url");
     if (isEmpty(recap.audio_url)) result.missing.push("audio_url");
-    if (isEmpty(recap.tabloid_headline)) result.missing.push("tabloid");
-
-    const { rows: quoteRows } = await client.query(
-      `SELECT COUNT(*) as cnt FROM episode_quotes WHERE podcast_slug = $1 AND episode_slug = $2`,
-      [podcastSlug, episodeSlug]
-    );
-    // quotes_db is optional - quote extraction has been removed from the pipeline
 
     if (result.missing.length === 0) {
       return result;
     }
 
     console.log(`[RecapValidator] Episode "${episodeTitle.slice(0, 50)}" missing: ${result.missing.join(", ")}`);
-
-    if (result.missing.includes("tabloid") && !isEmpty(recap.tldl) && !isEmpty(recap.what_happened)) {
-      try {
-        const { generateTabloidHeadline } = await import("./emailScheduler");
-        let keyInsights: string[] = [];
-        try {
-          if (typeof recap.key_insights === "string") keyInsights = JSON.parse(recap.key_insights);
-          else if (Array.isArray(recap.key_insights)) keyInsights = recap.key_insights;
-        } catch {}
-        const tabloidResult = await generateTabloidHeadline(
-          episodeTitle, podcastName, recap.tldl, recap.what_happened, keyInsights
-        );
-        if (tabloidResult) {
-          await client.query(
-            `UPDATE landing_page_recaps SET tabloid_headline = $1, tabloid_sub_headline = $2 WHERE id = $3`,
-            [tabloidResult.tabloidHeadline, tabloidResult.tabloidSubHeadline, recapId]
-          );
-          result.fixed.push("tabloid");
-        }
-      } catch (err: any) {
-        result.errors.push(`tabloid: ${err.message?.slice(0, 80)}`);
-      }
-    }
 
     if (result.missing.includes("spotify_url")) {
       try {

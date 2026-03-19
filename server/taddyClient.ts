@@ -77,7 +77,6 @@ export async function searchPodcastByItunesId(itunesId: string, podcastName?: st
   const numericId = parseInt(itunesId, 10);
   if (isNaN(numericId)) {
     console.warn(`Invalid iTunes ID for Taddy lookup: ${itunesId}`);
-    if (podcastName) return searchPodcastByName(podcastName);
     return null;
   }
 
@@ -85,10 +84,6 @@ export async function searchPodcastByItunesId(itunesId: string, podcastName?: st
   const cached = podcastCache.get(cacheKey);
   if (cached && cached.expiry > Date.now()) {
     return cached.result;
-  }
-  const nameFallbackCached = podcastCache.get(`podcast_name_fallback_${numericId}`);
-  if (nameFallbackCached && nameFallbackCached.expiry > Date.now()) {
-    return nameFallbackCached.result;
   }
 
   if (storedTaddyUuid) {
@@ -113,13 +108,7 @@ export async function searchPodcastByItunesId(itunesId: string, podcastName?: st
   }
 
   if (podcastName) {
-    console.log(`[Taddy] iTunes ID ${numericId} not found, falling back to name search for "${podcastName}"`);
-    const nameResult = await searchPodcastByName(podcastName);
-    if (nameResult) {
-      const nameCacheKey = `podcast_name_fallback_${numericId}`;
-      podcastCache.set(nameCacheKey, { result: nameResult, expiry: Date.now() + CACHE_TTL_MS });
-    }
-    return nameResult;
+    console.log(`[Taddy] iTunes ID ${numericId} not found, no name fallback — returning null`);
   }
 
   return null;
@@ -193,15 +182,7 @@ export async function getEpisodesByItunesId(
   let seriesData = data?.data?.getPodcastSeries;
 
   if (!seriesData && podcastName) {
-    console.log(`[Taddy] Episodes by itunesId ${numericId} not found, falling back to name search for "${podcastName}"`);
-    const nameResult = await searchPodcastByName(podcastName);
-    if (nameResult?.uuid) {
-      const episodes = await getRecentEpisodesWithTranscripts(nameResult.uuid, limit);
-      if (episodes.length > 0) {
-        episodeCache.set(cacheKey, { result: episodes, expiry: Date.now() + CACHE_TTL_MS });
-      }
-      return episodes;
-    }
+    console.log(`[Taddy] Episodes by itunesId ${numericId} not found, no name fallback — returning empty`);
   }
 
   if (!seriesData?.episodes) {

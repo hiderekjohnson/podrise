@@ -3,7 +3,7 @@ import { pool } from "./db";
 import { getUncachableResendClient } from "./resendClient";
 import { markdownToEmailHtml, recapHasContent, type EpisodeMetaForEmail } from "./emailTemplate";
 import { generateRecap, generateRecapFromTranscript, type ParsedEpisode } from "./recapGenerator";
-import { searchPodcastByItunesId, searchPodcastByName, getRecentEpisodesWithTranscripts, getEpisodeTranscript, getEpisodeTranscriptSegments, getEpisodesByItunesId, searchEpisodeByName } from "./taddyClient";
+import { searchPodcastByItunesId, getRecentEpisodesWithTranscripts, getEpisodeTranscript, getEpisodeTranscriptSegments, getEpisodesByItunesId, searchEpisodeByName } from "./taddyClient";
 import { parseRawTaddySegments, parseTranscriptToSegments } from "./transcriptParser";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 import { activeEpGenItunesIds } from "./epGenState";
@@ -485,11 +485,11 @@ async function updateLandingPageRecaps(userPodcasts: string[], parsedEpisodes: P
       episodeTitle: ep.episodeTitle,
       episodeDate: ep.episodeDate || "",
       episodeDuration: ep.episodeDuration,
-      tldl: ep.tldl,
+      tldl: "",
       whatHappened: ep.whatHappened,
       keyInsights: ep.keyInsights,
-      quote: ep.quote || null,
-      quoteAttribution: ep.quoteAttribution || null,
+      quote: "",
+      quoteAttribution: "",
     });
     console.log(`[EmailScheduler] Updated landing page example recap for ${slug} (${ep.episodeTitle})`);
   }
@@ -1047,14 +1047,6 @@ export async function refreshLandingPageRecaps(force: boolean = false, dateRange
                     episodeTitle: epTitle,
                     transcript: transcriptText,
                   });
-                  try {
-                    const parsedSegments = parseRawTaddySegments(rawSegments, podcast.slug, epSlug, episodeGuid);
-                    if (parsedSegments.length > 0) {
-                      await storage.saveTranscriptSegments(parsedSegments);
-                    }
-                  } catch (segErr) {
-                    console.warn(`[LandingRecaps] Segment parsing failed for ${podcast.name}:`, segErr);
-                  }
                 }
               }
             }
@@ -1066,18 +1058,6 @@ export async function refreshLandingPageRecaps(force: boolean = false, dateRange
         if (!transcriptText) {
           skipped++;
           continue;
-        }
-
-        try {
-          const hasSegs = await storage.hasTranscriptSegments(episodeGuid);
-          if (!hasSegs) {
-            const segments = parseTranscriptToSegments(transcriptText, podcast.slug, epSlug, episodeGuid);
-            if (segments.length > 0) {
-              await storage.saveTranscriptSegments(segments);
-            }
-          }
-        } catch (segErr) {
-          console.warn(`[LandingRecaps] Backfill segments failed for ${podcast.name}:`, segErr);
         }
 
         const recap = await generateRecapFromTranscript(transcriptText, podcast.name, epTitle);
@@ -1125,42 +1105,22 @@ export async function refreshLandingPageRecaps(force: boolean = false, dateRange
           duration: durationStr,
           artworkUrl: (podcast.artworkUrl || ep.artworkUrl600 || "").replace(/\d+x\d+bb/, "1200x1200bb") || null,
           hosts: podcast.hosts || null,
-          tldl: recap.tldl,
+          tldl: "",
           whatHappened: recap.whatHappened,
           keyInsights: recap.keyInsights,
-          quote: recap.quote || null,
-          quoteAttribution: recap.quoteAttribution || null,
+          quote: "",
+          quoteAttribution: "",
           appleEpisodeUrl: appleEpisodeUrl,
           spotifyEpisodeUrl,
           audioUrl: ep.episodeUrl || null,
-          keyTopics: recap.keyTopics || null,
-          topicContexts: recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
+          keyTopics: [],
+          topicContexts: null,
           topQuestions: null,
-          guests: recap.guests ? JSON.stringify(recap.guests) : null,
-          sponsors: recap.sponsors ? JSON.stringify(recap.sponsors) : null,
-          resources: recap.resources ? JSON.stringify(recap.resources) : null,
+          guests: recap.guests ? JSON.stringify(recap.guests) : "[]",
+          sponsors: "[]",
+          resources: recap.resources ? JSON.stringify(recap.resources) : "[]",
           showNotes,
         });
-
-        try {
-          const tabloidResult = await generateTabloidHeadline(
-            recap.episodeTitle, podcast.name, recap.tldl, recap.whatHappened, recap.keyInsights || []
-          );
-          if (tabloidResult && savedRecap?.id) {
-            const { pool: dbPool2 } = await import("./db");
-            const client2 = await dbPool2.connect();
-            try {
-              await client2.query(
-                `UPDATE landing_page_recaps SET tabloid_headline = $1, tabloid_sub_headline = $2 WHERE id = $3`,
-                [tabloidResult.tabloidHeadline, tabloidResult.tabloidSubHeadline, savedRecap.id]
-              );
-            } finally {
-              client2.release();
-            }
-          }
-        } catch (tabloidErr) {
-          console.warn(`[LandingRecaps] Tabloid generation failed for ${podcast.name} - "${epTitle}":`, tabloidErr);
-        }
 
         if (podcastNewRecaps === 0) {
           await storage.upsertExampleRecap({
@@ -1170,11 +1130,11 @@ export async function refreshLandingPageRecaps(force: boolean = false, dateRange
             episodeTitle: recap.episodeTitle,
             episodeDate: releaseDate,
             episodeDuration: durationStr,
-            tldl: recap.tldl,
+            tldl: "",
             whatHappened: recap.whatHappened,
             keyInsights: recap.keyInsights,
-            quote: recap.quote || null,
-            quoteAttribution: recap.quoteAttribution || null,
+            quote: "",
+            quoteAttribution: "",
           });
         }
 
@@ -1546,23 +1506,8 @@ export async function bulkDownloadTranscripts() {
           const taddyData = await taddyRes.json();
           series = taddyData?.data?.getPodcastSeries;
 
-          if (!series && podcast.name) {
-            console.log(`[TranscriptDL] iTunes ID ${numId} not found on Taddy, trying name search for "${podcast.name}"`);
-            const nameResult = await searchPodcastByName(podcast.name);
-            if (nameResult?.uuid) {
-              const uuidRes = await fetch("https://api.taddy.org", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
-                body: JSON.stringify({ query: `{ getPodcastSeries(uuid: "${nameResult.uuid}") { uuid name episodes(sortOrder: LATEST, limitPerPage: ${epLimit}) { uuid name taddyTranscribeStatus } } }` }),
-                signal: AbortSignal.timeout(20000),
-              });
-              const uuidData = await uuidRes.json();
-              series = uuidData?.data?.getPodcastSeries;
-              if (series) {
-                console.log(`[TranscriptDL] Found "${podcast.name}" via name search (uuid: ${nameResult.uuid})`);
-              }
-            }
-            await new Promise(r => setTimeout(r, 500));
+          if (!series) {
+            console.log(`[TranscriptDL] iTunes ID ${numId} not found on Taddy, skipping "${podcast.name}"`);
           }
 
           if (series?.uuid) {
@@ -2127,32 +2072,6 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
             continue;
           }
 
-          if (rawSegments && rawSegments.length > 0) {
-            try {
-              const hasSegs = await storage.hasTranscriptSegments(episodeGuid);
-              if (!hasSegs) {
-                const parsedSegments = parseRawTaddySegments(rawSegments, podcast.slug, epSlug, episodeGuid);
-                if (parsedSegments.length > 0) {
-                  await storage.saveTranscriptSegments(parsedSegments);
-                }
-              }
-            } catch (segErr) {
-              console.warn(`[BatchExpand] Segment save failed for "${epTitle}":`, segErr);
-            }
-          } else {
-            try {
-              const hasSegs = await storage.hasTranscriptSegments(episodeGuid);
-              if (!hasSegs) {
-                const segments = parseTranscriptToSegments(transcriptText, podcast.slug, epSlug, episodeGuid);
-                if (segments.length > 0) {
-                  await storage.saveTranscriptSegments(segments);
-                }
-              }
-            } catch (segErr) {
-              console.warn(`[BatchExpand] Segment parse failed for "${epTitle}":`, segErr);
-            }
-          }
-
           try {
             const recap = await generateRecapFromTranscript(transcriptText, podcast.name, epTitle);
             if (!recap) {
@@ -2194,20 +2113,20 @@ export async function batchExpandEpisodes(targetPerPodcast: number = 50) {
               duration: durationStr,
               artworkUrl: (podcast.artworkUrl || ep.artworkUrl600 || "").replace(/\d+x\d+bb/, "1200x1200bb") || null,
               hosts: podcast.hosts || null,
-              tldl: recap.tldl,
+              tldl: "",
               whatHappened: recap.whatHappened,
               keyInsights: recap.keyInsights,
-              quote: recap.quote || null,
-              quoteAttribution: recap.quoteAttribution || null,
+              quote: "",
+              quoteAttribution: "",
               appleEpisodeUrl: appleEpisodeUrl,
               spotifyEpisodeUrl: batchSpotifyUrl,
               audioUrl: ep.episodeUrl || null,
-              keyTopics: recap.keyTopics || null,
-              topicContexts: recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
+              keyTopics: [],
+              topicContexts: null,
               topQuestions: null,
-              guests: recap.guests ? JSON.stringify(recap.guests) : null,
-              sponsors: recap.sponsors ? JSON.stringify(recap.sponsors) : null,
-              resources: recap.resources ? JSON.stringify(recap.resources) : null,
+              guests: recap.guests ? JSON.stringify(recap.guests) : "[]",
+              sponsors: "[]",
+              resources: recap.resources ? JSON.stringify(recap.resources) : "[]",
               showNotes,
             });
 

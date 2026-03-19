@@ -9019,22 +9019,6 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
                   ? new Date(ep.datePublished * 1000).toISOString().slice(0, 10)
                   : null;
 
-                let tabloidHeadline: string | null = null;
-                let tabloidSubHeadline: string | null = null;
-                try {
-                  const { generateTabloidHeadline } = await import("./emailScheduler");
-                  const tabloidResult = await generateTabloidHeadline(
-                    epTitle, podcast.name, recap.tldl, recap.whatHappened, recap.keyInsights || []
-                  );
-                  if (tabloidResult) {
-                    tabloidHeadline = tabloidResult.tabloidHeadline;
-                    tabloidSubHeadline = tabloidResult.tabloidSubHeadline;
-                  }
-                } catch {}
-
-                const durationSec = 0;
-                const durationStr = durationSec > 0 ? `${Math.floor(durationSec / 60)} min` : null;
-
                 await storage.upsertLandingPageRecap({
                   slug: podcast.slug,
                   itunesId: podcast.itunes_id,
@@ -9043,21 +9027,19 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
                   episodeSlug: epSlug,
                   publishDate,
                   artworkUrl: podcast.artwork_url || "",
-                  tldl: recap.tldl,
+                  tldl: "",
                   whatHappened: recap.whatHappened,
                   keyInsights: recap.keyInsights,
-                  quote: recap.quote,
-                  quoteAttribution: recap.quoteAttribution,
-                  sponsors: recap.sponsors,
-                  guests: recap.guests,
-                  resources: recap.resources,
-                  keyTopics: recap.keyTopics,
+                  quote: "",
+                  quoteAttribution: "",
+                  guests: recap.guests ? JSON.stringify(recap.guests) : "[]",
+                  resources: recap.resources ? JSON.stringify(recap.resources) : "[]",
+                  keyTopics: [],
                   hosts: podcast.hosts || "",
-                  duration: durationStr,
+                  duration: null,
                   topQuestions: null,
-                  topicContexts: recap.topicContexts,
-                  tabloidHeadline,
-                  tabloidSubHeadline,
+                  topicContexts: null,
+                  sponsors: "[]",
                 });
 
                 missedEpBackfillProgress.newEpisodes++;
@@ -10514,16 +10496,12 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       if (!recap) return res.status(500).json({ message: "AI generation failed" });
 
       await pool.query(
-        `UPDATE landing_page_recaps SET tldl = $1, what_happened = $2, key_insights = $3, quote = $4, quote_attribution = $5, key_topics = $6, top_questions = $7, sponsors = $8, guests = $9, resources = $10, topic_contexts = $11 WHERE slug = $12 AND episode_slug = $13`,
+        `UPDATE landing_page_recaps SET what_happened = $1, key_insights = $2, guests = $3, resources = $4 WHERE slug = $5 AND episode_slug = $6`,
         [
-          recap.tldl, recap.whatHappened, JSON.stringify(recap.keyInsights),
-          recap.quote, recap.quoteAttribution,
-          recap.keyTopics ? `{${recap.keyTopics.map((t: string) => `"${t.replace(/"/g, '\\"')}"`).join(",")}}` : null,
-          null,
-          recap.sponsors ? JSON.stringify(recap.sponsors) : null,
-          recap.guests ? JSON.stringify(recap.guests) : null,
-          recap.resources ? JSON.stringify(recap.resources) : null,
-          recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
+          recap.whatHappened,
+          recap.keyInsights && recap.keyInsights.length > 0 ? recap.keyInsights : null,
+          recap.guests ? JSON.stringify(recap.guests) : "[]",
+          recap.resources ? JSON.stringify(recap.resources) : "[]",
           podcastSlug, episodeSlug,
         ]
       );
@@ -12346,11 +12324,11 @@ Rules:
             episodeTitle: recap.episodeTitle || epTitle,
             episodeDate: releaseDate,
             episodeDuration: durationStr,
-            tldl: recap.tldl || "",
+            tldl: "",
             whatHappened: recap.whatHappened,
             keyInsights: recap.keyInsights,
-            quote: recap.quote || null,
-            quoteAttribution: recap.quoteAttribution || null,
+            quote: "",
+            quoteAttribution: "",
           });
 
           results.push({ slug, status: "success", episodeTitle: epTitle });
@@ -12562,19 +12540,19 @@ Rules:
                   duration: durationStr,
                   artworkUrl,
                   hosts,
-                  tldl: recap.tldl || "",
+                  tldl: "",
                   whatHappened: recap.whatHappened,
                   keyInsights: recap.keyInsights,
-                  quote: recap.quote || null,
-                  quoteAttribution: recap.quoteAttribution || null,
+                  quote: "",
+                  quoteAttribution: "",
                   appleEpisodeUrl: appleUrl || null,
                   audioUrl: ep.episodeUrl || null,
-                  keyTopics: recap.keyTopics || null,
-                  topicContexts: recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
+                  keyTopics: [],
+                  topicContexts: null,
                   topQuestions: null,
-                  guests: recap.guests ? JSON.stringify(recap.guests) : null,
-                  sponsors: recap.sponsors ? JSON.stringify(recap.sponsors) : null,
-                  resources: recap.resources ? JSON.stringify(recap.resources) : null,
+                  guests: recap.guests ? JSON.stringify(recap.guests) : "[]",
+                  sponsors: "[]",
+                  resources: recap.resources ? JSON.stringify(recap.resources) : "[]",
                 });
 
                 generatedForPodcast++;
@@ -13053,19 +13031,19 @@ Rules:
                 duration: durationStr,
                 artworkUrl,
                 hosts,
-                tldl: recap.tldl || "",
+                tldl: "",
                 whatHappened: recap.whatHappened,
                 keyInsights: recap.keyInsights,
-                quote: recap.quote || null,
-                quoteAttribution: recap.quoteAttribution || null,
+                quote: "",
+                quoteAttribution: "",
                 appleEpisodeUrl: appleUrl || null,
                 audioUrl: ep.episodeUrl || null,
-                keyTopics: recap.keyTopics || null,
-                topicContexts: recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
+                keyTopics: [],
+                topicContexts: null,
                 topQuestions: null,
-                guests: recap.guests ? JSON.stringify(recap.guests) : null,
-                sponsors: recap.sponsors ? JSON.stringify(recap.sponsors) : null,
-                resources: recap.resources ? JSON.stringify(recap.resources) : null,
+                guests: recap.guests ? JSON.stringify(recap.guests) : "[]",
+                sponsors: "[]",
+                resources: recap.resources ? JSON.stringify(recap.resources) : "[]",
               });
 
               generatedForPodcast++;
@@ -14204,64 +14182,8 @@ Rules:
     guests: any[] | null;
     resources: any[] | null;
     recapId?: number;
-    extractedQuotes?: any[] | null;
   }) {
-    const { transcript, podcastSlug, episodeSlug, podcastName, episodeTitle, itunesId, hosts, guests, resources } = opts;
-
-    try {
-      const episodeGuid = `${itunesId}_${episodeSlug}`;
-      const hasSegs = await storage.hasTranscriptSegments(episodeGuid);
-      if (!hasSegs) {
-        const { parseTranscriptToSegments } = await import("./transcriptParser");
-        const segments = parseTranscriptToSegments(transcript, podcastSlug, episodeSlug, episodeGuid);
-        if (segments.length > 0) {
-          await storage.saveTranscriptSegments(segments);
-        }
-      }
-    } catch (err) {
-      console.warn(`[PostProcess] Segment save failed for "${episodeTitle}":`, err);
-    }
-
-    try {
-      const existingQuotes = await storage.getEpisodeQuotes(podcastSlug, episodeSlug);
-      if (existingQuotes.length === 0) {
-        const inlineQuotes = opts.extractedQuotes || [];
-        if (inlineQuotes.length > 0) {
-          const quotesToSave = inlineQuotes.map((q: any) => ({
-            podcastSlug,
-            episodeSlug,
-            speakerName: q.speakerName,
-            speakerRole: q.speakerRole || null,
-            quoteText: q.quoteText,
-            context: q.context,
-            quoteType: q.quoteType,
-          }));
-          await storage.saveEpisodeQuotes(quotesToSave);
-          console.log(`[PostProcess] Saved ${inlineQuotes.length} inline quotes for "${episodeTitle}"`);
-        } else {
-          const { extractQuotesFromTranscript } = await import("./recapGenerator");
-          const extractedQuotes = await extractQuotesFromTranscript(
-            transcript, podcastName, episodeTitle, hosts,
-            guests ? JSON.stringify(guests) : null
-          );
-          if (extractedQuotes.length > 0) {
-            const quotesToSave = extractedQuotes.map((q) => ({
-              podcastSlug,
-              episodeSlug,
-              speakerName: q.speakerName,
-              speakerRole: q.speakerRole || null,
-              quoteText: q.quoteText,
-              context: q.context,
-              quoteType: q.quoteType,
-            }));
-            await storage.saveEpisodeQuotes(quotesToSave);
-            console.log(`[PostProcess] Extracted ${extractedQuotes.length} quotes for "${episodeTitle}"`);
-          }
-        }
-      }
-    } catch (err) {
-      console.warn(`[PostProcess] Quote extraction failed for "${episodeTitle}":`, err);
-    }
+    const { podcastSlug, episodeSlug, podcastName, episodeTitle, itunesId, hosts, guests, resources } = opts;
 
     if (resources && resources.length > 0) {
       try {
@@ -14515,16 +14437,16 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           duration: durationStr,
           artworkUrl: t.image_url || podcastArtwork,
           hosts,
-          tldl: recap.tldl,
+          tldl: "",
           whatHappened: recap.whatHappened,
           keyInsights: recap.keyInsights,
-          quote: recap.quote,
-          quoteAttribution: recap.quoteAttribution,
-          keyTopics: recap.keyTopics,
-          topicContexts: recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
+          quote: "",
+          quoteAttribution: "",
+          keyTopics: [],
+          topicContexts: null,
           topQuestions: null,
           audioUrl: t.audio_url || "",
-          sponsors: recap.sponsors ? JSON.stringify(recap.sponsors) : "[]",
+          sponsors: "[]",
           guests: recap.guests ? JSON.stringify(recap.guests) : "[]",
           resources: recap.resources ? JSON.stringify(recap.resources) : "[]",
           spotifyEpisodeUrl,
@@ -14539,7 +14461,6 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           guests: recap.guests || null,
           resources: recap.resources || null,
           recapId: newRecapId,
-          extractedQuotes: recap.extractedQuotes || null,
         });
 
         try {
@@ -14700,60 +14621,6 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       }
       await Promise.all(workers);
 
-      // Backfill quotes for existing recaps that don't have any
-      if (epGenState.running) {
-        try {
-          const { rows: recapsWithoutQuotes } = await pool.query(
-            `SELECT lpr.episode_title, lpr.episode_slug, lpr.hosts, lpr.guests
-             FROM landing_page_recaps lpr
-             WHERE lpr.slug = $1
-               AND NOT EXISTS (SELECT 1 FROM episode_quotes eq WHERE eq.podcast_slug = $1 AND eq.episode_slug = lpr.episode_slug)
-             ORDER BY lpr.publish_date DESC
-             LIMIT 20`,
-            [podcastSlug]
-          );
-          if (recapsWithoutQuotes.length > 0) {
-            console.log(`[EpGen] Backfilling quotes for ${recapsWithoutQuotes.length} existing ${podcastName} recaps...`);
-            const { extractQuotesFromTranscript } = await import("./recapGenerator");
-            for (const recap of recapsWithoutQuotes) {
-              if (!epGenState.running) break;
-              try {
-                const { rows: [transcriptRow] } = await pool.query(
-                  `SELECT transcript FROM episode_transcripts
-                   WHERE podcast_id = $1 AND transcript IS NOT NULL AND transcript != ''
-                     AND (lower(trim(episode_title)) = lower(trim($2))
-                       OR lower(regexp_replace(trim(episode_title), '[^a-zA-Z0-9]+', '-', 'g')) = $3)
-                   LIMIT 1`,
-                  [itunesId, recap.episode_title, recap.episode_slug]
-                );
-                if (transcriptRow?.transcript) {
-                  const extractedQuotes = await extractQuotesFromTranscript(
-                    transcriptRow.transcript, podcastName, recap.episode_title,
-                    recap.hosts, recap.guests
-                  );
-                  if (extractedQuotes.length > 0) {
-                    const quotesToSave = extractedQuotes.map((q: any) => ({
-                      podcastSlug,
-                      episodeSlug: recap.episode_slug,
-                      speakerName: q.speakerName,
-                      speakerRole: q.speakerRole || null,
-                      quoteText: q.quoteText,
-                      context: q.context,
-                      quoteType: q.quoteType,
-                    }));
-                    await storage.saveEpisodeQuotes(quotesToSave);
-                    console.log(`[EpGen] Backfilled ${extractedQuotes.length} quotes for "${recap.episode_title.slice(0, 50)}..."`);
-                  }
-                }
-              } catch (qErr) {
-                console.warn(`[EpGen] Quote backfill failed for "${recap.episode_title}":`, (qErr as Error).message);
-              }
-            }
-          }
-        } catch (bfErr) {
-          console.warn(`[EpGen] Quote backfill error for ${podcastName}:`, bfErr);
-        }
-      }
 
       epGenState.completedPodcasts.push(itunesId);
       const elapsed = Math.round((Date.now() - (epGenState.startedAt || Date.now())) / 1000);
@@ -15060,54 +14927,6 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         epGenState.completedPodcasts.push(podcast.itunes_id);
         console.log(`[EpGen] Finished regen for ${podcast.podcast_name}: ${epGenState.generated} regenerated, ${epGenState.failed} failed, ${epGenState.skipped} skipped`);
 
-        if (epGenState.generated > 0) {
-          console.log(`[EpGen] Backfilling quotes for regenerated ${podcast.podcast_name} recaps...`);
-          const { rows: needQuotes } = await client.query(
-            `SELECT lpr.slug, lpr.episode_slug, lpr.episode_title, lpr.podcast_name, lpr.hosts
-             FROM landing_page_recaps lpr
-             WHERE lpr.itunes_id = $1
-               AND NOT EXISTS (SELECT 1 FROM episode_quotes eq WHERE eq.podcast_slug = lpr.slug AND eq.episode_slug = lpr.episode_slug)
-             ORDER BY lpr.publish_date DESC NULLS LAST
-             LIMIT 50`,
-            [podcast.itunes_id]
-          );
-
-          for (const nq of needQuotes) {
-            if (!epGenState.running) break;
-            try {
-              const { rows: tRows } = await client.query(
-                `SELECT transcript FROM episode_transcripts
-                 WHERE podcast_id = $1
-                   AND transcript IS NOT NULL AND transcript != ''
-                   AND (
-                     lower(trim(episode_title)) = lower(trim($2))
-                     OR lower(regexp_replace(trim(episode_title), '[^a-zA-Z0-9]+', '-', 'g')) = $3
-                   )
-                 LIMIT 1`,
-                [podcast.itunes_id, nq.episode_title, nq.episode_slug]
-              );
-              if (tRows.length > 0) {
-                const { extractQuotesFromTranscript } = await import("./recapGenerator");
-                const quotes = await extractQuotesFromTranscript(
-                  tRows[0].transcript, nq.episode_title, nq.podcast_name, nq.hosts || ""
-                );
-                if (quotes && quotes.length > 0) {
-                  for (let qi = 0; qi < quotes.length; qi++) {
-                    const q = quotes[qi];
-                    await client.query(
-                      `INSERT INTO episode_quotes (podcast_slug, episode_slug, speaker_name, speaker_role, quote_text, context, quote_type, sort_order)
-                       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT DO NOTHING`,
-                      [nq.slug, nq.episode_slug, q.speakerName, q.speakerRole, q.quoteText, q.context, q.quoteType || "insight", qi]
-                    );
-                  }
-                  console.log(`[EpGen] Backfilled ${quotes.length} quotes for "${nq.episode_title.slice(0, 50)}..."`);
-                }
-              }
-            } catch (err: any) {
-              console.error(`[EpGen] Quote backfill error: ${nq.episode_title.slice(0, 50)} - ${err.message}`);
-            }
-          }
-        }
       } finally {
         client.release();
       }
@@ -15131,12 +14950,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
            FROM landing_page_recaps lpr
            WHERE (
              lpr.guests IS NULL OR lpr.guests = '' OR lpr.guests = '[]'
-             OR lpr.top_questions IS NULL OR lpr.top_questions = ''
-             OR lpr.tldl IS NULL OR lpr.tldl = ''
              OR lpr.what_happened IS NULL OR lpr.what_happened = ''
              OR lpr.key_insights IS NULL OR array_length(lpr.key_insights, 1) IS NULL
-             OR lpr.quote IS NULL OR lpr.quote = ''
-             OR lpr.key_topics IS NULL OR array_length(lpr.key_topics, 1) IS NULL
            )
            ORDER BY lpr.itunes_id, lpr.episode_title
            LIMIT 50`
@@ -15191,28 +15006,14 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
             await client.query(
               `UPDATE landing_page_recaps SET
-                tldl = COALESCE(NULLIF($1, ''), tldl),
-                what_happened = COALESCE(NULLIF($2, ''), what_happened),
-                key_insights = CASE WHEN $3::text[] IS NOT NULL AND array_length($3::text[], 1) > 0 THEN $3::text[] ELSE key_insights END,
-                quote = COALESCE(NULLIF($4, ''), quote),
-                quote_attribution = COALESCE(NULLIF($5, ''), quote_attribution),
-                key_topics = CASE WHEN $6::text[] IS NOT NULL AND array_length($6::text[], 1) > 0 THEN $6::text[] ELSE key_topics END,
-                topic_contexts = COALESCE(NULLIF($7, ''), topic_contexts),
-                top_questions = COALESCE(NULLIF($8, ''), top_questions),
-                sponsors = COALESCE(NULLIF($9, ''), NULLIF($9, '[]'), sponsors),
-                guests = COALESCE(NULLIF($10, ''), NULLIF($10, '[]'), guests),
-                resources = COALESCE(NULLIF($11, ''), NULLIF($11, '[]'), resources)
-              WHERE id = $12`,
+                what_happened = COALESCE(NULLIF($1, ''), what_happened),
+                key_insights = CASE WHEN $2::text[] IS NOT NULL AND array_length($2::text[], 1) > 0 THEN $2::text[] ELSE key_insights END,
+                guests = COALESCE(NULLIF($3, ''), NULLIF($3, '[]'), guests),
+                resources = COALESCE(NULLIF($4, ''), NULLIF($4, '[]'), resources)
+              WHERE id = $5`,
               [
-                recap.tldl || "",
                 recap.whatHappened || "",
                 recap.keyInsights && recap.keyInsights.length > 0 ? recap.keyInsights : null,
-                recap.quote || "",
-                recap.quoteAttribution || "",
-                recap.keyTopics && recap.keyTopics.length > 0 ? recap.keyTopics : null,
-                recap.topicContexts ? JSON.stringify(recap.topicContexts) : "",
-                null,
-                recap.sponsors ? JSON.stringify(recap.sponsors) : "[]",
                 recap.guests ? JSON.stringify(recap.guests) : "[]",
                 recap.resources ? JSON.stringify(recap.resources) : "[]",
                 row.id,
@@ -15227,7 +15028,6 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
               guests: recap.guests || null,
               resources: recap.resources || null,
               recapId: row.id,
-              extractedQuotes: recap.extractedQuotes || null,
             });
 
             epGenState.generated++;
@@ -17401,13 +17201,6 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
             });
             console.log(`[TaddyWebhook] Saved transcript: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
 
-            try {
-              const { slugifyEpisodeTitle, parseTranscriptToSegments } = await import("./emailScheduler");
-              const epSlug = slugifyEpisodeTitle(epTitle);
-              const segs = parseTranscriptToSegments(transcript, podcast.slug, epSlug, epUuid);
-              if (segs.length > 0) await storage.saveTranscriptSegments(segs);
-            } catch {}
-
             const { generateRecapFromTranscript } = await import("./recapGenerator");
             const { slugifyEpisodeTitle } = await import("./emailScheduler");
             const epSlug = slugifyEpisodeTitle(epTitle);
@@ -17445,53 +17238,24 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
               duration: durationStr,
               artworkUrl: epData.imageUrl || podcast.artwork_url || "",
               hosts: podcast.hosts || "",
-              tldl: recap.tldl,
+              tldl: "",
               whatHappened: recap.whatHappened,
               keyInsights: recap.keyInsights,
-              quote: recap.quote,
-              quoteAttribution: recap.quoteAttribution,
-              keyTopics: recap.keyTopics,
+              quote: "",
+              quoteAttribution: "",
+              keyTopics: [],
               topQuestions: null,
               audioUrl: epData.audioUrl || "",
-              sponsors: recap.sponsors ? JSON.stringify(recap.sponsors) : "[]",
+              sponsors: "[]",
               guests: recap.guests ? JSON.stringify(recap.guests) : "[]",
               resources: recap.resources ? JSON.stringify(recap.resources) : "[]",
               spotifyEpisodeUrl: webhookSpotifyUrl,
-              topicContexts: recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
+              topicContexts: null,
               published: true,
             });
             const webhookCanonicalSlug = webhookUpserted.episodeSlug;
             console.log(`[TaddyWebhook] Generated recap: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
 
-            if (recap.products && recap.products.length > 0) {
-              let productsSaved = 0;
-              let productsFiltered = 0;
-              const { isLikelySponsorProduct } = await import("./productFilter");
-              for (const p of recap.products) {
-                if (!p.name || !p.context) continue;
-                const filterResult = isLikelySponsorProduct(p);
-                const initialStatus = filterResult.isFiltered ? "rejected" : "pending";
-                try {
-                  const { rows: existingProd } = await pool.query(
-                    `SELECT id FROM extracted_products WHERE LOWER(name) = LOWER($1) AND podcast_slug = $2 AND episode_title = $3 LIMIT 1`,
-                    [p.name, podcast.slug, epTitle]
-                  );
-                  if (existingProd.length > 0) continue;
-                  let imageUrl: string | null = null;
-                  if (!filterResult.isFiltered && p.purchaseUrl) {
-                    try { imageUrl = await resolveProductImage(p.purchaseUrl); } catch {}
-                  }
-                  await pool.query(
-                    `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, category, episode_title, episode_slug, podcast_slug, status, rejection_reason, image_url)
-                     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) ON CONFLICT DO NOTHING`,
-                    [p.name, p.company || null, p.description || null, p.purchaseUrl || null, p.context, p.mentionType || "personal_use", p.category || "service_or_tool", epTitle, webhookCanonicalSlug, podcast.slug, initialStatus, filterResult.reason, imageUrl]
-                  );
-                  if (filterResult.isFiltered) productsFiltered++;
-                  else productsSaved++;
-                } catch {}
-              }
-              if (productsSaved > 0 || productsFiltered > 0) console.log(`[TaddyWebhook] Products for "${epTitle.slice(0, 60)}": ${productsSaved} saved, ${productsFiltered} auto-filtered`);
-            }
 
             try {
               const { rows: recapIdRows } = await pool.query(
@@ -17509,7 +17273,6 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
                 guests: recap.guests || null,
                 resources: recap.resources || null,
                 recapId: recapIdRows[0]?.id,
-                extractedQuotes: recap.extractedQuotes || null,
               });
               console.log(`[TaddyWebhook] Post-processed: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
             } catch (ppErr) {

@@ -1,8 +1,7 @@
 import { pool } from "./db";
 import { storage } from "./storage";
-import { generateRecapFromFullTranscript, ExtractedProduct } from "./recapGenerator";
+import { generateRecapFromFullTranscript } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
-import { isLikelySponsorProduct } from "./productFilter";
 import { searchSpotifyEpisode } from "./spotifyClient";
 
 const CONCURRENCY = 2;
@@ -109,16 +108,16 @@ async function processEpisode(
         duration: durationStr,
         artworkUrl: ep.image_url || podcastArtwork,
         hosts,
-        tldl: recap.tldl,
+        tldl: "",
         whatHappened: recap.whatHappened,
         keyInsights: recap.keyInsights,
-        quote: recap.quote,
-        quoteAttribution: recap.quoteAttribution,
-        keyTopics: recap.keyTopics,
-        topicContexts: recap.topicContexts ? JSON.stringify(recap.topicContexts) : null,
+        quote: "",
+        quoteAttribution: "",
+        keyTopics: [],
+        topicContexts: null,
         topQuestions: null,
         audioUrl: ep.audio_url || "",
-        sponsors: recap.sponsors ? JSON.stringify(recap.sponsors) : "[]",
+        sponsors: "[]",
         guests: recap.guests ? JSON.stringify(recap.guests) : "[]",
         resources: recap.resources ? JSON.stringify(recap.resources) : "[]",
         published: false,
@@ -128,89 +127,8 @@ async function processEpisode(
       });
 
       const canonicalSlug = upsertedRecap.episodeSlug;
-      let quoteCount = 0;
-      try {
-        const extractedQuotes = recap.extractedQuotes || [];
-        if (extractedQuotes.length > 0) {
-          await pool.query(
-            `DELETE FROM episode_quotes WHERE podcast_slug = $1 AND episode_slug = $2`,
-            [podcastSlug, canonicalSlug]
-          );
-          for (let qi = 0; qi < extractedQuotes.length; qi++) {
-            const q = extractedQuotes[qi];
-            await pool.query(
-              `INSERT INTO episode_quotes (podcast_slug, episode_slug, speaker_name, speaker_role, quote_text, context, quote_type, sort_order)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-              [podcastSlug, canonicalSlug, q.speakerName, q.speakerRole || "", q.quoteText, q.context || "", q.quoteType || "Tweetable", qi]
-            );
-          }
-          quoteCount = extractedQuotes.length;
-          console.log(`[BgRecap] Extracted ${quoteCount} quotes for "${epTitle.slice(0, 50)}"`);
-        }
-      } catch (quoteErr: any) {
-        console.warn(`[BgRecap] Quote extraction failed for "${epTitle.slice(0, 50)}": ${quoteErr.message}`);
-      }
 
-      const totalExtracted = recap.products ? recap.products.length : 0;
-      console.log(`[BgRecap] Episode "${epTitle.slice(0, 60)}": AI extracted ${totalExtracted} products`);
-
-      if (recap.products && recap.products.length > 0) {
-        let productsInserted = 0;
-        let productsFilteredAsSponsors = 0;
-        let productsPassedFilter = 0;
-        let productsDuplicate = 0;
-        let productsSkippedInvalid = 0;
-        for (const p of recap.products) {
-          if (!p.name || !p.context) {
-            productsSkippedInvalid++;
-            continue;
-          }
-
-          const filterResult = isLikelySponsorProduct(p);
-          const initialStatus = filterResult.isFiltered ? "rejected" : "pending";
-          const rejectionReason = filterResult.reason;
-
-          if (filterResult.isFiltered) {
-            productsFilteredAsSponsors++;
-            console.log(`[BgRecap]   Filtered "${p.name}": ${filterResult.reason}`);
-          } else {
-            productsPassedFilter++;
-          }
-
-          try {
-            const { rows: existing } = await pool.query(
-              `SELECT id FROM extracted_products WHERE LOWER(name) = LOWER($1) AND podcast_slug = $2 AND episode_title = $3 LIMIT 1`,
-              [p.name, podcastSlug, epTitle]
-            );
-            if (existing.length > 0) {
-              productsDuplicate++;
-              continue;
-            }
-
-            let imageUrl: string | null = null;
-            if (!filterResult.isFiltered && p.purchaseUrl) {
-              try {
-                const { resolveProductImage } = await import("./productImageResolver");
-                imageUrl = await resolveProductImage(p.purchaseUrl);
-              } catch {}
-            }
-
-            const insertResult = await pool.query(
-              `INSERT INTO extracted_products (name, company, description, purchase_url, context, mention_type, category, episode_title, episode_slug, podcast_slug, status, rejection_reason, image_url)
-               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) ON CONFLICT DO NOTHING`,
-              [p.name, p.company || null, p.description || null, p.purchaseUrl || null, p.context, p.mentionType || "personal_use", p.category || "service_or_tool", epTitle, canonicalSlug, podcastSlug, initialStatus, rejectionReason, imageUrl]
-            );
-            if (insertResult.rowCount && insertResult.rowCount > 0) {
-              productsInserted++;
-            }
-          } catch (prodErr: any) {
-            console.warn(`[BgRecap] Product save failed for "${p.name}": ${prodErr.message}`);
-          }
-        }
-        console.log(`[BgRecap] Product summary for "${epTitle.slice(0, 50)}": ${totalExtracted} extracted, ${productsPassedFilter} passed filter, ${productsFilteredAsSponsors} sponsor-filtered, ${productsInserted} inserted, ${productsDuplicate} duplicates, ${productsSkippedInvalid} invalid`);
-      }
-
-      const qa = validateRecap(recap, epTitle, quoteCount);
+      const qa = validateRecap(recap, epTitle, 0);
       if (!qa.passed) {
         const criticals = qa.issues.filter(i => i.severity === "critical");
         if (attempt < maxAttempts) {
