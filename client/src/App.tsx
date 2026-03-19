@@ -87,7 +87,7 @@ function Router() {
         <Route path="/bookmarks" component={BookmarksPage} />
         <Route path="/my-podcasts" component={MyPodcastsPage} />
         <Route path="/admin/setup" component={AdminSetup} />
-        <Route path="/admin/:rest*" component={Admin} />
+        <Route path="/admin/*" component={Admin} />
         <Route path="/admin" component={Admin} />
         <Route path="/shop">{() => <AuthAwareLayout><Suspense fallback={<PageLoader />}><ShopPage /></Suspense></AuthAwareLayout>}</Route>
         <Route path="/shop/:slug">{() => <AuthAwareLayout><Suspense fallback={<PageLoader />}><ShopDetailRouter /></Suspense></AuthAwareLayout>}</Route>
