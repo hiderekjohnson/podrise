@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import {
   Home, Compass, ShoppingBag, HelpCircle, Bookmark,
   Users, Settings, Radio, Menu, X
@@ -133,13 +132,9 @@ function MobileBottomNav({ currentPath, navItems }: { currentPath: string; navIt
 }
 
 export function DashboardLayout({ children, hideRightSidebar }: DashboardLayoutProps) {
-  const { isEnabled } = useFeatureFlags();
   const [location] = useLocation();
 
-  const NAV_ITEMS = ALL_NAV_ITEMS.filter(item => {
-    if (item.featureFlag && !isEnabled(item.featureFlag)) return false;
-    return true;
-  });
+  const NAV_ITEMS = ALL_NAV_ITEMS;
 
   const isActive = (path: string) =>
     location === path || (path === "/dashboard" && location === "/");

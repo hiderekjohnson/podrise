@@ -1157,7 +1157,7 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
     },
   });
 
-  if (isLoading || !form) {
+  if (isLoading || !form || !podcast) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -1165,7 +1165,7 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
     );
   }
 
-  const stats = podcast?.stats;
+  const stats = podcast.stats;
 
   return (
     <div className="space-y-6" data-testid="cms-podcast-detail">
@@ -1864,7 +1864,7 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
     },
   });
 
-  if (isLoading || !form) {
+  if (isLoading || !form || !episode) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -1878,8 +1878,9 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
       const slug = ent.name.toLowerCase().replace(/\s+/g, "-");
       entityCacheObj[slug] = ent.context;
     }
+    const { entityContexts, ...rest } = form;
     const payload: Record<string, string | string[]> = {
-      ...form,
+      ...rest,
       guests: JSON.stringify(form.guests),
       resources: JSON.stringify(form.resources),
       sponsors: JSON.stringify(form.sponsors),
@@ -2408,9 +2409,9 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
             </div>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Hosts</label>
-              {episode?.podcastHosts && episode.podcastHosts.length > 0 ? (
+              {(episode as any)?.podcastHosts && (episode as any).podcastHosts.length > 0 ? (
                 <div className="flex flex-wrap gap-3 mt-1">
-                  {episode.podcastHosts.map((host: any, i: number) => (
+                  {(episode as any).podcastHosts.map((host: any, i: number) => (
                     <div key={i} className="flex items-center gap-2 bg-muted/30 rounded-lg px-3 py-1.5">
                       {host.photo_url && <img src={host.photo_url} alt="" className="w-6 h-6 rounded-full object-cover" />}
                       <span className="text-xs font-medium">{host.name}</span>

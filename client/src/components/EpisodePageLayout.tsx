@@ -112,7 +112,7 @@ export function EpisodePageLayout({
       toast({ title: "Invalid email", description: "Please enter a valid email address.", variant: "destructive" });
       return;
     }
-    register(
+    register.mutate(
       {
         podcasts: [JSON.stringify({ id: podcastConfig.itunesId, name: podcastConfig.name, artworkUrl: podcastConfig.artworkUrl || "" })],
         email: email.trim(),
@@ -136,7 +136,7 @@ export function EpisodePageLayout({
       toast({ title: "Invalid email", description: "Please enter a valid email address.", variant: "destructive" });
       return;
     }
-    register(
+    register.mutate(
       {
         podcasts: [JSON.stringify({ id: podcastConfig.itunesId, name: podcastConfig.name, artworkUrl: podcastConfig.artworkUrl || "" })],
         email: stickyEmail.trim(),

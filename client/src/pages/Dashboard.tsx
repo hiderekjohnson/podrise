@@ -744,7 +744,7 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {renderTopicSection("industry", "Industry Pulse", "Daily briefings on the industries you follow", Globe, 2, "industries", userIndustries)}
+                {renderTopicSection("industry", "Industry Intel", "Daily briefings on the industries you follow", Globe, 2, "industries", userIndustries)}
                 {renderTopicSection("role", "Role Intelligence", "Insights tailored to your professional role", Briefcase, 1, "roles", userRoles)}
                 {renderTopicSection("interest", "Interest Digest", "Daily updates on topics you care about", Lightbulb, 2, "interests", userInterests)}
               </motion.div>
