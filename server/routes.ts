@@ -8789,19 +8789,6 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
-  app.post("/api/admin/backfill-spotify-episode-urls", async (req, res) => {
-    if (!req.session.isAdmin) {
-      return res.status(401).json({ message: "Not authenticated as admin" });
-    }
-    try {
-      const { backfillSpotifyEpisodeUrls } = await import("./emailScheduler");
-      backfillSpotifyEpisodeUrls();
-      res.json({ message: "Spotify episode URL backfill started." });
-    } catch (err: any) {
-      res.status(500).json({ message: err?.message || "Failed to trigger backfill" });
-    }
-  });
-
   app.post("/api/admin/backfill-show-notes", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
@@ -9963,16 +9950,6 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         }
       } catch (err) {
         console.warn("[Admin] Tabloid headline generation failed during regenerate, continuing:", err);
-      }
-
-      try {
-        const { searchSpotifyEpisode } = await import("./spotifyClient");
-        const spotifyResult = await searchSpotifyEpisode(podcastName, episode_title);
-        if (spotifyResult) {
-          spotifyEpisodeUrl = spotifyResult;
-        }
-      } catch (err) {
-        console.warn("[Admin] Spotify episode lookup failed during regenerate, continuing:", err);
       }
 
       await pool.query(
@@ -11859,8 +11836,7 @@ Rules:
                   ? new Date(ep.releaseDate).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })
                   : "";
                 const appleUrl = ep.trackViewUrl || ep.collectionViewUrl || "";
-                const { searchSpotifyEpisode } = await import("./spotifyClient");
-                const spotifyUrl = await searchSpotifyEpisode(pName, epTitle) || "";
+                const spotifyUrl = "";
                 matchedEpisodes.push({ title: epTitle, durationMin, durationStr, releaseDate, appleUrl, spotifyUrl });
               }
             }
@@ -13943,8 +13919,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
           : `${durationMin} minutes`;
 
-        const { searchSpotifyEpisode } = await import("./spotifyClient");
-        const spotifyEpisodeUrl = await searchSpotifyEpisode(podcastName, epTitle) || "";
+        const spotifyEpisodeUrl = "";
         const upsertedRecap = await storage.upsertLandingPageRecap({
           slug: podcastSlug,
           itunesId,
@@ -14208,11 +14183,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     try {
       for (const r of recaps) {
         try {
-          let bulkSpotifyUrl = r.spotify_episode_url || "";
-          if (!bulkSpotifyUrl || bulkSpotifyUrl.includes('/search/')) {
-            const { searchSpotifyEpisode } = await import("./spotifyClient");
-            bulkSpotifyUrl = await searchSpotifyEpisode(r.podcast_name || "", r.episode_title || "") || "";
-          }
+          const bulkSpotifyUrl = r.spotify_episode_url || "";
           await storage.upsertLandingPageRecap({
             slug: r.slug,
             itunesId: r.itunes_id,
@@ -16744,8 +16715,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
               ? new Date(epData.datePublished * 1000).toISOString().split("T")[0]
               : new Date().toISOString().split("T")[0];
 
-            const { searchSpotifyEpisode } = await import("./spotifyClient");
-            const webhookSpotifyUrl = await searchSpotifyEpisode(podcast.name, epTitle) || "";
+            const webhookSpotifyUrl = "";
             const webhookUpserted = await storage.upsertLandingPageRecap({
               slug: podcast.slug,
               itunesId: podcast.itunes_id,

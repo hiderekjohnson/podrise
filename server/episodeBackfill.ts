@@ -140,37 +140,6 @@ async function backfillAppleEpisodeUrls() {
   logMsg(`Apple phase done: ${backfillState.fixed} episodes fixed out of ${rows.length}`);
 }
 
-async function backfillSpotifyUrls() {
-  logMsg("=== Phase 2: Spotify Episode URLs ===");
-  const dateFilter = activeDateRange ? ` AND publish_date >= '${activeDateRange.from}' AND publish_date <= '${activeDateRange.to}'` : '';
-  const { rows } = await pool.query(`
-    SELECT id, slug, episode_title, podcast_name
-    FROM landing_page_recaps
-    WHERE (spotify_episode_url IS NULL OR spotify_episode_url = '')${dateFilter}
-    ORDER BY id DESC LIMIT 500
-  `);
-  logMsg(`Found ${rows.length} episodes missing Spotify URLs`);
-  backfillState.total += rows.length;
-
-  const { searchSpotifyEpisode } = await import("./spotifyClient");
-  for (const row of rows) {
-    if (!backfillState.running) break;
-    try {
-      const url = await searchSpotifyEpisode(row.podcast_name, row.episode_title);
-      if (url) {
-        await pool.query(`UPDATE landing_page_recaps SET spotify_episode_url = $1 WHERE id = $2`, [url, row.id]);
-        backfillState.fixed++;
-        logMsg(`Spotify URL found for "${row.episode_title.slice(0, 50)}"`);
-      }
-    } catch (err: any) {
-      backfillState.errors++;
-    }
-    backfillState.processed++;
-    await new Promise(r => setTimeout(r, 300));
-  }
-  logMsg(`Spotify phase done: ${backfillState.fixed} total fixed`);
-}
-
 async function backfillAIFields() {
   logMsg("=== Phase 3: AI-Generated Fields (sponsors, guests, resources) ===");
   
@@ -345,11 +314,6 @@ export async function runEpisodeBackfill(phases: string[] = ["apple", "ai", "quo
     if (phases.includes("apple")) {
       backfillState.phase = "apple_urls";
       await backfillAppleEpisodeUrls();
-    }
-
-    if (phases.includes("spotify") && backfillState.running) {
-      backfillState.phase = "spotify_urls";
-      await backfillSpotifyUrls();
     }
 
     if (phases.includes("ai") && backfillState.running) {

@@ -3,7 +3,7 @@ import { openai } from "./replit_integrations/image/client";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 import { pool } from "./db";
 import { TOPICS } from "../client/src/data/topicData";
-import { searchSpotifyEpisode } from "./spotifyClient";
+
 
 const CURATED_TOPIC_SLUGS = TOPICS.map(t => t.slug);
 
@@ -145,7 +145,6 @@ export async function generateRecap(
   let totalDurationMin = 0;
   const episodeMetadata: Map<string, { duration: string; date: string; podcastId: string }> = new Map();
   const episodeLinks: Map<string, string> = new Map();
-  const episodeSpotifyLinks: Map<string, string> = new Map();
   const stats: EpisodeStats = { included: 0, noNewEpisode: 0, error: 0, details: [] };
 
   for (const podcast of podcastInfos) {
@@ -175,9 +174,7 @@ export async function generateRecap(
           episodeMetadata.set(metaKey, { duration: durationStr, date: releaseDate, podcastId: podcast.id });
 
           const appleUrl = ep.trackViewUrl || ep.collectionViewUrl || "";
-          const spotifyEpisodeUrl = await searchSpotifyEpisode(podcast.name, ep.trackName || "");
           if (appleUrl) episodeLinks.set(metaKey, appleUrl);
-          if (spotifyEpisodeUrl) episodeSpotifyLinks.set(metaKey, spotifyEpisodeUrl);
         }
         hasAnyEpisodes = true;
         podcastNamesWithEpisodes.push(podcast.name);
@@ -265,15 +262,10 @@ export async function generateRecap(
       if (metaParts.length > 0) lines.push(metaParts.join(" · "));
 
       let epAppleUrl = episodeLinks.get(metaKey) || "";
-      let epSpotifyUrl = episodeSpotifyLinks.get(metaKey) || "";
+      let epSpotifyUrl = "";
       if (!epAppleUrl) {
         for (const [k, v] of episodeLinks) {
           if (k.toLowerCase() === metaKey.toLowerCase()) { epAppleUrl = v; break; }
-        }
-      }
-      if (!epSpotifyUrl) {
-        for (const [k, v] of episodeSpotifyLinks) {
-          if (k.toLowerCase() === metaKey.toLowerCase()) { epSpotifyUrl = v; break; }
         }
       }
       const linkParts: string[] = [];

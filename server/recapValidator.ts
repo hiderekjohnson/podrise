@@ -148,22 +148,6 @@ export async function validateAndEnrichRecap(
 
     console.log(`[RecapValidator] Episode "${episodeTitle.slice(0, 50)}" missing: ${result.missing.join(", ")}`);
 
-    if (result.missing.includes("spotify_url")) {
-      try {
-        const { searchSpotifyEpisode } = await import("./spotifyClient");
-        const spotifyUrl = await searchSpotifyEpisode(podcastName, episodeTitle);
-        if (spotifyUrl) {
-          await client.query(
-            `UPDATE landing_page_recaps SET spotify_episode_url = $1 WHERE id = $2`,
-            [spotifyUrl, recapId]
-          );
-          result.fixed.push("spotify_url");
-        }
-      } catch (err: any) {
-        result.errors.push(`spotify: ${err.message?.slice(0, 80)}`);
-      }
-    }
-
     if (result.missing.includes("apple_url") && itunesId) {
       try {
         const lookupUrl = `https://itunes.apple.com/lookup?id=${itunesId}&media=podcast&entity=podcastEpisode&limit=25`;

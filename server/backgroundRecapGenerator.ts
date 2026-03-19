@@ -2,7 +2,7 @@ import { pool } from "./db";
 import { storage } from "./storage";
 import { generateRecapFromFullTranscript } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
-import { searchSpotifyEpisode } from "./spotifyClient";
+
 
 const CONCURRENCY = 2;
 const BATCH_SIZE = 50;
@@ -130,7 +130,7 @@ async function processEpisode(
       }
 
       const appleEpisodeUrl = await lookupAppleEpisodeUrl(itunesId, epTitle, podcastName);
-      const spotifyEpisodeUrl = await searchSpotifyEpisode(podcastName, epTitle) || "";
+      const spotifyEpisodeUrl = "";
       const showNotes = ep.description || null;
 
       const upsertedRecap = await storage.upsertLandingPageRecap({

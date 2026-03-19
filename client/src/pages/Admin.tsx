@@ -1265,28 +1265,6 @@ export default function Admin() {
                         </button>
                       </div>
 
-                      <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-backfill-spotify-urls">
-                        <div>
-                          <h3 className="text-sm font-bold text-foreground">Backfill Spotify Episode URLs</h3>
-                          <p className="text-xs text-muted-foreground mt-1">Search Spotify for direct episode links for all recaps missing them.</p>
-                        </div>
-                        <button
-                          data-testid="button-backfill-spotify-urls"
-                          onClick={async () => {
-                            if (!confirm("This will search Spotify for direct episode URLs for all existing recaps. This may take a while. Continue?")) return;
-                            try {
-                              await apiRequest("POST", "/api/admin/backfill-spotify-episode-urls");
-                              toast({ title: "Backfill Started", description: "Spotify episode URL backfill is running in the background." });
-                            } catch (err: any) {
-                              toast({ title: "Error", description: err?.message || "Failed to start backfill", variant: "destructive" });
-                            }
-                          }}
-                          className="px-4 py-2 rounded-xl text-xs font-bold bg-green-500 text-white hover:bg-green-600 transition-colors whitespace-nowrap"
-                        >
-                          Start Backfill
-                        </button>
-                      </div>
-
                       <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-backfill-books">
                         <div>
                           <h3 className="text-sm font-bold text-foreground">Backfill Books from Transcripts</h3>
