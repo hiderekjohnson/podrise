@@ -18257,15 +18257,22 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       if (workerRows.length === 0 || !workerRows[0].active) return res.status(403).json({ error: "Invalid or inactive worker" });
       const workerId = workerRows[0].id;
 
+      const qualifiedWhere = MTURK_ELIGIBLE_EPISODE_WHERE
+        .replace(/\byoutube_url\b/g, 'lpr.youtube_url')
+        .replace(/\bpublish_date\b/g, 'lpr.publish_date')
+        .replace(/\bpublished\b/g, 'lpr.published')
+        .replace(/\bid\b(?!\w)/g, 'lpr.id');
       const { rows: episodes } = await pool.query(`
-        SELECT id, slug, podcast_name, episode_title, episode_slug, publish_date, duration,
-               artwork_url, hosts, tldl, guests
-        FROM landing_page_recaps
-        WHERE ${MTURK_ELIGIBLE_EPISODE_WHERE}
-          AND id NOT IN (
+        SELECT lpr.id, lpr.slug, lpr.podcast_name, lpr.episode_title, lpr.episode_slug, lpr.publish_date, lpr.duration,
+               lpr.artwork_url, lpr.hosts, lpr.tldl, lpr.guests,
+               pd.youtube_url AS channel_youtube_url
+        FROM landing_page_recaps lpr
+        LEFT JOIN podcast_directory pd ON pd.slug = lpr.slug
+        WHERE ${qualifiedWhere}
+          AND lpr.id NOT IN (
             SELECT episode_id FROM youtube_review_log WHERE worker_id = $1 AND action = 'skipped'
           )
-        ORDER BY publish_date ASC
+        ORDER BY lpr.publish_date ASC
         LIMIT 1
       `, [workerId]);
 
@@ -18333,6 +18340,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
           hosts: episode.hosts,
           tldl: episode.tldl,
           guests: episode.guests,
+          channelYoutubeUrl: episode.channel_youtube_url || null,
         },
         youtubeResult,
         progress: {
