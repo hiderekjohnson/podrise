@@ -955,7 +955,7 @@ export default function EpisodeRecapPage() {
               <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-[#A1A1AA]" style={{ fontFamily: "var(--font-mono)" }}>Episode Recap</span>
             </div>
             <h3 className="text-[26px] font-normal text-[#09090B] dark:text-white leading-[1.2] tracking-[-0.01em]" style={{ fontFamily: "var(--font-serif)" }}>
-              {episode.tldl || seoSubject}
+              {episode.episodeTitle || seoSubject}
             </h3>
           </div>
           <div className="px-5 sm:px-6 py-[22px] space-y-5">
@@ -1598,7 +1598,7 @@ export default function EpisodeRecapPage() {
                     style={{ fontFamily: "var(--font-serif)" }}
                     data-testid="text-episode-title"
                   >
-                    {episode.tldl || episode.episodeTitle}
+                    {episode.episodeTitle}
                   </h1>
                 </div>
               </motion.div>
