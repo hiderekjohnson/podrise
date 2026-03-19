@@ -43,7 +43,7 @@ export async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<s
         const canonicalSlug = dirRow.rows[0]?.slug || derivedSlug;
 
         const recapRow = await client.query(
-          `SELECT artwork_url, entity_contexts_cache, resources, episode_slug, episode_title, guests, duration, publish_date
+          `SELECT artwork_url, episode_slug, guests, duration, publish_date
            FROM landing_page_recaps
            WHERE slug = $1
            ORDER BY publish_date DESC LIMIT 1`,
@@ -57,86 +57,6 @@ export async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<s
 
         const row = recapRow.rows[0];
         const artworkUrl = row.artwork_url || dirRow.rows[0]?.artwork_url || null;
-
-        const knownNames: Record<string, string> = {
-          "openai": "OpenAI", "nvidia": "NVIDIA", "spacex": "SpaceX", "airbnb": "Airbnb",
-          "amd": "AMD", "ai": "AI", "meta": "Meta", "tesla": "Tesla", "netflix": "Netflix",
-          "tiktok": "TikTok", "bytedance": "ByteDance", "shopify": "Shopify", "coinbase": "Coinbase",
-          "doordash": "DoorDash", "youtube": "YouTube", "linkedin": "LinkedIn", "deepmind": "DeepMind",
-          "ibm": "IBM", "sba": "SBA", "tsmc": "TSMC", "bmw": "BMW",
-        };
-
-        let entityCacheData = row.entity_contexts_cache;
-        if (!entityCacheData && row.episode_slug) {
-          try {
-            const recapIdRes = await client.query(
-              `SELECT id, sponsors FROM landing_page_recaps WHERE slug = $1 AND episode_slug = $2 LIMIT 1`,
-              [canonicalSlug, row.episode_slug]
-            );
-            if (recapIdRes.rows[0]?.id) {
-              const transcriptRes = await client.query(
-                `SELECT et.transcript FROM episode_transcripts et
-                 JOIN podcast_directory pd ON pd.itunes_id::text = et.podcast_id
-                 WHERE pd.slug = $1 AND et.episode_title = (SELECT episode_title FROM landing_page_recaps WHERE id = $2)
-                 LIMIT 1`,
-                [canonicalSlug, recapIdRes.rows[0].id]
-              );
-              if (transcriptRes.rows[0]?.transcript) {
-                let sponsorNames: string[] = [];
-                try {
-                  const sponsors = recapIdRes.rows[0].sponsors
-                    ? (typeof recapIdRes.rows[0].sponsors === "string" ? JSON.parse(recapIdRes.rows[0].sponsors) : recapIdRes.rows[0].sponsors)
-                    : [];
-                  sponsorNames = sponsors.map((s: any) => (s.name || "")).filter(Boolean);
-                } catch {}
-
-                const { generateEntityContextsForRecap } = await import("./entityContextGenerator");
-                const generated = await generateEntityContextsForRecap(
-                  recapIdRes.rows[0].id, canonicalSlug, name,
-                  row.episode_title || row.episode_slug, transcriptRes.rows[0].transcript, sponsorNames,
-                  row.episode_slug,
-                );
-                if (Object.keys(generated).length > 0) {
-                  entityCacheData = JSON.stringify(generated);
-                }
-              }
-            }
-          } catch (err) {
-            console.warn(`[EmailScheduler] Entity context generation failed for ${canonicalSlug}:`, err);
-          }
-        }
-
-        const companyNames: string[] = [];
-        const personNames: string[] = [];
-        let companiesCount = 0;
-        let peopleCount = 0;
-        if (entityCacheData) {
-          const cache = typeof entityCacheData === "string" ? JSON.parse(entityCacheData) : entityCacheData;
-          for (const key of Object.keys(cache)) {
-            const isLikelyPerson = /^[a-z]+-[a-z]+(-[a-z]+)?$/.test(key) && !["openai", "anthropic", "nvidia", "google", "amazon", "spacex", "airbnb", "spotify", "amd", "apple", "microsoft", "meta", "tesla", "stripe", "shopify", "uber", "lyft", "doordash", "robinhood", "coinbase", "palantir", "databricks", "snowflake", "figma", "notion", "discord", "slack", "zoom", "netflix", "disney", "hulu", "warner", "paramount", "sony", "samsung", "intel", "qualcomm", "broadcom", "oracle", "salesforce", "adobe", "twilio", "snap", "pinterest", "reddit", "tiktok", "bytedance", "alibaba", "tencent", "baidu", "huawei"].includes(key);
-            const displayName = knownNames[key] || key.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-            if (isLikelyPerson) {
-              personNames.push(displayName);
-              peopleCount++;
-            } else {
-              companyNames.push(displayName);
-              companiesCount++;
-            }
-          }
-        }
-
-        let booksCount = 0;
-        const bookTitles: string[] = [];
-        const parsedResources = row.resources
-          ? (typeof row.resources === "string" ? JSON.parse(row.resources) : row.resources)
-          : [];
-        if (Array.isArray(parsedResources)) {
-          const books = parsedResources.filter((r: any) => r.type === "book");
-          booksCount = books.length;
-          for (const b of books) {
-            if (b.name) bookTitles.push(b.name);
-          }
-        }
 
         let quotesCount = 0;
         if (row.episode_slug) {
@@ -165,109 +85,13 @@ export async function buildEpisodeMeta(podcastNames: string[]): Promise<Record<s
           } catch (e) {}
         }
 
-        let mentionTeaserPeople = "";
-        let mentionTeaserCompanies = "";
-        let mentionTeaserBooks = "";
-
-        const entityContexts: Record<string, string> = {};
-        if (entityCacheData) {
-          const cache = typeof entityCacheData === "string" ? JSON.parse(entityCacheData) : entityCacheData;
-          if (cache && typeof cache === "object") {
-            for (const [slug, ctx] of Object.entries(cache)) {
-              if (typeof ctx === "string" && ctx) entityContexts[slug] = ctx;
-            }
-          }
-        }
-
-        if (peopleCount > 0 || companiesCount > 0 || booksCount > 0) {
-          try {
-            const { openai } = await import("./replit_integrations/image/client");
-            const contextSummary: string[] = [];
-            for (const [slug, ctx] of Object.entries(entityContexts)) {
-              const name = knownNames[slug] || slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-              contextSummary.push(`${name}: ${ctx}`);
-            }
-            const bookContexts = bookTitles.map(t => {
-              const res = Array.isArray(parsedResources) ? parsedResources.find((r: any) => r.name === t) : null;
-              return `Book: "${t}" - ${res?.context || res?.description || "recommended"}`;
-            });
-
-            const aiResp_teaser = await openai.chat.completions.create({
-              model: "gpt-4o-mini",
-              messages: [{
-                role: "user",
-                content: `You write teaser lines for a podcast recap email's "Mentioned in this episode" section. Each line starts with an emoji, a count, and an em dash, then YOUR FRAGMENT completes it.
-
-FORMAT (follow exactly):
-- For PEOPLE: lead with the most recognisable person's name, then intrigue
-  "including [Most Famous Name], and not for the reason you'd think"
-- For COMPANIES: lead with a short direct quote (under 10 words, in quotation marks) -- the most surprising or provocative thing said about any company
-  "one was called \\"the most dangerous company in AI right now\\""
-- For BOOKS: lead with the specific book title if there is only one, or the most notable title if multiple, then a hook
-  "they said everyone should read it this weekend"
-
-CRITICAL RULES:
-- For people: ALWAYS name the single most recognisable person from the list. Pick the biggest name the reader would instantly recognise.
-- For companies: ALWAYS include a real short quote from the episode context below. Put it in quotation marks. Keep the quote under 10 words.
-- For books: if only 1 book, name it. If multiple, name the most notable one and add intrigue about the rest.
-- Keep each fragment under 80 characters total.
-- Start lowercase (it follows an em dash in the email).
-- Be SPECIFIC to this episode -- reference real claims from the context below.
-
-GOOD examples:
-- People: "including Elon Musk, and not for the reason you'd think"
-- People: "including Sam Altman -- one host called his strategy reckless"
-- Companies: "one was called \\"a ticking time bomb for the industry\\""
-- Companies: "one was described as \\"printing money while nobody watches\\""
-- Books: "they said The Almanack of Naval Ravikant changed everything"
-- Books: "including one they called mandatory reading for founders"
-
-Episode entities and what was said about them:
-${contextSummary.join('\n')}
-${bookContexts.join('\n')}
-
-People count: ${peopleCount}
-Companies count: ${companiesCount}
-Books count: ${booksCount}
-
-Respond with JSON: { "people": "fragment or empty", "companies": "fragment or empty", "books": "fragment or empty" }
-Only include keys where count > 0.`
-              }],
-              max_tokens: 300,
-              temperature: 0.8,
-              response_format: { type: "json_object" },
-            });
-
-            const { logCompletionUsage } = await import("./apiUsageTracker");
-            logCompletionUsage(aiResp_teaser, "gpt-4o-mini", "email_teaser");
-            const content = aiResp_teaser.choices[0]?.message?.content;
-            if (content) {
-              const parsed = JSON.parse(content);
-              mentionTeaserPeople = parsed.people || "";
-              mentionTeaserCompanies = parsed.companies || "";
-              mentionTeaserBooks = parsed.books || "";
-            }
-          } catch (err) {
-            console.warn("[EmailScheduler] AI teaser generation failed, using plain counts:", err);
-          }
-        }
-
         meta[derivedSlug] = {
           canonicalSlug,
           artworkUrl,
-          companiesCount,
-          peopleCount,
-          booksCount,
           quotesCount,
-          companyNames,
-          personNames,
-          bookTitles,
           guests: guestNames,
           episodeDuration: row.duration || "",
           episodeDate,
-          mentionTeaserPeople,
-          mentionTeaserCompanies,
-          mentionTeaserBooks,
         };
       }
     } finally {

@@ -21,19 +21,10 @@ interface ParsedDigest {
 export interface EpisodeMetaForEmail {
   canonicalSlug?: string;
   artworkUrl?: string | null;
-  companiesCount?: number;
-  peopleCount?: number;
-  booksCount?: number;
   quotesCount?: number;
-  companyNames?: string[];
-  personNames?: string[];
-  bookTitles?: string[];
   guests?: string[];
   episodeDuration?: string;
   episodeDate?: string;
-  mentionTeaserPeople?: string;
-  mentionTeaserCompanies?: string;
-  mentionTeaserBooks?: string;
 }
 
 function isEpisodeSection(title: string, body: string): boolean {
@@ -356,62 +347,6 @@ function buildRecapText(whatHappened: string): string {
   }).join("");
 }
 
-function buildEntityTeaser(meta: EpisodeMetaForEmail | undefined, recapUrl: string): string {
-  if (!meta) return "";
-
-  const peopleCount = meta.peopleCount || 0;
-  const companiesCount = meta.companiesCount || 0;
-  const booksCount = meta.booksCount || 0;
-
-  if (peopleCount === 0 && companiesCount === 0 && booksCount === 0) return "";
-
-  const lines: string[] = [];
-  if (peopleCount > 0) {
-    const teaser = String(meta.mentionTeaserPeople || "").trim();
-    const suffix = teaser ? ` \u2014 ${escapeHtml(teaser)}` : "";
-    lines.push(`<tr><td style="padding:0 0 8px;">
-      <table cellpadding="0" cellspacing="0" role="presentation"><tr>
-        <td width="28" valign="top" style="font-size:17px;line-height:1.6;padding-top:1px;">&#x1F464;</td>
-        <td class="entity-text" style="font-size:16px;color:#52525B;line-height:1.6;"><strong style="font-weight:700;color:#18181B;">${peopleCount}</strong> ${peopleCount === 1 ? "person" : "people"}${suffix}</td>
-      </tr></table>
-    </td></tr>`);
-  }
-  if (companiesCount > 0) {
-    const teaser = String(meta.mentionTeaserCompanies || "").trim();
-    const suffix = teaser ? ` \u2014 ${escapeHtml(teaser)}` : "";
-    lines.push(`<tr><td style="padding:0 0 8px;">
-      <table cellpadding="0" cellspacing="0" role="presentation"><tr>
-        <td width="28" valign="top" style="font-size:17px;line-height:1.6;padding-top:1px;">&#x1F3E2;</td>
-        <td class="entity-text" style="font-size:16px;color:#52525B;line-height:1.6;"><strong style="font-weight:700;color:#18181B;">${companiesCount}</strong> ${companiesCount === 1 ? "company" : "companies"}${suffix}</td>
-      </tr></table>
-    </td></tr>`);
-  }
-  if (booksCount > 0) {
-    const teaser = String(meta.mentionTeaserBooks || "").trim();
-    const suffix = teaser ? ` \u2014 ${escapeHtml(teaser)}` : "";
-    lines.push(`<tr><td style="padding:0 0 8px;">
-      <table cellpadding="0" cellspacing="0" role="presentation"><tr>
-        <td width="28" valign="top" style="font-size:17px;line-height:1.6;padding-top:1px;">&#x1F4DA;</td>
-        <td class="entity-text" style="font-size:16px;color:#52525B;line-height:1.6;"><strong style="font-weight:700;color:#18181B;">${booksCount}</strong> ${booksCount === 1 ? "book" : "books"}${suffix}</td>
-      </tr></table>
-    </td></tr>`);
-  }
-
-  const mentionsUrl = `${recapUrl}#mentions`;
-
-  return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:22px 0 18px;">
-    <tr><td class="entity-box" style="background:#F7F7FC;border-left:3px solid #6366F1;border-radius:0 8px 8px 0;padding:18px 22px 22px;">
-      <p class="entity-label" style="font-size:12px;font-weight:700;color:#A1A1AA;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 14px;">Mentioned in this episode</p>
-      <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
-        ${lines.join("")}
-      </table>
-      <p class="entity-label" style="font-size:11px;font-weight:700;color:#A1A1AA;letter-spacing:0.14em;text-transform:uppercase;margin:20px 0 0;">Not mentioned anywhere else in this email</p>
-      <p style="margin:12px 0 0;">
-        <a href="${escapeHtml(mentionsUrl)}" style="font-size:14px;font-weight:600;color:#6366F1;text-decoration:none;">Find out exactly why they came up &#8594;</a>
-      </p>
-    </td></tr>
-  </table>`;
-}
 
 function buildEpisodeCard(episode: ParsedEpisode, index: number, meta?: EpisodeMetaForEmail): string {
   const accentColor = getAccentColor(index);
@@ -479,7 +414,6 @@ function buildEpisodeCard(episode: ParsedEpisode, index: number, meta?: EpisodeM
 
   ${buildRecapText(episode.whatHappened)}
 
-  ${buildEntityTeaser(meta, recapUrl)}
 
 </td></tr>`;
 }
@@ -546,9 +480,6 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
       .ep-meta{font-size:12px!important;}
       .ep-guest{font-size:12px!important;}
       .body-text{font-size:15px!important;line-height:1.7!important;}
-      .entity-box{padding:14px 16px 16px!important;}
-      .entity-label{font-size:11px!important;}
-      .entity-text{font-size:14px!important;}
       .episode-bar-text{font-size:10px!important;}
       .signoff-text{font-size:13px!important;}
       .footer-desc{font-size:12px!important;}
