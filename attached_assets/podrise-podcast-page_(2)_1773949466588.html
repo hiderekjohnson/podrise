@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My First Million — PodRise</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', system-ui, sans-serif; background: #F7F7FC; color: #09090B; line-height: 1.6; }
+
+  .pr-nav { background: #fff; border-bottom: 0.5px solid #E4E4E7; padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .pr-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+  .pr-logo-icon { width: 28px; height: 28px; background: linear-gradient(145deg, #6366F1, #8B5CF6); border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+  .pr-logo-word { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; color: #09090B; }
+  .pr-logo-word span { color: #6366F1; font-weight: 300; }
+  .pr-btn-ghost { font-size: 13px; color: #52525B; background: none; border: none; cursor: pointer; padding: 6px 10px; text-decoration: none; }
+  .pr-btn-solid { font-size: 13px; font-weight: 500; color: #fff; background: #6366F1; border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; text-decoration: none; }
+  .pr-btn-solid:hover { background: #4F46E5; }
+
+  .pr-hero { background: #fff; border-bottom: 0.5px solid #E4E4E7; padding: 28px; }
+  .pr-hero-inner { max-width: 960px; margin: 0 auto; display: flex; align-items: center; gap: 20px; }
+  .pr-artwork { width: 72px; height: 72px; border-radius: 14px; flex-shrink: 0; object-fit: cover; }
+  .pr-breadcrumb { font-size: 12px; color: #A1A1AA; margin: 0 0 5px; }
+  .pr-breadcrumb a { color: #6366F1; text-decoration: none; }
+  .pr-breadcrumb a:hover { text-decoration: underline; }
+  .pr-show-title { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; color: #09090B; margin: 0 0 3px; }
+  .pr-show-hosts { font-size: 14px; color: #71717A; margin: 0; }
+
+  .pr-body { max-width: 960px; margin: 0 auto; padding: 24px 28px; display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 24px; align-items: start; }
+
+  .pr-section-label { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: #6366F1; margin: 0 0 14px; }
+
+  .pr-ep { background: #fff; border: 0.5px solid #E4E4E7; border-radius: 12px; padding: 18px 20px; margin-bottom: 10px; }
+  .pr-ep-meta { font-size: 12px; color: #A1A1AA; margin: 0 0 6px; display: flex; align-items: center; gap: 8px; }
+  .pr-ep-dot { width: 3px; height: 3px; background: #D4D4D8; border-radius: 50%; display: inline-block; }
+  .pr-ep-title { font-size: 15px; font-weight: 500; color: #6366F1; margin: 0 0 8px; line-height: 1.4; text-decoration: none; display: block; }
+  .pr-ep-title:hover { text-decoration: underline; }
+  .pr-ep-summary { font-size: 13px; color: #52525B; line-height: 1.6; margin: 0 0 12px; }
+  .pr-ep-cta { font-size: 13px; color: #6366F1; font-weight: 500; text-decoration: none; }
+  .pr-ep-cta:hover { text-decoration: underline; }
+
+  .pr-load-more { display: block; width: 100%; background: #fff; border: 0.5px solid #E4E4E7; border-radius: 12px; padding: 13px; font-size: 13px; font-weight: 500; color: #52525B; cursor: pointer; text-align: center; font-family: 'DM Sans', system-ui, sans-serif; margin-top: 4px; }
+  .pr-load-more:hover { background: #F7F7FC; }
+
+  .pr-sidebar-card { background: #fff; border: 0.5px solid #E4E4E7; border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+  .pr-sidebar-head { padding: 14px 16px 12px; border-bottom: 0.5px solid #F0F0F2; }
+  .pr-sidebar-head-title { font-size: 13px; font-weight: 500; color: #09090B; margin: 0 0 2px; display: flex; align-items: center; gap: 6px; }
+  .pr-sidebar-head-sub { font-size: 12px; color: #A1A1AA; margin: 0; }
+
+  .pr-book-row { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 0.5px solid #F0F0F2; text-decoration: none; }
+  .pr-book-cover { width: 32px; height: 44px; border-radius: 3px; object-fit: cover; flex-shrink: 0; }
+  .pr-book-info { flex: 1; min-width: 0; }
+  .pr-book-title-text { font-size: 13px; font-weight: 500; color: #09090B; margin: 0 0 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pr-book-author { font-size: 12px; color: #A1A1AA; margin: 0; }
+  .pr-book-locked { opacity: 0.35; }
+  .pr-book-gate { padding: 14px 16px; border-top: 0.5px solid #F0F0F2; background: #FAFAFA; text-align: center; }
+  .pr-book-gate-text { font-size: 12px; color: #71717A; margin: 0 0 10px; line-height: 1.5; }
+  .pr-book-gate-btn { display: block; width: 100%; background: #6366F1; color: #fff; font-size: 13px; font-weight: 500; padding: 9px; border-radius: 8px; cursor: pointer; border: none; font-family: 'DM Sans', system-ui, sans-serif; }
+  .pr-book-gate-btn:hover { background: #4F46E5; }
+
+  .pr-pod-row { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 0.5px solid #F0F0F2; text-decoration: none; }
+  .pr-pod-row:last-child { border-bottom: none; }
+  .pr-pod-row:hover { background: #FAFAFA; }
+  .pr-pod-art { width: 38px; height: 38px; border-radius: 8px; flex-shrink: 0; object-fit: cover; background: #E4E4E7; }
+  .pr-pod-name { font-size: 13px; font-weight: 500; color: #09090B; margin: 0 0 1px; }
+  .pr-pod-cat { font-size: 11px; color: #A1A1AA; letter-spacing: 0.04em; text-transform: uppercase; margin: 0; }
+  .pr-pod-arrow { margin-left: auto; color: #D4D4D8; font-size: 16px; }
+
+  .pr-follow-card { background: #fff; border: 0.5px solid #E4E4E7; border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+  .pr-follow-title { font-size: 13px; font-weight: 500; color: #09090B; margin: 0 0 4px; }
+  .pr-follow-sub { font-size: 12px; color: #71717A; margin: 0 0 14px; line-height: 1.5; }
+  .pr-follow-btn { display: block; width: 100%; background: #6366F1; color: #fff; font-size: 13px; font-weight: 500; padding: 9px; border-radius: 8px; cursor: pointer; border: none; font-family: 'DM Sans', system-ui, sans-serif; text-align: center; }
+  .pr-follow-btn:hover { background: #4F46E5; }
+
+  @media (max-width: 700px) {
+    .pr-body { grid-template-columns: 1fr; padding: 16px; }
+    .pr-hero { padding: 20px 16px; }
+    .pr-nav { padding: 12px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="pr-nav">
+  <a href="/" class="pr-logo">
+    <div class="pr-logo-icon">
+      <svg viewBox="0 0 28 28" width="16" height="16" fill="none">
+        <rect x="1" y="11" width="3.5" height="6" rx="1.75" fill="white" opacity="0.5"/>
+        <rect x="6.5" y="7" width="3.5" height="14" rx="1.75" fill="white" opacity="0.75"/>
+        <rect x="12" y="4" width="3.5" height="20" rx="1.75" fill="white"/>
+        <rect x="17.5" y="8" width="3.5" height="12" rx="1.75" fill="white" opacity="0.85"/>
+        <rect x="23" y="5" width="3.5" height="18" rx="1.75" fill="white" opacity="0.6"/>
+      </svg>
+    </div>
+    <div class="pr-logo-word">Pod<span>Rise</span></div>
+  </a>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <a href="/login" class="pr-btn-ghost">Log in</a>
+    <a href="/signup" class="pr-btn-solid">Get started →</a>
+  </div>
+</nav>
+
+<div class="pr-hero">
+  <div class="pr-hero-inner">
+    <img class="pr-artwork" src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/06/3a/a7/063aa7f5-4633-99a1-5c6e-ea8ebb6a3f27/mza_14342353339249219787.jpg/600x600bb.jpg" alt="My First Million">
+    <div>
+      <p class="pr-breadcrumb"><a href="/podcasts">Podcasts</a> › My First Million</p>
+      <h1 class="pr-show-title">My First Million</h1>
+      <p class="pr-show-hosts">Sam Parr &amp; Shaan Puri</p>
+    </div>
+  </div>
+</div>
+
+<div class="pr-body">
+
+  <div>
+    <p class="pr-section-label">Latest episodes</p>
+
+    <div class="pr-ep">
+      <div class="pr-ep-meta">
+        <span>Mar 13, 2026</span>
+        <span class="pr-ep-dot"></span>
+        <span>1 hr 0 min</span>
+      </div>
+      <a class="pr-ep-title" href="/podcasts/myfirstmillion/billion-dollar-brands-3-step-formula">This guy names billion dollar brands for a living — here's his exact 3-step formula</a>
+      <p class="pr-ep-summary">David Placek shares his framework for building names that are original, processing-fluent, and surprising. He argues the right name creates a strategic moat most founders completely ignore — and explains why "Blackberry" beat every focus group.</p>
+      <a class="pr-ep-cta" href="/podcasts/myfirstmillion/billion-dollar-brands-3-step-formula">See full recap →</a>
+    </div>
+
+    <div class="pr-ep">
+      <div class="pr-ep-meta">
+        <span>Mar 11, 2026</span>
+        <span class="pr-ep-dot"></span>
+        <span>1 hr 15 min</span>
+      </div>
+      <a class="pr-ep-title" href="/podcasts/myfirstmillion/simplest-way-to-make-1m-2026">The simplest way to make $1M in 2026</a>
+      <p class="pr-ep-summary">Sam and Shaan walk through three business models with proven unit economics that any operator could execute this year — including one ZuruTech is already using to build homes at a tenth of standard cost.</p>
+      <a class="pr-ep-cta" href="/podcasts/myfirstmillion/simplest-way-to-make-1m-2026">See full recap →</a>
+    </div>
+
+    <div class="pr-ep">
+      <div class="pr-ep-meta">
+        <span>Mar 8, 2026</span>
+        <span class="pr-ep-dot"></span>
+        <span>58 min</span>
+      </div>
+      <a class="pr-ep-title" href="/podcasts/myfirstmillion/next-10b-company-overlooked-category">Why the next $10B company will come from this overlooked category</a>
+      <p class="pr-ep-summary">Three verticals with the structural conditions for a new market leader — and why the window to enter them is open right now. Shaan names the exact signals he looks for before betting on a new space.</p>
+      <a class="pr-ep-cta" href="/podcasts/myfirstmillion/next-10b-company-overlooked-category">See full recap →</a>
+    </div>
+
+    <div class="pr-ep">
+      <div class="pr-ep-meta">
+        <span>Mar 5, 2026</span>
+        <span class="pr-ep-dot"></span>
+        <span>1 hr 8 min</span>
+      </div>
+      <a class="pr-ep-title" href="/podcasts/myfirstmillion/contrarian-hiring-framework">The contrarian hiring framework that built three $100M companies</a>
+      <p class="pr-ep-summary">Shaan breaks down why the best operators he knows hire for trajectory over credentials — and the three interview questions that predict performance better than anything on a resume.</p>
+      <a class="pr-ep-cta" href="/podcasts/myfirstmillion/contrarian-hiring-framework">See full recap →</a>
+    </div>
+
+    <div class="pr-ep">
+      <div class="pr-ep-meta">
+        <span>Mar 3, 2026</span>
+        <span class="pr-ep-dot"></span>
+        <span>1 hr 2 min</span>
+      </div>
+      <a class="pr-ep-title" href="/podcasts/myfirstmillion/sam-sold-the-hustle">Sam sold The Hustle for $40M — here's exactly what he'd do differently</a>
+      <p class="pr-ep-summary">Sam walks through the mistakes he made building The Hustle that cost him at least $20M in valuation — and the one decision he got right that made the HubSpot acquisition happen.</p>
+      <a class="pr-ep-cta" href="/podcasts/myfirstmillion/sam-sold-the-hustle">See full recap →</a>
+    </div>
+
+    <button class="pr-load-more">Load more episodes</button>
+  </div>
+
+  <div>
+
+    <div class="pr-sidebar-card">
+      <div class="pr-sidebar-head">
+        <p class="pr-sidebar-head-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          Recommended reading
+        </p>
+        <p class="pr-sidebar-head-sub">Books mentioned on this show</p>
+      </div>
+
+      <div class="pr-book-row">
+        <img class="pr-book-cover" src="https://covers.openlibrary.org/b/isbn/9780374533557-M.jpg" alt="How to Win Friends and Influence People">
+        <div class="pr-book-info">
+          <p class="pr-book-title-text">How to Win Friends</p>
+          <p class="pr-book-author">Dale Carnegie</p>
+        </div>
+      </div>
+
+      <div class="pr-book-row">
+        <img class="pr-book-cover" src="https://covers.openlibrary.org/b/isbn/9781591842446-M.jpg" alt="How to Get Rich">
+        <div class="pr-book-info">
+          <p class="pr-book-title-text">How to Get Rich</p>
+          <p class="pr-book-author">Felix Dennis</p>
+        </div>
+      </div>
+
+      <div class="pr-book-row pr-book-locked">
+        <img class="pr-book-cover" src="https://covers.openlibrary.org/b/isbn/9780679757031-M.jpg" alt="Titan">
+        <div class="pr-book-info">
+          <p class="pr-book-title-text">Titan</p>
+          <p class="pr-book-author">Ron Chernow</p>
+        </div>
+      </div>
+
+      <div class="pr-book-gate">
+        <p class="pr-book-gate-text">Sign up free to see every book recommended on this show</p>
+        <button class="pr-book-gate-btn" onclick="window.location='/signup'">See all books →</button>
+      </div>
+    </div>
+
+    <div class="pr-sidebar-card">
+      <div class="pr-sidebar-head">
+        <p class="pr-sidebar-head-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+          Related podcasts
+        </p>
+        <p class="pr-sidebar-head-sub">Shows with a similar audience</p>
+      </div>
+
+      <a class="pr-pod-row" href="/podcasts/impacttheory">
+        <img class="pr-pod-art" src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/aa/7f/4e/aa7f4e78-3c29-8a9e-c7b3-3f9b4e4e0a5d/mza_8649876543219876543.jpg/200x200bb.jpg" alt="Impact Theory" onerror="this.style.background='#1a1a2e';this.removeAttribute('src')">
+        <div>
+          <p class="pr-pod-name">Impact Theory</p>
+          <p class="pr-pod-cat">Self-improvement</p>
+        </div>
+        <span class="pr-pod-arrow">›</span>
+      </a>
+
+      <a class="pr-pod-row" href="/podcasts/pomppodcast">
+        <img class="pr-pod-art" src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/bb/8e/5f/bb8e5f79-4d3a-9b8c-d8e4-4f5a6b7c8d9e/mza_7654321098765432109.jpg/200x200bb.jpg" alt="The Pomp Podcast" onerror="this.style.background='#0f3460';this.removeAttribute('src')">
+        <div>
+          <p class="pr-pod-name">The Pomp Podcast</p>
+          <p class="pr-pod-cat">Finance / Crypto</p>
+        </div>
+        <span class="pr-pod-arrow">›</span>
+      </a>
+
+      <a class="pr-pod-row" href="/podcasts/tbpn">
+        <img class="pr-pod-art" src="https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/cc/9f/6g/cc9f6g80-5e4b-0c9d-e9f5-5g6b7c8d9e0f/mza_6543210987654321098.jpg/200x200bb.jpg" alt="TBPN" onerror="this.style.background='#1b4332';this.removeAttribute('src')">
+        <div>
+          <p class="pr-pod-name">TBPN</p>
+          <p class="pr-pod-cat">Technology / News</p>
+        </div>
+        <span class="pr-pod-arrow">›</span>
+      </a>
+    </div>
+
+    <div class="pr-follow-card">
+      <p class="pr-follow-title">Get My First Million in your daily briefing</p>
+      <p class="pr-follow-sub">New episodes land in your inbox the morning after they drop.</p>
+      <button class="pr-follow-btn" onclick="window.location='/signup'">Follow this show →</button>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
