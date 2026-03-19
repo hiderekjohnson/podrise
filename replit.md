@@ -31,6 +31,14 @@ PodRise is a full-stack web application designed to provide personalized daily p
 **Recap Validator** (`server/recapValidator.ts`): Unified post-creation validation that runs after every episode recap creation across all 4 code paths (emailScheduler, productionRecapScheduler, backgroundRecapGenerator, admin routes). Checks 14 fields and auto-fills gaps: tabloid headlines, Spotify URLs, Apple URLs, audio URLs, and quotes DB entries. Admin batch validation endpoint at `POST /api/admin/validate-recaps` supports `dateRange`, `limit`, and `dryRun` options.
 **YouTube URL Matching Tool (Mechanical Turk)**: A worker-based review system for matching podcast episodes with YouTube video URLs. Workers access unique token-based review pages at `/youtube-review/:token` to verify auto-searched YouTube matches. Admin manages workers, generates links, and tracks per-worker stats via the "Mech. Turk" tab. Database tables: `mturk_workers`, `youtube_review_log`. Requires `YOUTUBE_API_KEY` env var for auto-search.
 
+## Critical Rules for Data Changes
+- **Dev DB ≠ Production DB**: The development database is completely separate from production. One-time scripts that only modify the dev database will NOT affect production.
+- **NEVER use one-time scripts for data fixes**: Any database data change (artwork URLs, YouTube URLs, iTunes IDs, slug corrections, etc.) MUST be written as **startup migration code** in `server/routes.ts` (within the `setTimeout(..., 5000)` startup block) or `server/index.ts` (in the startup IIFE). This ensures the fix runs on every environment: dev, after restarts, and on production deploy.
+- **Startup migration pattern**: Check if the fix is needed (e.g., `WHERE artwork_url IS NULL`), apply the fix, then invalidate any relevant cache (e.g., `directoryCache.podcastsDirectory.invalidate()`). The fix should be idempotent — safe to run repeatedly.
+- **Cache invalidation is mandatory**: After any startup data fix, invalidate the relevant `directoryCache` entry so stale cached data doesn't override the fix. The backfill must run BEFORE cache pre-warming.
+- **Task agents work on isolated environments**: Their database changes are lost after merge. Any data fix from a task agent must be accompanied by startup migration code, not just SQL scripts.
+- **Always verify against production**: Use `POST /api/admin/sql` with `{"query": "SELECT ..."}` to verify data on the live production database. Never assume dev DB state matches production.
+
 ## External Dependencies
 - **Stripe**: Payment processing and subscription management.
 - **OpenAI**: AI models for content generation and chat.

@@ -18725,6 +18725,45 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     }
 
     try {
+      const YOUTUBE_URL_FIXES: Record<string, string> = {
+        "marieforleo": "youtube.com/@marieforleo",
+        "wecandohardthings": "youtube.com/@WeCanDoHardThingsShow",
+        "areallygoodcry": "youtube.com/@AReallyGoodCry",
+        "deargabby": "youtube.com/@GabbyBernstein",
+        "almost30": "youtube.com/@Almost30Podcast",
+        "gooppodcast": "youtube.com/@goop",
+        "goodhang": "youtube.com/@Good-Hang-with-Amy-Poehler",
+        "great-chat": "youtube.com/@joshsmithsgreatchatshow",
+        "earnyourhappy": "youtube.com/@LoriHarder",
+        "reuters-world-news": "youtube.com/@Reuters",
+        "associated-press": "youtube.com/@AssociatedPress",
+        "news-agents": "youtube.com/@thenewsagents",
+        "real-eisman-playbook": "youtube.com/@RealEismanPlaybook",
+        "accidental-tech-podcast": "youtube.com/@atpfm",
+        "ai-for-humans": "youtube.com/@AIForHumansShow",
+        "no-bullshit-leadership": "youtube.com/@YourCEOMentor",
+        "memo-by-howard-marks": "youtube.com/@OaktreeCapital",
+      };
+      const slugs = Object.keys(YOUTUBE_URL_FIXES);
+      const missingYT = await pool.query(
+        `SELECT slug FROM podcast_directory WHERE slug = ANY($1) AND (youtube_url IS NULL OR youtube_url = '')`,
+        [slugs]
+      );
+      if (missingYT.rows.length > 0) {
+        for (const row of missingYT.rows) {
+          const url = YOUTUBE_URL_FIXES[row.slug];
+          if (url) {
+            await pool.query(`UPDATE podcast_directory SET youtube_url = $1 WHERE slug = $2`, [url, row.slug]);
+          }
+        }
+        console.log(`[YouTubeBackfill] Fixed YouTube URLs for ${missingYT.rows.length} podcasts`);
+        directoryCache.podcastsDirectory.invalidate();
+      }
+    } catch (err) {
+      console.warn("[YouTubeBackfill] skipped:", err);
+    }
+
+    try {
       console.log("[Cache] Pre-warming directory caches on startup...");
       const [peopleData, companiesData, topicsData] = await Promise.all([
         computePeopleData(),
