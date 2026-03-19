@@ -329,11 +329,11 @@ export default function Admin() {
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const isCmsRoute = location.startsWith("/admin/cms");
+  const isCmsRoute = location.startsWith("/cms");
   const [activeTab, setActiveTab] = useState<"users" | "analytics" | "pending" | "directory" | "shop" | "advertisers" | "admin-users" | "categories" | "advanced" | "errors" | "referrals" | "support-kb" | "cms" | "landing-pages" | "mturk">(isCmsRoute ? "cms" : "advanced");
 
   useEffect(() => {
-    if (location.startsWith("/admin/cms")) {
+    if (location.startsWith("/cms")) {
       setActiveTab("cms");
     }
   }, [location]);
@@ -341,8 +341,8 @@ export default function Admin() {
   const switchTab = useCallback((tab: typeof activeTab) => {
     setActiveTab(tab);
     setSearchTerm("");
-    if (location.startsWith("/admin/cms")) {
-      navigate("/admin");
+    if (location.startsWith("/cms")) {
+      navigate("/");
     }
   }, [location, navigate]);
   const [analyticsSubTab, setAnalyticsSubTab] = useState<"acquisition" | "affiliates" | "growth" | "email">("acquisition");
@@ -622,7 +622,7 @@ export default function Admin() {
               <div className="flex items-center gap-2 overflow-x-auto pb-2 -mb-2 scrollbar-thin scrollbar-thumb-muted/30 scrollbar-track-transparent max-w-full">
                 <button
                   data-testid="tab-cms"
-                  onClick={() => { setActiveTab("cms"); setSearchTerm(""); navigate("/admin/cms/podcasts"); }}
+                  onClick={() => { setActiveTab("cms"); setSearchTerm(""); navigate("/cms/podcasts"); }}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
                     activeTab === "cms"
                       ? "bg-primary/10 text-primary"

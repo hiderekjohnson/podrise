@@ -3635,9 +3635,12 @@ function safeDecode(segment: string): string {
 
 function parseCmsPath(pathname: string): CMSView {
   let rest = pathname;
-  const cmsPrefix = "/admin/cms/";
-  if (rest.startsWith(cmsPrefix)) {
-    rest = rest.slice(cmsPrefix.length);
+  if (rest.startsWith("/cms/")) {
+    rest = rest.slice(5);
+  } else if (rest.startsWith("/cms")) {
+    rest = rest.slice(4);
+  } else if (rest.startsWith("/admin/cms/")) {
+    rest = rest.slice(11);
   } else if (rest.startsWith("/")) {
     rest = rest.slice(1);
   }
@@ -3660,16 +3663,16 @@ function parseCmsPath(pathname: string): CMSView {
 
 function cmsViewToPath(view: CMSView): string {
   switch (view.tab) {
-    case "podcasts": return "/podcasts";
-    case "podcast-detail": return `/podcasts/${encodeURIComponent(view.podcastSlug)}`;
+    case "podcasts": return "/cms/podcasts";
+    case "podcast-detail": return `/cms/podcasts/${encodeURIComponent(view.podcastSlug)}`;
     case "episodes":
-      if (view.podcastSlug) return `/podcasts/${encodeURIComponent(view.podcastSlug)}/episodes`;
-      return "/episodes";
-    case "episode-detail": return `/podcasts/${encodeURIComponent(view.podcastSlug)}/episodes/${encodeURIComponent(view.episodeSlug)}`;
-    case "people": return "/people";
-    case "companies": return "/companies";
-    case "products": return "/products";
-    default: return "/podcasts";
+      if (view.podcastSlug) return `/cms/podcasts/${encodeURIComponent(view.podcastSlug)}/episodes`;
+      return "/cms/episodes";
+    case "episode-detail": return `/cms/podcasts/${encodeURIComponent(view.podcastSlug)}/episodes/${encodeURIComponent(view.episodeSlug)}`;
+    case "people": return "/cms/people";
+    case "companies": return "/cms/companies";
+    case "products": return "/cms/products";
+    default: return "/cms/podcasts";
   }
 }
 
@@ -3683,8 +3686,8 @@ export default function AdminCMS() {
   const [location, navigate] = useLocation();
 
   useEffect(() => {
-    if (location === "/admin/cms" || location === "/admin/cms/" || location === "/" || location === "") {
-      navigate("/podcasts", { replace: true });
+    if (location === "/cms" || location === "/cms/" || location === "/" || location === "") {
+      navigate("/cms/podcasts", { replace: true });
     }
   }, [location, navigate]);
 
@@ -3705,11 +3708,11 @@ export default function AdminCMS() {
 
   const handleSectionClick = useCallback((key: CMSSection) => {
     if (key === "podcasts") {
-      navigate("/podcasts");
+      navigate("/cms/podcasts");
     } else if (key === "episodes") {
-      navigate("/episodes");
+      navigate("/cms/episodes");
     } else {
-      navigate(`/${key}`);
+      navigate(`/cms/${key}`);
     }
   }, [navigate]);
 
