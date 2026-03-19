@@ -1398,12 +1398,6 @@ export default function EpisodeRecapPage() {
               </div>
             )}
             </div>
-            <div className="px-4 sm:px-6 pb-4">
-              <p className="text-[12px] text-[#A1A1AA] leading-relaxed" data-testid="affiliate-disclosure-shop">
-                Some links are affiliate links — they help keep PodRise free. We only feature products recommended by podcasters, never random picks.{" "}
-                <Link href="/disclosure" className="text-[#6366F1] hover:underline">Learn more</Link>
-              </p>
-            </div>
           </section>
         )}
 

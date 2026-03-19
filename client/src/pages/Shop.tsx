@@ -682,19 +682,6 @@ function ProductShelfRow({ products, keyPrefix }: { products: ShopProduct[]; key
   );
 }
 
-function AffiliateDisclosure() {
-  return (
-    <div className="w-full max-w-7xl mt-12" data-testid="affiliate-disclosure">
-      <div className="bg-[#6366F1]/[0.03] dark:bg-[#6366F1]/[0.06] border border-[#6366F1]/[0.08] rounded-xl px-5 py-4 text-center">
-        <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed">
-          Some links are affiliate links — they help keep PodRise free, and we only feature products highly recommended by your favorite podcasters, never random picks.{" "}
-          <Link href="/disclosure" className="text-[#6366F1] hover:underline font-medium">Learn more</Link>
-        </p>
-      </div>
-    </div>
-  );
-}
-
 export default function ShopPage() {
   const { data: user } = useAuth();
 
@@ -870,7 +857,7 @@ function PublicShopPage() {
   return (
     <div className="min-h-screen flex flex-col bg-[#F7F7FC] dark:bg-[#08080F]">
       <SEOHead />
-      {!user && <SiteHeader />}
+      <SiteHeader />
 
       <div className="bg-gradient-to-b from-[#6366F1]/[0.03] via-[#F7F7FC] to-[#F7F7FC] dark:from-[#6366F1]/[0.02] dark:via-[#08080F] dark:to-[#08080F]">
         <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-6">
@@ -1066,11 +1053,9 @@ function PublicShopPage() {
           )}
         </section>
 
-        <AffiliateDisclosure />
       </main>
 
-      {!user && <Footer />}
-      {user && <div className="h-[80px] md:h-4" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />}
+      <Footer />
     </div>
   );
 }

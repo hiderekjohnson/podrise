@@ -49,7 +49,7 @@ interface PodcastBook {
   hasCover: boolean | null;
 }
 
-function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: string }) {
+function PodcastBooksTab({ slug, podcastName, isLoggedIn }: { slug: string; podcastName: string; isLoggedIn: boolean }) {
   const [sortBy, setSortBy] = useState<"mentions" | "alpha">("mentions");
   const [visibleCount, setVisibleCount] = useState(20);
 
@@ -77,22 +77,24 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
         Books mentioned across {podcastName} episodes - sorted by how often they come up in conversation.
       </p>
 
-      <div className="flex items-center gap-2 mb-6">
-        <button
-          onClick={() => setSortBy("mentions")}
-          className={`px-3 py-2 rounded-lg text-[16px] font-semibold transition-colors ${sortBy === "mentions" ? "bg-amber-500/10 text-amber-700 dark:text-amber-400" : "text-muted-foreground hover:text-foreground"}`}
-          data-testid="button-sort-mentions"
-        >
-          Most mentioned
-        </button>
-        <button
-          onClick={() => setSortBy("alpha")}
-          className={`px-3 py-2 rounded-lg text-[16px] font-semibold transition-colors ${sortBy === "alpha" ? "bg-amber-500/10 text-amber-700 dark:text-amber-400" : "text-muted-foreground hover:text-foreground"}`}
-          data-testid="button-sort-alpha"
-        >
-          A-Z
-        </button>
-      </div>
+      {isLoggedIn && (
+        <div className="flex items-center gap-2 mb-6">
+          <button
+            onClick={() => setSortBy("mentions")}
+            className={`px-3 py-2 rounded-lg text-[16px] font-semibold transition-colors ${sortBy === "mentions" ? "bg-amber-500/10 text-amber-700 dark:text-amber-400" : "text-muted-foreground hover:text-foreground"}`}
+            data-testid="button-sort-mentions"
+          >
+            Most mentioned
+          </button>
+          <button
+            onClick={() => setSortBy("alpha")}
+            className={`px-3 py-2 rounded-lg text-[16px] font-semibold transition-colors ${sortBy === "alpha" ? "bg-amber-500/10 text-amber-700 dark:text-amber-400" : "text-muted-foreground hover:text-foreground"}`}
+            data-testid="button-sort-alpha"
+          >
+            A-Z
+          </button>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="space-y-4">
@@ -123,9 +125,11 @@ function PodcastBooksTab({ slug, podcastName }: { slug: string; podcastName: str
         </div>
       ) : (
         <>
-          <p className="text-[16px] text-[#52525B] mb-4" data-testid="text-books-count">
-            {sorted.length} book{sorted.length !== 1 ? "s" : ""}
-          </p>
+          {isLoggedIn && (
+            <p className="text-[16px] text-[#52525B] mb-4" data-testid="text-books-count">
+              {sorted.length} book{sorted.length !== 1 ? "s" : ""}
+            </p>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {visible.map((book, i) => {
@@ -718,7 +722,7 @@ export default function PodcastLandingGeneric() {
         </section>
 
         <section id="section-discover" className="pb-16 space-y-10" data-testid="section-discover">
-          {entityLinks?.guests && entityLinks.guests.length > 0 && (
+          {user && entityLinks?.guests && entityLinks.guests.length > 0 && (
             <div data-testid="section-recent-guests">
               <div className="flex items-center gap-2.5 mb-4">
                 <UserCircle className="w-5 h-5 text-primary" />
@@ -788,8 +792,8 @@ export default function PodcastLandingGeneric() {
         </section>
 
         <div id="section-shop" data-testid="section-shop">
-          <PodcastBooksTab slug={slug} podcastName={config.name} />
-          <PodcastShopTab slug={slug} podcastName={config.name} />
+          <PodcastBooksTab slug={slug} podcastName={config.name} isLoggedIn={!!user} />
+          {user && <PodcastShopTab slug={slug} podcastName={config.name} />}
         </div>
     </>
   );

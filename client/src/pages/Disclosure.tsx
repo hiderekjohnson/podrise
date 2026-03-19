@@ -180,7 +180,7 @@ export default function Disclosure() {
             </li>
             <li className="flex items-start gap-3">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary mt-3 shrink-0" />
-              <span><strong className="text-foreground"><Link href="/enterprise" className="text-primary font-medium hover:underline" data-testid="link-enterprise-inline">Enterprise plans</Link></strong> — custom intelligence products for teams</span>
+              <span><strong className="text-foreground">Enterprise plans</strong> — custom intelligence products for teams</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary mt-3 shrink-0" />

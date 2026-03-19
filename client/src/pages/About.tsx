@@ -306,37 +306,6 @@ export default function About() {
         </motion.section>
 
         <motion.section
-          className="max-w-3xl mx-auto px-4 sm:px-6 py-20"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.42 }}
-          data-testid="section-for-teams"
-        >
-          <div className="relative bg-foreground text-background rounded-2xl p-8 sm:p-10 md:p-12 overflow-hidden">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full -translate-y-1/2 translate-x-1/3" />
-            <div className="relative">
-              <div className="flex items-center gap-2 mb-3">
-                <Users className="w-5 h-5 text-primary" />
-                <span className="text-[14px] font-bold uppercase tracking-[0.15em] text-primary">For Teams</span>
-              </div>
-              <h2 className="text-xl sm:text-2xl font-display font-bold text-white mb-3">
-                PodRise for your whole organization
-              </h2>
-              <p className="text-[16px] text-white/60 leading-relaxed max-w-xl mb-6">
-                Give every employee intelligence tailored to their industry and role. Custom briefings, team management, Slack integration, and more — so your whole team stays ahead without listening to a single episode.
-              </p>
-              <Link
-                href="/enterprise"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white text-base font-bold hover:bg-primary/90 transition-all"
-                data-testid="link-enterprise-about"
-              >
-                Learn about Enterprise <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-        </motion.section>
-
-        <motion.section
           className="max-w-3xl mx-auto px-4 sm:px-6 pb-20"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

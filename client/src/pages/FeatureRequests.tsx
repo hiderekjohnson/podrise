@@ -37,13 +37,6 @@ const changelog: ChangelogEntry[] = [
     date: "Feb 27, 2026",
   },
   {
-    title: "Enterprise — podcast intelligence for teams",
-    description: "If you're in VC, consulting, PR, or corporate strategy, you know podcasts are where founders and executives speak most candidly. Our Enterprise offering packages PodRise's intelligence layer for teams — competitive monitoring, market signal tracking, and structured data feeds so your whole organization benefits from podcast knowledge.",
-    link: { url: "/enterprise", label: "Learn about PodRise for teams" },
-    emoji: "🏛️",
-    date: "Feb 25, 2026",
-  },
-  {
     title: "Advertise on PodRise",
     description: "We opened up advertising for brands that want to reach an engaged audience of podcast enthusiasts, professionals, and curious minds. Choose from multiple ad formats, target by topic or audience interest, and connect with listeners who are actively seeking knowledge. Everything is transparent — no hidden placements.",
     link: { url: "/advertise", label: "See advertising options" },

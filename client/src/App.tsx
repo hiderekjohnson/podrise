@@ -103,7 +103,7 @@ function Router() {
         <Route path="/about" component={About} />
         <Route path="/contact" component={Contact} />
         <Route path="/advertise" component={Advertise} />
-        <Route path="/disclosure" component={Disclosure} />
+        <Route path="/disclosure">{() => { window.location.replace("/"); return null; }}</Route>
         <Route path="/we-heart-podcasters" component={WeHeartPodcasters} />
         <Route path="/people/:slug">{() => { window.location.replace("/"); return null; }}</Route>
         <Route path="/people">{() => { window.location.replace("/"); return null; }}</Route>
@@ -115,7 +115,7 @@ function Router() {
         <Route path="/verify-email" component={VerifyEmail} />
         <Route path="/pod-squad" component={PodSquad} />
         <Route path="/refer">{() => { window.location.replace("/pod-squad"); return null; }}</Route>
-        <Route path="/enterprise" component={Enterprise} />
+        <Route path="/enterprise">{() => { window.location.replace("/"); return null; }}</Route>
         <Route path="/trends">{() => { window.location.replace("/"); return null; }}</Route>
         <Route path="/industries/:slug/pulse/:date">{() => { window.location.replace("/"); return null; }}</Route>
         <Route path="/industries/:slug/pulse">{() => { window.location.replace("/"); return null; }}</Route>

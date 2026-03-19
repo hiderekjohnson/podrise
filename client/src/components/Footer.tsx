@@ -45,18 +45,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/enterprise" className={linkClass} data-testid="link-enterprise">
-                  Enterprise
-                </Link>
-              </li>
-              <li>
                 <Link href="/advertise" className={linkClass} data-testid="link-advertise">
                   Advertise
-                </Link>
-              </li>
-              <li>
-                <Link href="/disclosure" className={linkClass} data-testid="link-disclosure">
-                  How We Make Money
                 </Link>
               </li>
             </ul>
