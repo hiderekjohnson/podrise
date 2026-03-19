@@ -2189,7 +2189,8 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
                   lpr.publish_date, lpr.artwork_url, lpr.tldl, lpr.key_insights,
                   lpr.what_happened, lpr.quote, lpr.quote_attribution,
                   lpr.guests, lpr.resources, lpr.hosts, lpr.sponsors, lpr.key_topics,
-                  lpr.spotify_episode_url, lpr.youtube_url, lpr.id as recap_id
+                  lpr.spotify_episode_url, lpr.youtube_url, lpr.id as recap_id,
+                  lpr.tabloid_sub_headline, lpr.duration
            FROM landing_page_recaps lpr
            INNER JOIN unnest($1::text[], $2::text[]) AS bm(p_slug, e_slug)
              ON lpr.slug = bm.p_slug AND lpr.episode_slug = bm.e_slug`,
@@ -2321,6 +2322,8 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
           whatHappened: recap?.what_happened || null,
           quote: recap?.quote || null,
           quoteAttribution: recap?.quote_attribution || null,
+          duration: recap?.duration || null,
+          tabloidSubHeadline: recap?.tabloid_sub_headline || null,
           hosts: recap?.hosts || null,
           keyTopics: recap?.key_topics || null,
           guests,
@@ -3856,8 +3859,364 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     res.status(410).json({ error: "This endpoint has been removed" });
   });
 
-  app.get("/api/entities/people/:slug", (_req, res) => {
-    res.status(410).json({ error: "This endpoint has been removed" });
+  app.get("/api/entities/people/:slug", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const person = ENTITY_PEOPLE.find(p => p.slug === slug);
+      if (!person) return res.status(404).json({ error: "Person not found" });
+
+      const { pool: dbPool } = await import("./db");
+      const client = await dbPool.connect();
+
+      try {
+        const excludeCondition = person.hostedSlugs.length > 0
+          ? ` AND slug NOT IN (${person.hostedSlugs.map((_, i) => `$${person.searchTerms.length + i + 1}`).join(",")})`
+          : "";
+        const extraParams = person.hostedSlugs;
+
+        const guestConditions = person.searchTerms.map((_, i) => {
+          const p = `$${i + 1}`;
+          return `guests ~* ${p}`;
+        }).join(" OR ");
+        const guestParams = [...person.searchTerms.map(t => {
+          const escaped = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          return `\\m${escaped}\\M`;
+        }), ...extraParams];
+        const { rows: guestEpisodes } = await client.query(
+          `SELECT id, slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights, key_insights::text as key_insights_text, key_topics, resources, quote, quote_attribution, duration, spotify_episode_url, youtube_url, tabloid_sub_headline FROM landing_page_recaps WHERE published = true AND guests IS NOT NULL AND (${guestConditions})${excludeCondition} ORDER BY publish_date DESC`,
+          guestParams
+        );
+
+        const mentionParts = person.searchTerms.map((t, i) => buildSearchCondition(["what_happened", "tldl", "key_insights::text", "episode_title"], i + 1, t));
+        const mentionConditions = mentionParts.map(p => `(${p.sql})`).join(" OR ");
+        const mentionParams = [...mentionParts.map(p => p.param), ...extraParams];
+        const { rows: mentionEpisodes } = await client.query(
+          `SELECT id, slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights, key_insights::text as key_insights_text, key_topics, resources, quote, quote_attribution, duration, spotify_episode_url, youtube_url, tabloid_sub_headline FROM landing_page_recaps WHERE published = true AND (${mentionConditions})${excludeCondition} ORDER BY publish_date DESC`,
+          mentionParams
+        );
+
+        const guestKeys = new Set(guestEpisodes.map((e: any) => `${e.slug}/${e.episode_slug}`));
+        const allRelevantEpisodes = [...guestEpisodes, ...mentionEpisodes.filter((e: any) => !guestKeys.has(`${e.slug}/${e.episode_slug}`))];
+
+        const allEpSlugs = allRelevantEpisodes.map((e: any) => e.episode_slug);
+        const transcriptSet = new Set<string>();
+        if (allEpSlugs.length > 0) {
+          const placeholders = allEpSlugs.map((_: any, i: number) => `$${i + 1}`).join(",");
+          const { rows: transcriptRows } = await client.query(
+            `SELECT DISTINCT episode_slug FROM transcript_segments WHERE episode_slug IN (${placeholders})`,
+            allEpSlugs
+          );
+          for (const r of transcriptRows) transcriptSet.add(r.episode_slug);
+        }
+
+        const computeRelevanceScore = (e: any, type: "guest" | "mention") => {
+          if (type === "guest") return 100;
+          const titleLower = (e.episode_title || "").toLowerCase();
+          const titleMatch = person.searchTerms.some(term => titleLower.includes(term.toLowerCase()));
+          if (titleMatch) return 50;
+          const bodyText = [e.what_happened || "", e.tldl || ""].join(" ").toLowerCase();
+          const mentionCount = person.searchTerms.reduce((acc: number, term: string) => {
+            const regex = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
+            return acc + (bodyText.match(regex) || []).length;
+          }, 0);
+          if (mentionCount >= 3) return 25;
+          return 10;
+        };
+
+        const mapEpisode = (e: any, type: "guest" | "mention") => ({
+          id: e.id,
+          slug: e.slug,
+          episode_slug: e.episode_slug,
+          podcast_name: e.podcast_name,
+          episode_title: e.episode_title,
+          publish_date: e.publish_date,
+          artwork_url: e.artwork_url,
+          context: extractMentionContext([e.what_happened, e.tldl, e.key_insights_text].filter(Boolean), person.searchTerms),
+          tldl: e.tldl || "",
+          what_happened: e.what_happened || null,
+          key_insights: e.key_insights || null,
+          quote: e.quote || null,
+          quote_attribution: e.quote_attribution || null,
+          duration: e.duration || null,
+          spotify_episode_url: e.spotify_episode_url || null,
+          youtube_url: e.youtube_url || null,
+          tabloid_sub_headline: e.tabloid_sub_headline || null,
+          type,
+          hasTranscript: transcriptSet.has(e.episode_slug),
+          relevanceScore: computeRelevanceScore(e, type),
+        });
+
+        const guestAppearancesWithContext = guestEpisodes.map((e: any) => mapEpisode(e, "guest"));
+        const mentionsOnly = mentionEpisodes
+          .filter((e: any) => !guestKeys.has(`${e.slug}/${e.episode_slug}`))
+          .map((e: any) => mapEpisode(e, "mention"));
+
+        const canonicalTopics: Record<string, { name: string; keywords: string[] }> = {
+          "ai": { name: "Artificial Intelligence", keywords: ["artificial intelligence", "machine learning", "deep learning", "neural network", "large language model", "GPT", "LLM", "ChatGPT", "OpenAI", "Anthropic", "Claude", "AI agent", "AI model", "generative AI"] },
+          "entrepreneurship": { name: "Entrepreneurship", keywords: ["entrepreneurship", "entrepreneur", "founded", "co-founded", "founder", "startup", "bootstrap", "side hustle", "building a business"] },
+          "startups": { name: "Startups", keywords: ["startup", "startups", "product-market fit", "seed round", "series A", "early-stage", "pivot", "incubator", "accelerator", "Y Combinator"] },
+          "venture-capital": { name: "Venture Capital", keywords: ["venture capital", "venture capitalist", "VC firm", "fundraising round", "series A", "series B", "seed funding", "term sheet", "cap table", "valuation"] },
+          "investing": { name: "Investing", keywords: ["investing", "investment strategy", "stock market", "portfolio management", "stocks", "bonds", "ETF", "hedge fund", "asset allocation", "returns"] },
+          "personal-finance": { name: "Personal Finance", keywords: ["personal finance", "financial independence", "wealth building", "financial planning", "budgeting", "saving", "retirement", "debt", "net worth", "FIRE"] },
+          "leadership": { name: "Leadership", keywords: ["leadership", "leading teams", "executive leadership", "CEO", "executive", "organizational culture", "management"] },
+          "marketing": { name: "Marketing", keywords: ["marketing strategy", "digital marketing", "brand strategy", "marketing", "growth hacking", "advertising", "SEO", "content marketing"] },
+          "sales": { name: "Sales", keywords: ["sales strategy", "sales process", "selling", "sales", "revenue", "pipeline", "B2B sales", "closing deals"] },
+          "productivity": { name: "Productivity", keywords: ["productivity", "time management", "deep work", "habits", "routines", "efficiency", "focus", "workflow"] },
+          "technology": { name: "Technology", keywords: ["technology", "software engineering", "tech industry", "software", "engineering", "computing", "cloud", "infrastructure", "developer"] },
+          "economics": { name: "Economics", keywords: ["economics", "economic policy", "macroeconomics", "economy", "monetary policy", "inflation", "recession", "GDP", "Federal Reserve"] },
+          "future-of-work": { name: "Future of Work", keywords: ["future of work", "remote work", "workplace transformation", "gig economy", "hybrid work", "automation replacing"] },
+          "health-longevity": { name: "Health & Longevity", keywords: ["longevity", "healthspan", "lifespan", "nutrition", "fitness", "sleep", "wellness", "anti-aging", "biohacking"] },
+          "psychology": { name: "Psychology", keywords: ["psychology", "psychological", "neuroscience", "behavior", "mental health", "cognitive", "therapy", "emotional intelligence"] },
+          "self-improvement": { name: "Self-Improvement", keywords: ["self-improvement", "personal development", "personal growth", "mindset", "motivation", "discipline"] },
+          "media-content": { name: "Media & Content", keywords: ["media industry", "content creation", "journalism", "media", "streaming", "podcast", "newsletter", "content strategy"] },
+          "geopolitics": { name: "Geopolitics", keywords: ["geopolitics", "geopolitical", "foreign policy", "international relations", "diplomacy", "sanctions", "trade war", "national security"] },
+          "creator-economy": { name: "Creator Economy", keywords: ["creator economy", "content creator", "creator", "influencer", "newsletter", "monetize", "audience building", "personal brand"] },
+          "saas": { name: "SaaS", keywords: ["saas", "software as a service", "recurring revenue", "churn", "ARR", "MRR", "subscription", "B2B software"] },
+          "crypto-web3": { name: "Crypto & Web3", keywords: ["cryptocurrency", "bitcoin", "blockchain", "web3", "crypto", "ethereum", "DeFi", "NFT", "token", "decentralized"] },
+          "climate-energy": { name: "Climate & Energy", keywords: ["climate change", "clean energy", "renewable energy", "climate", "solar", "nuclear", "carbon", "sustainability", "electric vehicle"] },
+          "defense-tech": { name: "Defense Tech", keywords: ["defense tech", "defense technology", "military technology", "defense", "military", "cybersecurity", "national security", "pentagon"] },
+          "product-management": { name: "Product Management", keywords: ["product management", "product manager", "product strategy", "roadmap", "user research", "product-led"] },
+          "open-source": { name: "Open Source", keywords: ["open source", "open-source", "free software", "GitHub", "Linux", "open model", "open weights"] },
+          "automation": { name: "Automation", keywords: ["automation", "workflow automation", "process automation", "automate", "automated", "RPA", "no-code", "low-code"] },
+          "robotics": { name: "Robotics", keywords: ["robotics", "robot", "autonomous vehicle", "humanoid", "drone", "self-driving", "autonomous"] },
+          "bootstrapping": { name: "Bootstrapping", keywords: ["bootstrapping", "bootstrapped", "self-funded", "profitable", "no funding", "indie hacker", "revenue-funded"] },
+          "side-hustles": { name: "Side Hustles", keywords: ["side hustle", "side project", "passive income", "freelance", "extra income", "side business"] },
+        };
+
+        const canonicalTopicCounts: Record<string, number> = {};
+        for (const ep of allRelevantEpisodes) {
+          const combinedText = [ep.what_happened, ep.tldl, ep.key_insights_text, ep.episode_title].filter(Boolean).join(" ").toLowerCase();
+          for (const [slug, config] of Object.entries(canonicalTopics)) {
+            const matchCount = config.keywords.filter(kw => combinedText.includes(kw.toLowerCase())).length;
+            if (matchCount >= 2) {
+              canonicalTopicCounts[slug] = (canonicalTopicCounts[slug] || 0) + 1;
+            }
+          }
+        }
+        const topTopics = Object.entries(canonicalTopicCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(([slug, count]) => ({ topic: canonicalTopics[slug].name, count, slug }));
+
+        const podcastCounts: Record<string, { name: string; count: number; artwork_url: string; latestDate: string; latestTitle: string; latestEpisodeSlug: string; podcastSlug: string }> = {};
+        for (const ep of allRelevantEpisodes) {
+          const key = ep.slug;
+          if (!podcastCounts[key]) {
+            podcastCounts[key] = {
+              name: ep.podcast_name,
+              count: 0,
+              artwork_url: ep.artwork_url,
+              latestDate: ep.publish_date || "",
+              latestTitle: ep.episode_title,
+              latestEpisodeSlug: ep.episode_slug,
+              podcastSlug: ep.slug,
+            };
+          }
+          podcastCounts[key].count++;
+          if (ep.publish_date && ep.publish_date > podcastCounts[key].latestDate) {
+            podcastCounts[key].latestDate = ep.publish_date;
+            podcastCounts[key].latestTitle = ep.episode_title;
+            podcastCounts[key].latestEpisodeSlug = ep.episode_slug;
+          }
+        }
+        const podcastsFeaturingPerson = Object.values(podcastCounts)
+          .sort((a, b) => b.count - a.count);
+
+        const quotes: { text: string; podcastName: string; episodeTitle: string; date: string; slug: string; episodeSlug: string; isFromGuestEpisode: boolean }[] = [];
+        const seenQuotes = new Set<string>();
+        const addQuote = (text: string, ep: any, isGuest: boolean) => {
+          if (quotes.length >= 6) return;
+          const clean = text.trim();
+          if (clean.length < 40 || clean.length > 400 || seenQuotes.has(clean)) return;
+          seenQuotes.add(clean);
+          quotes.push({
+            text: clean,
+            podcastName: ep.podcast_name,
+            episodeTitle: ep.episode_title,
+            date: ep.publish_date || "",
+            slug: ep.slug,
+            episodeSlug: ep.episode_slug,
+            isFromGuestEpisode: isGuest,
+          });
+        };
+        for (const ep of guestEpisodes) {
+          if (quotes.length >= 6) break;
+          const insights = ep.key_insights_text;
+          if (insights) {
+            try {
+              const parsed = JSON.parse(insights);
+              if (Array.isArray(parsed)) {
+                for (const insight of parsed) {
+                  const text = typeof insight === "string" ? insight : "";
+                  if (person.searchTerms.some(term => new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(text))) {
+                    addQuote(text, ep, true);
+                  }
+                }
+              }
+            } catch {}
+          }
+        }
+        for (const ep of allRelevantEpisodes) {
+          if (quotes.length >= 6) break;
+          const isGuest = guestKeys.has(`${ep.slug}/${ep.episode_slug}`);
+          const insights = ep.key_insights_text;
+          if (insights) {
+            try {
+              const parsed = JSON.parse(insights);
+              if (Array.isArray(parsed)) {
+                for (const insight of parsed) {
+                  const text = typeof insight === "string" ? insight : "";
+                  if (person.searchTerms.some(term => new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(text))) {
+                    addQuote(text, ep, isGuest);
+                  }
+                }
+              }
+            } catch {}
+          }
+        }
+        if (quotes.length < 6) {
+          for (const ep of allRelevantEpisodes) {
+            if (quotes.length >= 6) break;
+            const isGuest = guestKeys.has(`${ep.slug}/${ep.episode_slug}`);
+            const context = extractMentionContext([ep.what_happened, ep.tldl].filter(Boolean), person.searchTerms);
+            if (context && context.length > 40) {
+              addQuote(context, ep, isGuest);
+            }
+          }
+        }
+
+        let hostedEpisodesWithResources: any[] = [];
+        if (person.hostedSlugs.length > 0) {
+          const hostedPlaceholders = person.hostedSlugs.map((_, i) => `$${i + 1}`).join(",");
+          const { rows: hostedRows } = await client.query(
+            `SELECT slug, resources FROM landing_page_recaps WHERE slug IN (${hostedPlaceholders}) AND resources IS NOT NULL AND resources::text != '[]'`,
+            person.hostedSlugs
+          );
+          hostedEpisodesWithResources = hostedRows;
+        }
+
+        const bookMentionMap = new Map<string, { name: string; author: string | null; url: string; context: string; mentionCount: number; podcastSlugs: Set<string> }>();
+        const allEpisodesForBooks = [...allRelevantEpisodes, ...hostedEpisodesWithResources];
+        for (const ep of allEpisodesForBooks) {
+          if (!ep.resources) continue;
+          let resources: any[];
+          try {
+            const parsed = typeof ep.resources === 'string' ? JSON.parse(ep.resources) : ep.resources;
+            if (!Array.isArray(parsed)) continue;
+            resources = parsed;
+          } catch { continue; }
+          for (const r of resources) {
+            if (!r || r.type !== 'book' || !r.name || r.name === '_books_checked') continue;
+            const key = r.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+            const existing = bookMentionMap.get(key);
+            if (existing) {
+              existing.mentionCount++;
+              existing.podcastSlugs.add(ep.slug);
+              if (!existing.author && r.author) existing.author = r.author;
+              if (!existing.context && r.context) existing.context = r.context;
+              if (r.url && r.url.includes('/dp/') && !existing.url?.includes('/dp/')) existing.url = r.url;
+            } else {
+              const podcastSlugs = new Set<string>();
+              podcastSlugs.add(ep.slug);
+              bookMentionMap.set(key, {
+                name: r.name,
+                author: r.author || null,
+                url: r.url || "",
+                context: r.context || "",
+                mentionCount: 1,
+                podcastSlugs,
+              });
+            }
+          }
+        }
+
+        let recommendedBooks: { name: string; author: string | null; slug: string | null; amazonUrl: string; asin: string | null; googleBooksId: string | null; isbn: string | null; hasCover: boolean | null; context: string; mentionCount: number; podcastCount: number }[] = [];
+        if (bookMentionMap.size > 0) {
+          const bookKeys = Array.from(bookMentionMap.keys());
+          const aliasPlaceholders = bookKeys.map((_, i) => `$${i + 1}`).join(",");
+          const { rows: aliasRows } = await client.query(
+            `SELECT alias_key, canonical_key FROM book_aliases WHERE alias_key IN (${aliasPlaceholders})`,
+            bookKeys
+          );
+          const aliasMap = new Map(aliasRows.map((a: any) => [a.alias_key, a.canonical_key]));
+          const resolvedKeys = bookKeys.map(k => aliasMap.get(k) || k);
+          const uniqueKeys = [...new Set(resolvedKeys)];
+          const placeholders = uniqueKeys.map((_, i) => `$${i + 1}`).join(",");
+          const { rows: enrichRows } = await client.query(
+            `SELECT book_key, slug, author, asin, amazon_url, google_books_id, isbn, has_cover FROM book_enrichments WHERE book_key IN (${placeholders})`,
+            uniqueKeys
+          );
+          const enrichByKey = new Map(enrichRows.map((e: any) => [e.book_key, e]));
+
+          recommendedBooks = Array.from(bookMentionMap.entries())
+            .map(([key, b]) => {
+              const resolvedKey = aliasMap.get(key) || key;
+              const enrich = enrichByKey.get(resolvedKey) as any;
+              const asin = enrich?.asin || extractAsinFromUrl(b.url);
+              const amazonUrl = `https://www.amazon.com/s?k=${encodeURIComponent(`${b.name}${enrich?.author ? ` ${enrich.author}` : ""} book`)}&tag=podcap-20`;
+              return {
+                name: b.name,
+                author: enrich?.author || b.author,
+                slug: enrich?.slug || null,
+                amazonUrl,
+                asin,
+                googleBooksId: enrich?.google_books_id || null,
+                isbn: enrich?.isbn || null,
+                hasCover: enrich?.has_cover ?? null,
+                context: b.context,
+                mentionCount: b.mentionCount,
+                podcastCount: b.podcastSlugs.size,
+              };
+            })
+            .filter(b => b.slug)
+            .sort((a, b) => b.mentionCount - a.mentionCount || b.podcastCount - a.podcastCount)
+            .slice(0, 12);
+        }
+
+        const allMappedEpisodes = [...guestAppearancesWithContext, ...mentionsOnly];
+        const enrichedAll = await enrichRecapsForCards(allMappedEpisodes.map(ep => ({
+          id: ep.id,
+          slug: ep.slug,
+          episodeSlug: ep.episode_slug,
+        })));
+        const enrichMap = new Map<number, any>();
+        for (const e of enrichedAll) {
+          enrichMap.set(e.id, e);
+        }
+        const enrichEpisode = (ep: any) => {
+          const enrichData = enrichMap.get(ep.id);
+          return {
+            ...ep,
+            pdSpotifyUrl: enrichData?.pdSpotifyUrl || null,
+            pdYoutubeUrl: enrichData?.pdYoutubeUrl || null,
+            pdHosts: enrichData?.pdHosts || null,
+            pdTotalEpisodes: enrichData?.pdTotalEpisodes || null,
+            pdYearStarted: enrichData?.pdYearStarted || null,
+            mentions: enrichData?.mentions || { people: [], companies: [], products: [] },
+          };
+        };
+        const enrichedGuest = guestAppearancesWithContext.map(enrichEpisode);
+        const enrichedMentions = mentionsOnly.map(enrichEpisode);
+
+        res.json({
+          name: person.name,
+          title: person.title,
+          slug,
+          guestAppearances: enrichedGuest,
+          mentions: enrichedMentions,
+          guestCount: enrichedGuest.length,
+          mentionCount: enrichedMentions.length,
+          topTopics,
+          podcastsFeaturingPerson,
+          quotes,
+          recommendedBooks,
+        });
+      } finally {
+        client.release();
+      }
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || "Failed to fetch person" });
+    }
   });
 
   async function computeCompaniesData(): Promise<any[]> { return []; }
@@ -3867,8 +4226,79 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     res.status(410).json({ error: "This endpoint has been removed" });
   });
 
-  app.get("/api/entities/companies/:slug", (_req, res) => {
-    res.status(410).json({ error: "This endpoint has been removed" });
+  app.get("/api/entities/companies/:slug", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const company = ENTITY_COMPANIES.find(c => c.slug === slug);
+      if (!company) return res.status(404).json({ error: "Company not found" });
+
+      const { pool: dbPool } = await import("./db");
+      const client = await dbPool.connect();
+      try {
+        const allTerms = [...company.searchTerms, ...((company as any).associatedTerms || [])];
+        const parts = allTerms.map((t, i) => buildSearchCondition(["what_happened", "tldl", "key_insights::text"], i + 1, t));
+        const conditions = parts.map(p => `(${p.sql})`).join(" OR ");
+        const params = parts.map(p => p.param);
+        const { rows: mentionEpisodes } = await client.query(
+          `SELECT id, slug, episode_slug, podcast_name, episode_title, publish_date, artwork_url, what_happened, tldl, key_insights, key_insights::text as key_insights_text, quote, quote_attribution, duration, spotify_episode_url, youtube_url, tabloid_sub_headline FROM landing_page_recaps WHERE ${conditions} ORDER BY publish_date DESC`,
+          params
+        );
+
+        const mentions = mentionEpisodes.map((e: any) => ({
+          id: e.id,
+          slug: e.slug,
+          episode_slug: e.episode_slug,
+          podcast_name: e.podcast_name,
+          episode_title: e.episode_title,
+          publish_date: e.publish_date,
+          artwork_url: e.artwork_url,
+          context: extractMentionContext([e.what_happened, e.tldl, e.key_insights_text].filter(Boolean), allTerms),
+          tldl: e.tldl || null,
+          what_happened: e.what_happened || null,
+          key_insights: e.key_insights || null,
+          quote: e.quote || null,
+          quote_attribution: e.quote_attribution || null,
+          duration: e.duration || null,
+          spotify_episode_url: e.spotify_episode_url || null,
+          youtube_url: e.youtube_url || null,
+          tabloid_sub_headline: e.tabloid_sub_headline || null,
+        }));
+
+        const enrichedMentions = await enrichRecapsForCards(mentions.map((m: any) => ({
+          id: m.id,
+          slug: m.slug,
+          episodeSlug: m.episode_slug,
+        })));
+        const enrichMap = new Map<number, any>();
+        for (const e of enrichedMentions) {
+          enrichMap.set(e.id, e);
+        }
+        const fullMentions = mentions.map((m: any) => {
+          const enrichData = enrichMap.get(m.id);
+          return {
+            ...m,
+            pdSpotifyUrl: enrichData?.pdSpotifyUrl || null,
+            pdYoutubeUrl: enrichData?.pdYoutubeUrl || null,
+            pdHosts: enrichData?.pdHosts || null,
+            pdTotalEpisodes: enrichData?.pdTotalEpisodes || null,
+            pdYearStarted: enrichData?.pdYearStarted || null,
+            mentions: enrichData?.mentions || { people: [], companies: [], products: [] },
+          };
+        });
+
+        res.json({
+          name: company.name,
+          description: company.description,
+          slug,
+          mentions: fullMentions,
+          mentionCount: fullMentions.length,
+        });
+      } finally {
+        client.release();
+      }
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || "Failed to fetch company" });
+    }
   });
 
   app.get("/api/entities/topics", (_req, res) => {
@@ -3878,6 +4308,79 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
   app.get("/api/podcasts/:slug/:episodeSlug/transcript-segments", (_req, res) => {
     res.status(410).json({ error: "Transcript access has been removed" });
   });
+
+  async function enrichRecapsForCards(recaps: Array<{id: number; slug: string; episodeSlug: string; [key: string]: any}>) {
+    if (recaps.length === 0) return [];
+    const recapIds = recaps.map(r => r.id);
+    const podcastSlugs = [...new Set(recaps.map(r => r.slug))];
+    const episodeSlugs = recaps.map(r => r.episodeSlug).filter(Boolean);
+
+    const [mentionsResult, pdResult, productsResult] = await Promise.all([
+      pool.query(
+        `SELECT eem.recap_id, eem.entity_type, eem.entity_slug, eem.context,
+                CASE WHEN eem.entity_type = 'person' THEN ep.name ELSE ec.name END as entity_name,
+                CASE WHEN eem.entity_type = 'person' THEN ep.title ELSE ec.industry END as entity_role,
+                CASE WHEN eem.entity_type = 'person' THEN ep.company ELSE NULL END as entity_company
+         FROM entity_episode_mentions eem
+         LEFT JOIN entity_people ep ON eem.entity_type = 'person' AND eem.entity_slug = ep.slug
+         LEFT JOIN entity_companies ec ON eem.entity_type = 'company' AND eem.entity_slug = ec.slug
+         WHERE eem.recap_id = ANY($1)`,
+        [recapIds]
+      ),
+      pool.query(
+        `SELECT slug, spotify_url, youtube_url, hosts, total_episodes, year_started FROM podcast_directory WHERE slug = ANY($1)`,
+        [podcastSlugs]
+      ),
+      episodeSlugs.length > 0 ? pool.query(
+        `SELECT podcast_slug, episode_slug, name, company, description, image_url, category, purchase_url
+         FROM extracted_products
+         WHERE status = 'approved'
+           AND episode_slug = ANY($1) AND podcast_slug = ANY($2)`,
+        [[...new Set(episodeSlugs)], podcastSlugs]
+      ) : { rows: [] },
+    ]);
+
+    const mentionsMap: Record<number, { people: any[]; companies: any[] }> = {};
+    for (const m of mentionsResult.rows) {
+      if (!m.entity_name) continue;
+      if (!mentionsMap[m.recap_id]) mentionsMap[m.recap_id] = { people: [], companies: [] };
+      const entry = { slug: m.entity_slug, name: m.entity_name, role: m.entity_role, company: m.entity_company, context: m.context };
+      if (m.entity_type === 'person') mentionsMap[m.recap_id].people.push(entry);
+      else mentionsMap[m.recap_id].companies.push(entry);
+    }
+
+    const pdMap: Record<string, any> = {};
+    for (const pd of pdResult.rows) {
+      pdMap[pd.slug] = pd;
+    }
+
+    const productsMap: Record<string, any[]> = {};
+    for (const p of productsResult.rows) {
+      const key = `${p.podcast_slug}:${p.episode_slug}`;
+      if (!productsMap[key]) productsMap[key] = [];
+      productsMap[key].push({
+        name: p.name, company: p.company, description: p.description,
+        imageUrl: p.image_url, category: p.category, purchaseUrl: p.purchase_url,
+      });
+    }
+
+    return recaps.map(r => {
+      const pd = pdMap[r.slug] || {};
+      return {
+        ...r,
+        pdSpotifyUrl: pd.spotify_url || null,
+        pdYoutubeUrl: pd.youtube_url || null,
+        pdHosts: pd.hosts || null,
+        pdTotalEpisodes: pd.total_episodes || null,
+        pdYearStarted: pd.year_started || null,
+        mentions: {
+          people: mentionsMap[r.id]?.people || [],
+          companies: mentionsMap[r.id]?.companies || [],
+          products: (r.episodeSlug ? productsMap[`${r.slug}:${r.episodeSlug}`] : undefined) || [],
+        },
+      };
+    });
+  }
 
   app.get("/api/podcasts/:slug/recaps", async (req, res) => {
     try {
@@ -3964,16 +4467,27 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     try {
       const { slug } = req.params;
       const allRecaps = await storage.getLandingPageRecaps(slug, 1000, 0);
-      const lightweight = allRecaps.map(r => ({
+      const enriched = await enrichRecapsForCards(allRecaps.map(r => ({
+        id: r.id,
+        slug: r.slug,
         episodeSlug: r.episodeSlug,
         episodeTitle: r.episodeTitle,
+        podcastName: r.podcastName,
         publishDate: r.publishDate,
+        artworkUrl: r.artworkUrl,
         duration: r.duration,
         tldl: r.tldl,
+        tabloidSubHeadline: r.tabloidSubHeadline,
+        keyInsights: r.keyInsights,
+        quote: r.quote,
+        quoteAttribution: r.quoteAttribution,
+        whatHappened: r.whatHappened,
+        spotifyEpisodeUrl: r.spotifyEpisodeUrl,
+        youtubeUrl: r.youtubeUrl,
         guests: r.guests,
         keyTopics: r.keyTopics,
-      }));
-      res.json(lightweight);
+      })));
+      res.json(enriched);
     } catch {
       res.status(500).json({ error: "Failed to fetch episodes list" });
     }

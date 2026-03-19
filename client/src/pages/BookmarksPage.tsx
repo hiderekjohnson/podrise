@@ -103,9 +103,11 @@ export default function BookmarksPage() {
                     publishDate={bm.publishDate}
                     artworkUrl={bm.artworkUrl}
                     tldl={bm.tldl}
+                    tabloidSubHeadline={bm.tabloidSubHeadline}
                     keyInsights={bm.keyInsights}
                     quote={bm.quote}
                     quoteAttribution={bm.quoteAttribution}
+                    duration={bm.duration}
                     hosts={podcastMeta?.hosts}
                     totalEpisodes={podcastMeta?.totalEpisodes}
                     yearStarted={podcastMeta?.yearStarted}

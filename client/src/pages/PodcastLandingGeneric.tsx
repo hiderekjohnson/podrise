@@ -654,6 +654,7 @@ export default function PodcastLandingGeneric() {
                       publishDate={ep.publishDate}
                       artworkUrl={artworkUrl}
                       tldl={ep.tldl}
+                      tabloidSubHeadline={ep.tabloidSubHeadline}
                       keyInsights={ep.keyInsights}
                       quote={ep.quote}
                       quoteAttribution={ep.quoteAttribution}
@@ -670,6 +671,7 @@ export default function PodcastLandingGeneric() {
                       isBookmarked={bookmarkedKeys.has(`${slug}::${ep.episodeSlug}`)}
                       onFollowToggle={handleFollowToggle}
                       onBookmarkToggle={handleBookmarkToggle}
+                      showFullRecapLink
                       toast={toast}
                       testIdPrefix="podcast-episode"
                       className=""
