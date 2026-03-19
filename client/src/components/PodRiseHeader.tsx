@@ -19,17 +19,15 @@ function PodRiseIcon({ size = 36 }: { size?: number }) {
   );
 }
 
-function PodRiseWordmark({ variant = "light" }: { variant?: "light" | "dark" | "color" }) {
-  const podColor = variant === "dark" || variant === "color" ? "text-white" : "text-[#09090B]";
-  const riseColor = variant === "dark" ? "text-[#A5B4FC]" : variant === "color" ? "text-white" : "text-[#6366F1]";
+function PodRiseWordmark({ variant = "light", height = 34 }: { variant?: "light" | "dark" | "color"; height?: number }) {
   return (
-    <span className="flex items-center gap-2.5" style={{ letterSpacing: "-0.04em" }} role="img" aria-label="PodRise">
-      <PodRiseIcon size={36} />
-      <span className="text-xl leading-none">
-        <span className={`font-semibold ${podColor}`}>Pod</span>
-        <span className={`font-light ${riseColor}`}>Rise</span>
-      </span>
-    </span>
+    <img
+      src="/logo-transparent.svg"
+      alt="PodRise"
+      style={{ height: `${height}px`, width: "auto" }}
+      className={`object-contain${variant === "dark" || variant === "color" ? " brightness-0 invert" : ""}`}
+      data-testid="img-podrise-wordmark"
+    />
   );
 }
 

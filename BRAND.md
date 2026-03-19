@@ -78,7 +78,7 @@ All official brand logo files live in `client/public/`:
 | `podrise-logo.png` | PNG square | Transparent | Served at `/podrise-logo.png` for external references |
 | `podrise-logo.svg` | SVG rectangle | Transparent | Served at `/podrise-logo.svg` for external references |
 
-In React components, import the square PNG via `import logoTransparent from "@assets/Transparent-square_1773866360595.png"` for the `PodRiseIcon` component. The `PodRiseWordmark` component combines the square icon with the "Pod" + "Rise" text.
+In React components, import the square PNG via `import logoTransparent from "@assets/Transparent-square_1773866360595.png"` for the `PodRiseIcon` component. The `PodRiseWordmark` component renders the single `logo-transparent.svg` wordmark image (with CSS invert for dark/color variants).
 
 ## Enforcement
 
