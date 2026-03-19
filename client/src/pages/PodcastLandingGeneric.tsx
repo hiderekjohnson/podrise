@@ -740,7 +740,7 @@ export default function PodcastLandingGeneric() {
     );
   }
 
-  const { name, hosts, category, itunesId, artworkUrl, spotifyUrl, youtubeUrl, relatedSlugs, description, appleRating, appleRatingCount } = config;
+  const { name, hosts, category, itunesId, artworkUrl, spotifyUrl, youtubeUrl, relatedSlugs, description, appleRating, appleRatingCount, totalEpisodes, yearStarted } = config;
 
   const hostNames = hosts ? hosts.split(/,\s*|&\s*|\sand\s/i).map((h: string) => h.trim()).filter(Boolean) : [];
 
@@ -956,6 +956,19 @@ export default function PodcastLandingGeneric() {
                 {hosts && (
                   <p className="text-[15px] text-muted-foreground mt-2" data-testid="text-podcast-hosts">
                     {hosts}
+                  </p>
+                )}
+                {(totalEpisodes || yearStarted) && (
+                  <p className="text-[14px] text-muted-foreground mt-1.5 flex items-center gap-1.5" data-testid="text-podcast-metadata">
+                    {totalEpisodes && (
+                      <span data-testid="text-episode-count">{totalEpisodes}+ episodes</span>
+                    )}
+                    {totalEpisodes && yearStarted && (
+                      <span className="text-muted-foreground/50">·</span>
+                    )}
+                    {yearStarted && (
+                      <span data-testid="text-year-started">Since {yearStarted}</span>
+                    )}
                   </p>
                 )}
               </div>
