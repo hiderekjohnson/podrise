@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { PODCAST_ENRICHMENT_FIELDS, EPISODE_ENRICHMENT_FIELDS, computeEnrichmentFromRecord } from "@shared/enrichment";
 import {
   Loader2, Search, ChevronLeft, ChevronDown, ChevronUp,
   Podcast, FileText, Users, Building2, ShoppingBag,
@@ -1416,20 +1417,7 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
 
       <CopyableId label="Podcast" value={podcast.id} context={podcast.name} />
 
-      <EnrichmentStatus fields={[
-        { label: "Description", filled: !!podcast?.description?.trim() },
-        { label: "Artwork", filled: !!podcast?.artwork_url?.trim() },
-        { label: "Apple URL", filled: !!podcast?.apple_url?.trim() },
-        { label: "Spotify URL", filled: !!podcast?.spotify_url?.trim() },
-        { label: "YouTube URL", filled: !!podcast?.youtube_url?.trim() },
-        { label: "Twitter", filled: !!podcast?.twitter_handle?.trim() },
-        { label: "Website", filled: !!podcast?.website_url?.trim() },
-        { label: "Category", filled: !!podcast?.category?.trim() },
-        { label: "Frequency", filled: !!podcast?.frequency?.trim() },
-        { label: "About Podcast", filled: !!podcast?.about_podcast?.trim() },
-        { label: "Hosts", filled: !!(podcast?.hosts?.trim() || podcast?.hosts_data?.length) },
-        { label: "Known For", filled: !!(podcast?.known_for?.length) },
-      ]} />
+      <EnrichmentStatus fields={computeEnrichmentFromRecord(podcast || {}, PODCAST_ENRICHMENT_FIELDS).fieldStatus} />
 
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
@@ -1940,7 +1928,7 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
     },
   });
 
-  const { data, isLoading } = useQuery<{ episodes: Array<{ id: number; slug: string; podcast_name: string; episode_title: string; episode_slug: string; publish_date: string; duration: string; status: string; artwork_url: string; view_count: number }>; total: number }>({
+  const { data, isLoading } = useQuery<{ episodes: Array<{ id: number; slug: string; podcast_name: string; episode_title: string; episode_slug: string; publish_date: string; duration: string; status: string; artwork_url: string; view_count: number; enrichment_score: number }>; total: number }>({
     queryKey: ["/api/admin/cms/all-episodes", debouncedSearch, statusFilter, sortField, sortOrder, page],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -1963,7 +1951,7 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
-      setSortOrder(field === "date" ? "desc" : "asc");
+      setSortOrder(field === "date" || field === "enrichment" ? "desc" : "asc");
     }
     setPage(1);
   };
@@ -2059,6 +2047,7 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
             <option value="date">Most Recent</option>
             <option value="popular">Most Popular</option>
             <option value="title">Title A–Z</option>
+            <option value="enrichment">Enrichment</option>
           </select>
         </div>
       </div>
@@ -2078,14 +2067,19 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
                   Date {sortField === "date" && (sortOrder === "asc" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
                 </span>
               </th>
+              <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3 cursor-pointer hover:text-foreground" onClick={() => toggleSort("enrichment")} data-testid="sort-all-episode-enrichment">
+                <span className="flex items-center gap-1">
+                  Enrichment {sortField === "enrichment" && (sortOrder === "asc" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
+                </span>
+              </th>
               <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {isLoading ? (
-              <tr><td colSpan={4} className="px-4 py-12 text-center"><Loader2 className="w-5 h-5 animate-spin text-primary mx-auto" /></td></tr>
+              <tr><td colSpan={5} className="px-4 py-12 text-center"><Loader2 className="w-5 h-5 animate-spin text-primary mx-auto" /></td></tr>
             ) : episodes.length === 0 ? (
-              <tr><td colSpan={4} className="px-4 py-12 text-center text-sm text-muted-foreground">{debouncedSearch ? "No matching episodes found." : "No episodes."}</td></tr>
+              <tr><td colSpan={5} className="px-4 py-12 text-center text-sm text-muted-foreground">{debouncedSearch ? "No matching episodes found." : "No episodes."}</td></tr>
             ) : (
               episodes.map((ep) => (
                 <tr
@@ -2105,6 +2099,21 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
                   </td>
                   <td className="px-4 py-3">
                     <span className="text-sm text-muted-foreground">{ep.publish_date || "—"}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2" data-testid={`text-episode-enrichment-${ep.id}`}>
+                      <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            ep.enrichment_score >= 75 ? "bg-emerald-500" : ep.enrichment_score >= 40 ? "bg-amber-500" : "bg-red-400"
+                          }`}
+                          style={{ width: `${ep.enrichment_score}%` }}
+                        />
+                      </div>
+                      <span className={`text-xs font-medium ${
+                        ep.enrichment_score >= 75 ? "text-emerald-600 dark:text-emerald-400" : ep.enrichment_score >= 40 ? "text-amber-600 dark:text-amber-400" : "text-red-500 dark:text-red-400"
+                      }`}>{ep.enrichment_score}%</span>
+                    </div>
                   </td>
                   <td className="px-4 py-3"><StatusBadge status={ep.status || "published"} /></td>
                 </tr>
@@ -2309,23 +2318,10 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
       </div>
 
       {(() => {
-        const hasVal = (v: any) => v && typeof v === 'string' && v.trim() !== '' && v.trim() !== '[]' && v.trim() !== 'null';
-        const hasArr = (v: any) => {
-          if (!v) return false;
-          if (Array.isArray(v)) return v.length > 0;
-          if (typeof v === 'string') { try { const p = JSON.parse(v); return Array.isArray(p) && p.length > 0; } catch { return false; } }
-          return false;
-        };
-        const checks = [
-          { label: "Transcript", icon: FileText, ok: !!episode.transcript },
-          { label: "Key Insights", icon: Star, ok: Array.isArray(episode.key_insights) ? episode.key_insights.length > 0 : hasArr(episode.key_insights as any) },
-          { label: "Guests", icon: Users, ok: hasArr(episode.guests) },
-          { label: "Resources", icon: BookOpen, ok: hasArr(episode.resources) },
-          { label: "Show Notes", icon: FileText, ok: hasVal(episode.show_notes) },
-          { label: "Tabloid", icon: Newspaper, ok: hasVal(episode.tabloid_headline) },
-        ];
+        const iconMap: Record<string, any> = { "Transcript": FileText, "Key Insights": Star, "Guests": Users, "Resources": BookOpen, "Show Notes": FileText, "Tabloid": Newspaper };
+        const { score: pct, fieldStatus } = computeEnrichmentFromRecord(episode, EPISODE_ENRICHMENT_FIELDS);
+        const checks = fieldStatus.map(f => ({ label: f.label, icon: iconMap[f.label] || FileText, ok: f.filled }));
         const done = checks.filter(c => c.ok).length;
-        const pct = Math.round((done / checks.length) * 100);
         return (
           <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4" data-testid="episode-enrichment-status">
             <div className="flex items-center justify-between mb-3">

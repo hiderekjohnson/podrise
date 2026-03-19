@@ -7,6 +7,7 @@ import connectPgSimple from "connect-pg-simple";
 import cors from "cors";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
+import { PODCAST_ENRICHMENT_FIELDS, EPISODE_ENRICHMENT_FIELDS, computeEnrichmentFromRecord } from "@shared/enrichment";
 import { z } from "zod";
 import { getUncachableResendClient } from "./resendClient";
 import { markdownToEmailHtml, recapHasContent, type EpisodeMetaForEmail } from "./emailTemplate";
@@ -10062,15 +10063,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const { rows } = await pool.query(query, params);
 
       const computeEnrichmentScore = (r: any) => {
-        const fields = [
-          r.description, r.artwork_url, r.spotify_url, r.apple_url,
-          r.website_url, r.hosts, r.frequency, r.category,
-          r.twitter_handle, r.instagram_url, r.youtube_url,
-          r.tiktok_url, r.facebook_url, r.discord_url,
-          r.store_url, r.host_handle,
-        ];
-        const filled = fields.filter(f => f && String(f).trim().length > 0).length;
-        return Math.round((filled / fields.length) * 100);
+        return computeEnrichmentFromRecord(r, PODCAST_ENRICHMENT_FIELDS).score;
       };
 
       const enrichedRows = rows.map((r: any) => ({
@@ -11480,20 +11473,51 @@ Rules:
         params.push(`%${search}%`);
         where += ` AND (lpr.episode_title ILIKE $${params.length} OR lpr.podcast_name ILIKE $${params.length})`;
       }
+      const enrichmentFields = EPISODE_ENRICHMENT_FIELDS.map(f => `lpr.${f.key}`).join(', ');
+
       let orderBy = "lpr.publish_date DESC NULLS LAST";
       if (sort === "title") orderBy = `lpr.episode_title ${order === "desc" ? "DESC" : "ASC"}`;
       else if (sort === "date") orderBy = `lpr.publish_date ${order === "asc" ? "ASC" : "DESC"} NULLS LAST`;
       else if (sort === "popular") orderBy = `lpr.publish_date DESC NULLS LAST`;
+      const sortByEnrichment = sort === "enrichment";
       const { rows: countRows } = await pool.query(`SELECT count(*)::int as total FROM landing_page_recaps lpr ${where}`, params);
       const total = countRows[0]?.total || 0;
-      params.push(limit);
-      params.push(offset);
-      const { rows } = await pool.query(
-        `SELECT lpr.id, lpr.slug, lpr.podcast_name, lpr.episode_title, lpr.episode_slug, lpr.publish_date, lpr.duration, lpr.status, lpr.artwork_url
-         FROM landing_page_recaps lpr ${where} ORDER BY ${orderBy}, lpr.id DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
-        params
-      );
-      res.json({ episodes: rows, total });
+
+      if (sortByEnrichment) {
+        const { rows: allRows } = await pool.query(
+          `SELECT lpr.id, lpr.slug, lpr.podcast_name, lpr.episode_title, lpr.episode_slug, lpr.publish_date, lpr.duration, lpr.status, lpr.artwork_url,
+           ${enrichmentFields}
+           FROM landing_page_recaps lpr ${where} ORDER BY lpr.id DESC`,
+          params
+        );
+        const enriched = allRows.map((r: any) => ({
+          id: r.id, slug: r.slug, podcast_name: r.podcast_name, episode_title: r.episode_title,
+          episode_slug: r.episode_slug, publish_date: r.publish_date, duration: r.duration,
+          status: r.status, artwork_url: r.artwork_url,
+          enrichment_score: computeEnrichmentFromRecord(r, EPISODE_ENRICHMENT_FIELDS).score,
+        }));
+        enriched.sort((a: any, b: any) => order === "asc" ? a.enrichment_score - b.enrichment_score : b.enrichment_score - a.enrichment_score);
+        res.json({ episodes: enriched.slice(offset, offset + limit), total });
+      } else {
+        params.push(limit);
+        params.push(offset);
+        const { rows } = await pool.query(
+          `SELECT lpr.id, lpr.slug, lpr.podcast_name, lpr.episode_title, lpr.episode_slug, lpr.publish_date, lpr.duration, lpr.status, lpr.artwork_url,
+           ${enrichmentFields}
+           FROM landing_page_recaps lpr ${where} ORDER BY ${orderBy}, lpr.id DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
+          params
+        );
+        const enrichedEpisodes = rows.map((r: any) => {
+          const score = computeEnrichmentFromRecord(r, EPISODE_ENRICHMENT_FIELDS).score;
+          return {
+            id: r.id, slug: r.slug, podcast_name: r.podcast_name, episode_title: r.episode_title,
+            episode_slug: r.episode_slug, publish_date: r.publish_date, duration: r.duration,
+            status: r.status, artwork_url: r.artwork_url,
+            enrichment_score: score,
+          };
+        });
+        res.json({ episodes: enrichedEpisodes, total });
+      }
     } catch (err: any) {
       console.error("[CMS] All episodes error:", err);
       res.status(500).json({ message: err?.message || "Failed to fetch episodes" });
