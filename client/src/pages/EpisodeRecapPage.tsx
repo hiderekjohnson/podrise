@@ -1,7 +1,7 @@
 import { useParams } from "wouter";
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, ArrowUp, Mail, Clock, ShoppingBag, Bookmark, BookmarkCheck, Heart, ListChecks, ArrowRight } from "lucide-react";
+import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, ArrowUp, Clock, ShoppingBag, Bookmark, BookmarkCheck, Heart, ListChecks, ArrowRight } from "lucide-react";
 import { BookCover as SharedBookCover } from "@/components/BookCover";
 import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -11,8 +11,7 @@ import { PEOPLE_DIRECTORY, COMPANIES_DIRECTORY } from "../data/entityDirectoryDa
 import { Link, useLocation } from "wouter";
 import { GetRecapsModal } from "@/components/GetRecapsModal";
 import { FeedStyleCard, FeedStyleCardHeader, FeedStyleCardSection } from "@/components/FeedStyleCard";
-import { SiteHeader } from "@/components/SiteHeader";
-import { Footer } from "@/components/Footer";
+import { PodcastPageLayout } from "@/components/PodcastPageLayout";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -817,7 +816,7 @@ export default function EpisodeRecapPage() {
     ];
 
     const handleScroll = () => {
-      const offset = (authUser ? 0 : 56) + 52 + 40;
+      const offset = (authUser ? 0 : 120) + 52 + 40;
       let current = sectionIds[0];
       for (const id of sectionIds) {
         const el = document.getElementById(id);
@@ -899,7 +898,7 @@ export default function EpisodeRecapPage() {
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
     if (!el) return;
-    const headerHeight = authUser ? 0 : 56;
+    const headerHeight = authUser ? 0 : 120;
     const navHeight = 52;
     const offset = headerHeight + navHeight + 16;
     const top = el.getBoundingClientRect().top + window.scrollY - offset;
@@ -925,7 +924,7 @@ export default function EpisodeRecapPage() {
           </nav>
         )}
 
-        <nav className={`sticky z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar ${authUser ? "top-0" : "top-[68px]"}`} data-testid="nav-in-page">
+        <nav className={`sticky z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar ${authUser ? "top-0" : "top-[120px]"}`} data-testid="nav-in-page">
           {episode.keyInsights?.length > 0 && (
             <button
               onClick={() => scrollTo("section-key-insights")}
@@ -978,16 +977,6 @@ export default function EpisodeRecapPage() {
               data-testid="nav-quotes"
             >
               Quotes
-            </button>
-          )}
-          {!authUser && (
-            <button
-              onClick={() => setShowUpdatesModal(true)}
-              className="px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors flex items-center gap-1.5 text-primary/70 hover:text-primary hover:bg-primary/[0.06]"
-              data-testid="nav-get-updates"
-            >
-              <Mail className="w-4 h-4" />
-              Get Updates
             </button>
           )}
           {authUser && (
@@ -1701,13 +1690,78 @@ export default function EpisodeRecapPage() {
     </div>
   );
 
+  if (!authUser) {
+    return (
+      <PodcastPageLayout config={podcastConfig}>
+        <div className="mb-6">
+          <div className="flex items-baseline justify-between gap-3 mb-[9px]">
+            <span className="text-[12px] text-[#A1A1AA] overflow-hidden text-ellipsis whitespace-nowrap flex-1 min-w-0" style={{ fontFamily: "var(--font-mono)" }} data-testid="episode-card-title">
+              {episode.episodeTitle}
+            </span>
+            <span className="text-[12px] text-[#A1A1AA] whitespace-nowrap flex-shrink-0" style={{ fontFamily: "var(--font-mono)" }}>
+              {relativeTime(episode.publishDate)}
+            </span>
+          </div>
+          {episode.tldl && (
+            <h2 className="text-[26px] font-normal text-[#09090B] dark:text-white leading-[1.2] tracking-[-0.01em]" style={{ fontFamily: "var(--font-serif)" }} data-testid="episode-card-headline">
+              {episode.tldl}
+            </h2>
+          )}
+        </div>
+
+        {recapContent}
+
+        {previousEpisodes.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mt-10"
+            data-testid="section-more-episodes"
+          >
+            <div className="flex items-center gap-2.5 mb-4">
+              <ListChecks className="w-4 h-4 text-primary" />
+              <span className="text-base font-bold text-primary uppercase tracking-wider">More {episode.podcastName} Episode Recaps</span>
+            </div>
+            <div className="space-y-3">
+              {previousEpisodes.map((ep: any) => (
+                <EpisodeCard
+                  key={ep.episodeSlug}
+                  episodeSlug={ep.episodeSlug}
+                  podcastSlug={podcastSlug}
+                  publishDate={ep.publishDate}
+                  episodeTitle={ep.episodeTitle}
+                  tldl={ep.tldl}
+                  duration={ep.duration}
+                  testIdPrefix="card-more-episode"
+                />
+              ))}
+            </div>
+            <div className="flex justify-center mt-6">
+              <Link href={`/podcasts/${podcastSlug}`}>
+                <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-display font-bold text-base bg-primary/[0.06] text-primary hover:bg-primary/[0.1] transition-colors" data-testid="link-all-episodes">
+                  View all {episode.podcastName} episodes
+                  <ArrowRight className="w-4 h-4" />
+                </span>
+              </Link>
+            </div>
+          </motion.section>
+        )}
+
+        <EpisodeChatPanelWithRef
+          ref={chatRef}
+          podcastSlug={podcastSlug}
+          episodeSlug={episodeSlug}
+          episodeTitle={episode?.episodeTitle || ""}
+          podcastName={episode?.podcastName || ""}
+        />
+      </PodcastPageLayout>
+    );
+  }
+
   return (
-    <div className={`min-h-screen bg-[#F9F9FB] ${authUser ? "pb-[calc(60px+env(safe-area-inset-bottom,0px))] md:pb-0" : ""}`}>
-      {!authUser && <SiteHeader />}
-
+    <div className={`min-h-screen bg-[#F9F9FB] pb-[calc(60px+env(safe-area-inset-bottom,0px))] md:pb-0`}>
       {mainContent}
-
-      {!authUser && <Footer />}
 
       <GetRecapsModal
         open={showUpdatesModal}
