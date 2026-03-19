@@ -33,9 +33,9 @@ PodRise is a full-stack web application designed to provide personalized daily p
 
 ## Critical Rules for Data Changes
 - **Dev DB ≠ Production DB**: The development database is completely separate from production. One-time scripts that only modify the dev database will NOT affect production.
-- **NEVER use one-time scripts for data fixes**: Any database data change (artwork URLs, YouTube URLs, iTunes IDs, slug corrections, etc.) MUST be written as **startup migration code** in `server/routes.ts` (within the `setTimeout(..., 5000)` startup block) or `server/index.ts` (in the startup IIFE). This ensures the fix runs on every environment: dev, after restarts, and on production deploy.
-- **Startup migration pattern**: Check if the fix is needed (e.g., `WHERE artwork_url IS NULL`), apply the fix, then invalidate any relevant cache (e.g., `directoryCache.podcastsDirectory.invalidate()`). The fix should be idempotent — safe to run repeatedly.
-- **Cache invalidation is mandatory**: After any startup data fix, invalidate the relevant `directoryCache` entry so stale cached data doesn't override the fix. The backfill must run BEFORE cache pre-warming.
+- **NEVER use one-time scripts for data fixes**: Any database data change (artwork URLs, YouTube URLs, iTunes IDs, slug corrections, etc.) MUST be written as **startup migration code** synchronously inside `registerRoutes()` in `server/routes.ts` (before the `return httpServer` line, but OUTSIDE the `setTimeout` block). This ensures the fix runs on every environment before any traffic is served.
+- **Startup migration pattern**: Check if the fix is needed (e.g., `WHERE artwork_url IS NULL`), apply the fix. The fix should be idempotent — safe to run repeatedly.
+- **Timing is critical**: Data backfills must run **synchronously inside `registerRoutes()`** (before the `return httpServer`), NOT inside the `setTimeout(..., 5000)` block. The server starts accepting requests as soon as `registerRoutes` returns — any backfill in the `setTimeout` block will lose the race against incoming requests that populate stale caches.
 - **Task agents work on isolated environments**: Their database changes are lost after merge. Any data fix from a task agent must be accompanied by startup migration code, not just SQL scripts.
 - **Always verify against production**: Use `POST /api/admin/sql` with `{"query": "SELECT ..."}` to verify data on the live production database. Never assume dev DB state matches production.
 
