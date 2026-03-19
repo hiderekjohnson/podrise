@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Link, useLocation } from "wouter";
-import { Loader2, ArrowRight, Clock, Calendar, Mic, Users, Star, Search, Compass, Headphones, Mail, X, Sparkles, ExternalLink, ChevronRight, BookOpen, ShoppingBag, Shield, Heart } from "lucide-react";
-import { SiApplepodcasts, SiSpotify, SiYoutube } from "react-icons/si";
+import { useLocation } from "wouter";
+import { Loader2, Mic, Compass, Mail, X, ShoppingBag, Shield } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -10,8 +9,6 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { GetRecapsModal } from "@/components/GetRecapsModal";
 import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import { useSetConversion } from "@/contexts/PageConversionContext";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export type PodcastTab = "episodes" | "about" | "discover" | "books" | "shop" | "get-recaps";
 
@@ -39,9 +36,7 @@ export function PodcastPageLayout({
   const [activeSection, setActiveSection] = useState("section-episodes");
   const ctaSectionRef = useRef<HTMLDivElement>(null);
 
-  const { name, hosts, itunesId, artworkUrl, spotifyUrl, youtubeUrl, totalEpisodes, yearStarted, description, appleRating, appleRatingCount } = config;
-  const twitterHandle = config.twitterHandle;
-
+  const { name, hosts, itunesId, artworkUrl, description } = config;
   useSetConversion({
     pageType: "podcast",
     name,
@@ -49,30 +44,6 @@ export function PodcastPageLayout({
     artworkUrl,
     hosts: hosts ? hosts.split(/,\s*|&\s*|\sand\s/i).map(h => h.trim()).filter(Boolean) : [],
     description,
-  });
-
-  const appleUrl = config.appleUrl || `https://podcasts.apple.com/podcast/id${itunesId}`;
-  const effectiveSpotifyUrl = spotifyUrl || `https://open.spotify.com/search/${encodeURIComponent(name)}`;
-
-  const { data: followData } = useQuery<{ followedSlugs: string[] }>({
-    queryKey: ["/api/feed/followed-slugs"],
-    enabled: isLoggedIn,
-  });
-
-  const isFollowing = followData?.followedSlugs?.includes(config.slug) ?? false;
-
-  const followMutation = useMutation({
-    mutationFn: async ({ follow }: { follow: boolean }) => {
-      const endpoint = follow ? "/api/feed/follow" : "/api/feed/unfollow";
-      await apiRequest("POST", endpoint, { podcastSlug: config.slug });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/feed/followed-slugs"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/feed"] });
-    },
-    onError: () => {
-      toast({ title: "Error", description: "Failed to update subscription", variant: "destructive" });
-    },
   });
 
   useEffect(() => {
@@ -174,135 +145,6 @@ export function PodcastPageLayout({
       {!isLoggedIn && <SiteHeader />}
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">
-        {!isLoggedIn && <section className="w-full max-w-7xl pt-8 sm:pt-12 pb-8 sm:pb-10">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-center sm:items-start"
-          >
-            {artworkUrl && (
-              <div className="relative shrink-0">
-                <div className="absolute -inset-4 bg-primary/[0.06] rounded-[2rem] blur-2xl" />
-                <img
-                  src={artworkUrl}
-                  alt={`${name} Podcast Cover Art`}
-                  className="relative w-52 h-52 sm:w-56 sm:h-56 rounded-2xl shadow-2xl shadow-black/[0.12] object-cover ring-1 ring-black/[0.04]"
-                  data-testid="img-podcast-artwork"
-                />
-              </div>
-            )}
-
-            <div className="flex flex-col gap-3 text-center sm:text-left flex-1 min-w-0">
-              <h1
-                className="text-[1.75rem] sm:text-[2rem] lg:text-[2.25rem] font-display font-extrabold text-foreground leading-[1.1] tracking-[-0.025em]"
-                data-testid="heading-main"
-              >
-                {name}
-              </h1>
-
-              <p className="text-base sm:text-lg text-[#52525B] dark:text-[#A1A1AA] leading-relaxed max-w-md line-clamp-3" data-testid="text-description">
-                {description ? description.charAt(0).toUpperCase() + description.slice(1) : ""}
-              </p>
-
-
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-2.5 mt-1">
-                {hosts && (
-                  <span className="inline-flex items-center gap-2 text-base text-[#52525B] dark:text-[#A1A1AA]" data-testid="text-hosts">
-                    <Users className="w-5 h-5 text-[#52525B] dark:text-[#A1A1AA]" />
-                    <span className="font-medium text-[#52525B]">{hosts}</span>
-                  </span>
-                )}
-                {totalEpisodes && (
-                  <span className="inline-flex items-center gap-2 text-base text-[#52525B] dark:text-[#A1A1AA]" data-testid="text-episodes">
-                    <Mic className="w-5 h-5 text-[#52525B] dark:text-[#A1A1AA]" />
-                    {totalEpisodes}+ episodes
-                  </span>
-                )}
-                {yearStarted && (
-                  <span className="inline-flex items-center gap-2 text-base text-[#52525B] dark:text-[#A1A1AA]" data-testid="text-since">
-                    <Calendar className="w-5 h-5 text-[#52525B] dark:text-[#A1A1AA]" />
-                    Since {yearStarted}
-                  </span>
-                )}
-                {appleRating && (
-                  <span className="inline-flex items-center gap-2 text-base text-[#52525B] dark:text-[#A1A1AA]" data-testid="text-apple-rating">
-                    <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
-                    <span className="font-medium text-[#52525B]">{appleRating}</span>
-                    {appleRatingCount && (
-                      <span className="text-[#52525B]">({appleRatingCount >= 1000 ? `${(appleRatingCount / 1000).toFixed(appleRatingCount >= 10000 ? 0 : 1)}K` : appleRatingCount.toLocaleString()} ratings)</span>
-                    )}
-                  </span>
-                )}
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 mt-2 justify-center sm:justify-start" data-testid="hero-listen-links">
-                {isLoggedIn && (
-                  <>
-                    <button
-                      onClick={() => followMutation.mutate({ follow: !isFollowing })}
-                      disabled={followMutation.isPending}
-                      className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-[15px] sm:text-[16px] font-semibold min-h-[44px] whitespace-nowrap shrink-0 transition-all active:scale-[0.98] ${
-                        isFollowing
-                          ? "bg-primary/[0.08] text-primary border border-primary/20 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-                          : "bg-primary text-white hover:bg-[#4F46E5] shadow-sm shadow-primary/20"
-                      }`}
-                      data-testid="button-follow-podcast"
-                    >
-                      {followMutation.isPending ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <>
-                          <Heart className={`w-4 h-4 ${isFollowing ? "fill-current" : ""}`} />
-                          {isFollowing ? "Following" : "Follow"}
-                        </>
-                      )}
-                    </button>
-                  </>
-                )}
-                <a
-                  href={appleUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#52525B] hover:text-foreground transition-colors min-h-[44px] whitespace-nowrap shrink-0"
-                  data-testid="hero-link-apple"
-                  title="Listen on Apple Podcasts"
-                >
-                  <SiApplepodcasts className="w-4 h-4 text-[#9933CC]" />
-                  Apple Podcasts
-                  <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
-                </a>
-                <a
-                  href={effectiveSpotifyUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#52525B] hover:text-foreground transition-colors min-h-[44px] whitespace-nowrap shrink-0"
-                  data-testid="hero-link-spotify"
-                  title="Listen on Spotify"
-                >
-                  <SiSpotify className="w-4 h-4 text-[#1DB954]" />
-                  Spotify
-                  <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
-                </a>
-                {youtubeUrl && (
-                  <a
-                    href={youtubeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#52525B] hover:text-foreground transition-colors min-h-[44px] whitespace-nowrap shrink-0"
-                    data-testid="hero-link-youtube"
-                    title="Watch on YouTube"
-                  >
-                    <SiYoutube className="w-4 h-4 text-[#FF0000]" />
-                    YouTube
-                    <ExternalLink className="w-3 h-3 text-muted-foreground/40" />
-                  </a>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        </section>}
-
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
