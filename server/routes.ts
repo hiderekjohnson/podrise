@@ -10023,14 +10023,33 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       query += ` ORDER BY ${sortCol} ${sortOrder}`;
       const { rows } = await pool.query(query, params);
 
+      const computeEnrichmentScore = (r: any) => {
+        const fields = [
+          r.description, r.artwork_url, r.spotify_url, r.apple_url,
+          r.website_url, r.hosts, r.frequency, r.category,
+          r.twitter_handle, r.instagram_url, r.youtube_url,
+          r.tiktok_url, r.facebook_url, r.discord_url,
+          r.store_url, r.host_handle,
+        ];
+        const filled = fields.filter(f => f && String(f).trim().length > 0).length;
+        return Math.round((filled / fields.length) * 100);
+      };
+
       const enrichedRows = rows.map((r: any) => ({
         ...r,
         follower_count: followerMap.get(String(r.itunes_id)) || 0,
+        enrichment_score: computeEnrichmentScore(r),
       }));
 
       if (sort === "followers") {
         enrichedRows.sort((a: any, b: any) => {
           return order === "desc" ? b.follower_count - a.follower_count : a.follower_count - b.follower_count;
+        });
+      }
+
+      if (sort === "enrichment") {
+        enrichedRows.sort((a: any, b: any) => {
+          return order === "desc" ? b.enrichment_score - a.enrichment_score : a.enrichment_score - b.enrichment_score;
         });
       }
 
@@ -13154,6 +13173,51 @@ Rules:
     } catch (err: any) {
       console.error("[CMS] Bulk delete error:", err);
       res.status(500).json({ message: err?.message || "Failed to delete podcasts" });
+    }
+  });
+
+  app.post("/api/admin/cms/podcasts/bulk-update", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { slugs, status, is_active } = req.body;
+      if (!Array.isArray(slugs) || slugs.length === 0) {
+        return res.status(400).json({ message: "No slugs provided" });
+      }
+      if (slugs.length > 100) {
+        return res.status(400).json({ message: "Maximum 100 podcasts at a time" });
+      }
+      const validStatuses = ["published", "hidden", "needs_review", "requested"];
+      if (status !== undefined && !validStatuses.includes(status)) {
+        return res.status(400).json({ message: "Invalid status value" });
+      }
+      if (is_active !== undefined && typeof is_active !== "boolean") {
+        return res.status(400).json({ message: "is_active must be a boolean" });
+      }
+      if (status === undefined && is_active === undefined) {
+        return res.status(400).json({ message: "No fields to update" });
+      }
+
+      const setClauses: string[] = [];
+      const params: any[] = [slugs];
+      if (status !== undefined) {
+        params.push(status);
+        setClauses.push(`status = $${params.length}`);
+      }
+      if (is_active !== undefined) {
+        params.push(is_active);
+        setClauses.push(`is_active = $${params.length}`);
+      }
+      setClauses.push(`updated_at = NOW()`);
+
+      const { rowCount } = await pool.query(
+        `UPDATE podcast_directory SET ${setClauses.join(", ")} WHERE slug = ANY($1)`,
+        params
+      );
+      console.log(`[CMS] Admin bulk-updated ${rowCount} podcasts`);
+      res.json({ updated: rowCount });
+    } catch (err: any) {
+      console.error("[CMS] Bulk update error:", err);
+      res.status(500).json({ message: err?.message || "Failed to update podcasts" });
     }
   });
 

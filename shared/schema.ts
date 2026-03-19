@@ -379,6 +379,7 @@ export const podcastDirectory = pgTable("podcast_directory", {
   appleRating: text("apple_rating"),
   appleRatingCount: integer("apple_rating_count"),
   hasLandingPage: boolean("has_landing_page").default(false),
+  isActive: boolean("is_active").notNull().default(true),
   status: text("status").notNull().default("published"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

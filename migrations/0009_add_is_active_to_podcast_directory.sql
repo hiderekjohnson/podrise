@@ -1,0 +1,1 @@
+ALTER TABLE podcast_directory ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT true;

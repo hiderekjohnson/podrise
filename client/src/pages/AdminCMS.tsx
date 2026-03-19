@@ -94,6 +94,9 @@ interface CMSPodcast {
   artwork_url: string;
   status: string;
   episode_count: number;
+  enrichment_score: number;
+  is_active: boolean;
+  follower_count: number;
 }
 
 interface TopicStat {
@@ -808,6 +811,7 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
   const [selectedSlugs, setSelectedSlugs] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
 
   const { data: podcasts, isLoading } = useQuery<CMSPodcast[]>({
     queryKey: ["/api/admin/cms/podcasts", debouncedSearch, statusFilter, sortField, sortOrder],
@@ -875,6 +879,32 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
     }
   };
 
+  const handleBulkUpdate = async (fields: { status?: string; is_active?: boolean }) => {
+    if (selectedSlugs.size === 0) return;
+    setIsBulkUpdating(true);
+    try {
+      const res = await fetch("/api/admin/cms/podcasts/bulk-update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ slugs: Array.from(selectedSlugs), ...fields }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast({ title: "Update failed", description: data.message, variant: "destructive" });
+        return;
+      }
+      toast({ title: `Updated ${data.updated} podcasts` });
+      setSelectedSlugs(new Set());
+      setShowDeleteConfirm(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/podcasts"] });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -932,8 +962,8 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
       </div>
 
       {selectedSlugs.size > 0 && (
-        <div className="flex items-center gap-3 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl" data-testid="bulk-delete-bar">
-          <span className="text-sm font-medium text-red-700 dark:text-red-400">{selectedSlugs.size} selected</span>
+        <div className="flex items-center gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl" data-testid="bulk-action-bar">
+          <span className="text-sm font-medium text-blue-700 dark:text-blue-400" data-testid="text-selected-count">{selectedSlugs.size} selected</span>
           <button
             onClick={() => setSelectedSlugs(new Set())}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
@@ -942,36 +972,63 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
             Clear
           </button>
           <div className="flex-1" />
-          {!showDeleteConfirm ? (
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors"
-              data-testid="btn-delete-selected"
+          <div className="flex items-center gap-2 flex-wrap">
+            {isBulkUpdating && <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />}
+            <select
+              data-testid="select-bulk-status"
+              defaultValue=""
+              onChange={(e) => { if (e.target.value) { handleBulkUpdate({ status: e.target.value }); e.target.value = ""; } }}
+              disabled={isBulkUpdating}
+              className="h-8 px-2 border border-border rounded-lg text-xs bg-white dark:bg-zinc-900 disabled:opacity-50"
             >
-              <Trash2 className="w-3.5 h-3.5" />
-              Delete Selected
-            </button>
-          ) : (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-red-600 dark:text-red-400 font-medium">This will permanently delete {selectedSlugs.size} podcasts and all their data.</span>
+              <option value="" disabled>Set Status...</option>
+              <option value="published">Published</option>
+              <option value="hidden">Hidden</option>
+              <option value="needs_review">Needs Review</option>
+              <option value="requested">Requested</option>
+            </select>
+            <select
+              data-testid="select-bulk-active"
+              defaultValue=""
+              onChange={(e) => { if (e.target.value) { handleBulkUpdate({ is_active: e.target.value === "true" }); e.target.value = ""; } }}
+              disabled={isBulkUpdating}
+              className="h-8 px-2 border border-border rounded-lg text-xs bg-white dark:bg-zinc-900 disabled:opacity-50"
+            >
+              <option value="" disabled>Set Active...</option>
+              <option value="true">Active</option>
+              <option value="false">Inactive</option>
+            </select>
+            {!showDeleteConfirm ? (
               <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="px-3 py-1.5 text-xs font-medium text-muted-foreground border border-border rounded-lg hover:bg-muted/50 transition-colors"
-                data-testid="btn-cancel-delete"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors"
+                data-testid="btn-delete-selected"
               >
-                Cancel
+                <Trash2 className="w-3.5 h-3.5" />
+                Delete
               </button>
-              <button
-                onClick={handleBulkDelete}
-                disabled={isDeleting}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
-                data-testid="btn-confirm-delete"
-              >
-                {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                {isDeleting ? "Deleting..." : "Confirm Delete"}
-              </button>
-            </div>
-          )}
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-red-600 dark:text-red-400 font-medium">Permanently delete {selectedSlugs.size} podcasts?</span>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="px-3 py-1.5 text-xs font-medium text-muted-foreground border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                  data-testid="btn-cancel-delete"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={isDeleting}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                  data-testid="btn-confirm-delete"
+                >
+                  {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                  {isDeleting ? "Deleting..." : "Confirm"}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -1016,13 +1073,23 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
                   Followers {sortField === "followers" && (sortOrder === "asc" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
                 </span>
               </th>
+              <th
+                className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3 cursor-pointer hover:text-foreground"
+                onClick={() => toggleSort("enrichment")}
+                data-testid="sort-podcast-enrichment"
+              >
+                <span className="flex items-center gap-1">
+                  Enrichment {sortField === "enrichment" && (sortOrder === "asc" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
+                </span>
+              </th>
+              <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">Active</th>
               <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {(!podcasts || podcasts.length === 0) ? (
               <tr>
-                <td colSpan={6} className="px-4 py-12 text-center text-sm text-muted-foreground">
+                <td colSpan={8} className="px-4 py-12 text-center text-sm text-muted-foreground">
                   {search ? "No matching podcasts found." : "No podcasts in directory yet."}
                 </td>
               </tr>
@@ -1060,7 +1127,31 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
                     <span className="text-sm font-medium text-foreground" data-testid={`text-episode-count-${p.id}`}>{p.episode_count || 0}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="text-sm font-medium text-foreground" data-testid={`text-follower-count-${p.id}`}>{(p as any).follower_count || 0}</span>
+                    <span className="text-sm font-medium text-foreground" data-testid={`text-follower-count-${p.id}`}>{p.follower_count || 0}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2" data-testid={`text-enrichment-${p.id}`}>
+                      <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            p.enrichment_score >= 75 ? "bg-emerald-500" : p.enrichment_score >= 40 ? "bg-amber-500" : "bg-red-400"
+                          }`}
+                          style={{ width: `${p.enrichment_score}%` }}
+                        />
+                      </div>
+                      <span className={`text-xs font-medium ${
+                        p.enrichment_score >= 75 ? "text-emerald-600 dark:text-emerald-400" : p.enrichment_score >= 40 ? "text-amber-600 dark:text-amber-400" : "text-red-500 dark:text-red-400"
+                      }`}>{p.enrichment_score}%</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold ${
+                      p.is_active
+                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                        : "bg-gray-100 text-gray-500 dark:bg-gray-800/50 dark:text-gray-400"
+                    }`} data-testid={`text-active-${p.id}`}>
+                      {p.is_active ? "Active" : "Inactive"}
+                    </span>
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={p.status || "published"} />
