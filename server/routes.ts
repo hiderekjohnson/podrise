@@ -13617,6 +13617,50 @@ Rules:
     }
   });
 
+  app.post("/api/admin/cms/podcasts/bulk-delete", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { slugs } = req.body;
+      if (!Array.isArray(slugs) || slugs.length === 0) {
+        return res.status(400).json({ message: "No slugs provided" });
+      }
+      if (slugs.length > 100) {
+        return res.status(400).json({ message: "Maximum 100 podcasts at a time" });
+      }
+      const { rows: existing } = await pool.query(
+        `SELECT slug, name FROM podcast_directory WHERE slug = ANY($1)`, [slugs]
+      );
+      if (existing.length === 0) {
+        return res.status(404).json({ message: "No matching podcasts found" });
+      }
+      const foundSlugs = existing.map((r: any) => r.slug);
+      const safeDelete = async (sql: string, params: any[]) => {
+        try { await pool.query(sql, params); } catch (e: any) { }
+      };
+      await safeDelete(`DELETE FROM bookmarks WHERE podcast_slug = ANY($1)`, [foundSlugs]);
+      await safeDelete(`DELETE FROM podcast_hosts WHERE podcast_slug = ANY($1)`, [foundSlugs]);
+      await safeDelete(`DELETE FROM podcaster_claims WHERE podcast_slug = ANY($1)`, [foundSlugs]);
+      await safeDelete(`DELETE FROM episode_quotes WHERE podcast_slug = ANY($1)`, [foundSlugs]);
+      await safeDelete(`DELETE FROM transcript_segments WHERE podcast_slug = ANY($1)`, [foundSlugs]);
+      await safeDelete(`DELETE FROM landing_page_recaps WHERE slug = ANY($1)`, [foundSlugs]);
+      await safeDelete(`DELETE FROM episode_transcripts WHERE podcast_id = ANY($1)`, [foundSlugs]);
+      await safeDelete(`DELETE FROM transcript_logs WHERE podcast_id = ANY($1)`, [foundSlugs]);
+      await safeDelete(`DELETE FROM recap_entity_mentions WHERE podcast_slug = ANY($1)`, [foundSlugs]);
+      await safeDelete(`DELETE FROM recaps WHERE podcast_slug = ANY($1)`, [foundSlugs]);
+      await safeDelete(`DELETE FROM episodes WHERE podcast_slug = ANY($1)`, [foundSlugs]);
+      await safeDelete(`DELETE FROM feed_ads WHERE podcast_slug = ANY($1)`, [foundSlugs]);
+      await safeDelete(`UPDATE podcast_lists SET podcast_slugs = ARRAY(SELECT unnest(podcast_slugs) EXCEPT SELECT unnest($1::text[])) WHERE podcast_slugs && $1`, [foundSlugs]);
+      await safeDelete(`UPDATE rss_feeds SET podcast_slugs = ARRAY(SELECT unnest(podcast_slugs) EXCEPT SELECT unnest($1::text[])) WHERE podcast_slugs && $1`, [foundSlugs]);
+      await pool.query(`DELETE FROM podcast_directory WHERE slug = ANY($1)`, [foundSlugs]);
+      const names = existing.map((r: any) => r.name).join(", ");
+      console.log(`[CMS] Admin bulk-deleted ${foundSlugs.length} podcasts: ${names}`);
+      res.json({ deleted: foundSlugs.length, names: existing.map((r: any) => r.name) });
+    } catch (err: any) {
+      console.error("[CMS] Bulk delete error:", err);
+      res.status(500).json({ message: err?.message || "Failed to delete podcasts" });
+    }
+  });
+
   app.get("/api/admin/rss-feeds", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });

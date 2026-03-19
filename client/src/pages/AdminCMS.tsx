@@ -797,12 +797,16 @@ function ImportPodcastsModal({ open, onClose }: { open: boolean; onClose: () => 
 }
 
 function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
+  const { toast } = useToast();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search);
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortField, setSortField] = useState("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [showImport, setShowImport] = useState(false);
+  const [selectedSlugs, setSelectedSlugs] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const { data: podcasts, isLoading } = useQuery<CMSPodcast[]>({
     queryKey: ["/api/admin/cms/podcasts", debouncedSearch, statusFilter, sortField, sortOrder],
@@ -824,6 +828,49 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
     } else {
       setSortField(field);
       setSortOrder("asc");
+    }
+  };
+
+  const toggleSelect = (slug: string) => {
+    setSelectedSlugs(prev => {
+      const next = new Set(prev);
+      if (next.has(slug)) next.delete(slug); else next.add(slug);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (!podcasts) return;
+    if (selectedSlugs.size === podcasts.length) {
+      setSelectedSlugs(new Set());
+    } else {
+      setSelectedSlugs(new Set(podcasts.map(p => p.slug)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedSlugs.size === 0) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch("/api/admin/cms/podcasts/bulk-delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ slugs: Array.from(selectedSlugs) }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast({ title: "Delete failed", description: data.message, variant: "destructive" });
+        return;
+      }
+      toast({ title: `Deleted ${data.deleted} podcasts`, description: data.names?.slice(0, 5).join(", ") + (data.names?.length > 5 ? ` and ${data.names.length - 5} more` : "") });
+      setSelectedSlugs(new Set());
+      setShowDeleteConfirm(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/podcasts"] });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -883,10 +930,63 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
         </div>
       </div>
 
+      {selectedSlugs.size > 0 && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl" data-testid="bulk-delete-bar">
+          <span className="text-sm font-medium text-red-700 dark:text-red-400">{selectedSlugs.size} selected</span>
+          <button
+            onClick={() => setSelectedSlugs(new Set())}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            data-testid="btn-clear-selection"
+          >
+            Clear
+          </button>
+          <div className="flex-1" />
+          {!showDeleteConfirm ? (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors"
+              data-testid="btn-delete-selected"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Delete Selected
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-red-600 dark:text-red-400 font-medium">This will permanently delete {selectedSlugs.size} podcasts and all their data.</span>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-3 py-1.5 text-xs font-medium text-muted-foreground border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                data-testid="btn-cancel-delete"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                disabled={isDeleting}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                data-testid="btn-confirm-delete"
+              >
+                {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                {isDeleting ? "Deleting..." : "Confirm Delete"}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="bg-white dark:bg-zinc-900 border border-border rounded-2xl overflow-hidden">
         <table className="w-full" data-testid="table-cms-podcasts">
           <thead>
             <tr className="border-b border-border bg-muted/30">
+              <th className="px-4 py-3 w-10">
+                <input
+                  type="checkbox"
+                  checked={!!podcasts?.length && selectedSlugs.size === podcasts.length}
+                  onChange={toggleSelectAll}
+                  className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
+                  data-testid="checkbox-select-all"
+                />
+              </th>
               <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3 w-12"></th>
               <th
                 className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3 cursor-pointer hover:text-foreground"
@@ -921,7 +1021,7 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
           <tbody className="divide-y divide-border">
             {(!podcasts || podcasts.length === 0) ? (
               <tr>
-                <td colSpan={5} className="px-4 py-12 text-center text-sm text-muted-foreground">
+                <td colSpan={6} className="px-4 py-12 text-center text-sm text-muted-foreground">
                   {search ? "No matching podcasts found." : "No podcasts in directory yet."}
                 </td>
               </tr>
@@ -929,10 +1029,19 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
               podcasts.map((p) => (
                 <tr
                   key={p.id}
-                  className="hover:bg-muted/20 transition-colors cursor-pointer"
+                  className={`hover:bg-muted/20 transition-colors cursor-pointer ${selectedSlugs.has(p.slug) ? "bg-primary/5" : ""}`}
                   onClick={() => onNavigate({ tab: "podcast-detail", podcastSlug: p.slug })}
                   data-testid={`row-cms-podcast-${p.id}`}
                 >
+                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={selectedSlugs.has(p.slug)}
+                      onChange={() => toggleSelect(p.slug)}
+                      className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
+                      data-testid={`checkbox-podcast-${p.id}`}
+                    />
+                  </td>
                   <td className="px-4 py-3">
                     {p.artwork_url ? (
                       <img src={p.artwork_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
