@@ -6788,7 +6788,13 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         params = [effectiveSlugs, limit];
         if (cursor) params.push(cursor);
       } else {
-        const cursorParam = cursor ? `AND lr.id < $2` : "";
+        const hasFollowedFilter = isAuthenticated && userPodcastSlugs.length > 0;
+        let paramIdx = 1;
+        const slugFilterParam = hasFollowedFilter ? paramIdx++ : 0;
+        const limitParamIdx = paramIdx++;
+        const cursorParamIdx = cursor ? paramIdx++ : 0;
+        const cursorParam = cursor ? `AND lr.id < $${cursorParamIdx}` : "";
+        const slugExclude = hasFollowedFilter ? `AND lr.slug != ALL($${slugFilterParam})` : "";
         query = `
           SELECT lr.id, lr.slug, lr.podcast_name, lr.episode_title, lr.episode_slug,
                  lr.publish_date, lr.artwork_url, lr.tldl, lr.key_insights,
@@ -6806,11 +6812,14 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           LEFT JOIN podcast_directory pd ON pd.slug = lr.slug
           WHERE lr.episode_slug IS NOT NULL
             AND lr.tldl IS NOT NULL
+            ${slugExclude}
             ${cursorParam}
           ORDER BY lr.publish_date DESC NULLS LAST, lr.id DESC
-          LIMIT $1
+          LIMIT $${limitParamIdx}
         `;
-        params = [limit];
+        params = [];
+        if (hasFollowedFilter) params.push(userPodcastSlugs);
+        params.push(limit);
         if (cursor) params.push(cursor);
       }
 
@@ -17119,9 +17128,9 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
   app.patch("/api/admin/feed-ads/:id", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     try {
-      const { insertFeedAdSchema } = await import("@shared/schema");
+      const { baseFeedAdSchema } = await import("@shared/schema");
       const sanitizeHtml = (await import("sanitize-html")).default;
-      const parsed = insertFeedAdSchema.partial().parse(req.body);
+      const parsed = baseFeedAdSchema.partial().parse(req.body);
       if (parsed.description) {
         parsed.description = sanitizeHtml(parsed.description, {
           allowedTags: ["b", "strong", "i", "em", "a", "br"],

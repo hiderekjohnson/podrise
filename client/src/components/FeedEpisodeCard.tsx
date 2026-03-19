@@ -52,12 +52,12 @@ export function EpisodeContentSection({ podcastSlug, episodeSlug, episodeTitle, 
             </span>
           )}
         </div>
-        {tldl && (
-          <h3 className="text-[26px] font-normal text-[#09090B] dark:text-white leading-[1.2] tracking-[-0.01em] group-hover:text-[#6366F1] transition-colors" style={{ fontFamily: "var(--font-serif)" }} data-testid={`${testIdPrefix}-tldl-${episodeSlug}`}>
-            {tldl}
-          </h3>
-        )}
       </Link>
+      {tldl && (
+        <h3 className="text-[26px] font-normal text-[#09090B] dark:text-white leading-[1.2] tracking-[-0.01em]" style={{ fontFamily: "var(--font-serif)" }} data-testid={`${testIdPrefix}-tldl-${episodeSlug}`}>
+          {tldl}
+        </h3>
+      )}
     </div>
   );
 }
@@ -111,8 +111,6 @@ export interface FeedEpisodeCardProps {
   headerAction?: React.ReactNode;
   additionalContent?: React.ReactNode;
   hosts?: string;
-  totalEpisodes?: number;
-  yearStarted?: number;
   adBadge?: boolean;
 }
 
@@ -133,8 +131,6 @@ export function FeedEpisodeCard({
   headerAction,
   additionalContent,
   hosts,
-  totalEpisodes,
-  yearStarted,
   adBadge = false,
 }: FeedEpisodeCardProps) {
   const headerTint = getHeaderTint(artworkUrl || podcastSlug);
@@ -146,7 +142,7 @@ export function FeedEpisodeCard({
       data-testid={`${testIdPrefix}-${episodeSlug}`}
     >
       <div className="flex items-start gap-[18px] px-5 md:px-6 pt-5 pb-[18px]" style={{ background: headerTint }}>
-        <div className="w-[80px] h-[80px] sm:w-[120px] sm:h-[120px] rounded-[14px] overflow-hidden flex-shrink-0 shadow-[0_4px_16px_rgba(0,0,0,0.16),0_1px_3px_rgba(0,0,0,0.08)] border border-black/[0.08]">
+        <Link href={`/podcasts/${podcastSlug}`} className="w-[80px] h-[80px] sm:w-[120px] sm:h-[120px] rounded-[14px] overflow-hidden flex-shrink-0 shadow-[0_4px_16px_rgba(0,0,0,0.16),0_1px_3px_rgba(0,0,0,0.08)] border border-black/[0.08] block">
           {artworkUrl ? (
             <img src={hiResArtwork(artworkUrl)} alt={podcastName} className="w-full h-full object-cover" loading="lazy" />
           ) : (
@@ -154,7 +150,7 @@ export function FeedEpisodeCard({
               <Calendar className="w-6 h-6 text-[#A1A1AA]" />
             </div>
           )}
-        </div>
+        </Link>
         <div className="flex-1 min-w-0 flex flex-col justify-center min-h-[80px] sm:min-h-[120px]">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
@@ -175,19 +171,7 @@ export function FeedEpisodeCard({
                     {hosts}
                   </div>
                 )}
-                {totalEpisodes && (
-                  <div className="flex items-center gap-[5px] text-[14px] text-[#71717A] whitespace-nowrap">
-                    <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" className="opacity-40 flex-shrink-0"><path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd"/></svg>
-                    {totalEpisodes}+ episodes
-                  </div>
-                )}
-                {yearStarted && (
-                  <div className="flex items-center gap-[5px] text-[14px] text-[#71717A] whitespace-nowrap">
-                    <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" className="opacity-40 flex-shrink-0"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/></svg>
-                    Since {yearStarted}
-                  </div>
-                )}
-                {duration && !hosts && !totalEpisodes && !yearStarted && (
+                {duration && !hosts && (
                   <div className="flex items-center gap-2 text-[12px] text-[#A1A1AA]">
                     <span>{duration}</span>
                   </div>

@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Loader2, X, Brain, Rocket, BarChart3, Coins, Heart, BookOpen, Zap, Globe, Mic } from "lucide-react";
+import { Search, Loader2, X, Brain, Rocket, BarChart3, Coins, Heart, BookOpen, Zap, Globe, Mic, ArrowLeft } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Link } from "wouter";
 import { RequestPodcastDialog } from "@/components/RequestPodcastDialog";
@@ -375,6 +375,14 @@ export default function DiscoverPage() {
     <DashboardLayout>
       <div className="min-h-screen bg-white dark:bg-[#09090B]" data-testid="discover-page">
         <div className="max-w-5xl mx-auto px-4 md:px-8 pt-6 pb-3">
+          <button
+            onClick={() => window.history.back()}
+            className="flex items-center gap-1.5 text-[14px] text-[#71717A] hover:text-[#09090B] dark:hover:text-white transition-colors mb-3"
+            data-testid="back-button"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </button>
           <h1 className="text-[22px] md:text-[26px] font-bold text-[#09090B] dark:text-white mb-4">Discover</h1>
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A1A1AA]" />

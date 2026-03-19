@@ -188,29 +188,9 @@ function InlineChatSection({ item }: { item: AccordionItemData }) {
     }
   };
 
-  const suggestions = [
-    `What are the key takeaways?`,
-    `Who was mentioned in this episode?`,
-  ];
-
   return (
     <div className="px-4 md:px-5 py-4" data-testid={`inline-chat-${item.id}`}>
       <div className="max-h-[280px] overflow-y-auto space-y-2.5 mb-3">
-        {messages.length === 0 && (
-          <div className="space-y-2">
-            <p className="text-[13px] text-[#A1A1AA]">Ask anything about this episode:</p>
-            {suggestions.map((q, i) => (
-              <button
-                key={i}
-                onClick={() => sendMessage(q)}
-                className="block w-full text-left text-[13px] px-3 py-2 rounded-lg border border-[#E4E4E7] hover:bg-[#F7F7FC] hover:border-[#6366F1]/20 text-[#3F3F46] transition-all"
-                data-testid={`inline-chat-suggestion-${item.id}-${i}`}
-              >
-                {q}
-              </button>
-            ))}
-          </div>
-        )}
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
             <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-[14px] leading-relaxed ${
@@ -243,7 +223,7 @@ function InlineChatSection({ item }: { item: AccordionItemData }) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") sendMessage(); }}
           placeholder="Ask about this episode..."
-          className="flex-1 bg-transparent text-[14px] text-[#09090B] placeholder:text-[#A1A1AA] outline-none"
+          className="flex-1 bg-transparent text-[14px] text-[#09090B] dark:text-white placeholder:text-[#52525B] dark:placeholder:text-[#A1A1AA] outline-none"
           data-testid={`inline-chat-input-${item.id}`}
         />
         <button

@@ -140,8 +140,6 @@ export interface RecapCardProps {
   quoteAttribution?: string | null;
   duration?: string;
   hosts?: string | null;
-  totalEpisodes?: number | null;
-  yearStarted?: number | null;
   whatHappened?: string | null;
   spotifyEpisodeUrl?: string | null;
   spotifyUrl?: string | null;
@@ -178,8 +176,6 @@ export function RecapCard({
   quoteAttribution,
   duration,
   hosts,
-  totalEpisodes,
-  yearStarted,
   whatHappened,
   spotifyEpisodeUrl,
   spotifyUrl,
@@ -284,8 +280,6 @@ export function RecapCard({
         quoteAttribution={quoteAttribution}
         duration={duration}
         hosts={hosts || undefined}
-        totalEpisodes={totalEpisodes || undefined}
-        yearStarted={yearStarted || undefined}
         testIdPrefix={testIdPrefix}
         headerAction={headerAction}
         adBadge={adBadge}

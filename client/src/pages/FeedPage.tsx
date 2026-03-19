@@ -124,8 +124,6 @@ function FeedRecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle,
       quote={item.quote}
       quoteAttribution={item.quoteAttribution}
       hosts={item.hosts}
-      totalEpisodes={item.totalEpisodes}
-      yearStarted={item.yearStarted}
       whatHappened={item.whatHappened}
       spotifyEpisodeUrl={item.spotifyEpisodeUrl}
       spotifyUrl={item.spotifyUrl}
@@ -333,8 +331,6 @@ function EpisodeRecapAdCard({ ad, onFollow, bookmarkedKeys, onBookmarkToggle, fo
         quote={ad.episodeQuote}
         quoteAttribution={ad.episodeQuoteAttribution}
         hosts={ad.hosts}
-        totalEpisodes={ad.totalEpisodes}
-        yearStarted={ad.yearStarted}
         whatHappened={ad.whatHappened}
         spotifyEpisodeUrl={ad.spotifyEpisodeUrl}
         spotifyUrl={ad.spotifyUrl}

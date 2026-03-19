@@ -557,23 +557,6 @@ ${referralData ? `
 
 <!-- FOOTER -->
 <tr><td class="footer-inner" style="padding:24px 28px;background:#F7F7FC;border-top:1px solid #F0F0F2;">
-  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:14px;"><tr>
-    <td valign="middle">
-      <a href="https://podrise.com" style="text-decoration:none;display:inline-block;">
-        <table cellpadding="0" cellspacing="0" role="presentation" style="display:inline-table;"><tr>
-          <td valign="middle">
-            <img src="${escapeHtml(logoUrl)}" alt="PodRise" width="28" height="28" style="width:28px;height:28px;border-radius:8px;display:block;" />
-          </td>
-          <td style="padding-left:8px;vertical-align:middle;">
-            <span style="font-size:16px;font-weight:600;color:#09090B;letter-spacing:-0.04em;">Pod</span><span style="font-size:16px;font-weight:300;color:#6366F1;letter-spacing:-0.04em;">Rise</span>
-          </td>
-        </tr></table>
-      </a>
-    </td>
-    <td align="right" valign="middle">
-      <a href="https://podrise.com" style="font-family:'Courier New',monospace;font-size:12px;color:#A1A1AA;text-decoration:none;">podrise.com</a>
-    </td>
-  </tr></table>
 
   <p class="footer-desc" style="font-size:13px;color:#A1A1AA;line-height:1.65;margin:0 0 12px;max-width:460px;">Unlocking the world's knowledge trapped inside millions of podcasts - transforming billions of hours of conversation into structured information anyone can instantly learn from.</p>
 

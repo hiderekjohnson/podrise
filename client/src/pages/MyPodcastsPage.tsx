@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { Loader2, Radio, UserMinus } from "lucide-react";
+import { Loader2, Radio, UserMinus, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 
 interface FollowedPodcast {
@@ -70,6 +70,14 @@ export default function MyPodcastsPage() {
     <DashboardLayout>
       <div className="min-h-screen bg-[#F9F9FB] dark:bg-[#09090B]" data-testid="my-podcasts-page">
         <div className="max-w-3xl mx-auto px-4 md:px-8 py-8 pb-24 md:pb-8">
+          <button
+            onClick={() => window.history.back()}
+            className="flex items-center gap-1.5 text-[14px] text-[#71717A] hover:text-[#09090B] dark:hover:text-white transition-colors mb-3"
+            data-testid="back-button"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </button>
           <div className="mb-6">
             <h1 className="text-[24px] md:text-[28px] font-bold text-[#09090B] dark:text-white mb-1" data-testid="my-podcasts-title">My Podcasts</h1>
             <p className="text-[15px] text-[#71717A] dark:text-[#A1A1AA]">Podcasts you follow</p>

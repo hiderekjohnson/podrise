@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
-import { Loader2, Mic, Compass, Mail, X, ShoppingBag, Shield } from "lucide-react";
+import { Loader2, Mic, Compass, Mail, X, ShoppingBag, Shield, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRegister, useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -145,6 +145,16 @@ export function PodcastPageLayout({
       {!isLoggedIn && <SiteHeader />}
 
       <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-7xl pt-4">
+          <button
+            onClick={() => window.history.back()}
+            className="flex items-center gap-1.5 text-[14px] text-[#71717A] hover:text-[#09090B] dark:hover:text-white transition-colors mb-2"
+            data-testid="back-button"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </button>
+        </div>
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}

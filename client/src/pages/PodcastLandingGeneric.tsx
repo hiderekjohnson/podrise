@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "wouter";
-import { Loader2, ArrowRight, Clock, Mic, Headphones, UserCircle, BookOpen, Mail, ShoppingBag, ExternalLink } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, Clock, Mic, Headphones, UserCircle, BookOpen, Mail, ShoppingBag, ExternalLink } from "lucide-react";
 import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { BookCoverFill } from "@/components/BookCover";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -385,6 +385,10 @@ export default function PodcastLandingGeneric() {
   const staticConfig = getPodcastBySlug(slug || "");
   const { data: user } = useAuth();
   const { toast } = useToast();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [slug]);
 
   useEffect(() => {
     const urlTab = new URLSearchParams(window.location.search).get("tab");
@@ -794,6 +798,14 @@ export default function PodcastLandingGeneric() {
     return (
       <div className="min-h-screen bg-[#F9F9FB] pb-[calc(60px+env(safe-area-inset-bottom,0px))] md:pb-0">
         <div className="px-4 md:px-6 py-6 pb-24 md:pb-8">
+          <button
+            onClick={() => window.history.back()}
+            className="flex items-center gap-1.5 text-[14px] text-[#71717A] hover:text-[#09090B] dark:hover:text-white transition-colors mb-4"
+            data-testid="back-button"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </button>
           {contentSections}
         </div>
       </div>

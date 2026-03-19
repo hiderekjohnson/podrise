@@ -1,7 +1,7 @@
 import { useParams } from "wouter";
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, ArrowUp, Clock, ShoppingBag, Bookmark, BookmarkCheck, Heart, ListChecks, ArrowRight } from "lucide-react";
+import { Lightbulb, Loader2, Sparkles, BookOpen, Globe, Users, Building2, ChevronRight, Megaphone, ExternalLink, Ticket, Copy, Check, Quote, X, ArrowUp, Clock, ShoppingBag, Bookmark, BookmarkCheck, Heart, ListChecks, ArrowRight, ArrowLeft } from "lucide-react";
 import { BookCover as SharedBookCover } from "@/components/BookCover";
 import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -342,14 +342,13 @@ function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName,
         />
       );
     }
+    if (isLoggedIn) {
+      return null;
+    }
     return (
       <button
         onClick={() => {
-          if (!isLoggedIn) {
-            setShowAuthGate(true);
-            return;
-          }
-          setCurrentEntity(null); setMessages([]); setInput(""); setIsOpen(true);
+          setShowAuthGate(true);
         }}
         className="fixed bottom-[calc(60px+env(safe-area-inset-bottom,0px))] right-4 sm:bottom-6 sm:right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-105 transition-all md:bottom-4"
         data-testid="open-ai-chat-fab"
@@ -961,6 +960,17 @@ export default function EpisodeRecapPage() {
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="space-y-8"
       >
+        {authUser && (
+          <button
+            onClick={() => window.history.back()}
+            className="flex items-center gap-1.5 text-[14px] text-[#71717A] hover:text-[#09090B] dark:hover:text-white transition-colors"
+            data-testid="back-button"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </button>
+        )}
+
         {!authUser && (
           <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[16px] text-muted-foreground overflow-hidden" data-testid="breadcrumb-nav">
             <Link href="/" className="hover:text-foreground transition-colors shrink-0 hidden sm:inline">Home</Link>

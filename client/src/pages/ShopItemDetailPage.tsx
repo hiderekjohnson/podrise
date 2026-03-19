@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Link } from "wouter";
-import { BookOpen, ShoppingBag, ExternalLink, ChevronDown, FileText } from "lucide-react";
+import { BookOpen, ShoppingBag, ExternalLink, ChevronDown, FileText, ArrowLeft } from "lucide-react";
 import { BookCover as SharedBookCover } from "@/components/BookCover";
 import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { Footer } from "@/components/Footer";
@@ -601,7 +601,7 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData, is
       {!isLoggedIn && <SiteHeader />}
 
       <div
-        className={`fixed left-0 right-0 z-[55] bg-white/95 dark:bg-[#08080F]/95 backdrop-blur-md border-b border-[#F0F0F2] dark:border-white/[0.08] transition-all duration-300 ${showStickyBar ? "top-[69px] opacity-100" : "top-[12px] opacity-0 pointer-events-none"}`}
+        className={`fixed left-0 right-0 z-[55] bg-white/95 dark:bg-[#08080F]/95 backdrop-blur-md transition-all duration-300 hidden md:block border-b border-[#F0F0F2] dark:border-white/[0.08] ${showStickyBar ? "top-[69px] opacity-100" : "top-[12px] opacity-0 pointer-events-none"}`}
         data-testid="sticky-buy-bar"
       >
         <div className="max-w-[960px] mx-auto px-5 sm:px-8 flex items-center gap-3 h-[56px]">
@@ -653,9 +653,51 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData, is
         </div>
       </div>
 
+      {showStickyBar && primaryUrlHref && (
+        <div
+          className="fixed left-0 right-0 bottom-[calc(50px+env(safe-area-inset-bottom,0px))] z-[55] bg-white/95 dark:bg-[#08080F]/95 backdrop-blur-md border-t border-[#F0F0F2] dark:border-white/[0.08] md:hidden"
+          data-testid="sticky-buy-bar-mobile"
+        >
+          <div className="flex items-center gap-3 px-4 py-3">
+            {isBook ? (
+              <HeroCover title={item.name} slug={item.slug} size="sticky" />
+            ) : (
+              hasProductImage && <img src={item.imageUrl!} alt="" className="w-7 h-7 rounded-md object-cover shrink-0" />
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px] font-semibold text-[#09090B] dark:text-white truncate leading-tight">
+                {item.name}
+              </div>
+            </div>
+            <a
+              href={primaryUrlHref}
+              target="_blank"
+              rel={item.primaryUrlIsAmazon ? "sponsored noopener noreferrer" : "noopener noreferrer"}
+              className={`rounded-lg px-4 py-2 text-[14px] font-bold transition-colors flex items-center gap-1.5 shadow-sm shrink-0 ${
+                item.primaryUrlIsAmazon
+                  ? "bg-[#FF9900] hover:bg-[#E88B00] text-[#0F1111]"
+                  : "bg-[#6366F1] hover:bg-[#4F46E5] text-white"
+              }`}
+              data-testid="sticky-buy-amazon-mobile"
+            >
+              {item.primaryUrlLabel}
+              {!isBook && <ExternalLink className="w-3.5 h-3.5" />}
+            </a>
+          </div>
+        </div>
+      )}
+
       <main className="flex-1">
         <div className="max-w-[960px] mx-auto px-5 sm:px-8 pt-8 pb-24">
 
+          <button
+            onClick={() => window.history.back()}
+            className="flex items-center gap-1.5 text-[14px] text-[#71717A] hover:text-[#09090B] dark:hover:text-white transition-colors mb-4"
+            data-testid="back-button"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </button>
           <div className="text-[13px] text-[#A1A1AA] mb-6 flex items-center gap-2" data-testid="breadcrumb">
             <Link href="/" className="text-[#52525B] hover:text-[#6366F1] transition-colors">Home</Link>
             <span>›</span>

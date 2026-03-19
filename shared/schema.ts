@@ -830,7 +830,7 @@ export const feedAds = pgTable("feed_ads", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertFeedAdSchema = createInsertSchema(feedAds).omit({
+export const baseFeedAdSchema = createInsertSchema(feedAds).omit({
   id: true,
   createdAt: true,
 }).extend({
@@ -849,7 +849,9 @@ export const insertFeedAdSchema = createInsertSchema(feedAds).omit({
   podcastName: z.string().nullable().optional(),
   weight: z.number().int().min(1).max(10).default(1),
   isActive: z.boolean().default(true),
-}).refine((data) => {
+});
+
+export const insertFeedAdSchema = baseFeedAdSchema.refine((data) => {
   if (data.type === "podcast" && (!data.podcastSlug || data.podcastSlug.trim() === "")) return false;
   return true;
 }, { message: "Podcast slug is required for podcast ads", path: ["podcastSlug"] }).refine((data) => {
