@@ -40,9 +40,7 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
 
     const publishDate = ep.date_published
       ? new Date(ep.date_published * 1000).toISOString().slice(0, 10)
-      : ep.fetched_at
-        ? new Date(ep.fetched_at).toISOString().slice(0, 10)
-        : new Date().toISOString().slice(0, 10);
+      : new Date().toISOString().slice(0, 10);
 
     let tabloidHeadline: string | null = null;
     let tabloidSubHeadline: string | null = null;

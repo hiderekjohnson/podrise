@@ -966,10 +966,18 @@ export async function refreshLandingPageRecaps(force: boolean = false, dateRange
     }
     landingRecapProgress.currentPodcast = podcast.name;
     try {
-      const lookupUrl = `https://itunes.apple.com/lookup?id=${podcast.itunesId}&media=podcast&entity=podcastEpisode&limit=25&sort=recent`;
+      const lookupUrl = `https://itunes.apple.com/lookup?id=${podcast.itunesId}&media=podcast&entity=podcastEpisode&limit=10&sort=recent`;
       const lookupRes = await fetch(lookupUrl);
       const lookupJson = await lookupRes.json();
-      const episodes = (lookupJson.results || []).filter((r: any) => r.wrapperType === "podcastEpisode");
+      const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+      const episodes = (lookupJson.results || []).filter((r: any) => {
+        if (r.wrapperType !== "podcastEpisode") return false;
+        if (!dateRange) {
+          const releaseDate = r.releaseDate ? new Date(r.releaseDate) : null;
+          if (!releaseDate || releaseDate < threeDaysAgo) return false;
+        }
+        return true;
+      });
 
       if (episodes.length === 0) {
         skipped++;
@@ -2276,7 +2284,6 @@ export function startEmailScheduler() {
     }
     refreshNewTranscripts()
       .then(() => refreshLandingPageRecaps())
-      .then(() => bulkDownloadTranscripts())
       .catch(err => console.error("[InitialRefresh] Error:", err));
   }, 30000);
 }
