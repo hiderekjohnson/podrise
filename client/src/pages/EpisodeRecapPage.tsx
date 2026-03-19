@@ -924,74 +924,64 @@ export default function EpisodeRecapPage() {
           </nav>
         )}
 
-        <nav className={`sticky z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar ${authUser ? "top-0" : "top-[120px]"}`} data-testid="nav-in-page">
-          {episode.keyInsights?.length > 0 && (
+        {!authUser && (
+          <nav className={`sticky z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-background/90 backdrop-blur-md border-b border-black/[0.06] flex items-center gap-2 overflow-x-auto hide-scrollbar top-[120px]`} data-testid="nav-in-page">
+            {episode.keyInsights?.length > 0 && (
+              <button
+                onClick={() => scrollTo("section-key-insights")}
+                className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-key-insights" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+                data-testid="nav-key-insights"
+              >
+                Takeaways
+              </button>
+            )}
             <button
-              onClick={() => scrollTo("section-key-insights")}
-              className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-key-insights" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-              data-testid="nav-key-insights"
+              onClick={() => scrollTo("section-what-happened")}
+              className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-what-happened" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+              data-testid="nav-what-happened"
             >
-              Takeaways
+              Recap
             </button>
-          )}
-          <button
-            onClick={() => scrollTo("section-what-happened")}
-            className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-what-happened" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-            data-testid="nav-what-happened"
-          >
-            Recap
-          </button>
-          {(guests.length > 0 || hasHosts) && (
-            <button
-              onClick={() => scrollTo("section-guests")}
-              className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-guests" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-              data-testid="nav-people"
-            >
-              Participants
-            </button>
-          )}
-          {(notablePeople.length > 0 || notableCompanies.length > 0) && (
-            <button
-              onClick={() => scrollTo("section-mentions")}
-              className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-mentions" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-              data-testid="nav-mentions"
-            >
-              Mentions
-            </button>
-          )}
-          {(hasBooks || hasShopProducts) && (
-            <button
-              onClick={() => scrollTo("section-shop")}
-              className={`flex items-center gap-1.5 px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-shop" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-              data-testid="nav-shop"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              Shop
-              <span className="ml-0.5 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#6366F1]/10 text-[#6366F1] border border-[#6366F1]/20">Beta</span>
-            </button>
-          )}
-          {hasQuotes && (
-            <button
-              onClick={() => scrollTo("section-quotes")}
-              className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-quotes" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
-              data-testid="nav-quotes"
-            >
-              Quotes
-            </button>
-          )}
-          {authUser && (
-            <button
-              onClick={() => isBookmarked ? removeBookmarkMut.mutate() : addBookmarkMut.mutate()}
-              className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-                isBookmarked ? "text-primary bg-primary/[0.08]" : "text-muted-foreground hover:text-primary hover:bg-primary/[0.06]"
-              }`}
-              data-testid="nav-bookmark"
-            >
-              {isBookmarked ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
-              {isBookmarked ? "Saved" : "Save"}
-            </button>
-          )}
-        </nav>
+            {(guests.length > 0 || hasHosts) && (
+              <button
+                onClick={() => scrollTo("section-guests")}
+                className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-guests" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+                data-testid="nav-people"
+              >
+                Participants
+              </button>
+            )}
+            {(notablePeople.length > 0 || notableCompanies.length > 0) && (
+              <button
+                onClick={() => scrollTo("section-mentions")}
+                className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-mentions" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+                data-testid="nav-mentions"
+              >
+                Mentions
+              </button>
+            )}
+            {(hasBooks || hasShopProducts) && (
+              <button
+                onClick={() => scrollTo("section-shop")}
+                className={`flex items-center gap-1.5 px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-shop" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+                data-testid="nav-shop"
+              >
+                <ShoppingBag className="w-4 h-4" />
+                Shop
+                <span className="ml-0.5 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#6366F1]/10 text-[#6366F1] border border-[#6366F1]/20">Beta</span>
+              </button>
+            )}
+            {hasQuotes && (
+              <button
+                onClick={() => scrollTo("section-quotes")}
+                className={`px-4 py-2.5 text-[16px] font-semibold min-h-[44px] rounded-lg whitespace-nowrap transition-colors ${activeSection === "section-quotes" ? "bg-primary/[0.12] text-primary" : "bg-black/[0.04] dark:bg-white/[0.06] text-muted-foreground hover:bg-black/[0.08] dark:hover:bg-white/[0.1]"}`}
+                data-testid="nav-quotes"
+              >
+                Quotes
+              </button>
+            )}
+          </nav>
+        )}
 
         <section id="section-what-happened" className="bg-white dark:bg-white/[0.03] border border-[#E4E4E7] dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.05)]" data-testid="section-what-happened">
           <div className="px-5 sm:px-6 pt-5 pb-[18px] border-b border-[#F0F0F2] dark:border-white/[0.06]">
@@ -1592,7 +1582,7 @@ export default function EpisodeRecapPage() {
           </FeedStyleCardSection>
         )}
 
-        {firstQuote && (
+        {!authUser && firstQuote && (
           <FeedStyleCardSection>
             <blockquote className="border-l-[3px] border-[#6366F1] pl-5 py-1" data-testid="inline-blockquote">
               <p className="text-[17px] leading-[1.7] text-[#09090B] dark:text-white italic" style={{ fontFamily: "var(--font-serif)" }}>
@@ -1608,9 +1598,11 @@ export default function EpisodeRecapPage() {
         )}
       </FeedStyleCard>
 
-      <div className="mt-5 bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl shadow-sm shadow-black/[0.02] overflow-hidden px-4 sm:px-6 py-5" data-testid="episode-recap-body-card">
-        {recapContent}
-      </div>
+      {!authUser && (
+        <div className="mt-5 bg-white dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl shadow-sm shadow-black/[0.02] overflow-hidden px-4 sm:px-6 py-5" data-testid="episode-recap-body-card">
+          {recapContent}
+        </div>
+      )}
 
       {!authUser && (
         <motion.div
