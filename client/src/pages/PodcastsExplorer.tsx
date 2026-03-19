@@ -152,17 +152,6 @@ function PodcastCard({ podcast, stat, variant = "default", rank }: { podcast: Po
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground/20 group-hover:text-primary transition-colors flex-shrink-0 mt-1" />
           </div>
-          {podcast.knownFor && podcast.knownFor.length > 0 && (
-            <div className="px-5 pb-4 pt-0">
-              <div className="flex flex-wrap gap-1.5">
-                {podcast.knownFor.slice(0, 2).map((item, i) => (
-                  <span key={i} className="text-[12px] px-2 py-1 rounded-md bg-primary/[0.06] text-primary/80 font-medium line-clamp-1">
-                    {item.length > 50 ? item.substring(0, 47) + "..." : item}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </Link>
     );
