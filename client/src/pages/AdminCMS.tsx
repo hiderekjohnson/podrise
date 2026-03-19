@@ -1090,6 +1090,34 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
   const [form, setForm] = useState<PodcastForm | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshLog, setRefreshLog] = useState<string[] | null>(null);
+  const [showDeleteConfirmDetail, setShowDeleteConfirmDetail] = useState(false);
+  const [isDeletingDetail, setIsDeletingDetail] = useState(false);
+
+  const handleDeletePodcast = async () => {
+    if (!podcast?.slug) return;
+    setIsDeletingDetail(true);
+    try {
+      const res = await fetch("/api/admin/cms/podcasts/bulk-delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ slugs: [podcast.slug] }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast({ title: "Delete failed", description: data.message, variant: "destructive" });
+        return;
+      }
+      toast({ title: "Podcast deleted", description: podcast.name });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/podcasts"] });
+      setShowDeleteConfirmDetail(false);
+      onNavigate({ tab: "podcasts" });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setIsDeletingDetail(false);
+    }
+  };
 
   const handleRefreshMetadata = async () => {
     if (!podcast?.slug) return;
@@ -1237,6 +1265,36 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
             <FileText className="w-4 h-4" />
             View Episodes ({stats?.episodeCount || 0})
           </button>
+          {!showDeleteConfirmDetail ? (
+            <button
+              onClick={() => setShowDeleteConfirmDetail(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 rounded-xl text-sm font-semibold hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors border border-red-200 dark:border-red-800"
+              data-testid="button-delete-podcast"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowDeleteConfirmDetail(false)}
+                className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="button-cancel-delete-podcast"
+                disabled={isDeletingDetail}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeletePodcast}
+                disabled={isDeletingDetail}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 disabled:opacity-50 transition-colors"
+                data-testid="button-confirm-delete-podcast"
+              >
+                {isDeletingDetail ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                Confirm Delete
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
