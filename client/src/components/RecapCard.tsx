@@ -198,7 +198,7 @@ export function RecapCard({
     ) : (
       <button
         onClick={() => onFollowToggle(podcastSlug, true)}
-        className="inline-flex items-center px-5 py-[9px] rounded-full text-[14px] font-bold transition-all bg-[#6366F1] text-white hover:bg-[#4F46E5]"
+        className="inline-flex items-center px-4 py-[7px] rounded-full text-[13px] font-bold transition-all bg-[#6366F1] text-white hover:bg-[#4F46E5]"
         data-testid={`${testIdPrefix}-follow-btn-${id}`}
       >
         Follow

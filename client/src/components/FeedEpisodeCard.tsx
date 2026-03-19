@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { Calendar, ArrowRight } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
 
 export function relativeTime(dateStr: string | null): string {
   if (!dateStr) return "";
@@ -25,9 +26,15 @@ export function hiResArtwork(url: string | null): string {
   return url.replace(/\/\d+x\d+bb\./, "/100x100bb.");
 }
 
-export function getHeaderTint(source: string): string {
+export function getHeaderTint(source: string): { light: string; dark: string } {
   const hash = source ? source.split("").reduce((a, c) => a + c.charCodeAt(0), 0) : 0;
-  const tints = ["#F0F0FF", "#F0FBF5", "#FEF8ED", "#FEF0F5", "#F0F8FF"];
+  const tints = [
+    { light: "#F0F0FF", dark: "rgba(99,102,241,0.06)" },
+    { light: "#F0FBF5", dark: "rgba(34,197,94,0.06)" },
+    { light: "#FEF8ED", dark: "rgba(245,158,11,0.06)" },
+    { light: "#FEF0F5", dark: "rgba(236,72,153,0.06)" },
+    { light: "#F0F8FF", dark: "rgba(59,130,246,0.06)" },
+  ];
   return tints[hash % tints.length];
 }
 
@@ -133,7 +140,9 @@ export function FeedEpisodeCard({
   hosts,
   adBadge = false,
 }: FeedEpisodeCardProps) {
+  const { theme } = useTheme();
   const headerTint = getHeaderTint(artworkUrl || podcastSlug);
+  const tintBg = theme === "dark" ? headerTint.dark : headerTint.light;
   const insights = keyInsights || [];
 
   return (
@@ -141,8 +150,11 @@ export function FeedEpisodeCard({
       className="bg-white dark:bg-[#111114] border border-[#E4E4E7] dark:border-[#1C1C22] rounded-2xl overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
       data-testid={`${testIdPrefix}-${episodeSlug}`}
     >
-      <div className="flex items-start gap-[18px] px-5 md:px-6 pt-5 pb-[18px]" style={{ background: headerTint }}>
-        <Link href={`/podcasts/${podcastSlug}`} className="w-[80px] h-[80px] sm:w-[120px] sm:h-[120px] rounded-[14px] overflow-hidden flex-shrink-0 shadow-[0_4px_16px_rgba(0,0,0,0.16),0_1px_3px_rgba(0,0,0,0.08)] border border-black/[0.08] block">
+      <div
+        className="flex items-center gap-4 sm:gap-5 px-5 md:px-6 py-5"
+        style={{ background: tintBg }}
+      >
+        <Link href={`/podcasts/${podcastSlug}`} className="w-[88px] h-[88px] sm:w-[124px] sm:h-[124px] rounded-[16px] overflow-hidden flex-shrink-0 shadow-[0_4px_16px_rgba(0,0,0,0.14),0_1px_3px_rgba(0,0,0,0.06)] border border-black/[0.06] dark:border-white/[0.06] block">
           {artworkUrl ? (
             <img src={hiResArtwork(artworkUrl)} alt={podcastName} className="w-full h-full object-cover" loading="lazy" />
           ) : (
@@ -151,40 +163,31 @@ export function FeedEpisodeCard({
             </div>
           )}
         </Link>
-        <div className="flex-1 min-w-0 flex flex-col justify-center min-h-[80px] sm:min-h-[120px]">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              {adBadge && (
-                <span className="inline-block text-[10px] font-bold uppercase tracking-[0.08em] text-[#A1A1AA] bg-[#F4F4F5] dark:bg-[#27272A] px-2 py-0.5 rounded mb-1.5" data-testid={`${testIdPrefix}-ad-badge`}>
-                  Ad
-                </span>
-              )}
-              <Link href={`/podcasts/${podcastSlug}`}>
-                <span className="text-[18px] font-extrabold text-[#09090B] dark:text-white tracking-[-0.02em] leading-[1.1] mb-2 block hover:text-[#6366F1] transition-colors overflow-hidden text-ellipsis" data-testid={`${testIdPrefix}-podcast-name-${episodeSlug}`}>
-                  {podcastName}
-                </span>
-              </Link>
-              <div className="flex items-center gap-[14px] flex-wrap">
-                {hosts && (
-                  <div className="flex items-center gap-[5px] text-[14px] text-[#71717A] whitespace-nowrap">
-                    <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" className="opacity-40 flex-shrink-0"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/></svg>
-                    {hosts}
-                  </div>
-                )}
-                {duration && !hosts && (
-                  <div className="flex items-center gap-2 text-[12px] text-[#A1A1AA]">
-                    <span>{duration}</span>
-                  </div>
-                )}
-              </div>
-              <div className="w-[30px] h-[3px] rounded-full bg-[#6366F1]/40 mt-3" />
+        <div className="flex-1 min-w-0">
+          {adBadge && (
+            <span className="inline-block text-[10px] font-bold uppercase tracking-[0.08em] text-[#A1A1AA] bg-white/60 dark:bg-white/[0.06] px-2 py-0.5 rounded mb-1.5" data-testid={`${testIdPrefix}-ad-badge`}>
+              Ad
+            </span>
+          )}
+          <Link href={`/podcasts/${podcastSlug}`}>
+            <span className="text-[17px] sm:text-[18px] font-extrabold text-[#09090B] dark:text-white tracking-[-0.02em] leading-[1.15] block hover:text-[#6366F1] transition-colors overflow-hidden text-ellipsis" data-testid={`${testIdPrefix}-podcast-name-${episodeSlug}`}>
+              {podcastName}
+            </span>
+          </Link>
+          {hosts && (
+            <div className="flex items-center gap-[5px] text-[13px] text-[#71717A] dark:text-[#8B8B95] mt-1.5">
+              <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" className="opacity-40 flex-shrink-0"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/></svg>
+              <span className="truncate">{hosts}</span>
             </div>
-            {headerAction && (
-              <div className="flex-shrink-0 pt-0.5">
-                {headerAction}
-              </div>
-            )}
-          </div>
+          )}
+          {duration && !hosts && (
+            <div className="text-[12px] text-[#A1A1AA] mt-1.5">{duration}</div>
+          )}
+          {headerAction && (
+            <div className="mt-3">
+              {headerAction}
+            </div>
+          )}
         </div>
       </div>
 
