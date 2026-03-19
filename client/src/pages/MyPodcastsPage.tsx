@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -11,12 +12,36 @@ interface FollowedPodcast {
   artworkUrl: string | null;
   category: string | null;
   hosts: string | null;
+  hasLandingPage: boolean;
 }
 
 function hiResArtwork(url: string | null): string {
   if (!url) return "";
   if (url.startsWith("/artwork/")) return url;
   return url.replace(/\/\d+x\d+bb\./, "/100x100bb.");
+}
+
+function ExternalPodcastName({ name, slug }: { name: string; slug: string }) {
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  return (
+    <div className="relative inline-block max-w-full">
+      <span
+        className="text-[16px] font-bold text-[#09090B] dark:text-white block truncate cursor-default"
+        data-testid={`my-podcast-name-${slug}`}
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+      >
+        {name}
+      </span>
+      {showTooltip && (
+        <div className="absolute left-0 bottom-full mb-2 z-50 px-3 py-2 text-[12px] leading-snug text-white bg-[#18181B] dark:bg-[#27272A] rounded-lg shadow-lg whitespace-normal max-w-[260px] pointer-events-none" data-testid={`tooltip-external-${slug}`}>
+          This podcast isn't in our library yet — we've noted your interest and are working on adding it
+          <div className="absolute left-4 top-full w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[5px] border-t-[#18181B] dark:border-t-[#27272A]" />
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function MyPodcastsPage() {
@@ -71,47 +96,63 @@ export default function MyPodcastsPage() {
             </div>
           ) : (
             <div className="space-y-3" data-testid="my-podcasts-list">
-              {podcasts.map((podcast) => (
-                <div
-                  key={podcast.slug}
-                  className="bg-white dark:bg-[#111114] border border-[#E4E4E7] dark:border-[#1C1C22] rounded-2xl overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.05)] flex items-center gap-4 px-4 py-3"
-                  data-testid={`my-podcast-card-${podcast.slug}`}
-                >
-                  <Link href={`/podcasts/${podcast.slug}`} className="flex-shrink-0">
-                    <div className="w-[60px] h-[60px] rounded-[10px] overflow-hidden shadow-sm border border-black/[0.08]">
-                      {podcast.artworkUrl ? (
-                        <img src={hiResArtwork(podcast.artworkUrl)} alt={podcast.name} className="w-full h-full object-cover" loading="lazy" />
-                      ) : (
-                        <div className="w-full h-full bg-[#F4F4F5] dark:bg-[#1C1C22] flex items-center justify-center">
-                          <Radio className="w-5 h-5 text-[#A1A1AA]" />
-                        </div>
-                      )}
-                    </div>
-                  </Link>
-                  <div className="flex-1 min-w-0">
-                    <Link href={`/podcasts/${podcast.slug}`}>
-                      <span className="text-[16px] font-bold text-[#09090B] dark:text-white hover:text-[#6366F1] transition-colors block truncate" data-testid={`my-podcast-name-${podcast.slug}`}>
-                        {podcast.name}
-                      </span>
-                    </Link>
-                    {podcast.hosts && (
-                      <p className="text-[13px] text-[#71717A] dark:text-[#A1A1AA] truncate mt-0.5">{podcast.hosts}</p>
-                    )}
-                    {podcast.category && (
-                      <p className="text-[12px] text-[#A1A1AA] mt-0.5">{podcast.category}</p>
+              {podcasts.map((podcast) => {
+                const ArtworkContent = (
+                  <div className="w-[60px] h-[60px] rounded-[10px] overflow-hidden shadow-sm border border-black/[0.08]">
+                    {podcast.artworkUrl ? (
+                      <img src={hiResArtwork(podcast.artworkUrl)} alt={podcast.name} className="w-full h-full object-cover" loading="lazy" />
+                    ) : (
+                      <div className="w-full h-full bg-[#F4F4F5] dark:bg-[#1C1C22] flex items-center justify-center">
+                        <Radio className="w-5 h-5 text-[#A1A1AA]" />
+                      </div>
                     )}
                   </div>
-                  <button
-                    onClick={() => unfollowMutation.mutate(podcast.slug)}
-                    disabled={unfollowMutation.isPending}
-                    className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[13px] font-semibold border border-[#E4E4E7] dark:border-[#3F3F46] text-[#71717A] hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all"
-                    data-testid={`my-podcast-unfollow-${podcast.slug}`}
+                );
+
+                return (
+                  <div
+                    key={podcast.slug}
+                    className="bg-white dark:bg-[#111114] border border-[#E4E4E7] dark:border-[#1C1C22] rounded-2xl overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.05)] flex items-center gap-4 px-4 py-3"
+                    data-testid={`my-podcast-card-${podcast.slug}`}
                   >
-                    <UserMinus className="w-3.5 h-3.5" />
-                    Unfollow
-                  </button>
-                </div>
-              ))}
+                    {podcast.hasLandingPage ? (
+                      <Link href={`/podcasts/${podcast.slug}`} className="flex-shrink-0">
+                        {ArtworkContent}
+                      </Link>
+                    ) : (
+                      <div className="flex-shrink-0">
+                        {ArtworkContent}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      {podcast.hasLandingPage ? (
+                        <Link href={`/podcasts/${podcast.slug}`}>
+                          <span className="text-[16px] font-bold text-[#09090B] dark:text-white hover:text-[#6366F1] transition-colors block truncate" data-testid={`my-podcast-name-${podcast.slug}`}>
+                            {podcast.name}
+                          </span>
+                        </Link>
+                      ) : (
+                        <ExternalPodcastName name={podcast.name} slug={podcast.slug} />
+                      )}
+                      {podcast.hosts && (
+                        <p className="text-[13px] text-[#71717A] dark:text-[#A1A1AA] truncate mt-0.5">{podcast.hosts}</p>
+                      )}
+                      {podcast.category && (
+                        <p className="text-[12px] text-[#A1A1AA] mt-0.5">{podcast.category}</p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => unfollowMutation.mutate(podcast.slug)}
+                      disabled={unfollowMutation.isPending}
+                      className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[13px] font-semibold border border-[#E4E4E7] dark:border-[#3F3F46] text-[#71717A] hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all"
+                      data-testid={`my-podcast-unfollow-${podcast.slug}`}
+                    >
+                      <UserMinus className="w-3.5 h-3.5" />
+                      Unfollow
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

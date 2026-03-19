@@ -398,6 +398,7 @@ export default function DiscoverPage() {
 
   const [itunesSearchResults, setItunesSearchResults] = useState<any[]>([]);
   const [isItunesSearching, setIsItunesSearching] = useState(false);
+  const [followedExternalSlugs, setFollowedExternalSlugs] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {
     if (searchQuery.trim().length < 2) {
@@ -430,18 +431,48 @@ export default function DiscoverPage() {
       followMutation.mutate(result.slug);
     } else {
       try {
-        await apiRequest("POST", "/api/feed/follow", {
+        const res = await apiRequest("POST", "/api/feed/follow", {
           itunesId: result.id,
           podcastName: result.name,
           artworkUrl: result.artworkUrl,
         });
+        const data = await res.json();
+        if (data.slug) {
+          setFollowedExternalSlugs(prev => new Map(prev).set(result.id, data.slug));
+        }
         queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
         queryClient.invalidateQueries({ queryKey: ["/api/feed/followed-slugs"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/feed/followed-podcasts-details"] });
         toast({ title: "Following!", description: `Now following ${result.name}` });
       } catch {
         toast({ title: "Error", description: "Failed to follow podcast", variant: "destructive" });
       }
     }
+  };
+
+  const handleUnfollowExternal = async (result: any) => {
+    const slug = result.slug || followedExternalSlugs.get(result.id);
+    if (!slug) return;
+    try {
+      await apiRequest("POST", "/api/feed/unfollow", { podcastSlug: slug });
+      setFollowedExternalSlugs(prev => {
+        const next = new Map(prev);
+        next.delete(result.id);
+        return next;
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/feed/followed-slugs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/feed/followed-podcasts-details"] });
+      toast({ title: "Unfollowed", description: `Unfollowed ${result.name}` });
+    } catch {
+      toast({ title: "Error", description: "Failed to unfollow podcast", variant: "destructive" });
+    }
+  };
+
+  const isItunesResultFollowed = (result: any): boolean => {
+    if (followedExternalSlugs.has(result.id)) return true;
+    if (result.slug && resolvedFollowedSlugs.has(result.slug)) return true;
+    return false;
   };
 
   const filteredPodcasts = searchQuery.length >= 2
@@ -601,9 +632,9 @@ export default function DiscoverPage() {
                           ) : (
                             <FollowButton
                               slug={`itunes-${item.raw.id}`}
-                              isFollowing={false}
+                              isFollowing={isItunesResultFollowed(item.raw)}
                               onFollow={() => handleFollowExternal(item.raw)}
-                              onUnfollow={() => {}}
+                              onUnfollow={() => handleUnfollowExternal(item.raw)}
                             />
                           )}
                         </div>

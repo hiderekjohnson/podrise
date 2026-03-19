@@ -7553,13 +7553,32 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const user = await storage.getUserById(fsUserId);
       if (!user) return res.json({ followedSlugs: [] });
       const rawPodcasts = user.podcasts || [];
-      const itunesIds = rawPodcasts.map((p: string) => {
-        try { const parsed = JSON.parse(p); return parsed.id || p; } catch { return p; }
-      });
-      if (itunesIds.length === 0) return res.json({ followedSlugs: [] });
+      const itunesIds: string[] = [];
+      const slugFallbacks: string[] = [];
+      for (const p of rawPodcasts) {
+        try {
+          const parsed = JSON.parse(p);
+          if (parsed.id) itunesIds.push(String(parsed.id));
+          else if (parsed.slug) slugFallbacks.push(parsed.slug);
+          else slugFallbacks.push(p);
+        } catch {
+          slugFallbacks.push(p);
+        }
+      }
+      if (itunesIds.length === 0 && slugFallbacks.length === 0) return res.json({ followedSlugs: [] });
+      const conditions: string[] = [];
+      const params: any[] = [];
+      if (itunesIds.length > 0) {
+        params.push(itunesIds);
+        conditions.push(`itunes_id::text = ANY($${params.length})`);
+      }
+      if (slugFallbacks.length > 0) {
+        params.push(slugFallbacks);
+        conditions.push(`slug = ANY($${params.length})`);
+      }
       const slugResult = await pool.query(
-        `SELECT slug FROM podcast_directory WHERE itunes_id::text = ANY($1)`,
-        [itunesIds]
+        `SELECT slug FROM podcast_directory WHERE ${conditions.join(' OR ')}`,
+        params
       );
       res.json({ followedSlugs: slugResult.rows.map((r: any) => r.slug) });
     } catch (err) {
@@ -7598,7 +7617,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         conditions.push(`slug = ANY($${params.length})`);
       }
       const result = await pool.query(
-        `SELECT slug, name, artwork_url AS "artworkUrl", category, hosts FROM podcast_directory WHERE ${conditions.join(' OR ')} ORDER BY name ASC`,
+        `SELECT slug, name, artwork_url AS "artworkUrl", category, hosts, has_landing_page AS "hasLandingPage" FROM podcast_directory WHERE ${conditions.join(' OR ')} ORDER BY name ASC`,
         params
       );
       res.json(result.rows.map((r: any) => ({
@@ -7607,6 +7626,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         artworkUrl: r.artworkUrl,
         category: r.category || null,
         hosts: r.hosts || null,
+        hasLandingPage: r.hasLandingPage ?? false,
       })));
     } catch (err) {
       console.error("Followed podcasts details error:", err);
@@ -7712,7 +7732,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       });
 
       if (existingIds.includes(pd.itunes_id.toString())) {
-        return res.json({ success: true, message: "Already following" });
+        return res.json({ success: true, message: "Already following", slug: pd.slug });
       }
 
       const newEntry = JSON.stringify({
