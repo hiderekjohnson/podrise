@@ -852,11 +852,11 @@ export default function PodcastLandingGeneric() {
         <div className="px-4 md:px-6 py-6 pb-24 md:pb-8">
           <button
             onClick={() => window.history.back()}
-            className="flex items-center gap-1.5 text-[14px] text-[#71717A] hover:text-[#09090B] dark:hover:text-white transition-colors mb-4"
+            className="text-[#71717A] hover:text-[#09090B] dark:hover:text-white transition-colors mb-4"
             data-testid="back-button"
+            aria-label="Go back"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back
+            <ArrowLeft className="w-5 h-5" />
           </button>
           {contentSections}
         </div>

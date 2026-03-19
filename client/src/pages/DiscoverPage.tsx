@@ -375,15 +375,17 @@ export default function DiscoverPage() {
     <DashboardLayout>
       <div className="min-h-screen bg-white dark:bg-[#09090B]" data-testid="discover-page">
         <div className="max-w-5xl mx-auto px-4 md:px-8 pt-6 pb-3">
-          <button
-            onClick={() => window.history.back()}
-            className="flex items-center gap-1.5 text-[14px] text-[#71717A] hover:text-[#09090B] dark:hover:text-white transition-colors mb-3"
-            data-testid="back-button"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </button>
-          <h1 className="text-[22px] md:text-[26px] font-bold text-[#09090B] dark:text-white mb-4">Discover</h1>
+          <div className="flex items-center gap-2 mb-4">
+            <button
+              onClick={() => window.history.back()}
+              className="text-[#71717A] hover:text-[#09090B] dark:hover:text-white transition-colors"
+              data-testid="back-button"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-[22px] md:text-[26px] font-bold text-[#09090B] dark:text-white">Discover</h1>
+          </div>
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A1A1AA]" />
             <input

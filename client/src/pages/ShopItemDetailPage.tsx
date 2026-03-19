@@ -692,11 +692,11 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData, is
 
           <button
             onClick={() => window.history.back()}
-            className="flex items-center gap-1.5 text-[14px] text-[#71717A] hover:text-[#09090B] dark:hover:text-white transition-colors mb-4"
+            className="text-[#71717A] hover:text-[#09090B] dark:hover:text-white transition-colors mb-4"
             data-testid="back-button"
+            aria-label="Go back"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back
+            <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="text-[13px] text-[#A1A1AA] mb-6 flex items-center gap-2" data-testid="breadcrumb">
             <Link href="/" className="text-[#52525B] hover:text-[#6366F1] transition-colors">Home</Link>

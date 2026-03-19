@@ -106,11 +106,11 @@ export function PodcastPageLayout({
         <div className="w-full max-w-7xl pt-4">
           <button
             onClick={() => window.history.back()}
-            className="flex items-center gap-1.5 text-[14px] text-[#71717A] hover:text-[#09090B] dark:hover:text-white transition-colors mb-2"
+            className="text-[#71717A] hover:text-[#09090B] dark:hover:text-white transition-colors mb-2"
             data-testid="back-button"
+            aria-label="Go back"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back
+            <ArrowLeft className="w-5 h-5" />
           </button>
         </div>
         <motion.div
