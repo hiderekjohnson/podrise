@@ -1350,6 +1350,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       }).catch(e => console.error("[Referral] Verify error:", e));
 
       req.session.userId = row.user_id;
+      pool.query(`UPDATE users SET last_login_at = NOW() WHERE id = $1`, [row.user_id]).catch(e => console.error("[LastLogin] Failed:", e));
       const user = await storage.getUserById(row.user_id);
 
       // Send new user notification now that email is confirmed (double opt-in)
@@ -1772,6 +1773,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
       if (!isNew) {
         req.session.userId = user.id;
+        pool.query(`UPDATE users SET last_login_at = NOW() WHERE id = $1`, [user.id]).catch(e => console.error("[LastLogin] Failed:", e));
 
         const field = input.type === "podcast" ? "podcasts"
           : input.type === "industry" ? "industries"
@@ -1884,6 +1886,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
     await storage.markMagicLinkUsed(magicLink.id);
     req.session.userId = user.id;
+    pool.query(`UPDATE users SET last_login_at = NOW() WHERE id = $1`, [user.id]).catch(e => console.error("[LastLogin] Failed:", e));
 
     if (!user.emailVerified) {
       await pool.query(`UPDATE users SET email_verified = true WHERE id = $1`, [user.id]);
@@ -2024,6 +2027,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
         }
 
         req.session.userId = user.id;
+        pool.query(`UPDATE users SET last_login_at = NOW() WHERE id = $1`, [user.id]).catch(e => console.error("[LastLogin] Failed:", e));
         req.session.save(() => {
           res.redirect("/onboarding");
         });
@@ -2056,6 +2060,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       }
 
       req.session.userId = user.id;
+      pool.query(`UPDATE users SET last_login_at = NOW() WHERE id = $1`, [user.id]).catch(e => console.error("[LastLogin] Failed:", e));
       req.session.save(() => {
         res.redirect(user.onboardingCompleted ? "/dashboard" : "/onboarding");
       });
@@ -7785,8 +7790,27 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
     }
+    const sortBy = req.query.sortBy as string | undefined;
+    if (sortBy === "lastLogin") {
+      const result = await pool.query(`SELECT * FROM users ORDER BY last_login_at DESC NULLS LAST`);
+      return res.json(result.rows.map((r: any) => ({
+        id: r.id,
+        email: r.email,
+        podcasts: r.podcasts || [],
+        deliveryTime: r.delivery_time,
+        deliveryTimezone: r.delivery_timezone,
+        createdAt: r.created_at,
+        lastLoginAt: r.last_login_at,
+        plan: r.plan,
+        emailVerified: r.email_verified,
+        signupSource: r.signup_source,
+      })));
+    }
     const allUsers = await storage.getAllUsers();
-    res.json(allUsers);
+    const usersWithLogin = await pool.query(`SELECT id, last_login_at FROM users`);
+    const loginMap = new Map(usersWithLogin.rows.map((r: any) => [r.id, r.last_login_at]));
+    const enriched = allUsers.map(u => ({ ...u, lastLoginAt: loginMap.get(u.id) || null }));
+    res.json(enriched);
   });
 
   app.get("/api/admin/error-logs", async (req, res) => {

@@ -32,6 +32,7 @@ export const users = pgTable("users", {
   referralCode: text("referral_code").unique(),
   referredBy: integer("referred_by"),
   createdAt: timestamp("created_at").defaultNow(),
+  lastLoginAt: timestamp("last_login_at"),
 });
 
 export const bookmarks = pgTable("bookmarks", {

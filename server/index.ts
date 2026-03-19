@@ -226,6 +226,13 @@ process.on("uncaughtException", (err) => {
         }
 
         try {
+          await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP`);
+          console.log("last_login_at column ready");
+        } catch (err) {
+          console.warn("last_login_at migration skipped:", err);
+        }
+
+        try {
           const { ensureApiUsageTable } = await import("./apiUsageTracker");
           await ensureApiUsageTable();
           console.log("api_usage_logs table ready");
