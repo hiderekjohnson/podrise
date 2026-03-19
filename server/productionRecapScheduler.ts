@@ -84,6 +84,22 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
       } catch (valErr) {
         console.warn(`[ProdRecap] Validation failed for "${epTitle?.slice(0, 50)}":`, valErr);
       }
+
+      try {
+        const { generateTabloidHeadline } = await import("./emailScheduler");
+        const headlineResult = await generateTabloidHeadline(
+          epTitle, podcastName, "", recap.whatHappened, recap.keyInsights || []
+        );
+        if (headlineResult) {
+          await pool.query(
+            `UPDATE landing_page_recaps SET tabloid_headline = $1, tabloid_sub_headline = $2 WHERE id = $3`,
+            [headlineResult.tabloidHeadline, headlineResult.tabloidSubHeadline, upsertedRecap.id]
+          );
+          console.log(`[ProdRecap] Generated tabloid headline for "${epTitle?.slice(0, 50)}"`);
+        }
+      } catch (headlineErr) {
+        console.warn(`[ProdRecap] Tabloid headline generation failed for "${epTitle?.slice(0, 50)}":`, headlineErr);
+      }
     }
 
     return true;
