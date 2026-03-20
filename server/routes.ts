@@ -179,10 +179,20 @@ async function sendNewUserNotification(user: any, req: any, signupSource?: strin
     hour12: true,
   });
 
+  const latestUser = await storage.getUserById(user.id) || user;
+  const utmSource = latestUser.utmSource || "—";
+  const utmMedium = latestUser.utmMedium || "—";
+  const utmCampaign = latestUser.utmCampaign || "—";
+  const utmContent = latestUser.utmContent || "—";
+  const utmTerm = latestUser.utmTerm || "—";
+  const userSignupSource = latestUser.signupSource || "—";
+  const userSignupSourceDetail = latestUser.signupSourceDetail || "—";
+  const userDeviceType = latestUser.deviceType || "—";
+
   const { client, fromEmail } = await getUncachableResendClient();
   await client.emails.send({
     from: `PodRise Alerts <${fromEmail}>`,
-    to: "hiderekjohnson@gmail.com",
+    to: ["derek@podrise.com", "jessica@podrise.com"],
     subject: `🚀 New PodRise User: ${user.email}`,
     html: `<!DOCTYPE html>
 <html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;margin:0;padding:0;background:#f8f9fa;">
@@ -198,6 +208,15 @@ async function sendNewUserNotification(user: any, req: any, signupSource?: strin
 <tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">Signed up</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">${signupTime} <span style="color:#aaa;font-size:12px;">(Lisbon)</span></td></tr>
 <tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">Source</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">${sourceUrl}</td></tr>
 <tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">User ID</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">#${user.id}</td></tr>
+<tr><td colspan="2" style="padding:16px 0 6px;font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:1px;border-top:1px solid #eee;">Attribution</td></tr>
+<tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">UTM Source</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">${utmSource}</td></tr>
+<tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">UTM Medium</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">${utmMedium}</td></tr>
+<tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">UTM Campaign</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">${utmCampaign}</td></tr>
+<tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">UTM Content</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">${utmContent}</td></tr>
+<tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">UTM Term</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">${utmTerm}</td></tr>
+<tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">Signup Source</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">${userSignupSource}</td></tr>
+<tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">Signup Source Detail</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">${userSignupSourceDetail}</td></tr>
+<tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">Device Type</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">${userDeviceType}</td></tr>
 </table>
 </div>
 <div style="padding:16px 32px;background:#f8f9fa;text-align:center;">
@@ -243,7 +262,7 @@ async function checkAndRecordTierHit(referrerId: number) {
           const { client, fromEmail } = await getUncachableResendClient();
           await client.emails.send({
             from: `PodRise Alerts <${fromEmail}>`,
-            to: "hiderekjohnson@gmail.com",
+            to: "derek@podrise.com",
             subject: `🎁 Referral Tier Reached: ${referrer.email} hit ${tier.threshold} referrals!`,
             html: `<!DOCTYPE html>
 <html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;margin:0;padding:0;background:#f8f9fa;">
@@ -1059,7 +1078,7 @@ export async function registerRoutes(
       const { client, fromEmail } = await getUncachableResendClient();
       await client.emails.send({
         from: `PodRise Support <${fromEmail}>`,
-        to: "hiderekjohnson@gmail.com",
+        to: "derek@podrise.com",
         replyTo: email,
         subject: `Support Request from ${email}`,
         html: `
@@ -1185,7 +1204,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
           const safeOriginal = escHtml(validatedMessages[validatedMessages.length - 1].content);
           await client.emails.send({
             from: `PodRise <${fromEmail}>`,
-            to: "hiderekjohnson@gmail.com",
+            to: "derek@podrise.com",
             subject: `PodRise Feature Request from ${user?.email || `User #${userId}`}`,
             html: `
               <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -1224,7 +1243,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       const { client, fromEmail } = await getUncachableResendClient();
       await client.emails.send({
         from: `PodRise <${fromEmail}>`,
-        to: "hiderekjohnson@gmail.com",
+        to: "derek@podrise.com",
         replyTo: email || undefined,
         subject: `Podcast Request: ${podcastName}`,
         html: `
@@ -6808,6 +6827,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const mergedInterests = [...new Set([...existingInterests, ...(interests || [])])];
       const mergedRoles = [...new Set([...existingRoles, ...(roles || [])])];
 
+      const wasAlreadyOnboarded = user.onboardingCompleted === true;
+
       await pool.query(
         `UPDATE users SET podcasts = $1, industries = $2, interests = $3, roles = $4, onboarding_completed = true WHERE id = $5`,
         [newPodcasts, mergedIndustries, mergedInterests, mergedRoles, user.id]
@@ -6815,6 +6836,40 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
       if (req.session?.signupContext) delete req.session.signupContext;
       const updatedUser = await storage.getUserById(user.id);
+
+      if (!wasAlreadyOnboarded) {
+      try {
+        const onbPodcastNames = (newPodcasts || []).map((p: string) => parsePodcastName(p));
+        const { client, fromEmail } = await getUncachableResendClient();
+        await client.emails.send({
+          from: `PodRise Alerts <${fromEmail}>`,
+          to: "derek@podrise.com",
+          subject: `🚀 New PodRise User: ${user.email}`,
+          html: `<!DOCTYPE html>
+<html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;margin:0;padding:0;background:#f8f9fa;">
+<div style="max-width:520px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+<div style="background:linear-gradient(135deg,#4CAF50,#388E3C);padding:28px 32px;">
+<h1 style="margin:0;color:#fff;font-size:20px;font-weight:700;">✅ Onboarding Completed</h1>
+</div>
+<div style="padding:28px 32px;">
+<table style="width:100%;border-collapse:collapse;">
+<tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;width:110px;">Email</td><td style="padding:10px 0;font-size:14px;font-weight:600;color:#1a1a1a;">${user.email}</td></tr>
+<tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">User ID</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">#${user.id}</td></tr>
+<tr><td style="padding:10px 0;color:#888;font-size:13px;vertical-align:top;">Selected Podcasts</td><td style="padding:10px 0;font-size:14px;color:#1a1a1a;">${onbPodcastNames.length > 0 ? onbPodcastNames.map((n: string) => `<span style="display:inline-block;background:#e3f2fd;color:#1565c0;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;margin:2px 4px 2px 0;">${n}</span>`).join("") : "<em style='color:#aaa;'>None selected</em>"}</td></tr>
+</table>
+</div>
+<div style="padding:16px 32px;background:#f8f9fa;text-align:center;">
+<span style="font-size:12px;color:#aaa;">PodRise Onboarding Alert</span>
+</div>
+</div>
+</body></html>`,
+        });
+        console.log(`[OnboardingNotify] Onboarding completion email sent for ${user.email}`);
+      } catch (emailErr: any) {
+        console.error("[OnboardingNotify] Failed to send onboarding email:", emailErr?.message || emailErr);
+      }
+      }
+
       res.json(updatedUser);
     } catch (err) {
       console.error("Onboarding complete error:", err);
@@ -14897,7 +14952,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         const { client, fromEmail } = await getUncachableResendClient();
         await client.emails.send({
           from: `PodRise <${fromEmail}>`,
-          to: "hiderekjohnson@gmail.com",
+          to: "derek@podrise.com",
           subject: `🎙️ New Podcaster Claim: ${data.podcastSlug}`,
           html: `<p><strong>${data.name}</strong> (${data.email}) wants to claim <strong>${data.podcastSlug}</strong>.</p><p>Verify in the admin panel.</p>`,
         });

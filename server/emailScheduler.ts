@@ -10,7 +10,7 @@ import { activeEpGenItunesIds } from "./epGenState";
 import { SQL_NORMALIZE_TITLE } from "./utils/normalizeTitle";
 
 const SCHEDULER_INTERVAL_MS = 60 * 1000;
-const ADMIN_NOTIFY_EMAIL = "hiderekjohnson@gmail.com";
+const ADMIN_NOTIFY_EMAIL = "derek@podrise.com";
 const recentlyGenerated = new Set<string>();
 let schedulerConsecutiveFailures = 0;
 const MAX_SCHEDULER_BACKOFF_MS = 10 * 60 * 1000;
