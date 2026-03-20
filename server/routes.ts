@@ -9138,6 +9138,16 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/admin/process-transcript-queue/status", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { getTranscriptRefreshProgress } = await import("./emailScheduler");
+      res.json(getTranscriptRefreshProgress());
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to get status" });
+    }
+  });
+
   app.get("/api/admin/processing-health", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     try {

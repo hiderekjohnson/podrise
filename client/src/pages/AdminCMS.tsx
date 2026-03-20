@@ -2062,16 +2062,55 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
   const [showBulkSpotifyConfirm, setShowBulkSpotifyConfirm] = useState(false);
   const { toast } = useToast();
 
+  const [backfillPolling, setBackfillPolling] = useState(false);
+  const [backfillProgress, setBackfillProgress] = useState<{
+    status: string; currentPodcast: string; podcastsChecked: number; podcastsTotal: number;
+    downloaded: number; queued: number; skipped: number;
+  } | null>(null);
+
   const backfillMutation = useMutation({
     mutationFn: () => apiRequest("POST", "/api/admin/process-transcript-queue", { force: true }),
     onSuccess: async (res: Response) => {
-      const data = await res.json();
-      toast({ title: "Backfill started", description: data.message });
+      await res.json();
+      setBackfillPolling(true);
+      toast({ title: "Backfill started", description: "Checking all podcasts for new episodes..." });
     },
     onError: () => {
       toast({ title: "Error", description: "Failed to start episode backfill.", variant: "destructive" });
     },
   });
+
+  useEffect(() => {
+    if (!backfillPolling) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch("/api/admin/process-transcript-queue/status", { credentials: "include" });
+        const data = await res.json();
+        setBackfillProgress(data);
+        if (data.status === "completed" || data.status === "error" || data.status === "idle") {
+          setBackfillPolling(false);
+          if (data.status === "completed") {
+            toast({ title: "Backfill complete", description: `${data.downloaded} episodes downloaded, ${data.queued} queued across ${data.podcastsTotal} podcasts.` });
+            queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/all-episodes"] });
+            queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/all-episodes/completeness-stats"] });
+          }
+        }
+      } catch {}
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [backfillPolling]);
+
+  useEffect(() => {
+    fetch("/api/admin/process-transcript-queue/status", { credentials: "include" })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status === "running") {
+          setBackfillProgress(data);
+          setBackfillPolling(true);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const [dupSpotifyRunning, setDupSpotifyRunning] = useState(false);
   const [dupSpotifyProgress, setDupSpotifyProgress] = useState<{ processed: number; cleared: number; total: number; podcastsChecked: number; totalPodcasts: number; complete: boolean } | null>(null);
@@ -2166,22 +2205,54 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
         <div className="flex items-center justify-between gap-4">
           <div>
             <h3 className="text-sm font-bold text-foreground" data-testid="text-backfill-title">Backfill New Episodes</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Check all podcasts for new episodes and fetch transcripts from Taddy. Runs in the background.</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Check all podcasts for new episodes and fetch transcripts from Taddy. Runs slowly in the background.</p>
           </div>
           <button
             data-testid="button-backfill-episodes"
             onClick={() => backfillMutation.mutate()}
-            disabled={backfillMutation.isPending}
+            disabled={backfillMutation.isPending || backfillPolling}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-primary text-primary-foreground shadow-sm hover:shadow-md transition-all disabled:opacity-50 shrink-0"
           >
-            {backfillMutation.isPending ? (
+            {(backfillMutation.isPending || backfillPolling) ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <Download className="w-4 h-4" />
             )}
-            {backfillMutation.isPending ? "Starting..." : "Backfill Episodes"}
+            {backfillMutation.isPending ? "Starting..." : backfillPolling ? "Running..." : "Backfill Episodes"}
           </button>
         </div>
+        {backfillProgress && backfillProgress.status === "running" && backfillProgress.podcastsTotal > 0 && (
+          <div className="mt-3" data-testid="backfill-progress">
+            <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-green-500 rounded-full transition-all duration-500"
+                style={{ width: `${Math.max(1, (backfillProgress.podcastsChecked / backfillProgress.podcastsTotal) * 100)}%` }}
+              />
+            </div>
+            <div className="flex items-center justify-between mt-1.5">
+              <p className="text-xs text-muted-foreground" data-testid="text-backfill-current">
+                Checking: <span className="font-medium text-foreground">{backfillProgress.currentPodcast}</span>
+              </p>
+              <p className="text-xs text-muted-foreground" data-testid="text-backfill-stats">
+                {backfillProgress.podcastsChecked}/{backfillProgress.podcastsTotal} podcasts — {backfillProgress.downloaded} downloaded, {backfillProgress.queued} queued
+              </p>
+            </div>
+          </div>
+        )}
+        {backfillProgress && backfillProgress.status === "completed" && (
+          <div className="mt-3 flex items-center gap-2" data-testid="backfill-complete">
+            <CheckCircle className="w-4 h-4 text-green-500" />
+            <p className="text-xs text-muted-foreground">
+              Complete — {backfillProgress.downloaded} downloaded, {backfillProgress.queued} queued across {backfillProgress.podcastsTotal} podcasts
+            </p>
+          </div>
+        )}
+        {backfillProgress && backfillProgress.status === "error" && (
+          <div className="mt-3 flex items-center gap-2" data-testid="backfill-error">
+            <AlertCircle className="w-4 h-4 text-red-500" />
+            <p className="text-xs text-red-600 dark:text-red-400">Backfill encountered an error. Check server logs for details.</p>
+          </div>
+        )}
       </div>
       {spotifyStatusQuery.data && spotifyStatusQuery.data.count > 0 && (
         <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4" data-testid="spotify-status-bar">

@@ -1146,6 +1146,21 @@ export async function bulkDownloadTranscripts() {
 }
 
 let dailyTranscriptRefreshRunning = false;
+let transcriptRefreshProgress = {
+  status: "idle" as "idle" | "running" | "completed" | "error",
+  currentPodcast: "",
+  podcastsChecked: 0,
+  podcastsTotal: 0,
+  downloaded: 0,
+  queued: 0,
+  skipped: 0,
+  startedAt: null as string | null,
+  completedAt: null as string | null,
+};
+
+export function getTranscriptRefreshProgress() {
+  return { ...transcriptRefreshProgress };
+}
 
 export async function refreshNewTranscripts(options?: { force?: boolean }) {
   if (dailyTranscriptRefreshRunning) {
@@ -1154,6 +1169,17 @@ export async function refreshNewTranscripts(options?: { force?: boolean }) {
   }
   const force = options?.force ?? false;
   dailyTranscriptRefreshRunning = true;
+  transcriptRefreshProgress = {
+    status: "running",
+    currentPodcast: "",
+    podcastsChecked: 0,
+    podcastsTotal: 0,
+    downloaded: 0,
+    queued: 0,
+    skipped: 0,
+    startedAt: new Date().toISOString(),
+    completedAt: null,
+  };
 
   try {
     const { pool: dbPool } = await import("./db");
@@ -1229,13 +1255,18 @@ export async function refreshNewTranscripts(options?: { force?: boolean }) {
     let totalQueued = 0;
     let totalChecked = 0;
     let totalSkippedRecent = 0;
-    const BATCH_SIZE = 20;
+    const BATCH_SIZE = force ? 10 : 20;
+
+    transcriptRefreshProgress.podcastsTotal = prioritizedPodcasts.length;
 
     for (const podcast of prioritizedPodcasts) {
       totalChecked++;
+      transcriptRefreshProgress.podcastsChecked = totalChecked;
+      transcriptRefreshProgress.currentPodcast = podcast.name;
 
       if (!force && podcast.recentlyRefreshed && podcast.episodeCount > 0) {
         totalSkippedRecent++;
+        transcriptRefreshProgress.skipped = totalSkippedRecent;
         continue;
       }
 
@@ -1364,7 +1395,7 @@ export async function refreshNewTranscripts(options?: { force?: boolean }) {
             });
             totalQueued++;
           }
-          await new Promise(r => setTimeout(r, 400));
+          await new Promise(r => setTimeout(r, force ? 1000 : 400));
         }
 
         if (downloaded > 0) {
@@ -1375,18 +1406,27 @@ export async function refreshNewTranscripts(options?: { force?: boolean }) {
           console.warn(`[DailyTranscripts] Error for ${podcast.name}:`, err?.message?.slice(0, 100));
         }
       }
-      await new Promise(r => setTimeout(r, 300));
+      transcriptRefreshProgress.downloaded = totalDownloaded;
+      transcriptRefreshProgress.queued = totalQueued;
+
+      await new Promise(r => setTimeout(r, force ? 800 : 300));
 
       if (totalChecked % BATCH_SIZE === 0 && totalChecked < prioritizedPodcasts.length) {
-        await new Promise(r => setTimeout(r, 3000));
+        await new Promise(r => setTimeout(r, force ? 5000 : 3000));
       }
     }
 
     console.log(`[DailyTranscripts] Complete: ${totalDownloaded} downloaded, ${totalQueued} queued, ${totalSkippedRecent} skipped (recent) across ${prioritizedPodcasts.length} podcasts`);
 
+    transcriptRefreshProgress.status = "completed";
+    transcriptRefreshProgress.completedAt = new Date().toISOString();
+    transcriptRefreshProgress.currentPodcast = "";
+
     await processTranscriptQueue();
   } catch (err) {
     console.error("[DailyTranscripts] Fatal error:", err);
+    transcriptRefreshProgress.status = "error";
+    transcriptRefreshProgress.completedAt = new Date().toISOString();
   } finally {
     dailyTranscriptRefreshRunning = false;
   }
