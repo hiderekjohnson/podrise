@@ -3,7 +3,7 @@ import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Check, SkipForward, XCircle, ExternalLink, Search, Loader2, Youtube, Play, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, SkipForward, XCircle, ExternalLink, Search, Loader2, Youtube, Play } from "lucide-react";
 import { SiSpotify } from "react-icons/si";
 
 interface Episode {
@@ -16,7 +16,6 @@ interface Episode {
   duration: string;
   artworkUrl: string;
   hosts: string;
-  tldl: string;
   guests: string;
   channelYoutubeUrl: string | null;
   channelSpotifyUrl: string | null;
@@ -77,7 +76,6 @@ export default function YouTubeReviewPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showEmbed, setShowEmbed] = useState(false);
   const [showSpotifyEmbed, setShowSpotifyEmbed] = useState(false);
-  const [tldlExpanded, setTldlExpanded] = useState(false);
   const [youtubeDisabled, setYoutubeDisabled] = useState(false);
 
   useEffect(() => {
@@ -133,7 +131,6 @@ export default function YouTubeReviewPage() {
     }
     setShowEmbed(false);
     setShowSpotifyEmbed(false);
-    setTldlExpanded(false);
   }, [reviewData?.episode?.id]);
 
   const submitAction = useCallback(async (action: "confirmed" | "skipped" | "no_video") => {
@@ -199,18 +196,18 @@ export default function YouTubeReviewPage() {
   if (workerLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white text-gray-900" data-testid="loading-worker">
-        <Loader2 className="w-8 h-8 animate-spin text-red-500" />
+        <Loader2 className="w-10 h-10 animate-spin text-red-500" />
       </div>
     );
   }
 
   if (workerError || !worker) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white text-gray-900 p-6" data-testid="error-invalid-link">
-        <div className="text-center max-w-md">
-          <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">Invalid or Expired Link</h1>
-          <p className="text-gray-500">This review link is not valid. Please contact your administrator for a new link.</p>
+      <div className="min-h-screen flex items-center justify-center bg-white text-gray-900 p-8" data-testid="error-invalid-link">
+        <div className="text-center max-w-lg">
+          <XCircle className="w-20 h-20 text-red-500 mx-auto mb-6" />
+          <h1 className="text-3xl font-bold mb-3">Invalid or Expired Link</h1>
+          <p className="text-lg text-gray-500">This review link is not valid. Please contact your administrator for a new link.</p>
         </div>
       </div>
     );
@@ -220,8 +217,8 @@ export default function YouTubeReviewPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white text-gray-900" data-testid="loading-episode">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-red-500 mx-auto mb-3" />
-          <p className="text-gray-500">Loading next episode...</p>
+          <Loader2 className="w-10 h-10 animate-spin text-red-500 mx-auto mb-4" />
+          <p className="text-lg text-gray-500">Loading next episode...</p>
         </div>
       </div>
     );
@@ -229,13 +226,13 @@ export default function YouTubeReviewPage() {
 
   if (!episode) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white text-gray-900 p-6" data-testid="all-done">
-        <div className="text-center max-w-md">
-          <Check className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">All Done!</h1>
-          <p className="text-gray-500">There are no more episodes to review. Great work, {worker.name}!</p>
+      <div className="min-h-screen flex items-center justify-center bg-white text-gray-900 p-8" data-testid="all-done">
+        <div className="text-center max-w-lg">
+          <Check className="w-20 h-20 text-green-500 mx-auto mb-6" />
+          <h1 className="text-3xl font-bold mb-3">All Done!</h1>
+          <p className="text-lg text-gray-500">There are no more episodes to review. Great work, {worker.name}!</p>
           {progress.total > 0 && (
-            <p className="text-gray-400 mt-2 text-sm">{progress.done} of {progress.total} episodes reviewed</p>
+            <p className="text-gray-400 mt-3">{progress.done} of {progress.total} episodes reviewed</p>
           )}
         </div>
       </div>
@@ -248,19 +245,19 @@ export default function YouTubeReviewPage() {
   const spotifyShowUrl = episode.channelSpotifyUrl || `https://open.spotify.com/search/${encodeURIComponent(episode.podcastName)}`;
 
   return (
-    <div className="h-screen flex flex-col bg-white text-gray-900" data-testid="youtube-review-page">
-      <div className="shrink-0 bg-gray-50 border-b border-gray-200 px-4 py-2">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Youtube className="w-4 h-4 text-red-500" />
-            <span className="text-xs font-semibold text-gray-600">Hi, {worker.name}</span>
+    <div className="min-h-screen flex flex-col bg-gray-50 text-gray-900" data-testid="youtube-review-page">
+      <div className="shrink-0 bg-white border-b border-gray-200 px-8 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Youtube className="w-6 h-6 text-red-500" />
+            <span className="text-base font-semibold text-gray-700">Hi, {worker.name}</span>
           </div>
-          <div className="text-xs text-gray-400" data-testid="text-progress">
-            {progress.done}/{progress.total} — {remaining} left
+          <div className="text-base text-gray-500" data-testid="text-progress">
+            {progress.done}/{progress.total} reviewed — {remaining} remaining
           </div>
         </div>
-        <div className="max-w-3xl mx-auto mt-1">
-          <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden" data-testid="progress-bar">
+        <div className="mt-2">
+          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden" data-testid="progress-bar">
             <div
               className="h-full bg-red-500 rounded-full transition-all duration-500"
               style={{ width: `${progressPct}%` }}
@@ -269,82 +266,95 @@ export default function YouTubeReviewPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex flex-col gap-3">
-          <div className="flex gap-3 items-start" data-testid="episode-metadata">
+      <div className="flex-1 overflow-auto px-8 py-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6" data-testid="episode-metadata">
+          <div className="flex gap-5 items-start">
             {episode.artworkUrl && (
               <img
                 src={episode.artworkUrl}
                 alt={episode.podcastName}
-                className="w-12 h-12 rounded-lg shrink-0 object-cover"
+                className="w-20 h-20 rounded-xl shrink-0 object-cover"
                 data-testid="img-artwork"
               />
             )}
-            <div className="min-w-0">
-              <p className="text-xs font-semibold text-red-500 uppercase tracking-wide" data-testid="text-podcast-name">{episode.podcastName}</p>
-              <h2 className="text-sm font-bold leading-tight mt-0.5" data-testid="text-episode-title">{episode.episodeTitle}</h2>
-              <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-xs text-gray-400">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-red-500 uppercase tracking-wide" data-testid="text-podcast-name">{episode.podcastName}</p>
+              <h2 className="text-xl font-bold leading-tight mt-1" data-testid="text-episode-title">{episode.episodeTitle}</h2>
+              <div className="flex flex-wrap gap-x-5 gap-y-1 mt-2 text-base text-gray-500">
                 {episode.publishDate && <span data-testid="text-publish-date">{episode.publishDate}</span>}
                 {episode.duration && <span data-testid="text-duration">{episode.duration}</span>}
                 {episode.hosts && <span data-testid="text-hosts">Hosts: {episode.hosts}</span>}
               </div>
               {guests.length > 0 && (
-                <p className="text-xs text-gray-500 mt-0.5" data-testid="text-guests">
+                <p className="text-base text-gray-600 mt-1" data-testid="text-guests">
                   Guests: {guests.join(", ")}
                 </p>
               )}
+              <div className="flex flex-wrap gap-x-6 gap-y-2 mt-3 text-sm">
+                {episode.channelYoutubeUrl && (
+                  <a
+                    href={episode.channelYoutubeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-red-600 hover:text-red-700 hover:underline font-medium"
+                    data-testid="link-youtube-channel"
+                  >
+                    <Youtube className="w-4 h-4" />
+                    YouTube Channel
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                )}
+                <a
+                  href={youtubeSearchUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-700 hover:underline font-medium"
+                  data-testid="link-search-youtube"
+                >
+                  <Search className="w-4 h-4" />
+                  Search YouTube
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+                <a
+                  href={spotifyShowUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-green-600 hover:text-green-700 hover:underline font-medium"
+                  data-testid="link-spotify-show"
+                >
+                  <SiSpotify className="w-4 h-4" />
+                  {episode.channelSpotifyUrl ? "Spotify Show Page" : `Search Spotify`}
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
             </div>
           </div>
+        </div>
 
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-            {episode.channelYoutubeUrl && (
-              <a
-                href={episode.channelYoutubeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-red-600 hover:text-red-700 hover:underline"
-                data-testid="link-youtube-channel"
-              >
-                <Youtube className="w-3 h-3" />
-                YouTube Channel
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            )}
-            <a
-              href={youtubeSearchUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:underline"
-              data-testid="link-search-youtube"
-            >
-              <Search className="w-3 h-3" />
-              Search: {episode.podcastName} {episode.episodeTitle.length > 40 ? episode.episodeTitle.substring(0, 40) + "…" : episode.episodeTitle}
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-
-          {episode.tldl && (
-            <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-200" data-testid="tldl-summary">
-              <button
-                onClick={() => setTldlExpanded(!tldlExpanded)}
-                className="w-full flex items-center justify-between text-xs font-semibold text-gray-400 uppercase tracking-wide"
-                data-testid="button-toggle-tldl"
-              >
-                TLDL
-                {tldlExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-              </button>
-              {tldlExpanded && (
-                <p className="text-xs text-gray-600 leading-relaxed mt-1.5">{episode.tldl}</p>
-              )}
+        <div className="grid grid-cols-2 gap-6 mb-6">
+          <div className="bg-white rounded-xl border border-gray-200 p-6" data-testid="section-youtube">
+            <div className="flex items-center gap-2 mb-4">
+              <Youtube className="w-6 h-6 text-red-500" />
+              <h3 className="text-lg font-bold text-gray-900">YouTube Video</h3>
             </div>
-          )}
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">YouTube URL</label>
+            <div className="bg-red-50 border border-red-100 rounded-lg p-4 mb-5 text-sm text-gray-700 leading-relaxed" data-testid="text-youtube-steps">
+              <p className="font-semibold text-red-700 mb-2">How to find the YouTube video:</p>
+              <ol className="list-decimal list-inside space-y-1">
+                <li>Click the <strong>YouTube Channel</strong> or <strong>Search YouTube</strong> link above</li>
+                <li>Find the matching episode in the results</li>
+                <li>Copy the video URL from your browser's address bar</li>
+                <li>Paste it below and click <strong>Test</strong> to verify</li>
+              </ol>
+            </div>
+
             {youtubeDisabled && (
-              <p className="text-xs text-green-600" data-testid="text-youtube-prefilled">Already has YouTube URL — find the Spotify link below</p>
+              <p className="text-sm text-green-600 font-medium mb-3" data-testid="text-youtube-prefilled">
+                ✓ Already has a YouTube URL — find the Spotify link instead
+              </p>
             )}
-            <div className="flex gap-2">
+
+            <div className="flex gap-3 mb-3">
               <input
                 type="url"
                 value={youtubeUrl}
@@ -354,56 +364,55 @@ export default function YouTubeReviewPage() {
                 }}
                 disabled={youtubeDisabled}
                 placeholder="https://www.youtube.com/watch?v=..."
-                className="flex-1 h-9 px-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/60 disabled:bg-gray-100 disabled:text-gray-500"
+                className="flex-1 h-12 px-4 bg-white border border-gray-300 rounded-lg text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500/60 disabled:bg-gray-100 disabled:text-gray-500"
                 data-testid="input-youtube-url"
               />
               <button
                 onClick={handleTestClick}
                 disabled={!videoId || youtubeDisabled}
-                className="h-9 px-3 bg-gray-100 border border-gray-300 rounded-lg flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
+                className="h-12 px-5 bg-gray-100 border border-gray-300 rounded-lg flex items-center gap-2 text-base font-semibold text-gray-700 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
                 data-testid="button-test-video"
               >
-                <Play className="w-3.5 h-3.5" />
+                <Play className="w-5 h-5" />
                 Test
               </button>
             </div>
+
             {youtubeUrl && !videoId && !youtubeDisabled && (
-              <p className="text-xs text-amber-600" data-testid="text-invalid-url">Could not extract video ID from this URL. Please check the format.</p>
+              <p className="text-sm text-amber-600 mb-3" data-testid="text-invalid-url">Could not extract video ID from this URL. Please check the format.</p>
+            )}
+
+            {showEmbed && videoId && (
+              <div className="w-full aspect-video rounded-lg overflow-hidden bg-black" data-testid="youtube-embed">
+                <iframe
+                  src={`https://www.youtube.com/embed/${videoId}?rel=0`}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title="YouTube video"
+                />
+              </div>
             )}
           </div>
 
-          {showEmbed && videoId && (
-            <div className="w-full aspect-video max-h-[280px] rounded-lg overflow-hidden bg-black" data-testid="youtube-embed">
-              <iframe
-                src={`https://www.youtube.com/embed/${videoId}?rel=0`}
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                title="YouTube video"
-              />
+          <div className="bg-white rounded-xl border border-gray-200 p-6" data-testid="section-spotify">
+            <div className="flex items-center gap-2 mb-4">
+              <SiSpotify className="w-5 h-5 text-green-500" />
+              <h3 className="text-lg font-bold text-gray-900">Spotify Episode</h3>
+              <span className="text-sm text-gray-400 ml-1">(optional)</span>
             </div>
-          )}
 
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <SiSpotify className="w-3.5 h-3.5 text-green-500" />
-              <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Spotify Episode URL</label>
-              <span className="text-xs text-gray-400">(optional)</span>
+            <div className="bg-green-50 border border-green-100 rounded-lg p-4 mb-5 text-sm text-gray-700 leading-relaxed" data-testid="text-spotify-steps">
+              <p className="font-semibold text-green-700 mb-2">How to find the Spotify episode:</p>
+              <ol className="list-decimal list-inside space-y-1">
+                <li>Click the <strong>Spotify Show Page</strong> or <strong>Search Spotify</strong> link above</li>
+                <li>Find the matching episode in the show's episode list</li>
+                <li>Click "Share" → "Copy Episode Link" (or copy the URL from your browser)</li>
+                <li>Paste it below and click <strong>Test</strong> to verify</li>
+              </ol>
             </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs mb-1.5">
-              <a
-                href={spotifyShowUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-green-600 hover:text-green-700 hover:underline"
-                data-testid="link-spotify-show"
-              >
-                <SiSpotify className="w-3 h-3" />
-                {episode.channelSpotifyUrl ? "Spotify Show Page" : `Search Spotify: ${episode.podcastName}`}
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-            <div className="flex gap-2">
+
+            <div className="flex gap-3 mb-3">
               <input
                 type="url"
                 value={spotifyUrl}
@@ -412,62 +421,65 @@ export default function YouTubeReviewPage() {
                   setShowSpotifyEmbed(false);
                 }}
                 placeholder="https://open.spotify.com/episode/..."
-                className="flex-1 h-9 px-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500/60"
+                className="flex-1 h-12 px-4 bg-white border border-gray-300 rounded-lg text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500/60"
                 data-testid="input-spotify-url"
               />
               <button
                 onClick={handleSpotifyTestClick}
                 disabled={!spotifyEpisodeId}
-                className="h-9 px-3 bg-gray-100 border border-gray-300 rounded-lg flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
+                className="h-12 px-5 bg-gray-100 border border-gray-300 rounded-lg flex items-center gap-2 text-base font-semibold text-gray-700 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
                 data-testid="button-test-spotify"
               >
-                <Play className="w-3.5 h-3.5" />
+                <Play className="w-5 h-5" />
                 Test
               </button>
             </div>
+
             {spotifyUrl && !spotifyEpisodeId && (
-              <p className="text-xs text-amber-600" data-testid="text-invalid-spotify-url">Could not extract episode ID. Must be an open.spotify.com/episode/ URL.</p>
+              <p className="text-sm text-amber-600 mb-3" data-testid="text-invalid-spotify-url">Could not extract episode ID. Must be an open.spotify.com/episode/ URL.</p>
+            )}
+
+            {showSpotifyEmbed && spotifyEpisodeId && (
+              <div className="w-full rounded-lg overflow-hidden" data-testid="spotify-embed">
+                <iframe
+                  src={`https://open.spotify.com/embed/episode/${spotifyEpisodeId}`}
+                  className="w-full"
+                  style={{ height: "180px" }}
+                  allow="encrypted-media"
+                  title="Spotify episode"
+                />
+              </div>
             )}
           </div>
+        </div>
 
-          {showSpotifyEmbed && spotifyEpisodeId && (
-            <div className="w-full rounded-lg overflow-hidden" data-testid="spotify-embed">
-              <iframe
-                src={`https://open.spotify.com/embed/episode/${spotifyEpisodeId}`}
-                className="w-full"
-                style={{ height: "152px" }}
-                allow="encrypted-media"
-                title="Spotify episode"
-              />
-            </div>
-          )}
-
-          <div className="grid grid-cols-3 gap-2 pt-1">
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="grid grid-cols-3 gap-4">
             <button
               onClick={() => submitAction("confirmed")}
               disabled={isSubmitting || !canConfirm}
-              className="h-11 rounded-lg bg-green-600 hover:bg-green-500 disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold text-sm flex items-center justify-center gap-1.5 transition-colors"
+              className="h-14 rounded-xl bg-green-600 hover:bg-green-500 disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold text-lg flex items-center justify-center gap-2 transition-colors"
               data-testid="button-confirm"
             >
-              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+              {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
               Correct
             </button>
             <button
               onClick={() => submitAction("skipped")}
               disabled={isSubmitting}
-              className="h-11 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400 text-gray-700 font-bold text-sm flex items-center justify-center gap-1.5 transition-colors"
+              className="h-14 rounded-xl bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400 text-gray-700 font-bold text-lg flex items-center justify-center gap-2 transition-colors"
               data-testid="button-skip"
             >
-              <SkipForward className="w-4 h-4" />
+              <SkipForward className="w-5 h-5" />
               Skip
             </button>
             <button
               onClick={() => submitAction("no_video")}
               disabled={isSubmitting}
-              className="h-11 rounded-lg bg-red-600 hover:bg-red-500 disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold text-sm flex items-center justify-center gap-1.5 transition-colors"
+              className="h-14 rounded-xl bg-red-600 hover:bg-red-500 disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold text-lg flex items-center justify-center gap-2 transition-colors"
               data-testid="button-no-video"
             >
-              <XCircle className="w-4 h-4" />
+              <XCircle className="w-5 h-5" />
               No Video
             </button>
           </div>

@@ -16035,7 +16035,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
         .replace(/\bid\b(?!\w)/g, 'lpr.id');
       const { rows: episodes } = await pool.query(`
         SELECT lpr.id, lpr.slug, lpr.podcast_name, lpr.episode_title, lpr.episode_slug, lpr.publish_date, lpr.duration,
-               lpr.artwork_url, lpr.hosts, lpr.tldl, lpr.guests,
+               lpr.artwork_url, lpr.hosts, lpr.guests,
                lpr.youtube_url AS existing_youtube_url, lpr.spotify_episode_url AS existing_spotify_url,
                pd.youtube_url AS channel_youtube_url, pd.spotify_url AS channel_spotify_url
         FROM landing_page_recaps lpr
@@ -16110,7 +16110,6 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
           duration: episode.duration,
           artworkUrl: episode.artwork_url,
           hosts: episode.hosts,
-          tldl: episode.tldl,
           guests: episode.guests,
           channelYoutubeUrl: episode.channel_youtube_url || null,
           channelSpotifyUrl: episode.channel_spotify_url || null,
