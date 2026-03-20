@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Set Up Your Feed | PodRise</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --indigo: #6366F1;
+  --violet: #8B5CF6;
+  --indigo-light: #A5B4FC;
+  --indigo-bg: #EEF2FF;
+  --bg: #F7F7FC;
+  --card: #FFFFFF;
+  --text: #09090B;
+  --secondary: #52525B;
+  --muted: #71717A;
+  --hint: #A1A1AA;
+  --border: #F0F0F2;
+  --border-med: #E4E4E7;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* NAV */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  flex-shrink: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+}
+.logo-icon {
+  width: 30px; height: 30px;
+  background: linear-gradient(145deg, #6366F1, #8B5CF6);
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.logo-word {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.logo-word em {
+  font-style: normal;
+  color: var(--indigo);
+  font-weight: 300;
+}
+
+/* MAIN */
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 44px 24px 140px;
+}
+
+/* HEADING */
+.heading-block {
+  margin-bottom: 32px;
+}
+.heading-block h1 {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.2;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.heading-block p {
+  font-size: 16px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+/* SEARCH */
+.search-wrap {
+  position: relative;
+  margin-bottom: 10px;
+}
+.search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--hint);
+  pointer-events: none;
+  display: flex;
+}
+.search-input {
+  width: 100%;
+  height: 52px;
+  padding: 0 48px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  color: var(--text);
+  background: white;
+  border: 1.5px solid var(--border-med);
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+.search-input:focus {
+  border-color: var(--indigo);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+}
+.search-input::placeholder { color: var(--hint); }
+.search-clear {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer;
+  color: var(--hint);
+  border-radius: 8px;
+  transition: color 0.15s;
+}
+.search-clear:hover { color: var(--secondary); }
+
+/* SPOTIFY */
+.spotify-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 44px;
+  background: rgba(29,185,84,0.07);
+  border: 1.5px solid rgba(29,185,84,0.2);
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1DB954;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  margin-bottom: 28px;
+}
+.spotify-btn:hover {
+  background: rgba(29,185,84,0.12);
+  border-color: rgba(29,185,84,0.35);
+}
+
+/* SECTION LABEL */
+.section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--indigo);
+  margin-bottom: 10px;
+}
+
+/* RESULTS LIST */
+.results-list {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+.result-row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.12s;
+  min-height: 66px;
+  user-select: none;
+}
+.result-row:last-child { border-bottom: none; }
+.result-row:hover { background: var(--bg); }
+.result-row.selected { background: var(--indigo-bg); }
+
+.result-art {
+  width: 44px; height: 44px;
+  border-radius: 9px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.result-art img {
+  width: 100%; height: 100%; object-fit: cover;
+  display: block;
+}
+.result-info { flex: 1; min-width: 0; }
+.result-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+  margin-bottom: 1px;
+}
+.result-row.selected .result-name { color: #3730A3; }
+.result-meta {
+  font-size: 13px;
+  color: var(--hint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.result-row.selected .result-meta { color: #6366F1; }
+
+.result-check {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 2px solid var(--border-med);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  color: transparent;
+}
+.result-row.selected .result-check {
+  background: var(--indigo);
+  border-color: var(--indigo);
+  color: white;
+}
+
+/* PICKS TRAY */
+.picks-section {
+  margin-bottom: 28px;
+  display: none;
+}
+.picks-tray {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pick-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: white;
+  border: 1px solid var(--border-med);
+  border-radius: 999px;
+  padding: 5px 8px 5px 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  animation: pop-in 0.18s ease;
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.88); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.pick-thumb {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--indigo-bg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.pick-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.pick-name {
+  max-width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pick-remove {
+  background: none; border: none;
+  width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--hint);
+  flex-shrink: 0;
+  padding: 0;
+  border-radius: 50%;
+  transition: color 0.12s, background 0.12s;
+}
+.pick-remove:hover { color: var(--text); background: var(--bg); }
+
+/* STICKY FOOTER */
+.footer {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(255,255,255,0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--border);
+  padding: 14px 24px;
+  padding-bottom: max(14px, env(safe-area-inset-bottom));
+  z-index: 50;
+}
+.footer-inner {
+  max-width: 680px;
+  margin: 0 auto;
+}
+.finish-btn {
+  width: 100%;
+  height: 52px;
+  background: var(--indigo);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.18s, transform 0.12s, box-shadow 0.18s, opacity 0.18s;
+}
+.finish-btn:not(:disabled):hover {
+  background: #4F46E5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 18px rgba(99,102,241,0.28);
+}
+.finish-btn:not(:disabled):active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+.finish-btn:disabled {
+  background: var(--border-med);
+  color: var(--hint);
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  main { padding: 32px 20px 130px; }
+  .heading-block h1 { font-size: 26px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="logo" href="#">
+    <div class="logo-icon">
+      <svg viewBox="0 0 28 28" width="17" height="17" fill="none">
+        <rect x="1"    y="11" width="3.5" height="6"  rx="1.75" fill="white" opacity="0.5"/>
+        <rect x="6.5"  y="7"  width="3.5" height="14" rx="1.75" fill="white" opacity="0.75"/>
+        <rect x="12"   y="4"  width="3.5" height="20" rx="1.75" fill="white"/>
+        <rect x="17.5" y="8"  width="3.5" height="12" rx="1.75" fill="white" opacity="0.85"/>
+        <rect x="23"   y="5"  width="3.5" height="18" rx="1.75" fill="white" opacity="0.6"/>
+      </svg>
+    </div>
+    <span class="logo-word">Pod<em>Rise</em></span>
+  </a>
+</nav>
+
+<main>
+
+  <div class="heading-block">
+    <h1>What podcasts do you listen to?</h1>
+    <p>Add your shows and we'll build your personalized feed and daily briefing.</p>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="search-wrap">
+    <span class="search-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+      </svg>
+    </span>
+    <input
+      class="search-input"
+      id="search-input"
+      type="text"
+      placeholder="e.g. The Daily, Lex Fridman…"
+      autocomplete="off"
+      oninput="handleSearch(this.value)"
+    >
+    <button class="search-clear" id="clear-btn" onclick="clearSearch()" style="display:none;" aria-label="Clear search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    </button>
+  </div>
+
+  <!-- SPOTIFY -->
+  <button class="spotify-btn">
+    <svg width="16" height="16" fill="#1DB954" viewBox="0 0 24 24">
+      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+    </svg>
+    Import from Spotify
+  </button>
+
+  <!-- PICKS TRAY (visible once ≥1 selected) -->
+  <div class="picks-section" id="picks-section">
+    <div class="section-label" id="picks-label">Your picks (0)</div>
+    <div class="picks-tray" id="picks-tray"></div>
+  </div>
+
+  <!-- SEARCH RESULTS (shown when typing) -->
+  <div id="search-results-wrap" style="display:none;">
+    <div class="section-label">Results</div>
+    <div class="results-list" id="search-results"></div>
+  </div>
+
+  <!-- STAFF PICKS (shown by default) -->
+  <div id="staff-picks-wrap">
+    <div class="section-label">Staff picks</div>
+    <div class="results-list" id="staff-list">
+
+      <div class="result-row" data-id="huberman" data-name="Huberman Lab" data-meta="Health &amp; Longevity" data-emoji="🧠" onclick="toggleRow(this)">
+        <div class="result-art">🧠</div>
+        <div class="result-info">
+          <div class="result-name">Huberman Lab</div>
+          <div class="result-meta">Health &amp; Longevity</div>
+        </div>
+        <div class="result-check">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+      </div>
+
+      <div class="result-row" data-id="all-in" data-name="All-In Podcast" data-meta="Tech / Investing" data-emoji="💼" onclick="toggleRow(this)">
+        <div class="result-art">💼</div>
+        <div class="result-info">
+          <div class="result-name">All-In Podcast</div>
+          <div class="result-meta">Tech / Investing</div>
+        </div>
+        <div class="result-check">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+      </div>
+
+      <div class="result-row" data-id="mfm" data-name="My First Million" data-meta="Business / Entrepreneurship" data-emoji="💰" onclick="toggleRow(this)">
+        <div class="result-art">💰</div>
+        <div class="result-info">
+          <div class="result-name">My First Million</div>
+          <div class="result-meta">Business / Entrepreneurship</div>
+        </div>
+        <div class="result-check">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+      </div>
+
+      <div class="result-row" data-id="acquired" data-name="Acquired" data-meta="Business History" data-emoji="📚" onclick="toggleRow(this)">
+        <div class="result-art">📚</div>
+        <div class="result-info">
+          <div class="result-name">Acquired</div>
+          <div class="result-meta">Business History</div>
+        </div>
+        <div class="result-check">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+      </div>
+
+      <div class="result-row" data-id="lex" data-name="Lex Fridman Podcast" data-meta="AI / Technology" data-emoji="🤖" onclick="toggleRow(this)">
+        <div class="result-art">🤖</div>
+        <div class="result-info">
+          <div class="result-name">Lex Fridman Podcast</div>
+          <div class="result-meta">AI / Technology</div>
+        </div>
+        <div class="result-check">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+      </div>
+
+      <div class="result-row" data-id="tim" data-name="The Tim Ferriss Show" data-meta="Self-improvement / Business" data-emoji="⏱️" onclick="toggleRow(this)">
+        <div class="result-art">⏱️</div>
+        <div class="result-info">
+          <div class="result-name">The Tim Ferriss Show</div>
+          <div class="result-meta">Self-improvement / Business</div>
+        </div>
+        <div class="result-check">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+      </div>
+
+      <div class="result-row" data-id="invest-best" data-name="Invest Like the Best" data-meta="Investing" data-emoji="📈" onclick="toggleRow(this)">
+        <div class="result-art">📈</div>
+        <div class="result-info">
+          <div class="result-name">Invest Like the Best</div>
+          <div class="result-meta">Investing</div>
+        </div>
+        <div class="result-check">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+      </div>
+
+      <div class="result-row" data-id="how-built" data-name="How I Built This" data-meta="Startups / Founders" data-emoji="🚀" onclick="toggleRow(this)">
+        <div class="result-art">🚀</div>
+        <div class="result-info">
+          <div class="result-name">How I Built This</div>
+          <div class="result-meta">Startups / Founders</div>
+        </div>
+        <div class="result-check">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+      </div>
+
+      <div class="result-row" data-id="diary-ceo" data-name="The Diary of a CEO" data-meta="Business / Personal Development" data-emoji="📔" onclick="toggleRow(this)">
+        <div class="result-art">📔</div>
+        <div class="result-info">
+          <div class="result-name">The Diary of a CEO</div>
+          <div class="result-meta">Business / Personal Development</div>
+        </div>
+        <div class="result-check">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+      </div>
+
+      <div class="result-row" data-id="rogan" data-name="The Joe Rogan Experience" data-meta="Comedy / Long-form" data-emoji="🎙️" onclick="toggleRow(this)">
+        <div class="result-art">🎙️</div>
+        <div class="result-info">
+          <div class="result-name">The Joe Rogan Experience</div>
+          <div class="result-meta">Comedy / Long-form</div>
+        </div>
+        <div class="result-check">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<!-- STICKY FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <button class="finish-btn" id="finish-btn" disabled>
+      <span id="finish-label">Add a podcast to continue</span>
+    </button>
+  </div>
+</footer>
+
+<script>
+  const picks = new Map();
+
+  const allShows = [
+    { id: 'huberman',   name: 'Huberman Lab',              meta: 'Health & Longevity',           emoji: '🧠' },
+    { id: 'all-in',     name: 'All-In Podcast',            meta: 'Tech / Investing',             emoji: '💼' },
+    { id: 'mfm',        name: 'My First Million',          meta: 'Business / Entrepreneurship',  emoji: '💰' },
+    { id: 'acquired',   name: 'Acquired',                  meta: 'Business History',             emoji: '📚' },
+    { id: 'lex',        name: 'Lex Fridman Podcast',       meta: 'AI / Technology',              emoji: '🤖' },
+    { id: 'tim',        name: 'The Tim Ferriss Show',      meta: 'Self-improvement / Business',  emoji: '⏱️' },
+    { id: 'invest-best',name: 'Invest Like the Best',      meta: 'Investing',                    emoji: '📈' },
+    { id: 'how-built',  name: 'How I Built This',          meta: 'Startups / Founders',          emoji: '🚀' },
+    { id: 'diary-ceo',  name: 'The Diary of a CEO',        meta: 'Business / Personal Dev',      emoji: '📔' },
+    { id: 'rogan',      name: 'The Joe Rogan Experience',  meta: 'Comedy / Long-form',           emoji: '🎙️' },
+    { id: 'knowledge',  name: 'Knowledge Project',         meta: 'Mental Models / Decision-making', emoji: '🧩' },
+    { id: 'found',      name: 'Foundr Podcast',            meta: 'Entrepreneurship',             emoji: '🏗️' },
+    { id: 'masters',    name: 'Masters of Scale',          meta: 'Startups / Leadership',        emoji: '🌊' },
+    { id: 'freakonomics',name:'Freakonomics Radio',        meta: 'Economics / Social Science',   emoji: '📊' },
+    { id: 'hidden',     name: 'Hidden Brain',              meta: 'Psychology / Behavior',        emoji: '🧪' },
+  ];
+
+  function toggleRow(el) {
+    const id    = el.dataset.id;
+    const name  = el.dataset.name;
+    const meta  = el.dataset.meta;
+    const emoji = el.dataset.emoji;
+
+    if (picks.has(id)) {
+      picks.delete(id);
+      el.classList.remove('selected');
+    } else {
+      picks.set(id, { name, meta, emoji });
+      el.classList.add('selected');
+    }
+    syncAllRows();
+    renderPicks();
+    updateFooter();
+  }
+
+  function syncAllRows() {
+    document.querySelectorAll('.result-row').forEach(row => {
+      row.classList.toggle('selected', picks.has(row.dataset.id));
+    });
+  }
+
+  function renderPicks() {
+    const section = document.getElementById('picks-section');
+    const tray    = document.getElementById('picks-tray');
+    const label   = document.getElementById('picks-label');
+
+    if (picks.size === 0) {
+      section.style.display = 'none';
+      return;
+    }
+    section.style.display = 'block';
+    label.textContent = `Your picks (${picks.size})`;
+
+    tray.innerHTML = [...picks.entries()].map(([id, { name, emoji }]) => `
+      <div class="pick-chip" id="chip-${id}">
+        <div class="pick-thumb">${emoji}</div>
+        <span class="pick-name">${name}</span>
+        <button class="pick-remove" onclick="removePick('${id}')" aria-label="Remove ${name}">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+    `).join('');
+  }
+
+  function removePick(id) {
+    picks.delete(id);
+    syncAllRows();
+    renderPicks();
+    updateFooter();
+  }
+
+  function updateFooter() {
+    const btn   = document.getElementById('finish-btn');
+    const label = document.getElementById('finish-label');
+    const n = picks.size;
+    if (n === 0) {
+      btn.disabled = true;
+      label.textContent = 'Add a podcast to continue';
+    } else {
+      btn.disabled = false;
+      label.textContent = n === 1 ? 'Finish setup — 1 pick' : `Finish setup — ${n} picks`;
+    }
+  }
+
+  /* SEARCH */
+  function handleSearch(val) {
+    const clearBtn  = document.getElementById('clear-btn');
+    const staffWrap = document.getElementById('staff-picks-wrap');
+    const resWrap   = document.getElementById('search-results-wrap');
+    const resList   = document.getElementById('search-results');
+
+    clearBtn.style.display = val.length > 0 ? 'flex' : 'none';
+
+    if (val.trim().length < 2) {
+      staffWrap.style.display = 'block';
+      resWrap.style.display   = 'none';
+      return;
+    }
+
+    const q = val.toLowerCase();
+    const matches = allShows.filter(s =>
+      s.name.toLowerCase().includes(q) || s.meta.toLowerCase().includes(q)
+    );
+
+    staffWrap.style.display = 'none';
+    resWrap.style.display   = 'block';
+
+    if (matches.length === 0) {
+      resList.innerHTML = `<div style="padding:20px 16px; font-size:14px; color:var(--hint); text-align:center;">No shows found in our index for "${val}"</div>`;
+      return;
+    }
+
+    resList.innerHTML = matches.map(s => `
+      <div class="result-row ${picks.has(s.id) ? 'selected' : ''}"
+           data-id="${s.id}" data-name="${s.name}" data-meta="${s.meta}" data-emoji="${s.emoji}"
+           onclick="toggleRow(this)">
+        <div class="result-art">${s.emoji}</div>
+        <div class="result-info">
+          <div class="result-name">${s.name}</div>
+          <div class="result-meta">${s.meta}</div>
+        </div>
+        <div class="result-check">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function clearSearch() {
+    const input = document.getElementById('search-input');
+    input.value = '';
+    handleSearch('');
+    input.focus();
+  }
+
+  document.getElementById('finish-btn').addEventListener('click', () => {
+    if (picks.size === 0) return;
+    const btn = document.getElementById('finish-btn');
+    const label = document.getElementById('finish-label');
+    btn.style.background = 'linear-gradient(135deg, #6366F1, #8B5CF6)';
+    label.textContent = 'Setting up your feed…';
+    btn.disabled = true;
+  });
+</script>
+
+</body>
+</html>
