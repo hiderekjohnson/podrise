@@ -16,7 +16,7 @@ const ALL_NAV_ITEMS = [
   { key: "discover", path: "/discover", label: "Discover", Icon: Compass },
   { key: "shop", path: "/shop", label: "Pod Shop", Icon: ShoppingBag },
   { key: "bookmarks", path: "/bookmarks", label: "Saved Episodes", Icon: Bookmark },
-  { key: "pod-squad", path: "/pod-squad", label: "Pod Squad", Icon: Award, badge: true },
+  { key: "pod-squad", path: "/pod-squad", label: "Pod Squad", Icon: Award },
 ];
 
 function MobileBottomNav({ currentPath, navItems }: { currentPath: string; navItems: typeof ALL_NAV_ITEMS }) {
@@ -36,7 +36,7 @@ function MobileBottomNav({ currentPath, navItems }: { currentPath: string; navIt
   const primaryTabs = [
     { key: "feed", path: "/dashboard", Icon: Home, label: "Home" },
     { key: "discover", path: "/discover", Icon: Compass, label: "Discover" },
-    { key: "pod-squad", path: "/pod-squad", label: "Refer", Icon: Award, highlight: true },
+    { key: "pod-squad", path: "/pod-squad", label: "Refer", Icon: Award },
   ];
 
   const moreItems = navItems.filter(
@@ -100,27 +100,19 @@ function MobileBottomNav({ currentPath, navItems }: { currentPath: string; navIt
         </div>
       )}
       <div className="flex items-stretch justify-around mx-auto h-[50px]">
-        {primaryTabs.map(({ key, path, Icon, label, highlight }) => {
+        {primaryTabs.map(({ key, path, Icon, label }) => {
           const isActive = currentPath === path || (path === "/dashboard" && currentPath === "/");
           return (
             <button
               key={key}
               onClick={() => { navigate(path); setMoreOpen(false); }}
               className={`flex flex-col items-center justify-center flex-1 gap-[2px] transition-colors active:opacity-70 ${
-                highlight
-                  ? "text-[#6366F1]"
-                  : isActive ? "text-[#09090B]" : "text-[#A1A1AA]"
+                isActive ? "text-[#09090B]" : "text-[#A1A1AA]"
               }`}
               data-testid={`bottom-nav-${key}`}
             >
-              {highlight ? (
-                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #6366F1, #7C3AED)" }}>
-                  <Icon className="w-[18px] h-[18px] text-white" />
-                </div>
-              ) : (
-                <Icon className="w-6 h-6" />
-              )}
-              <span className={`text-[10px] font-semibold leading-none ${highlight ? "text-[#6366F1]" : ""}`}>{label}</span>
+              <Icon className="w-6 h-6" />
+              <span className="text-[10px] font-semibold leading-none">{label}</span>
             </button>
           );
         })}
@@ -166,21 +158,16 @@ export function DashboardLayout({ children, hideRightSidebar }: DashboardLayoutP
         </Link>
 
         <nav className="flex flex-col items-center gap-[2px] flex-1 w-full px-[10px]" data-testid="sidebar-nav">
-          {NAV_ITEMS.map(({ key, path, label, Icon, badge }) => {
+          {NAV_ITEMS.map(({ key, path, label, Icon }) => {
             const active = isActive(path);
             return (
               <Link key={key} href={path}>
                 <div
                   className={`sidebar-icon-item w-11 h-11 rounded-[10px] flex items-center justify-center cursor-pointer transition-all relative ${
-                    badge
-                      ? active
-                        ? "text-white ring-2 ring-[#6366F1]/50 ring-offset-2 ring-offset-white scale-105"
-                        : "text-white hover:opacity-90"
-                      : active
-                        ? "bg-[#EEF2FF] text-[#6366F1]"
-                        : "text-[#A1A1AA] hover:bg-[#F7F7FC] hover:text-[#52525B]"
+                    active
+                      ? "bg-[#EEF2FF] text-[#6366F1]"
+                      : "text-[#A1A1AA] hover:bg-[#F7F7FC] hover:text-[#52525B]"
                   }`}
-                  style={badge ? { background: "linear-gradient(135deg, #6366F1, #8B5CF6)", boxShadow: active ? "0 3px 12px rgba(99,102,241,0.5)" : "0 2px 8px rgba(99,102,241,0.35)" } : undefined}
                   data-label={label}
                   data-testid={`sidebar-nav-${key}`}
                 >
