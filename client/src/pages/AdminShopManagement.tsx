@@ -4,7 +4,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
   Loader2, Search, BookOpen, CheckCircle2, XCircle, ChevronLeft, ChevronRight,
-  ImageIcon, Upload, ExternalLink, Pencil, X,
+  ImageIcon, Upload, ExternalLink, Pencil,
   SkipForward, Eye, Save, RefreshCw, AlertCircle, Clock, Trash2, ArrowLeft,
   ArrowLeftCircle, SortAsc, ChevronDown, Star, Hash, Building, Calendar,
   Tag, Mic, FileText, Headphones
@@ -171,8 +171,6 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
   const { toast } = useToast();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [imageSearch, setImageSearch] = useState<{ loading: boolean; images: string[]; selectedIdx: number | null }>({ loading: false, images: [], selectedIdx: null });
-  const [showImageBrowser, setShowImageBrowser] = useState(false);
-  const [customImageUrl, setCustomImageUrl] = useState("");
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [editFields, setEditFields] = useState<{ name: string; description: string; url: string } | null>(null);
   const [queueSort, setQueueSort] = useState("recent");
@@ -194,8 +192,8 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
   const current = items[currentIndex];
 
   useEffect(() => {
-    if (current && !imageSearch.loading && imageSearch.images.length === 0) {
-      findImages(current);
+    if (current) {
+      resetImageState();
     }
   }, [current?.id]);
 
@@ -246,15 +244,6 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
     },
   });
 
-  const updateImageMutation = useMutation({
-    mutationFn: ({ item, imageUrl }: { item: ShopItem; imageUrl: string }) =>
-      apiRequest("POST", `/api/admin/shop/${item.source_type}/${item.id}/update`, { imageUrl }),
-    onSuccess: () => {
-      toast({ title: "Image updated" });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/queue"] });
-    },
-  });
-
   const uploadImageMutation = useMutation({
     mutationFn: async ({ item, file }: { item: ShopItem; file: File }) => {
       const formData = new FormData();
@@ -277,13 +266,10 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
 
   const resetImageState = () => {
     setImageSearch({ loading: false, images: [], selectedIdx: null });
-    setShowImageBrowser(false);
-    setCustomImageUrl("");
     setEditFields(null);
   };
 
   const findImages = useCallback(async (item: ShopItem) => {
-    setShowImageBrowser(true);
     setImageSearch({ loading: true, images: [], selectedIdx: null });
     try {
       const res = await fetch(`/api/admin/shop/${item.source_type}/${item.id}/find-images`, { credentials: "include" });
@@ -413,7 +399,7 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
                     data-testid="button-find-images"
                   >
                     {imageSearch.loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
-                    Find Cover Images
+                    Google Books Lookup
                   </button>
                   <button
                     onClick={() => fileInputRef.current?.click()}
@@ -438,63 +424,29 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
                   />
                 </div>
 
-                {showImageBrowser && (
-                  <div className="border border-black/[0.08] rounded-xl p-3 space-y-2 max-h-[300px] overflow-y-auto">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-foreground">Candidate Images</span>
-                      <button onClick={() => setShowImageBrowser(false)} className="p-1 hover:bg-black/[0.05] rounded">
-                        <X className="w-3.5 h-3.5" />
+                {imageSearch.loading && (
+                  <div className="border border-black/[0.08] rounded-xl p-3 flex items-center justify-center py-6">
+                    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+                {!imageSearch.loading && imageSearch.images.length > 0 && (
+                  <div className="border border-black/[0.08] rounded-xl p-3 space-y-2">
+                    <span className="text-xs font-bold text-foreground">Google Books Result</span>
+                    <div className="flex justify-center">
+                      <button
+                        onClick={() => setImageSearch((s) => ({ ...s, selectedIdx: 0 }))}
+                        className={`w-[120px] aspect-[3/4] rounded-lg border-2 overflow-hidden transition-all ${
+                          imageSearch.selectedIdx === 0 ? "border-primary ring-2 ring-primary/20" : "border-black/[0.08] hover:border-black/[0.15]"
+                        }`}
+                        data-testid="image-candidate-0"
+                      >
+                        <img src={imageSearch.images[0]} alt="" className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.opacity = "0.2"; }} />
                       </button>
                     </div>
-                    {imageSearch.loading ? (
-                      <div className="flex items-center justify-center py-6">
-                        <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-                      </div>
-                    ) : imageSearch.images.length === 0 ? (
-                      <p className="text-xs text-muted-foreground py-4 text-center">No images found.</p>
-                    ) : (
-                      <div className="grid grid-cols-3 gap-1.5">
-                        {imageSearch.images.slice(0, 15).map((imgUrl, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => setImageSearch((s) => ({ ...s, selectedIdx: idx }))}
-                            className={`aspect-square rounded-lg border-2 overflow-hidden transition-all ${
-                              imageSearch.selectedIdx === idx ? "border-primary ring-2 ring-primary/20" : "border-black/[0.08] hover:border-black/[0.15]"
-                            }`}
-                            data-testid={`image-candidate-${idx}`}
-                          >
-                            <img src={imgUrl} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    <div className="pt-1 border-t border-black/[0.06]">
-                      <label className="text-[10px] font-semibold text-muted-foreground mb-1 block">Or paste image URL</label>
-                      <div className="flex gap-1.5">
-                        <input
-                          type="url"
-                          value={customImageUrl}
-                          onChange={(e) => setCustomImageUrl(e.target.value)}
-                          placeholder="https://..."
-                          className="flex-1 h-8 px-2 text-xs bg-white border border-black/[0.08] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
-                          data-testid="input-custom-image-url"
-                        />
-                        <button
-                          onClick={() => {
-                            if (customImageUrl.trim()) {
-                              updateImageMutation.mutate({ item: current, imageUrl: customImageUrl.trim() });
-                              setCustomImageUrl("");
-                            }
-                          }}
-                          disabled={!customImageUrl.trim()}
-                          className="h-8 px-3 rounded-lg text-xs font-bold bg-primary text-white hover:brightness-105 disabled:opacity-40 transition-all"
-                          data-testid="button-set-custom-image"
-                        >
-                          Set
-                        </button>
-                      </div>
-                    </div>
                   </div>
+                )}
+                {!imageSearch.loading && imageSearch.images.length === 0 && imageSearch.selectedIdx === null && currentIndex >= 0 && (
+                  <p className="text-xs text-muted-foreground text-center">Click "Google Books Lookup" to find a cover.</p>
                 )}
               </div>
 

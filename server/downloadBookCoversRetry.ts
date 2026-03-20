@@ -57,7 +57,7 @@ function looksLikeDocument(buf: Buffer): boolean {
 }
 
 async function downloadFromGoogleBooks(googleBooksId: string): Promise<Buffer | null> {
-  for (const zoom of [3, 2, 1]) {
+  for (const zoom of [3, 2]) {
     const url = `https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=${zoom}&source=gbs_api`;
     try {
       const res = await fetch(url);
@@ -67,99 +67,45 @@ async function downloadFromGoogleBooks(googleBooksId: string): Promise<Buffer | 
       if (looksLikeDocument(buf)) continue;
       const w = getWidth(buf);
       if (w >= MIN_WIDTH) return buf;
-      if (zoom === 1 && w > 0) return buf;
     } catch {}
   }
   return null;
 }
 
-async function downloadFromOpenLibrary(isbn: string): Promise<Buffer | null> {
-  const url = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg?default=false`;
+async function findGoogleBooksId(title: string, author?: string): Promise<string | null> {
   try {
-    const res = await fetch(url);
+    const q = encodeURIComponent(title + (author ? `+inauthor:${author}` : ""));
+    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=1`);
     if (!res.ok) return null;
-    const buf = Buffer.from(await res.arrayBuffer());
-    if (buf.length < 1000) return null;
-    if (looksLikeDocument(buf)) return null;
-    return buf;
-  } catch { return null; }
-}
-
-async function downloadFromAmazon(isbn: string): Promise<Buffer | null> {
-  const urls = [
-    `https://images-na.ssl-images-amazon.com/images/P/${isbn}.01._SCLZZZZZZZ_.jpg`,
-    `https://images.amazon.com/images/P/${isbn}.01.LZZZZZZZ.jpg`,
-  ];
-  for (const url of urls) {
-    try {
-      const res = await fetch(url, {
-        headers: { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)" },
-      });
-      if (!res.ok) continue;
-      const buf = Buffer.from(await res.arrayBuffer());
-      if (isPlaceholder(buf)) continue;
-      if (buf.length < 2000) continue;
-      if (looksLikeDocument(buf)) continue;
-      const w = getWidth(buf);
-      if (w > 0) return buf;
-    } catch {}
+    const data = await res.json();
+    return data.items?.[0]?.id || null;
+  } catch {
+    return null;
   }
-  return null;
 }
 
-async function downloadFromOpenLibraryByTitle(title: string, author?: string): Promise<Buffer | null> {
-  const q = encodeURIComponent(title + (author ? ` ${author}` : ""));
-  try {
-    const searchRes = await fetch(`https://openlibrary.org/search.json?q=${q}&limit=3`);
-    if (!searchRes.ok) return null;
-    const data = await searchRes.json();
-    const docs = data.docs || [];
-    for (const doc of docs) {
-      if (doc.cover_i) {
-        const coverUrl = `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg?default=false`;
-        const res = await fetch(coverUrl);
-        if (!res.ok) continue;
-        const buf = Buffer.from(await res.arrayBuffer());
-        if (buf.length < 1000) continue;
-        if (looksLikeDocument(buf)) continue;
-        const w = getWidth(buf);
-        if (w >= MIN_WIDTH || w > 0) return buf;
-      }
+async function tryGoogleBooks(row: any): Promise<Buffer | null> {
+  let googleBooksId = row.google_books_id;
+
+  if (googleBooksId) {
+    const buf = await downloadFromGoogleBooks(googleBooksId);
+    if (buf) return buf;
+  }
+
+  if (row.isbn) {
+    const isbnId = await findGoogleBooksId(`isbn:${row.isbn}`);
+    if (isbnId && isbnId !== googleBooksId) {
+      const buf = await downloadFromGoogleBooks(isbnId);
+      if (buf) return buf;
     }
-  } catch {}
-  return null;
-}
-
-type Source = "google_books" | "openlibrary" | "amazon_isbn" | "openlibrary_search";
-
-interface SourceResult {
-  source: Source;
-  buf: Buffer;
-}
-
-async function tryAllSources(
-  row: any,
-  triedSources: string[]
-): Promise<SourceResult | null> {
-  const sources: { name: Source; fn: () => Promise<Buffer | null> }[] = [];
-
-  if (row.isbn && !triedSources.includes("amazon_isbn")) {
-    sources.push({ name: "amazon_isbn", fn: () => downloadFromAmazon(row.isbn) });
-  }
-  if (!triedSources.includes("openlibrary_search")) {
-    sources.push({ name: "openlibrary_search", fn: () => downloadFromOpenLibraryByTitle(row.book_title, row.author) });
-  }
-  if (row.google_books_id && !triedSources.includes("google_books")) {
-    sources.push({ name: "google_books", fn: () => downloadFromGoogleBooks(row.google_books_id) });
-  }
-  if (row.isbn && !triedSources.includes("openlibrary")) {
-    sources.push({ name: "openlibrary", fn: () => downloadFromOpenLibrary(row.isbn) });
   }
 
-  for (const { name, fn } of sources) {
-    const buf = await fn();
-    await sleep(DELAY_MS);
-    if (buf) return { source: name, buf };
+  if (!googleBooksId) {
+    const searchId = await findGoogleBooksId(row.book_title, row.author);
+    if (searchId) {
+      const buf = await downloadFromGoogleBooks(searchId);
+      if (buf) return buf;
+    }
   }
 
   return null;
@@ -177,7 +123,7 @@ async function main() {
        FROM book_enrichments 
        WHERE slug IS NOT NULL AND cover_approved = false
        ORDER BY book_title`;
-    description = "rejected covers (trying new sources)";
+    description = "rejected covers (trying Google Books)";
   } else if (mode === "nocover") {
     query = `SELECT slug, google_books_id, isbn, asin, book_title, author, cover_tried_sources
        FROM book_enrichments 
@@ -196,48 +142,47 @@ async function main() {
   console.log(`\n${description}: ${rows.length} books to process\n`);
 
   let downloaded = 0;
-  let skipped = 0;
   let noSource = 0;
 
   for (const row of rows) {
     const triedSources: string[] = row.cover_tried_sources || [];
     const filePath = path.join(COVERS_DIR, `${row.slug}.jpg`);
 
-    const result = await tryAllSources(row, triedSources);
+    if (triedSources.includes("google_books")) {
+      noSource++;
+      console.log(`  ⊘ ${row.book_title} — google_books already tried`);
+      continue;
+    }
 
-    if (result) {
-      const w = getWidth(result.buf);
-      fs.writeFileSync(filePath, result.buf);
+    const buf = await tryGoogleBooks(row);
+    await sleep(DELAY_MS);
+
+    if (buf) {
+      const w = getWidth(buf);
+      fs.writeFileSync(filePath, buf);
       downloaded++;
 
-      const newTried = [...new Set([...triedSources, result.source])];
+      const newTried = [...new Set([...triedSources, "google_books"])];
       await pool.query(
         `UPDATE book_enrichments 
          SET has_cover = true, cover_approved = NULL, cover_source = $1, 
              cover_tried_sources = $2, cover_quality_score = NULL
          WHERE slug = $3`,
-        [result.source, newTried, row.slug]
+        ["google_books", newTried, row.slug]
       );
-      console.log(`✓ ${row.book_title} — ${result.source} (${w}px, ${result.buf.length} bytes)`);
+      console.log(`✓ ${row.book_title} — google_books (${w}px, ${buf.length} bytes)`);
     } else {
-      const allSources = [...new Set([...triedSources, "google_books", "openlibrary", "amazon_isbn", "openlibrary_search"])];
+      const newTried = [...new Set([...triedSources, "google_books"])];
       await pool.query(
-        `UPDATE book_enrichments SET cover_tried_sources = $1 WHERE slug = $2`,
-        [allSources, row.slug]
+        `UPDATE book_enrichments SET cover_tried_sources = $1, cover_approved = false, has_cover = false, rejection_reason = 'no_images', updated_at = NOW() WHERE slug = $2`,
+        [newTried, row.slug]
       );
-
-      const untried = ["google_books", "openlibrary", "amazon_isbn", "openlibrary_search"].filter(s => !triedSources.includes(s));
-      if (untried.length === 0) {
-        skipped++;
-        console.log(`  ⊘ ${row.book_title} — all sources exhausted`);
-      } else {
-        noSource++;
-        console.log(`  ✗ ${row.book_title} — no cover from new sources (tried: ${untried.join(", ")})`);
-      }
+      noSource++;
+      console.log(`  ✗ ${row.book_title} — no quality cover found on Google Books`);
     }
   }
 
-  console.log(`\nDone! Downloaded: ${downloaded}, No new source: ${noSource}, All exhausted: ${skipped}`);
+  console.log(`\nDone! Downloaded: ${downloaded}, No cover found: ${noSource}`);
   console.log(`Total: ${rows.length} processed`);
   await pool.end();
 }

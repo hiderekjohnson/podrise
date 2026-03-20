@@ -9320,9 +9320,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
       type CandidateResult = { source: string; width: number; height: number; size: number; filename: string; url: string } | null;
 
-      async function tryGoogleBooks(googleBooksId: string, slug: string): Promise<CandidateResult> {
-        for (const zoom of [3, 2, 1]) {
-          const url = `https://books.google.com/books/content?id=${googleBooksId}&printsec=frontcover&img=1&zoom=${zoom}&source=gbs_api`;
+      async function tryGoogleBooks(gbId: string, slug: string): Promise<CandidateResult> {
+        for (const zoom of [3, 2]) {
+          const url = `https://books.google.com/books/content?id=${gbId}&printsec=frontcover&img=1&zoom=${zoom}&source=gbs_api`;
           try {
             const r = await fetch(url);
             if (!r.ok) continue;
@@ -9331,7 +9331,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
             if (isPureColorImage(buf)) continue;
             if (looksLikeDocument(buf)) continue;
             const { w, h } = getDimensions(buf);
-            if (w >= MIN_WIDTH || (zoom === 1 && w > 0)) {
+            if (w >= MIN_WIDTH) {
               const filename = `${slug}_google_books.jpg`;
               fsMod.default.writeFileSync(pathMod.default.join(candidatesDir, filename), buf);
               return { source: "google_books", width: w, height: h, size: buf.length, filename, url: `/books/candidates/${filename}` };
@@ -9339,99 +9339,6 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           } catch {}
         }
         return null;
-      }
-
-      async function tryOpenLibrary(isbn: string, slug: string): Promise<CandidateResult> {
-        const url = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg?default=false`;
-        try {
-          const r = await fetch(url);
-          if (!r.ok) return null;
-          const buf = Buffer.from(await r.arrayBuffer());
-          if (buf.length < 1000) return null;
-          if (isPureColorImage(buf)) return null;
-          if (looksLikeDocument(buf)) return null;
-          const { w, h } = getDimensions(buf);
-          const filename = `${slug}_openlibrary.jpg`;
-          fsMod.default.writeFileSync(pathMod.default.join(candidatesDir, filename), buf);
-          return { source: "openlibrary", width: w, height: h, size: buf.length, filename, url: `/books/candidates/${filename}` };
-        } catch { return null; }
-      }
-
-      async function tryAmazon(isbn: string, slug: string): Promise<CandidateResult> {
-        const urls = [
-          `https://images-na.ssl-images-amazon.com/images/P/${isbn}.01._SCLZZZZZZZ_.jpg`,
-          `https://images.amazon.com/images/P/${isbn}.01.LZZZZZZZ.jpg`,
-        ];
-        for (const u of urls) {
-          try {
-            const r = await fetch(u, { headers: { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)" } });
-            if (!r.ok) continue;
-            const buf = Buffer.from(await r.arrayBuffer());
-            if (isPlaceholder(buf)) continue;
-            if (buf.length < 2000) continue;
-            if (isPureColorImage(buf)) continue;
-            if (looksLikeDocument(buf)) continue;
-            const { w, h } = getDimensions(buf);
-            if (w > 0) {
-              const filename = `${slug}_amazon.jpg`;
-              fsMod.default.writeFileSync(pathMod.default.join(candidatesDir, filename), buf);
-              return { source: "amazon_isbn", width: w, height: h, size: buf.length, filename, url: `/books/candidates/${filename}` };
-            }
-          } catch {}
-        }
-        return null;
-      }
-
-      async function tryOpenLibrarySearch(title: string, author: string | null, slug: string): Promise<CandidateResult> {
-        const q = encodeURIComponent(title + (author ? ` ${author}` : ""));
-        try {
-          const searchRes = await fetch(`https://openlibrary.org/search.json?q=${q}&limit=3`);
-          if (!searchRes.ok) return null;
-          const data = await searchRes.json();
-          const docs = data.docs || [];
-          for (const doc of docs) {
-            if (doc.cover_i) {
-              const coverUrl = `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg?default=false`;
-              const r = await fetch(coverUrl);
-              if (!r.ok) continue;
-              const buf = Buffer.from(await r.arrayBuffer());
-              if (buf.length < 1000) continue;
-              if (isPureColorImage(buf)) continue;
-              if (looksLikeDocument(buf)) continue;
-              const { w, h } = getDimensions(buf);
-              if (w >= MIN_WIDTH || w > 0) {
-                const filename = `${slug}_ol_search.jpg`;
-                fsMod.default.writeFileSync(pathMod.default.join(candidatesDir, filename), buf);
-                return { source: "openlibrary_search", width: w, height: h, size: buf.length, filename, url: `/books/candidates/${filename}` };
-              }
-            }
-          }
-        } catch {}
-        return null;
-      }
-
-      let isbn = book.isbn;
-      if (!isbn) {
-        try {
-          const q = encodeURIComponent(book.book_title + (book.author ? ` ${book.author}` : ""));
-          const olRes = await fetch(`https://openlibrary.org/search.json?q=${q}&limit=3&fields=key,title,isbn`);
-          if (olRes.ok) {
-            const olData = await olRes.json();
-            for (const doc of (olData.docs || [])) {
-              const isbns = [...(doc.isbn || [])];
-              const isbn13 = isbns.find((i: string) => i.length === 13);
-              const isbn10 = isbns.find((i: string) => i.length === 10);
-              if (isbn13 || isbn10) {
-                isbn = isbn13 || isbn10;
-                await pool.query(`UPDATE book_enrichments SET isbn = $1 WHERE id = $2 AND isbn IS NULL`, [isbn, book.id]);
-                console.log(`[BookCovers] Auto-enriched ISBN for "${book.book_title}": ${isbn}`);
-                break;
-              }
-            }
-          }
-        } catch (e) {
-          console.warn(`[BookCovers] ISBN enrichment failed for "${book.book_title}":`, e);
-        }
       }
 
       let googleBooksId = book.google_books_id;
@@ -9452,23 +9359,31 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         }
       }
 
-      const promises: Promise<CandidateResult>[] = [];
-      if (googleBooksId) promises.push(tryGoogleBooks(googleBooksId, book.slug));
-      else promises.push(Promise.resolve(null));
-      if (isbn) promises.push(tryOpenLibrary(isbn, book.slug));
-      else promises.push(Promise.resolve(null));
-      if (isbn) promises.push(tryAmazon(isbn, book.slug));
-      else promises.push(Promise.resolve(null));
-      promises.push(tryOpenLibrarySearch(book.book_title, book.author, book.slug));
+      let candidate: NonNullable<CandidateResult> | null = null;
+      if (googleBooksId) {
+        candidate = await tryGoogleBooks(googleBooksId, book.slug) as NonNullable<CandidateResult> | null;
+      }
 
-      const results = await Promise.all(promises);
-      const candidates = results.filter((r): r is NonNullable<CandidateResult> => r !== null);
+      if (!candidate && book.isbn) {
+        try {
+          const isbnRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${book.isbn}&maxResults=1`);
+          if (isbnRes.ok) {
+            const isbnData = await isbnRes.json();
+            const isbnGbId = isbnData.items?.[0]?.id;
+            if (isbnGbId && isbnGbId !== googleBooksId) {
+              googleBooksId = isbnGbId;
+              await pool.query(`UPDATE book_enrichments SET google_books_id = $1 WHERE id = $2 AND google_books_id IS NULL`, [googleBooksId, book.id]);
+              candidate = await tryGoogleBooks(isbnGbId, book.slug) as NonNullable<CandidateResult> | null;
+            }
+          }
+        } catch {}
+      }
+
+      const candidates = candidate ? [candidate] : [];
 
       if (candidates.length === 0) {
-        const fsMod2 = await import("fs");
-        const pathMod2 = await import("path");
-        const existingCover = pathMod2.default.join(pathMod2.default.resolve("public/books"), `${book.slug}.jpg`);
-        const hasExistingFile = fsMod2.default.existsSync(existingCover);
+        const existingCover = pathMod.default.join(pathMod.default.resolve("public/books"), `${book.slug}.jpg`);
+        const hasExistingFile = fsMod.default.existsSync(existingCover);
         if (!hasExistingFile) {
           await pool.query(
             "UPDATE book_enrichments SET cover_approved = false, has_cover = false, rejection_reason = 'no_images', updated_at = NOW() WHERE id = $1",
@@ -9477,7 +9392,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         }
       }
 
-      res.json({ candidates, bookId: book.id, slug: book.slug, title: book.book_title, isbnEnriched: isbn && !book.isbn ? isbn : null });
+      res.json({ candidates, bookId: book.id, slug: book.slug, title: book.book_title });
     } catch (err: any) {
       console.error("[BookCovers] Fetch candidates error:", err);
       res.status(500).json({ message: err?.message || "Failed to fetch candidates" });
@@ -9492,7 +9407,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const { id, source, filename } = req.body;
       if (!id || !source || !filename) return res.status(400).json({ message: "id, source, filename required" });
 
-      const validSources = ["google_books", "openlibrary", "amazon_isbn", "openlibrary_search"];
+      const validSources = ["google_books"];
       if (!validSources.includes(source)) return res.status(400).json({ message: "Invalid source" });
 
       const { rows } = await pool.query(
@@ -9502,11 +9417,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       if (!rows.length) return res.status(404).json({ message: "Book not found" });
       const book = rows[0];
 
-      const suffixMap: Record<string, string> = {
-        google_books: "google_books", openlibrary: "openlibrary",
-        amazon_isbn: "amazon", openlibrary_search: "ol_search",
-      };
-      const expectedFilename = `${book.slug}_${suffixMap[source]}.jpg`;
+      const expectedFilename = `${book.slug}_google_books.jpg`;
       if (filename !== expectedFilename) {
         return res.status(400).json({ message: "Filename does not match expected pattern" });
       }
@@ -14729,11 +14640,53 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
         productName = rows[0].name || "";
         company = rows[0].company || "";
       } else if (sourceType === "book") {
-        const { rows } = await pool.query(`SELECT book_title, author, amazon_url FROM book_enrichments WHERE id = $1`, [numId]);
+        const { rows } = await pool.query(`SELECT book_title, author, google_books_id, isbn FROM book_enrichments WHERE id = $1`, [numId]);
         if (rows.length === 0) return res.status(404).json({ message: "Book not found" });
-        purchaseUrl = rows[0].amazon_url || "";
         productName = rows[0].book_title || "";
         company = rows[0].author || "";
+
+        let gbId = rows[0].google_books_id;
+        if (!gbId) {
+          try {
+            const q = encodeURIComponent(productName + (company ? `+inauthor:${company}` : ""));
+            const gbRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=1`);
+            if (gbRes.ok) {
+              const gbData = await gbRes.json();
+              gbId = gbData.items?.[0]?.id || null;
+            }
+          } catch {}
+        }
+        if (!gbId && rows[0].isbn) {
+          try {
+            const isbnRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${rows[0].isbn}&maxResults=1`);
+            if (isbnRes.ok) {
+              const isbnData = await isbnRes.json();
+              gbId = isbnData.items?.[0]?.id || null;
+            }
+          } catch {}
+        }
+
+        const bookImages: string[] = [];
+        if (gbId) {
+          for (const zoom of [3, 2]) {
+            const coverUrl = `https://books.google.com/books/content?id=${gbId}&printsec=frontcover&img=1&zoom=${zoom}&source=gbs_api`;
+            try {
+              const controller = new AbortController();
+              const timeout = setTimeout(() => controller.abort(), 8000);
+              const coverRes = await fetch(coverUrl, { signal: controller.signal });
+              clearTimeout(timeout);
+              if (coverRes.ok) {
+                const buf = Buffer.from(await coverRes.arrayBuffer());
+                if (buf.length >= 1000) {
+                  bookImages.push(coverUrl);
+                  break;
+                }
+              }
+            } catch {}
+          }
+        }
+
+        return res.json({ images: bookImages, productName, company });
       }
 
       const images: string[] = [];
