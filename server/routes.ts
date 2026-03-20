@@ -10326,9 +10326,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {
       const { slug } = req.params;
-      const validStatuses = ["published", "needs_review", "hidden"];
+      const validStatuses = ["published", "needs_review", "hidden", "requested"];
       if (req.body.status && !validStatuses.includes(req.body.status)) {
-        return res.status(400).json({ message: "Invalid status. Must be: published, needs_review, or hidden" });
+        return res.status(400).json({ message: "Invalid status. Must be: published, needs_review, hidden, or requested" });
       }
       const allowedFields: Record<string, string> = {
         slug: "slug", name: "name", description: "description", artworkUrl: "artwork_url",
@@ -10359,6 +10359,80 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     } catch (err: any) {
       console.error("[CMS] Update podcast error:", err);
       res.status(500).json({ message: err?.message || "Failed to update podcast" });
+    }
+  });
+
+  app.post("/api/admin/cms/podcasts/:slug/approve", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { slug } = req.params;
+      const isNumericId = /^\d+$/.test(slug);
+      const whereClause = isNumericId ? `id = $1::int` : `slug = $1`;
+      const { rows } = await pool.query(
+        `SELECT id, slug, name, itunes_id, status, artwork_url, description, category, feed_url, total_episodes, apple_url FROM podcast_directory WHERE ${whereClause}`,
+        [slug]
+      );
+      if (rows.length === 0) return res.status(404).json({ message: "Podcast not found" });
+      const podcast = rows[0];
+      if (podcast.status !== "requested") {
+        return res.status(400).json({ message: `Podcast status is "${podcast.status}", not "requested"` });
+      }
+
+      const updates: Record<string, any> = {
+        status: "published",
+        has_landing_page: true,
+      };
+
+      if (podcast.itunes_id) {
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 15000);
+          const itunesResp = await fetch(`https://itunes.apple.com/lookup?id=${podcast.itunes_id}&entity=podcast`, { signal: controller.signal });
+          clearTimeout(timeout);
+          if (itunesResp.ok) {
+            const itunesData = await itunesResp.json();
+            const result = (itunesData.results || []).find((r: any) => r.wrapperType === "collection" || r.kind === "podcast");
+            if (result) {
+              const art = (result.artworkUrl600 || result.artworkUrl100 || "").replace(/\d+x\d+bb/, "1200x1200bb");
+              if (art && !podcast.artwork_url) updates.artwork_url = art;
+              if (result.primaryGenreName && !podcast.category) updates.category = result.primaryGenreName;
+              if (result.feedUrl && !podcast.feed_url) updates.feed_url = result.feedUrl;
+              if (result.trackCount) updates.total_episodes = result.trackCount;
+              if (result.collectionViewUrl && !podcast.apple_url) updates.apple_url = result.collectionViewUrl;
+              const itunesDesc = result.description || result.collectionName || "";
+              if (itunesDesc && !podcast.description) updates.description = itunesDesc;
+            }
+          }
+        } catch (itunesErr) {
+          console.error("[CMS] iTunes lookup during approve failed:", itunesErr);
+        }
+      }
+
+      const sets: string[] = [];
+      const params: any[] = [];
+      for (const [col, val] of Object.entries(updates)) {
+        params.push(val);
+        sets.push(`${col} = $${params.length}`);
+      }
+      sets.push(`updated_at = NOW()`);
+      params.push(podcast.id);
+      await pool.query(`UPDATE podcast_directory SET ${sets.join(", ")} WHERE id = $${params.length}`, params);
+
+      console.log(`[CMS] Approved requested podcast: ${podcast.name} (slug: ${podcast.slug})`);
+
+      res.json({ success: true, name: podcast.name, slug: podcast.slug, fieldsUpdated: Object.keys(updates) });
+
+      (async () => {
+        try {
+          await refreshPodcastMetadataBySlug(podcast.slug);
+          console.log(`[CMS] Async metadata enrichment completed for approved podcast: ${podcast.name}`);
+        } catch (err) {
+          console.error(`[CMS] Async metadata enrichment failed for ${podcast.name}:`, err);
+        }
+      })();
+    } catch (err: any) {
+      console.error("[CMS] Approve podcast error:", err);
+      res.status(500).json({ message: err?.message || "Failed to approve podcast" });
     }
   });
 

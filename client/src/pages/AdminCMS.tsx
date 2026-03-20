@@ -654,6 +654,7 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  const [approvingSlug, setApprovingSlug] = useState<string | null>(null);
 
   const { data: podcasts, isLoading } = useQuery<CMSPodcast[]>({
     queryKey: ["/api/admin/cms/podcasts", debouncedSearch, statusFilter, sortField, sortOrder],
@@ -769,6 +770,29 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
     } finally {
       setIsBulkUpdating(false);
+    }
+  };
+
+  const handleApprove = async (slug: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setApprovingSlug(slug);
+    try {
+      const res = await fetch(`/api/admin/cms/podcasts/${slug}/approve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast({ title: "Approve failed", description: data.message, variant: "destructive" });
+        return;
+      }
+      toast({ title: "Podcast approved", description: `${data.name} is now published` });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/podcasts"] });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setApprovingSlug(null);
     }
   };
 
@@ -1040,7 +1064,24 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <StatusBadge status={p.status || "published"} />
+                    <div className="flex items-center gap-2">
+                      <StatusBadge status={p.status || "published"} />
+                      {p.status === "requested" && (
+                        <button
+                          onClick={(e) => handleApprove(p.slug, e)}
+                          disabled={approvingSlug === p.slug}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                          data-testid={`btn-approve-podcast-${p.id}`}
+                        >
+                          {approvingSlug === p.slug ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <CheckCircle className="w-3 h-3" />
+                          )}
+                          {approvingSlug === p.slug ? "Approving..." : "Approve"}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))
