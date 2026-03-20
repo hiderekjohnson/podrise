@@ -719,7 +719,7 @@ export default function DiscoverPage() {
             </div>
             {user && (
               <Link
-                href="/onboarding"
+                href={user.onboardingCompleted ? "/settings?tab=spotify" : "/onboarding"}
                 className="sm:flex-1 inline-flex items-center justify-center gap-2 bg-[#1DB954] hover:bg-[#1aa34a] text-white font-semibold rounded-2xl px-5 py-3.5 text-[15px] md:text-[16px] transition-colors whitespace-nowrap"
                 data-testid="button-import-spotify"
               >

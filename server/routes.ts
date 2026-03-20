@@ -2579,7 +2579,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     const codeChallenge = crypto.createHash("sha256").update(codeVerifier).digest("base64url");
     req.session.spotifyCodeVerifier = codeVerifier;
 
-    let returnTo = "/settings?tab=my-podcasts";
+    let returnTo = "/settings?tab=spotify";
     const rawReturn = req.query.return_to as string;
     if (rawReturn && typeof rawReturn === "string" && rawReturn.startsWith("/") && !rawReturn.startsWith("//") && !rawReturn.includes("://")) {
       returnTo = rawReturn;
@@ -2597,7 +2597,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     try {
       const { code, state, error } = req.query as { code?: string; state?: string; error?: string };
 
-      const returnTo = req.session.spotifyOAuthRedirect || "/settings?tab=my-podcasts";
+      const returnTo = req.session.spotifyOAuthRedirect || "/settings?tab=spotify";
       delete req.session.spotifyOAuthRedirect;
       const sep = returnTo.includes("?") ? "&" : "?";
 
@@ -2674,7 +2674,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       import("./adminAlertService").then(({ sendCriticalApiAlert }) =>
         sendCriticalApiAlert({ apiName: "Spotify", errorType: "OAuth Callback Error", errorMessage: `Spotify OAuth callback failed: ${errMsg}`, severity: "warning", adminPath: "/admin/internal-tools/alerts" })
       ).catch(() => {});
-      res.redirect("/settings?tab=my-podcasts&spotify_error=unknown");
+      res.redirect("/settings?tab=spotify&spotify_error=unknown");
     }
   });
 

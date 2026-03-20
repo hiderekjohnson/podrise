@@ -601,7 +601,7 @@ export default function FeedPage() {
                     Discover Podcasts
                   </Link>
                   <Link
-                    href="/settings?spotify_tab=true"
+                    href="/settings?tab=spotify"
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-[#E4E4E7] dark:border-[#27272A] bg-white dark:bg-[#18181B] hover:bg-[#F4F4F5] dark:hover:bg-[#27272A] text-[#09090B] dark:text-white text-[14px] font-semibold transition-colors"
                     data-testid="empty-spotify-cta"
                   >

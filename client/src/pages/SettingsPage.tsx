@@ -35,9 +35,12 @@ export default function SettingsPage() {
   const [locationVal, setLocationVal] = useState("");
   const [language, setLanguage] = useState("");
   const [initialized, setInitialized] = useState(false);
-  const [activeTab, setActiveTab] = useState<"account" | "display" | "email" | "my-podcasts">(() => {
+  const [activeTab, setActiveTab] = useState<"account" | "display" | "email" | "my-podcasts" | "spotify">(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("tab") === "my-podcasts" || params.get("spotify_connected") === "true" || params.get("spotify_error") || params.get("spotify_tab") === "true") {
+    if (params.get("tab") === "spotify" || params.get("spotify_connected") === "true" || params.get("spotify_error") || params.get("spotify_tab") === "true") {
+      return "spotify";
+    }
+    if (params.get("tab") === "my-podcasts") {
       return "my-podcasts";
     }
     return "account";
@@ -105,7 +108,7 @@ export default function SettingsPage() {
 
         <div className="max-w-5xl mx-auto px-4 md:px-8">
           <div className="flex items-center gap-1 border-b border-[#F0F0F2] dark:border-[#1C1C22] overflow-x-auto scrollbar-hide" data-testid="settings-tabs">
-            {(["account", "display", "email", "my-podcasts"] as const).map((tab) => (
+            {(["account", "display", "email", "my-podcasts", "spotify"] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -117,7 +120,8 @@ export default function SettingsPage() {
                 data-testid={`settings-tab-${tab}`}
               >
                 {tab === "my-podcasts" && <Radio className="w-3.5 h-3.5" />}
-                {tab === "account" ? "Account" : tab === "display" ? "Display" : tab === "email" ? "Email Delivery" : "My Podcasts"}
+                {tab === "spotify" && <SiSpotify className="w-3.5 h-3.5 text-[#1DB954]" />}
+                {tab === "account" ? "Account" : tab === "display" ? "Display" : tab === "email" ? "Email Delivery" : tab === "my-podcasts" ? "My Podcasts" : "Spotify"}
               </button>
             ))}
           </div>
@@ -399,6 +403,13 @@ export default function SettingsPage() {
           {activeTab === "my-podcasts" && (
             <MyPodcastsSettingsTab />
           )}
+
+          {activeTab === "spotify" && (
+            <section>
+              <h2 className="text-[12px] font-bold text-[#A1A1AA] uppercase tracking-wider mb-2 px-1">Spotify Import</h2>
+              <SpotifyImportSection />
+            </section>
+          )}
         </div>
       </div>
     </DashboardLayout>
@@ -502,7 +513,7 @@ function SpotifyImportSection() {
     if (params.get("spotify_connected") === "true") {
       setImportMode(true);
       toast({ title: "Spotify connected", description: "Select podcasts to import" });
-      window.history.replaceState({}, "", window.location.pathname + "?tab=my-podcasts");
+      window.history.replaceState({}, "", window.location.pathname + "?tab=spotify");
     }
     if (params.get("spotify_error")) {
       const err = params.get("spotify_error");
@@ -513,12 +524,12 @@ function SpotifyImportSection() {
         unknown: "Something went wrong connecting to Spotify",
       };
       toast({ title: "Spotify error", description: messages[err || ""] || messages.unknown, variant: "destructive" });
-      window.history.replaceState({}, "", window.location.pathname + "?tab=my-podcasts");
+      window.history.replaceState({}, "", window.location.pathname + "?tab=spotify");
     }
   }, []);
 
   const handleConnectSpotify = useCallback(() => {
-    window.location.href = "/api/auth/spotify?return_to=" + encodeURIComponent("/settings?tab=my-podcasts");
+    window.location.href = "/api/auth/spotify?return_to=" + encodeURIComponent("/settings?tab=spotify");
   }, []);
 
   const handleStartImport = useCallback(() => {
@@ -803,11 +814,6 @@ function MyPodcastsSettingsTab() {
 
   return (
     <>
-      <section>
-        <h2 className="text-[12px] font-bold text-[#A1A1AA] uppercase tracking-wider mb-2 px-1">Import</h2>
-        <SpotifyImportSection />
-      </section>
-
       <section>
         <h2 className="text-[12px] font-bold text-[#A1A1AA] uppercase tracking-wider mb-2 px-1">Followed Podcasts</h2>
         {isLoading ? (
