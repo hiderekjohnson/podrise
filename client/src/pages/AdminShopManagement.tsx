@@ -7,7 +7,7 @@ import {
   ImageIcon, Upload, ExternalLink, Pencil,
   SkipForward, Eye, Save, RefreshCw, AlertCircle, Clock, Trash2, ArrowLeft,
   ArrowLeftCircle, SortAsc, ChevronDown, Star, Hash, Building, Calendar,
-  Tag, Mic, FileText, Headphones
+  Tag, Mic, FileText, Headphones, MousePointerClick, Bookmark, CheckSquare, Square
 } from "lucide-react";
 
 interface ShopItem {
@@ -33,6 +33,8 @@ interface ShopItem {
   reviewed_at?: string | null;
   rejection_reason?: string | null;
   click_count?: number;
+  podcast_count?: number;
+  save_count?: number;
   isbn?: string | null;
   google_books_id?: string | null;
 }
@@ -98,6 +100,12 @@ const REJECTION_REASONS = [
 const SORT_OPTIONS = [
   { value: "alphabetical", label: "Alphabetical" },
   { value: "recent", label: "Recently Added" },
+  { value: "podcasts_desc", label: "Most Podcasts" },
+  { value: "podcasts_asc", label: "Fewest Podcasts" },
+  { value: "clicks_desc", label: "Most Clicks" },
+  { value: "clicks_asc", label: "Fewest Clicks" },
+  { value: "saves_desc", label: "Most Saves" },
+  { value: "saves_asc", label: "Fewest Saves" },
 ];
 
 function RejectionModal({ onReject, onCancel, isPending }: {
@@ -171,13 +179,10 @@ function RejectionModal({ onReject, onCancel, isPending }: {
 
 function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
   const { toast } = useToast();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [imageSearch, setImageSearch] = useState<{ loading: boolean; images: string[]; selectedIdx: number | null }>({ loading: false, images: [], selectedIdx: null });
-  const [showRejectModal, setShowRejectModal] = useState(false);
-  const [editFields, setEditFields] = useState<{ name: string; description: string; url: string; isbn: string; googleBooksId: string } | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [showRejectModal, setShowRejectModal] = useState<number | null>(null);
   const [queueSort, setQueueSort] = useState("recent");
   const [queueFilter, setQueueFilter] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageRefreshProgress, setImageRefreshProgress] = useState<{
     phase: "running" | "done";
     total: number;
@@ -199,7 +204,7 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
     queryKey: ["/api/admin/books/missing-buzz-count"],
   });
 
-  const { data, isLoading, refetch } = useQuery<QueueResponse>({
+  const { data, isLoading } = useQuery<QueueResponse>({
     queryKey: ["/api/admin/shop/queue", 1, queueSort, queueFilter],
     queryFn: async () => {
       const params = new URLSearchParams({ limit: "50" });
@@ -213,45 +218,30 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
 
   const items = data?.items || [];
   const stats = data?.stats;
-  const current = items[currentIndex];
 
   useEffect(() => {
-    if (current) {
-      resetImageState();
-    }
-  }, [current?.id]);
-
-  useEffect(() => {
-    if (current) {
-      setEditFields({
-        name: current.name || "",
-        description: current.description || "",
-        url: current.url || "",
-        isbn: current.isbn || "",
-        googleBooksId: current.google_books_id || "",
+    if (items.length > 0) {
+      const validIds = new Set(items.map(i => i.id));
+      setSelectedIds(prev => {
+        const next = new Set([...prev].filter(id => validIds.has(id)));
+        return next.size !== prev.size ? next : prev;
       });
+    } else {
+      setSelectedIds(new Set());
     }
-  }, [current?.id]);
+  }, [items]);
 
-  const approveMutation = useMutation({
-    mutationFn: async ({ item, imageUrl, updates }: { item: ShopItem; imageUrl?: string; updates?: any }) => {
-      if (updates && Object.keys(updates).length > 0) {
-        await apiRequest("POST", `/api/admin/shop/${item.source_type}/${item.id}/update`, updates);
-      }
-      if (imageUrl) {
-        await apiRequest("POST", `/api/admin/shop/${item.source_type}/${item.id}/update`, { imageUrl });
-      }
-      return apiRequest("POST", `/api/admin/shop/${item.source_type}/${item.id}/approve`);
-    },
-    onSuccess: () => {
-      toast({ title: "Approved", description: "Book moved to approved." });
-      resetImageState();
-      setCurrentIndex((i) => {
-        const newLen = (data?.items?.length || 1) - 1;
-        return Math.min(i, Math.max(0, newLen - 1));
-      });
+  const bulkApproveMutation = useMutation({
+    mutationFn: async (ids: number[]) => apiRequest("POST", "/api/admin/shop/bulk-approve", { ids }),
+    onSuccess: async (res: Response) => {
+      const result: { approved: number } = await res.json();
+      toast({ title: "Bulk Approved", description: `Approved ${result.approved} book${result.approved !== 1 ? 's' : ''}.` });
+      setSelectedIds(new Set());
       queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/queue"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/approved"] });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to bulk approve.", variant: "destructive" });
     },
   });
 
@@ -260,12 +250,7 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
       apiRequest("POST", `/api/admin/shop/${item.source_type}/${item.id}/reject`, { reason }),
     onSuccess: () => {
       toast({ title: "Rejected", description: "Book has been rejected." });
-      setShowRejectModal(false);
-      resetImageState();
-      setCurrentIndex((i) => {
-        const newLen = (data?.items?.length || 1) - 1;
-        return Math.min(i, Math.max(0, newLen - 1));
-      });
+      setShowRejectModal(null);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/queue"] });
     },
   });
@@ -276,8 +261,7 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
       const result: { removed: number } = await res.json();
       const count = result.removed || 0;
       toast({ title: "Queue Cleaned", description: `Removed ${count} duplicate${count !== 1 ? 's' : ''} from the queue.` });
-      setCurrentIndex(0);
-      resetImageState();
+      setSelectedIds(new Set());
       queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/queue"] });
     },
     onError: () => {
@@ -363,7 +347,6 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
               return;
             }
           } catch (parseErr) {
-            // ignore JSON parse errors for partial lines
           }
         }
       }
@@ -374,50 +357,21 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
     }
   };
 
-  const uploadImageMutation = useMutation({
-    mutationFn: async ({ item, file }: { item: ShopItem; file: File }) => {
-      const formData = new FormData();
-      formData.append("image", file);
-      formData.append("type", item.source_type);
-      formData.append("id", String(item.id));
-      const res = await fetch("/api/admin/shop-items/upload-image", {
-        method: "POST",
-        credentials: "include",
-        body: formData,
-      });
-      if (!res.ok) throw new Error("Upload failed");
-      return res.json();
-    },
-    onSuccess: () => {
-      toast({ title: "Image uploaded" });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/queue"] });
-    },
-  });
-
-  const resetImageState = () => {
-    setImageSearch({ loading: false, images: [], selectedIdx: null });
-    setEditFields(null);
+  const toggleSelect = (id: number) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
-  const findImages = useCallback(async (item: ShopItem) => {
-    setImageSearch({ loading: true, images: [], selectedIdx: null });
-    try {
-      const res = await fetch(`/api/admin/shop/${item.source_type}/${item.id}/find-images`, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed");
-      const data = await res.json();
-      setImageSearch({ loading: false, images: data.images || [], selectedIdx: null });
-    } catch {
-      setImageSearch({ loading: false, images: [], selectedIdx: null });
+  const toggleSelectAll = () => {
+    if (selectedIds.size === items.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(items.map(i => i.id)));
     }
-  }, []);
-
-  const goNext = () => {
-    resetImageState();
-    setCurrentIndex((i) => Math.min(i + 1, items.length - 1));
-  };
-  const goPrev = () => {
-    resetImageState();
-    setCurrentIndex((i) => Math.max(i - 1, 0));
   };
 
   if (isLoading) {
@@ -427,6 +381,8 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
       </div>
     );
   }
+
+  const rejectItem = showRejectModal !== null ? items.find(i => i.id === showRejectModal) : null;
 
   return (
     <div className="space-y-5" data-testid="section-approval-queue">
@@ -503,7 +459,7 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
           <div className="relative">
             <select
               value={queueFilter}
-              onChange={(e) => { setQueueFilter(e.target.value); setCurrentIndex(0); resetImageState(); }}
+              onChange={(e) => { setQueueFilter(e.target.value); setSelectedIds(new Set()); }}
               className="h-8 pl-7 pr-3 bg-white border border-black/[0.08] rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer"
               data-testid="select-queue-filter"
             >
@@ -517,7 +473,7 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
           <div className="relative">
             <select
               value={queueSort}
-              onChange={(e) => { setQueueSort(e.target.value); setCurrentIndex(0); resetImageState(); }}
+              onChange={(e) => { setQueueSort(e.target.value); setSelectedIds(new Set()); }}
               className="h-8 pl-7 pr-3 bg-white border border-black/[0.08] rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer"
               data-testid="select-queue-sort"
             >
@@ -614,276 +570,108 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
           <p className="text-base font-bold text-foreground">All caught up!</p>
           <p className="text-sm text-muted-foreground mt-1">No pending books to review.</p>
         </div>
-      ) : current ? (
-        <div className="glass-panel rounded-2xl overflow-hidden flex flex-col" style={{ height: "calc(100vh - 320px)", minHeight: "500px" }} data-testid={`queue-item-${current.id}`}>
-          <div className="flex items-center justify-between px-5 py-3 bg-black/[0.02] border-b border-black/[0.06] shrink-0">
-            <div className="flex items-center gap-3 text-sm">
-              <span className="font-bold text-foreground">{currentIndex + 1} of {items.length}</span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-700">
-                Book
+      ) : (
+        <>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <label className="flex items-center gap-2 cursor-pointer select-none" data-testid="checkbox-select-all">
+              <button
+                onClick={toggleSelectAll}
+                className="flex items-center justify-center w-5 h-5 rounded border border-black/[0.15] hover:border-primary/50 transition-all"
+              >
+                {selectedIds.size === items.length && items.length > 0 ? (
+                  <CheckSquare className="w-4 h-4 text-primary" />
+                ) : selectedIds.size > 0 ? (
+                  <div className="w-2.5 h-2.5 rounded-sm bg-primary/60" />
+                ) : null}
+              </button>
+              <span className="text-xs font-semibold text-muted-foreground">
+                {selectedIds.size === items.length && items.length > 0 ? "Deselect All" : "Select All"} ({items.length})
               </span>
-            </div>
-            <div className="flex items-center gap-1">
-              <button onClick={goPrev} disabled={currentIndex === 0} className="p-1.5 rounded-lg hover:bg-black/[0.05] disabled:opacity-30 transition-all" data-testid="button-queue-prev">
-                <ChevronLeft className="w-4 h-4" />
+            </label>
+            {selectedIds.size > 0 && (
+              <button
+                onClick={() => bulkApproveMutation.mutate(Array.from(selectedIds))}
+                disabled={bulkApproveMutation.isPending}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-all sticky top-0 z-10"
+                data-testid="button-bulk-approve"
+              >
+                {bulkApproveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                Approve Selected ({selectedIds.size})
               </button>
-              <button onClick={() => onViewBook(current.id)} className="p-1.5 rounded-lg hover:bg-black/[0.05] transition-all text-primary" data-testid="button-queue-view-detail" title="View full detail">
-                <Eye className="w-4 h-4" />
-              </button>
-              <button onClick={goNext} disabled={currentIndex >= items.length - 1} className="p-1.5 rounded-lg hover:bg-black/[0.05] disabled:opacity-30 transition-all" data-testid="button-queue-next">
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+            )}
           </div>
 
-          <div className="flex-1 overflow-y-auto p-5">
-            <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
-              <div className="space-y-3">
-                <p className="text-[10px] text-muted-foreground text-center font-semibold uppercase tracking-wide">Cover Preview</p>
-                <div className="w-[200px] aspect-[3/4] bg-gray-50 rounded-xl border border-black/[0.06] overflow-hidden flex items-center justify-center mx-auto p-3">
-                  {(imageSearch.selectedIdx !== null && imageSearch.images[imageSearch.selectedIdx]) ? (
-                    <img
-                      src={imageSearch.images[imageSearch.selectedIdx]}
-                      alt={current.name}
-                      className="w-full h-full object-contain"
-                    />
-                  ) : current.image_url ? (
-                    <img
-                      src={current.image_url}
-                      alt={current.name}
-                      className="w-full h-full object-contain"
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                    />
-                  ) : (
-                    <div className="text-center p-4">
-                      <ImageIcon className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
-                      <p className="text-xs text-muted-foreground">No cover</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => findImages(current)}
-                    disabled={imageSearch.loading}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-black/[0.04] hover:bg-black/[0.07] transition-all"
-                    data-testid="button-find-images"
-                  >
-                    {imageSearch.loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
-                    Google Books Lookup
-                  </button>
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-black/[0.04] hover:bg-black/[0.07] transition-all"
-                    data-testid="button-upload-image"
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                    Upload
-                  </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file && current) {
-                        uploadImageMutation.mutate({ item: current, file });
-                      }
-                      e.target.value = "";
-                    }}
-                  />
-                </div>
-
-                {imageSearch.loading && (
-                  <div className="border border-black/[0.08] rounded-xl p-3 flex items-center justify-center py-6">
-                    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-                  </div>
-                )}
-                {!imageSearch.loading && imageSearch.images.length > 0 && (
-                  <div className="border border-black/[0.08] rounded-xl p-3 space-y-2">
-                    <span className="text-xs font-bold text-foreground">Google Books Result</span>
-                    <div className="flex justify-center">
-                      <button
-                        onClick={() => setImageSearch((s) => ({ ...s, selectedIdx: 0 }))}
-                        className={`w-[120px] aspect-[3/4] rounded-lg border-2 overflow-hidden transition-all ${
-                          imageSearch.selectedIdx === 0 ? "border-primary ring-2 ring-primary/20" : "border-black/[0.08] hover:border-black/[0.15]"
-                        }`}
-                        data-testid="image-candidate-0"
-                      >
-                        <img src={imageSearch.images[0]} alt="" className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.opacity = "0.2"; }} />
-                      </button>
-                    </div>
-                  </div>
-                )}
-                {!imageSearch.loading && imageSearch.images.length === 0 && imageSearch.selectedIdx === null && currentIndex >= 0 && (
-                  <p className="text-xs text-muted-foreground text-center">Click "Google Books Lookup" to find a cover.</p>
-                )}
-              </div>
-
-              <div className="space-y-4">
-                {editFields && (
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-xs font-semibold text-muted-foreground mb-1 block">Title</label>
-                      <input
-                        type="text"
-                        value={editFields.name}
-                        onChange={(e) => setEditFields((f) => f ? { ...f, name: e.target.value } : f)}
-                        className="w-full h-10 px-3 bg-white border border-black/[0.08] rounded-lg text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20"
-                        data-testid="input-queue-edit-name"
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {items.map((item) => (
+              <div
+                key={`queue-${item.id}`}
+                className={`glass-panel rounded-xl overflow-hidden transition-all hover:shadow-md ${selectedIds.has(item.id) ? "ring-2 ring-primary/40" : ""}`}
+                data-testid={`queue-item-${item.id}`}
+              >
+                <div className="relative">
+                  <div className="w-full aspect-[3/4] bg-gray-50 flex items-center justify-center overflow-hidden">
+                    {item.image_url ? (
+                      <img
+                        src={item.image_url}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                       />
-                    </div>
-                    {current.company && (
-                      <p className="text-sm text-muted-foreground">by {current.company}</p>
+                    ) : (
+                      <div className="text-center p-4">
+                        <ImageIcon className="w-8 h-8 text-muted-foreground/30 mx-auto mb-1" />
+                        <p className="text-[10px] text-muted-foreground">No cover</p>
+                      </div>
                     )}
-                    <div>
-                      <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1 mb-1">
-                        <FileText className="w-3 h-3" /> Description
-                      </label>
-                      <textarea
-                        value={editFields.description}
-                        onChange={(e) => setEditFields((f) => f ? { ...f, description: e.target.value } : f)}
-                        rows={3}
-                        className="w-full px-3 py-2 bg-white border border-black/[0.08] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
-                        data-testid="input-queue-edit-description"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-muted-foreground mb-1 block">Amazon URL</label>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={editFields.url}
-                          onChange={(e) => setEditFields((f) => f ? { ...f, url: e.target.value } : f)}
-                          className="flex-1 h-9 px-3 bg-white border border-black/[0.08] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                          data-testid="input-queue-edit-url"
-                        />
-                        {editFields.url && (
-                          <a
-                            href={editFields.url.match(/^https?:\/\//) ? editFields.url : `https://${editFields.url}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center h-9 w-9 rounded-lg bg-black/[0.04] hover:bg-black/[0.07] transition-all shrink-0"
-                            data-testid="button-open-url-tab"
-                          >
-                            <ExternalLink className="w-4 h-4 text-primary" />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex gap-3">
-                      <div className="flex-1">
-                        <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1 mb-1">
-                          <Hash className="w-3 h-3" /> ISBN
-                        </label>
-                        <input
-                          type="text"
-                          value={editFields.isbn}
-                          onChange={(e) => setEditFields((f) => f ? { ...f, isbn: e.target.value } : f)}
-                          placeholder="e.g. 9780735214484"
-                          className="w-full h-9 px-3 bg-white border border-black/[0.08] rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/20"
-                          data-testid="input-queue-edit-isbn"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1 mb-1">
-                          <BookOpen className="w-3 h-3" /> Google Books ID
-                        </label>
-                        <div className="flex gap-1.5">
-                          <input
-                            type="text"
-                            value={editFields.googleBooksId}
-                            onChange={(e) => setEditFields((f) => f ? { ...f, googleBooksId: e.target.value } : f)}
-                            placeholder="e.g. lFhbDwAAQBAJ"
-                            className="flex-1 h-9 px-3 bg-white border border-black/[0.08] rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/20"
-                            data-testid="input-queue-edit-google-books-id"
-                          />
-                          {editFields.googleBooksId && (
-                            <a
-                              href={`https://books.google.com/books?id=${editFields.googleBooksId}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center justify-center h-9 w-9 rounded-lg bg-black/[0.04] hover:bg-black/[0.07] transition-all shrink-0"
-                              data-testid="button-open-google-books"
-                            >
-                              <ExternalLink className="w-4 h-4 text-blue-600" />
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                  </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleSelect(item.id); }}
+                    className="absolute top-2 left-2 flex items-center justify-center w-6 h-6 rounded-md bg-white/90 border border-black/[0.1] hover:border-primary/50 transition-all shadow-sm"
+                    data-testid={`checkbox-queue-${item.id}`}
+                  >
+                    {selectedIds.has(item.id) ? (
+                      <CheckSquare className="w-4 h-4 text-primary" />
+                    ) : (
+                      <Square className="w-4 h-4 text-muted-foreground/40" />
+                    )}
+                  </button>
+                </div>
+                <div className="p-3 space-y-2">
+                  <p className="text-sm font-semibold text-foreground line-clamp-2 leading-tight" data-testid={`text-queue-name-${item.id}`}>
+                    {item.name}
+                  </p>
+                  {item.company && (
+                    <p className="text-xs text-muted-foreground truncate">{item.company}</p>
+                  )}
+                  <div className="flex items-center gap-1.5 pt-1">
                     <button
-                      onClick={async () => {
-                        if (!editFields.isbn && !editFields.googleBooksId && !editFields.name) return;
-                        const updates: any = {};
-                        if (editFields.isbn !== (current.isbn || "")) updates.isbn = editFields.isbn;
-                        if (editFields.googleBooksId !== (current.google_books_id || "")) updates.googleBooksId = editFields.googleBooksId;
-                        if (Object.keys(updates).length > 0) {
-                          await apiRequest("POST", `/api/admin/shop/${current.source_type}/${current.id}/update`, updates);
-                        }
-                        findImages(current);
-                        toast({ title: "Looking up images", description: "Searching Google Books with updated IDs..." });
-                      }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 transition-all"
-                      data-testid="button-google-books-lookup"
+                      onClick={() => onViewBook(item.id)}
+                      className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-bold text-primary bg-primary/5 hover:bg-primary/10 transition-all"
+                      data-testid={`button-queue-view-${item.id}`}
                     >
-                      <Search className="w-3.5 h-3.5" />
-                      Google Books Lookup
+                      <Eye className="w-3 h-3" />
+                      View
+                    </button>
+                    <button
+                      onClick={() => setShowRejectModal(item.id)}
+                      className="flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-all"
+                      data-testid={`button-queue-reject-${item.id}`}
+                    >
+                      <XCircle className="w-3 h-3" />
+                      Reject
                     </button>
                   </div>
-                )}
+                </div>
               </div>
-            </div>
+            ))}
           </div>
+        </>
+      )}
 
-          <div className="shrink-0 px-5 py-4 border-t border-black/[0.06] bg-white flex items-center gap-3" data-testid="queue-action-buttons">
-            <button
-              onClick={() => {
-                const selectedImg = imageSearch.selectedIdx !== null ? imageSearch.images[imageSearch.selectedIdx] : undefined;
-                const updates: any = {};
-                if (editFields) {
-                  if (editFields.name !== current.name) updates.name = editFields.name;
-                  if (editFields.description !== (current.description || "")) updates.description = editFields.description;
-                  if (editFields.url !== (current.url || "")) updates.url = editFields.url;
-                  if (editFields.isbn !== (current.isbn || "")) updates.isbn = editFields.isbn;
-                  if (editFields.googleBooksId !== (current.google_books_id || "")) updates.googleBooksId = editFields.googleBooksId;
-                }
-                approveMutation.mutate({ item: current, imageUrl: selectedImg, updates });
-              }}
-              disabled={approveMutation.isPending}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-all"
-              data-testid="button-approve-product"
-            >
-              {approveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-              Approve
-            </button>
-            <button
-              onClick={() => setShowRejectModal(true)}
-              disabled={rejectMutation.isPending}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 transition-all"
-              data-testid="button-reject-product"
-            >
-              {rejectMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-              Reject
-            </button>
-            <button
-              onClick={goNext}
-              disabled={currentIndex >= items.length - 1}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-black/[0.04] disabled:opacity-30 transition-all"
-              data-testid="button-skip-product"
-            >
-              <SkipForward className="w-4 h-4" />
-              Skip
-            </button>
-          </div>
-        </div>
-      ) : null}
-
-      {showRejectModal && current && (
+      {rejectItem && (
         <RejectionModal
-          onReject={(reason) => rejectMutation.mutate({ item: current, reason })}
-          onCancel={() => setShowRejectModal(false)}
+          onReject={(reason) => rejectMutation.mutate({ item: rejectItem, reason })}
+          onCancel={() => setShowRejectModal(null)}
           isPending={rejectMutation.isPending}
         />
       )}
@@ -1429,6 +1217,12 @@ function ApprovedBooks({ onViewBook }: { onViewBook: (id: number) => void }) {
             <option value="no_isbn">Missing ISBN</option>
             <option value="no_google_id">Missing Google ID</option>
             <option value="no_isbn_or_google_id">Missing Both</option>
+            <option value="has_podcasts">Has Podcasts</option>
+            <option value="no_podcasts">No Podcasts</option>
+            <option value="has_clicks">Has Clicks</option>
+            <option value="no_clicks">No Clicks</option>
+            <option value="has_saves">Has Saves</option>
+            <option value="no_saves">No Saves</option>
           </select>
           <AlertCircle className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
         </div>
@@ -1482,6 +1276,20 @@ function ApprovedBooks({ onViewBook }: { onViewBook: (id: number) => void }) {
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
                     {item.company && <span>{item.company}</span>}
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 shrink-0">
+                  <div className="flex items-center gap-1 text-xs" data-testid={`stat-podcasts-${item.id}`} title="Podcast appearances">
+                    <Mic className="w-3.5 h-3.5 text-purple-500" />
+                    <span className="font-semibold text-foreground">{item.podcast_count ?? 0}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs" data-testid={`stat-clicks-${item.id}`} title="Amazon clicks">
+                    <MousePointerClick className="w-3.5 h-3.5 text-blue-500" />
+                    <span className="font-semibold text-foreground">{item.click_count ?? 0}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs" data-testid={`stat-saves-${item.id}`} title="User saves">
+                    <Bookmark className="w-3.5 h-3.5 text-amber-500" />
+                    <span className="font-semibold text-foreground">{item.save_count ?? 0}</span>
                   </div>
                 </div>
                 <button

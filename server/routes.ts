@@ -15464,52 +15464,98 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
       const sortBy = (req.query.sort as string || "alphabetical").trim();
 
       const approvedFilter = (req.query.filter as string || "").trim();
-      let bookWhere = "cover_approved = true";
+      let bookWhere = "be.cover_approved = true";
       const bookVals: any[] = [];
       let paramIdx = 1;
 
       if (search) {
         bookVals.push(`%${search}%`);
-        bookWhere += ` AND (LOWER(book_title) LIKE $${paramIdx} OR LOWER(author) LIKE $${paramIdx} OR LOWER(description) LIKE $${paramIdx})`;
+        bookWhere += ` AND (LOWER(be.book_title) LIKE $${paramIdx} OR LOWER(be.author) LIKE $${paramIdx} OR LOWER(be.description) LIKE $${paramIdx})`;
         paramIdx++;
       }
-      if (approvedFilter === "no_isbn") bookWhere += ` AND (isbn IS NULL OR TRIM(isbn) = '')`;
-      if (approvedFilter === "no_google_id") bookWhere += ` AND (google_books_id IS NULL OR TRIM(google_books_id) = '')`;
-      if (approvedFilter === "no_isbn_or_google_id") bookWhere += ` AND (isbn IS NULL OR TRIM(isbn) = '') AND (google_books_id IS NULL OR TRIM(google_books_id) = '')`;
+      if (approvedFilter === "no_isbn") bookWhere += ` AND (be.isbn IS NULL OR TRIM(be.isbn) = '')`;
+      if (approvedFilter === "no_google_id") bookWhere += ` AND (be.google_books_id IS NULL OR TRIM(be.google_books_id) = '')`;
+      if (approvedFilter === "no_isbn_or_google_id") bookWhere += ` AND (be.isbn IS NULL OR TRIM(be.isbn) = '') AND (be.google_books_id IS NULL OR TRIM(be.google_books_id) = '')`;
+      if (approvedFilter === "has_podcasts") bookWhere += ` AND COALESCE(eem_stats.podcast_count, 0) > 0`;
+      if (approvedFilter === "no_podcasts") bookWhere += ` AND COALESCE(eem_stats.podcast_count, 0) = 0`;
+      if (approvedFilter === "has_clicks") bookWhere += ` AND COALESCE(ac_stats.click_count, 0) > 0`;
+      if (approvedFilter === "no_clicks") bookWhere += ` AND COALESCE(ac_stats.click_count, 0) = 0`;
+      if (approvedFilter === "has_saves") bookWhere += ` AND COALESCE(bb_stats.save_count, 0) > 0`;
+      if (approvedFilter === "no_saves") bookWhere += ` AND COALESCE(bb_stats.save_count, 0) = 0`;
 
-      let bookOrderBy = "book_title ASC";
-      if (sortBy === "recent") {
-        bookOrderBy = "created_at DESC NULLS LAST";
-      }
+      let bookOrderBy = "be.book_title ASC";
+      if (sortBy === "recent") bookOrderBy = "be.created_at DESC NULLS LAST";
+      if (sortBy === "podcasts_desc") bookOrderBy = "podcast_count DESC NULLS LAST, be.book_title ASC";
+      if (sortBy === "podcasts_asc") bookOrderBy = "podcast_count ASC NULLS FIRST, be.book_title ASC";
+      if (sortBy === "clicks_desc") bookOrderBy = "click_count DESC NULLS LAST, be.book_title ASC";
+      if (sortBy === "clicks_asc") bookOrderBy = "click_count ASC NULLS FIRST, be.book_title ASC";
+      if (sortBy === "saves_desc") bookOrderBy = "save_count DESC NULLS LAST, be.book_title ASC";
+      if (sortBy === "saves_asc") bookOrderBy = "save_count ASC NULLS FIRST, be.book_title ASC";
 
       bookVals.push(limit, offset);
       const bLimitIdx = bookVals.length - 1;
       const bOffsetIdx = bookVals.length;
 
       const { rows: bookRows } = await pool.query(
-        `SELECT id, 'book' as source_type, book_title as name, author as company, description,
-                amazon_url as url, CASE WHEN has_cover THEN '/books/' || slug || '.jpg' ELSE NULL END as image_url,
+        `SELECT be.id, 'book' as source_type, be.book_title as name, be.author as company, be.description,
+                be.amazon_url as url, CASE WHEN be.has_cover THEN '/books/' || be.slug || '.jpg' ELSE NULL END as image_url,
                 NULL as context, NULL as context_summary, 'book_mention' as mention_type,
                 'book' as category, NULL as episode_title, NULL as podcast_slug,
-                'approved' as status, 'approved' as image_status, NULL as approved_by, NULL as approved_at, created_at,
-                isbn, google_books_id
-         FROM book_enrichments WHERE ${bookWhere}
+                'approved' as status, 'approved' as image_status, NULL as approved_by, NULL as approved_at, be.created_at,
+                be.isbn, be.google_books_id,
+                COALESCE(eem_stats.podcast_count, 0)::int as podcast_count,
+                COALESCE(ac_stats.click_count, 0)::int as click_count,
+                COALESCE(bb_stats.save_count, 0)::int as save_count
+         FROM book_enrichments be
+         LEFT JOIN LATERAL (
+           SELECT COUNT(DISTINCT eem.podcast_slug)::int as podcast_count
+           FROM entity_episode_mentions eem
+           WHERE eem.entity_type = 'book' AND eem.entity_slug = be.slug
+         ) eem_stats ON true
+         LEFT JOIN LATERAL (
+           SELECT COUNT(*)::int as click_count
+           FROM affiliate_clicks ac
+           WHERE ac.product_type = 'book' AND ac.product_id = be.id
+         ) ac_stats ON true
+         LEFT JOIN LATERAL (
+           SELECT COUNT(*)::int as save_count
+           FROM book_bookmarks bb
+           WHERE bb.book_slug = be.slug
+         ) bb_stats ON true
+         WHERE ${bookWhere}
          ORDER BY ${bookOrderBy}
          LIMIT $${bLimitIdx} OFFSET $${bOffsetIdx}`,
         bookVals
       );
 
-      let countBookWhere = "cover_approved = true";
+      let countBookWhere = "be.cover_approved = true";
       const countBookVals = search ? [`%${search}%`] : [];
       if (search) {
-        countBookWhere += ` AND (LOWER(book_title) LIKE $1 OR LOWER(author) LIKE $1 OR LOWER(description) LIKE $1)`;
+        countBookWhere += ` AND (LOWER(be.book_title) LIKE $1 OR LOWER(be.author) LIKE $1 OR LOWER(be.description) LIKE $1)`;
       }
-      if (approvedFilter === "no_isbn") countBookWhere += ` AND (isbn IS NULL OR TRIM(isbn) = '')`;
-      if (approvedFilter === "no_google_id") countBookWhere += ` AND (google_books_id IS NULL OR TRIM(google_books_id) = '')`;
-      if (approvedFilter === "no_isbn_or_google_id") countBookWhere += ` AND (isbn IS NULL OR TRIM(isbn) = '') AND (google_books_id IS NULL OR TRIM(google_books_id) = '')`;
+      if (approvedFilter === "no_isbn") countBookWhere += ` AND (be.isbn IS NULL OR TRIM(be.isbn) = '')`;
+      if (approvedFilter === "no_google_id") countBookWhere += ` AND (be.google_books_id IS NULL OR TRIM(be.google_books_id) = '')`;
+      if (approvedFilter === "no_isbn_or_google_id") countBookWhere += ` AND (be.isbn IS NULL OR TRIM(be.isbn) = '') AND (be.google_books_id IS NULL OR TRIM(be.google_books_id) = '')`;
+
+      let countFrom = "book_enrichments be";
+      if (["has_podcasts", "no_podcasts"].includes(approvedFilter)) {
+        countFrom += ` LEFT JOIN LATERAL (SELECT COUNT(DISTINCT eem.podcast_slug)::int as podcast_count FROM entity_episode_mentions eem WHERE eem.entity_type = 'book' AND eem.entity_slug = be.slug) eem_stats ON true`;
+        if (approvedFilter === "has_podcasts") countBookWhere += ` AND COALESCE(eem_stats.podcast_count, 0) > 0`;
+        if (approvedFilter === "no_podcasts") countBookWhere += ` AND COALESCE(eem_stats.podcast_count, 0) = 0`;
+      }
+      if (["has_clicks", "no_clicks"].includes(approvedFilter)) {
+        countFrom += ` LEFT JOIN LATERAL (SELECT COUNT(*)::int as click_count FROM affiliate_clicks ac WHERE ac.product_type = 'book' AND ac.product_id = be.id) ac_stats ON true`;
+        if (approvedFilter === "has_clicks") countBookWhere += ` AND COALESCE(ac_stats.click_count, 0) > 0`;
+        if (approvedFilter === "no_clicks") countBookWhere += ` AND COALESCE(ac_stats.click_count, 0) = 0`;
+      }
+      if (["has_saves", "no_saves"].includes(approvedFilter)) {
+        countFrom += ` LEFT JOIN LATERAL (SELECT COUNT(*)::int as save_count FROM book_bookmarks bb WHERE bb.book_slug = be.slug) bb_stats ON true`;
+        if (approvedFilter === "has_saves") countBookWhere += ` AND COALESCE(bb_stats.save_count, 0) > 0`;
+        if (approvedFilter === "no_saves") countBookWhere += ` AND COALESCE(bb_stats.save_count, 0) = 0`;
+      }
 
       const { rows: bcRows } = await pool.query(
-        `SELECT COUNT(*)::int as cnt FROM book_enrichments WHERE ${countBookWhere}`,
+        `SELECT COUNT(*)::int as cnt FROM ${countFrom} WHERE ${countBookWhere}`,
         countBookVals
       );
       const totalCount = bcRows[0]?.cnt || 0;
@@ -15545,6 +15591,26 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
       res.json({ message: "Product approved" });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to approve" });
+    }
+  });
+
+  app.post("/api/admin/shop/bulk-approve", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ message: "No ids provided" });
+      const numIds = ids.map((id: any) => parseInt(id, 10)).filter((id: number) => id > 0);
+      if (numIds.length === 0) return res.status(400).json({ message: "No valid ids" });
+      const result = await pool.query(
+        `UPDATE book_enrichments SET cover_approved = true, updated_at = NOW() WHERE id = ANY($1::int[]) AND cover_approved IS NULL RETURNING id`,
+        [numIds]
+      );
+      const approvedCount = result.rowCount || 0;
+      shopCache.invalidate();
+      res.json({ message: `Approved ${approvedCount} books`, approved: approvedCount });
+    } catch (err: any) {
+      console.error("[BulkApprove] Error:", err);
+      res.status(500).json({ message: "Failed to bulk approve" });
     }
   });
 
