@@ -175,6 +175,14 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
   const [editFields, setEditFields] = useState<{ name: string; description: string; url: string } | null>(null);
   const [queueSort, setQueueSort] = useState("recent");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imageRefreshProgress, setImageRefreshProgress] = useState<{
+    phase: "running" | "done";
+    total: number;
+    processed: number;
+    updated: number;
+    noImage: number;
+    current: string;
+  } | null>(null);
 
   const { data, isLoading, refetch } = useQuery<QueueResponse>({
     queryKey: ["/api/admin/shop/queue", 1, queueSort],
@@ -243,6 +251,60 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/queue"] });
     },
   });
+
+  const cleanDuplicatesMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/shop/clean-queue-duplicates"),
+    onSuccess: async (res: Response) => {
+      const result: { removed: number } = await res.json();
+      const count = result.removed || 0;
+      toast({ title: "Queue Cleaned", description: `Removed ${count} duplicate${count !== 1 ? 's' : ''} from the queue.` });
+      setCurrentIndex(0);
+      resetImageState();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/queue"] });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to clean duplicates.", variant: "destructive" });
+    },
+  });
+
+  const handleRefreshImages = async () => {
+    setImageRefreshProgress({ phase: "running", total: 0, processed: 0, updated: 0, noImage: 0, current: "" });
+    try {
+      const res = await fetch("/api/admin/shop/refresh-queue-images", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed");
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+      if (!reader) throw new Error("No stream");
+      let buffer = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const event = JSON.parse(line.slice(6));
+            if (event.type === "start") {
+              setImageRefreshProgress(prev => prev ? { ...prev, total: event.total } : prev);
+            } else if (event.type === "progress") {
+              setImageRefreshProgress(prev => prev ? { ...prev, processed: event.processed, updated: event.updated, noImage: event.noImage, current: event.current } : prev);
+            } else if (event.type === "complete") {
+              setImageRefreshProgress(prev => prev ? { ...prev, phase: "done", processed: event.total, updated: event.updated, noImage: event.noImage } : prev);
+            }
+          } catch {}
+        }
+      }
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/queue"] });
+    } catch {
+      toast({ title: "Error", description: "Image refresh failed.", variant: "destructive" });
+      setImageRefreshProgress(null);
+    }
+  };
 
   const uploadImageMutation = useMutation({
     mutationFn: async ({ item, file }: { item: ShopItem; file: File }) => {
@@ -322,7 +384,35 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
         )}
       </div>
 
-      <div className="flex items-center justify-end" data-testid="queue-sort-controls">
+      <div className="flex items-center justify-between flex-wrap gap-2" data-testid="queue-sort-controls">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => cleanDuplicatesMutation.mutate()}
+            disabled={cleanDuplicatesMutation.isPending}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-orange-700 bg-orange-50 hover:bg-orange-100 transition-all disabled:opacity-50"
+            data-testid="button-clean-queue-duplicates"
+          >
+            {cleanDuplicatesMutation.isPending ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Trash2 className="w-3.5 h-3.5" />
+            )}
+            {cleanDuplicatesMutation.isPending ? "Cleaning..." : "Clean Duplicates"}
+          </button>
+          <button
+            onClick={handleRefreshImages}
+            disabled={!!imageRefreshProgress && imageRefreshProgress.phase === "running"}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 transition-all disabled:opacity-50"
+            data-testid="button-refresh-queue-images"
+          >
+            {imageRefreshProgress?.phase === "running" ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <RefreshCw className="w-3.5 h-3.5" />
+            )}
+            {imageRefreshProgress?.phase === "running" ? "Refreshing..." : "Refresh Images"}
+          </button>
+        </div>
         <div className="relative">
           <select
             value={queueSort}
@@ -336,6 +426,46 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
           <SortAsc className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
         </div>
       </div>
+
+      {imageRefreshProgress && (
+        <div className="rounded-xl border border-black/[0.06] bg-white p-4" data-testid="image-refresh-progress">
+          <div className="flex items-center gap-3 mb-2">
+            {imageRefreshProgress.phase === "done" ? (
+              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+            ) : (
+              <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+            )}
+            <span className="text-sm font-bold text-foreground">
+              {imageRefreshProgress.phase === "done" ? "Image Refresh Complete" : "Refreshing Images from Google Books..."}
+            </span>
+          </div>
+          <div className="w-full bg-gray-100 rounded-full h-2 mb-2">
+            <div
+              className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${imageRefreshProgress.total > 0 ? Math.round((imageRefreshProgress.processed / imageRefreshProgress.total) * 100) : 0}%` }}
+            />
+          </div>
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>{imageRefreshProgress.processed} of {imageRefreshProgress.total} processed</span>
+            <span className="flex items-center gap-3">
+              <span className="text-emerald-600 font-semibold">{imageRefreshProgress.updated} updated</span>
+              <span className="text-gray-500">{imageRefreshProgress.noImage} no image</span>
+            </span>
+          </div>
+          {imageRefreshProgress.current && imageRefreshProgress.phase === "running" && (
+            <p className="text-xs text-muted-foreground mt-1 truncate">Current: {imageRefreshProgress.current}</p>
+          )}
+          {imageRefreshProgress.phase === "done" && (
+            <button
+              onClick={() => setImageRefreshProgress(null)}
+              className="mt-3 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-primary hover:bg-primary/90 transition-all"
+              data-testid="button-refresh-done"
+            >
+              Done
+            </button>
+          )}
+        </div>
+      )}
 
       {items.length === 0 ? (
         <div className="glass-panel rounded-2xl p-12 text-center">

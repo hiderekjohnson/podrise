@@ -14732,6 +14732,14 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
 
       const bookOrderBy = sortBy === "alphabetical" ? "book_title ASC" : "created_at DESC NULLS LAST";
 
+      const QUEUE_FILTER = `cover_approved IS NULL
+           AND book_key NOT IN (SELECT book_key FROM book_enrichments WHERE cover_approved = true)
+           AND slug NOT IN (SELECT slug FROM book_enrichments WHERE cover_approved = true)
+           AND (NULLIF(UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')), '') IS NULL
+                OR UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')) NOT IN (
+                  SELECT UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')) FROM book_enrichments
+                  WHERE cover_approved = true AND NULLIF(UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')), '') IS NOT NULL))`;
+
       const { rows: bookRows } = await pool.query(
         `SELECT id, 'book' as source_type, book_title as name, author as company, description,
                 amazon_url as url, CASE WHEN has_cover THEN '/books/' || slug || '.jpg' ELSE NULL END as image_url,
@@ -14739,11 +14747,7 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
                 'book' as category, NULL as episode_title, NULL as episode_slug, NULL as podcast_slug,
                 CASE WHEN cover_approved IS NULL THEN 'pending' WHEN cover_approved = true THEN 'approved' ELSE 'rejected' END as status,
                 'pending' as image_status, created_at
-         FROM book_enrichments WHERE cover_approved IS NULL
-           AND (NULLIF(UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')), '') IS NULL
-                OR UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')) NOT IN (
-                  SELECT UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')) FROM book_enrichments
-                  WHERE cover_approved = true AND NULLIF(UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')), '') IS NOT NULL))
+         FROM book_enrichments WHERE ${QUEUE_FILTER}
          ORDER BY ${bookOrderBy}
          LIMIT $1 OFFSET $2`,
         [limit, offset]
@@ -14751,11 +14755,7 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
 
       const { rows: statsRows } = await pool.query(
         `SELECT
-          (SELECT COUNT(*)::int FROM book_enrichments WHERE cover_approved IS NULL
-            AND (NULLIF(UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')), '') IS NULL
-                 OR UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')) NOT IN (
-                   SELECT UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')) FROM book_enrichments
-                   WHERE cover_approved = true AND NULLIF(UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')), '') IS NOT NULL))) as books_pending,
+          (SELECT COUNT(*)::int FROM book_enrichments WHERE ${QUEUE_FILTER}) as books_pending,
           (SELECT COUNT(*)::int FROM book_enrichments WHERE cover_approved = true) as books_approved,
           (SELECT COUNT(*)::int FROM book_enrichments WHERE cover_approved = false) as books_rejected`
       );
@@ -14770,6 +14770,203 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
     } catch (err: any) {
       console.error("[ShopQueue] Error:", err);
       res.status(500).json({ message: err?.message || "Failed to load queue" });
+    }
+  });
+
+  app.post("/api/admin/shop/clean-queue-duplicates", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { rows: byKey } = await pool.query<{ id: number }>(
+        `SELECT p.id FROM book_enrichments p
+         INNER JOIN book_enrichments a ON p.book_key = a.book_key AND a.cover_approved = true
+         WHERE p.cover_approved IS NULL`
+      );
+      const { rows: bySlug } = await pool.query<{ id: number }>(
+        `SELECT p.id FROM book_enrichments p
+         INNER JOIN book_enrichments a ON p.slug = a.slug AND a.cover_approved = true
+         WHERE p.cover_approved IS NULL AND p.id NOT IN (SELECT unnest($1::int[]))`,
+        [byKey.map(r => r.id)]
+      );
+      const { rows: byIsbn } = await pool.query<{ id: number }>(
+        `SELECT p.id FROM book_enrichments p
+         INNER JOIN book_enrichments a
+           ON UPPER(REGEXP_REPLACE(p.isbn, '[^0-9X]', '', 'gi')) = UPPER(REGEXP_REPLACE(a.isbn, '[^0-9X]', '', 'gi'))
+           AND a.cover_approved = true
+           AND NULLIF(UPPER(REGEXP_REPLACE(a.isbn, '[^0-9X]', '', 'gi')), '') IS NOT NULL
+         WHERE p.cover_approved IS NULL
+           AND NULLIF(UPPER(REGEXP_REPLACE(p.isbn, '[^0-9X]', '', 'gi')), '') IS NOT NULL`
+      );
+      const { rows: withinQueue } = await pool.query<{ id: number }>(
+        `SELECT id FROM book_enrichments
+         WHERE cover_approved IS NULL
+           AND id NOT IN (
+             SELECT MIN(id) FROM book_enrichments WHERE cover_approved IS NULL GROUP BY book_key
+           )`
+      );
+
+      const allIds = [...new Set([
+        ...byKey.map(r => r.id),
+        ...bySlug.map(r => r.id),
+        ...byIsbn.map(r => r.id),
+        ...withinQueue.map(r => r.id),
+      ])];
+
+      if (allIds.length > 0) {
+        await pool.query(
+          `UPDATE book_enrichments SET cover_approved = false, rejection_reason = 'duplicate', updated_at = NOW() WHERE id = ANY($1::int[])`,
+          [allIds]
+        );
+        shopCache.invalidate();
+      }
+
+      res.json({ removed: allIds.length });
+    } catch (err: any) {
+      console.error("[CleanQueueDuplicates] Error:", err);
+      res.status(500).json({ message: err?.message || "Failed to clean duplicates" });
+    }
+  });
+
+  app.post("/api/admin/shop/refresh-queue-images", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      });
+
+      const sendEvent = (data: any) => {
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+      };
+
+      const { rows } = await pool.query(
+        `SELECT id, slug, google_books_id, isbn, book_title, author, cover_tried_sources
+         FROM book_enrichments
+         WHERE cover_approved IS NULL AND slug IS NOT NULL
+         ORDER BY book_title`
+      );
+
+      sendEvent({ type: "start", total: rows.length });
+
+      const COVERS_DIR = (await import("path")).resolve("public/books");
+      const fs = await import("fs");
+      const DELAY_MS = 400;
+      const MIN_WIDTH = 200;
+
+      function isPlaceholder(buf: Buffer): boolean {
+        if (buf.length < 1000) return true;
+        const isPng = buf[0] === 0x89 && buf[1] === 0x50;
+        if (isPng && (buf.length === 15567 || buf.length === 1269)) return true;
+        return false;
+      }
+
+      function getWidth(buf: Buffer): number {
+        if (buf[0] === 0xff && buf[1] === 0xd8) {
+          let i = 2;
+          while (i < buf.length - 8) {
+            if (buf[i] !== 0xff) return 0;
+            const marker = buf[i + 1];
+            if (marker === 0xc0 || marker === 0xc2) return buf.readUInt16BE(i + 7);
+            i += 2 + buf.readUInt16BE(i + 2);
+          }
+          return 0;
+        }
+        if (buf[0] === 0x89 && buf[1] === 0x50 && buf.length >= 24) return buf.readUInt32BE(16);
+        return 0;
+      }
+
+      function looksLikeDocument(buf: Buffer): boolean {
+        let w: number, h: number;
+        if (buf[0] === 0xff && buf[1] === 0xd8) {
+          let i = 2;
+          w = 0; h = 0;
+          while (i < buf.length - 8) {
+            if (buf[i] !== 0xff) break;
+            const marker = buf[i + 1];
+            if (marker === 0xc0 || marker === 0xc2) { h = buf.readUInt16BE(i + 5); w = buf.readUInt16BE(i + 7); break; }
+            i += 2 + buf.readUInt16BE(i + 2);
+          }
+        } else if (buf[0] === 0x89 && buf[1] === 0x50 && buf.length >= 24) {
+          w = buf.readUInt32BE(16); h = buf.readUInt32BE(20);
+        } else { return false; }
+        if (w === 0 || h === 0) return false;
+        const ratio = w / h;
+        return ratio > 0.75 || ratio < 0.45 || h > w * 2;
+      }
+
+      async function downloadFromGB(gbId: string): Promise<Buffer | null> {
+        for (const zoom of [3, 2]) {
+          try {
+            const r = await fetch(`https://books.google.com/books/content?id=${gbId}&printsec=frontcover&img=1&zoom=${zoom}&source=gbs_api`);
+            if (!r.ok) continue;
+            const buf = Buffer.from(await r.arrayBuffer());
+            if (isPlaceholder(buf) || looksLikeDocument(buf)) continue;
+            if (getWidth(buf) >= MIN_WIDTH) return buf;
+          } catch {}
+        }
+        return null;
+      }
+
+      async function findGBId(title: string, author?: string): Promise<string | null> {
+        try {
+          const q = encodeURIComponent(title + (author ? `+inauthor:${author}` : ""));
+          const r = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=1`);
+          if (!r.ok) return null;
+          const data = await r.json();
+          return data.items?.[0]?.id || null;
+        } catch { return null; }
+      }
+
+      async function tryGoogleBooks(row: any): Promise<Buffer | null> {
+        let gbId = row.google_books_id;
+        if (gbId) { const buf = await downloadFromGB(gbId); if (buf) return buf; }
+        if (row.isbn) {
+          const isbnId = await findGBId(`isbn:${row.isbn}`);
+          if (isbnId && isbnId !== gbId) { const buf = await downloadFromGB(isbnId); if (buf) return buf; }
+        }
+        if (!gbId) {
+          const searchId = await findGBId(row.book_title, row.author);
+          if (searchId) { const buf = await downloadFromGB(searchId); if (buf) return buf; }
+        }
+        return null;
+      }
+
+      if (!fs.existsSync(COVERS_DIR)) fs.mkdirSync(COVERS_DIR, { recursive: true });
+
+      let updated = 0;
+      let noImage = 0;
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const buf = await tryGoogleBooks(row);
+        if (i > 0) await new Promise(r => setTimeout(r, DELAY_MS));
+
+        if (buf) {
+          const filePath = (await import("path")).join(COVERS_DIR, `${row.slug}.jpg`);
+          fs.writeFileSync(filePath, buf);
+          const newTried = [...new Set([...(row.cover_tried_sources || []), "google_books"])];
+          await pool.query(
+            `UPDATE book_enrichments SET has_cover = true, cover_source = 'google_books', cover_tried_sources = $1, cover_quality_score = NULL WHERE id = $2`,
+            [newTried, row.id]
+          );
+          updated++;
+          sendEvent({ type: "progress", processed: i + 1, total: rows.length, updated, noImage, current: row.book_title, status: "updated" });
+        } else {
+          noImage++;
+          sendEvent({ type: "progress", processed: i + 1, total: rows.length, updated, noImage, current: row.book_title, status: "no_image" });
+        }
+      }
+
+      shopCache.invalidate();
+      sendEvent({ type: "complete", total: rows.length, updated, noImage });
+      res.end();
+    } catch (err: any) {
+      console.error("[RefreshQueueImages] Error:", err);
+      if (!res.headersSent) {
+        res.status(500).json({ message: err?.message || "Failed to refresh images" });
+      } else {
+        res.write(`data: ${JSON.stringify({ type: "error", message: err?.message || "Fatal error" })}\n\n`);
+        res.end();
+      }
     }
   });
 
