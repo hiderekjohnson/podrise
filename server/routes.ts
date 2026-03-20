@@ -665,6 +665,18 @@ export async function registerRoutes(
       );
     `);
     await migrationPool.query(`
+      CREATE TABLE IF NOT EXISTS admin_alerts (
+        id SERIAL PRIMARY KEY,
+        api_name TEXT NOT NULL,
+        error_type TEXT NOT NULL,
+        error_message TEXT NOT NULL,
+        severity TEXT NOT NULL DEFAULT 'critical',
+        recipient_email TEXT NOT NULL,
+        acknowledged BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    await migrationPool.query(`
       ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code TEXT;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by TEXT;
       CREATE TABLE IF NOT EXISTS referrals (
@@ -1591,9 +1603,14 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
         autoPopulateDirectory(input.podcasts).catch(() => {});
       }
 
-      sendVerificationEmail(user).catch((err) =>
-        console.error("[VerifyEmail] Failed to send:", err)
-      );
+      sendVerificationEmail(user).catch((err) => {
+        console.error("[VerifyEmail] Failed to send:", err);
+        import("./adminAlertService").then(({ sendCriticalApiAlert, isCriticalResendError, classifyResendError }) => {
+          if (isCriticalResendError(err)) {
+            sendCriticalApiAlert({ apiName: "Resend", errorType: classifyResendError(err), errorMessage: `Failed to send verification email to ${user.email}: ${err instanceof Error ? err.message : String(err)}`, severity: "warning", adminPath: "/admin/internal-tools/alerts" }).catch(() => {});
+          }
+        }).catch(() => {});
+      });
     } catch (err) {
       if (err instanceof z.ZodError) {
         return res.status(400).json({
@@ -2155,6 +2172,11 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
       if (sendResult.error) {
         console.error("Magic link email error:", JSON.stringify(sendResult.error));
+        import("./adminAlertService").then(({ sendCriticalApiAlert, isCriticalResendError, classifyResendError }) => {
+          if (isCriticalResendError(sendResult.error)) {
+            sendCriticalApiAlert({ apiName: "Resend", errorType: classifyResendError(sendResult.error), errorMessage: `Failed to send login email to ${input.email}: ${sendResult.error?.message || "Unknown error"}`, severity: "critical", adminPath: "/admin/internal-tools/alerts" }).catch(() => {});
+          }
+        }).catch(() => {});
         return res.status(500).json({ message: "Failed to send login email. Please try again." });
       }
 
@@ -2549,9 +2571,12 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
         body: new URLSearchParams(tokenBody),
       });
 
-      const tokenData = await tokenRes.json() as any;
+      const tokenData: { access_token?: string; refresh_token?: string; expires_in?: number; error?: string } = await tokenRes.json();
       if (!tokenData.access_token) {
         console.error("[SpotifyAuth] Token exchange failed:", tokenData.error);
+        import("./adminAlertService").then(({ sendCriticalApiAlert }) =>
+          sendCriticalApiAlert({ apiName: "Spotify", errorType: "Token Exchange Failed", errorMessage: `Spotify OAuth token exchange failed for user. Error: ${tokenData.error || "unknown"}`, severity: "warning", adminPath: "/admin/internal-tools/alerts" })
+        ).catch(() => {});
         return res.redirect(`${returnTo}?spotify_error=token_failed`);
       }
 
@@ -2565,8 +2590,12 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       req.session.save(() => {
         res.redirect(`${returnTo}?spotify_connected=true`);
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[SpotifyAuth] Callback error:", err);
+      const errMsg = err instanceof Error ? err.message : String(err);
+      import("./adminAlertService").then(({ sendCriticalApiAlert }) =>
+        sendCriticalApiAlert({ apiName: "Spotify", errorType: "OAuth Callback Error", errorMessage: `Spotify OAuth callback failed: ${errMsg}`, severity: "warning", adminPath: "/admin/internal-tools/alerts" })
+      ).catch(() => {});
       res.redirect("/my-podcasts?spotify_error=unknown");
     }
   });
@@ -8353,6 +8382,134 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   app.post("/api/admin/logout", (req, res) => {
     req.session.isAdmin = false;
     res.json({ message: "Admin logged out" });
+  });
+
+  app.get("/api/admin/alerts", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const limit = Math.min(parseInt(req.query.limit as string) || 100, 500);
+      const offset = parseInt(req.query.offset as string) || 0;
+      const severity = req.query.severity as string;
+      const apiName = req.query.apiName as string;
+      const acknowledged = req.query.acknowledged as string;
+
+      let whereClause = "";
+      const params: (string | boolean | number)[] = [];
+      const conditions: string[] = [];
+
+      if (severity) {
+        params.push(severity);
+        conditions.push(`severity = $${params.length}`);
+      }
+      if (apiName) {
+        params.push(apiName);
+        conditions.push(`api_name = $${params.length}`);
+      }
+      if (acknowledged === "true" || acknowledged === "false") {
+        params.push(acknowledged === "true");
+        conditions.push(`acknowledged = $${params.length}`);
+      }
+
+      if (conditions.length > 0) {
+        whereClause = `WHERE ${conditions.join(" AND ")}`;
+      }
+
+      const countResult = await pool.query(`SELECT COUNT(*) FROM admin_alerts ${whereClause}`, params);
+      const totalCount = parseInt(countResult.rows[0].count);
+
+      params.push(limit);
+      const limitIdx = params.length;
+      params.push(offset);
+      const offsetIdx = params.length;
+
+      const result = await pool.query(
+        `SELECT * FROM admin_alerts ${whereClause} ORDER BY created_at DESC LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
+        params
+      );
+
+      const statsResult = await pool.query(`
+        SELECT
+          COUNT(*) FILTER (WHERE severity = 'critical' AND acknowledged = false) AS active_critical,
+          COUNT(*) FILTER (WHERE severity = 'warning' AND acknowledged = false) AS active_warnings,
+          COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '24 hours') AS last_24h,
+          COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '7 days') AS last_7d
+        FROM admin_alerts
+      `);
+
+      res.json({
+        alerts: result.rows.map(r => ({
+          id: r.id,
+          apiName: r.api_name,
+          errorType: r.error_type,
+          errorMessage: r.error_message,
+          severity: r.severity,
+          recipientEmail: r.recipient_email,
+          acknowledged: r.acknowledged,
+          createdAt: r.created_at,
+        })),
+        totalCount,
+        stats: {
+          activeCritical: parseInt(statsResult.rows[0].active_critical),
+          activeWarnings: parseInt(statsResult.rows[0].active_warnings),
+          last24h: parseInt(statsResult.rows[0].last_24h),
+          last7d: parseInt(statsResult.rows[0].last_7d),
+        },
+      });
+    } catch (err) {
+      console.error("[AdminAlerts] Failed to fetch alerts:", err);
+      res.status(500).json({ message: "Failed to fetch alerts" });
+    }
+  });
+
+  app.patch("/api/admin/alerts/:id", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid alert ID" });
+      const { acknowledged } = req.body;
+      if (typeof acknowledged !== "boolean") return res.status(400).json({ message: "acknowledged must be boolean" });
+      const result = await pool.query(`UPDATE admin_alerts SET acknowledged = $1 WHERE id = $2`, [acknowledged, id]);
+      if (result.rowCount === 0) return res.status(404).json({ message: "Alert not found" });
+      res.json({ success: true });
+    } catch (err) {
+      console.error("[AdminAlerts] Failed to update alert:", err);
+      res.status(500).json({ message: "Failed to update alert" });
+    }
+  });
+
+  app.post("/api/admin/alerts/acknowledge-all", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const result = await pool.query(`UPDATE admin_alerts SET acknowledged = true WHERE acknowledged = false`);
+      res.json({ success: true, count: result.rowCount });
+    } catch (err) {
+      console.error("[AdminAlerts] Failed to acknowledge all:", err);
+      res.status(500).json({ message: "Failed to acknowledge alerts" });
+    }
+  });
+
+  app.get("/api/admin/alerts/health", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const recapResult = await pool.query(
+        `SELECT COUNT(*) as count FROM landing_page_recaps WHERE created_at >= NOW() - INTERVAL '6 hours'`
+      );
+      const recentRecapCount = parseInt(recapResult.rows[0].count);
+
+      const lastRecapResult = await pool.query(
+        `SELECT created_at FROM landing_page_recaps ORDER BY created_at DESC LIMIT 1`
+      );
+      const lastRecapAt = lastRecapResult.rows[0]?.created_at || null;
+
+      res.json({
+        recapStall: recentRecapCount === 0,
+        recentRecapCount,
+        lastRecapAt,
+      });
+    } catch (err) {
+      console.error("[AdminAlerts] Health check failed:", err);
+      res.status(500).json({ message: "Health check failed" });
+    }
   });
 
   app.get("/api/admin/admin-users", async (req, res) => {

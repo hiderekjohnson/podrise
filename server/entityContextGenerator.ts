@@ -271,6 +271,11 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   } catch (err) {
     console.warn(`[EntityGen] AI generation failed for "${episodeTitle.slice(0, 50)}":`, err);
+    const { isCriticalOpenAIError, classifyOpenAIError, sendCriticalApiAlert } = await import("./adminAlertService");
+    if (isCriticalOpenAIError(err)) {
+      const msg = err instanceof Error ? err.message : String(err);
+      sendCriticalApiAlert({ apiName: "OpenAI", errorType: classifyOpenAIError(err), errorMessage: `Entity context generation failed for "${episodeTitle}": ${msg}`, adminPath: "/admin/internal-tools/alerts" }).catch(() => {});
+    }
   }
 
   return {};

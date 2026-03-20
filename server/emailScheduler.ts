@@ -7,6 +7,7 @@ import { searchPodcastByItunesId, getRecentEpisodesWithTranscripts, getEpisodeTr
 import { parseRawTaddySegments, parseTranscriptToSegments } from "./transcriptParser";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 import { SQL_NORMALIZE_TITLE } from "./utils/normalizeTitle";
+import { sendCriticalApiAlert, isCriticalResendError, classifyResendError } from "./adminAlertService";
 
 const SCHEDULER_INTERVAL_MS = 60 * 1000;
 const ADMIN_NOTIFY_EMAIL = "derek@podrise.com";
@@ -684,6 +685,14 @@ export async function sendHeldEmail(pendingId: number): Promise<void> {
 
   if (sendResult.error) {
     await storage.updatePendingEmailStatus(pending.id, "error", sendResult.error.message || "Send failed");
+    if (isCriticalResendError(sendResult.error)) {
+      sendCriticalApiAlert({
+        apiName: "Resend",
+        errorType: classifyResendError(sendResult.error),
+        errorMessage: `Email send failed for ${pending.recipientEmail}: ${sendResult.error.message || "Unknown error"}`,
+        adminPath: "/admin/internal-tools/alerts",
+      }).catch(() => {});
+    }
     throw new Error(sendResult.error.message || "Send failed");
   }
 

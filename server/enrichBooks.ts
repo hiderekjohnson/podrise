@@ -1,5 +1,6 @@
 import { openai } from "./replit_integrations/image/client";
 import { pool } from "./db";
+import { sendCriticalApiAlert, isCriticalOpenAIError, classifyOpenAIError } from "./adminAlertService";
 
 interface BookAggregation {
   bookKey: string;
@@ -177,6 +178,10 @@ export async function enrichAllBooks(limit?: number): Promise<{ processed: numbe
       await new Promise(r => setTimeout(r, 300));
     } catch (err) {
       console.error(`[BookEnrich] Failed: "${book.name}":`, err);
+      if (isCriticalOpenAIError(err)) {
+        const msg = err instanceof Error ? err.message : String(err);
+        sendCriticalApiAlert({ apiName: "OpenAI", errorType: classifyOpenAIError(err), errorMessage: `Book enrichment failed for "${book.name}": ${msg}`, adminPath: "/admin/internal-tools/alerts" }).catch(() => {});
+      }
       errors++;
     }
   }

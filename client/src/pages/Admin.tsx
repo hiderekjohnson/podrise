@@ -21,6 +21,7 @@ const AdminCMS = lazy(() => import("./AdminCMS"));
 const AdminLandingPages = lazy(() => import("./AdminLandingPages"));
 const AdminFeatureFlags = lazy(() => import("./AdminFeatureFlags"));
 const AdminMTurk = lazy(() => import("./AdminMTurk"));
+const AdminAlerts = lazy(() => import("./AdminAlerts"));
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -97,12 +98,12 @@ export default function Admin() {
 
   type TabType = "cms" | "users" | "advertisers" | "landing-pages" | "product-features" | "internal-tools" | "advanced" | "admin-users";
   type ProductFeaturesSubTabType = "shop" | "categories" | "referrals" | "support-kb";
-  type InternalToolsSubTabType = "mturk" | "pending" | "analytics" | "errors";
+  type InternalToolsSubTabType = "mturk" | "pending" | "analytics" | "errors" | "alerts";
   type AnalyticsSubTabType = "acquisition" | "affiliates" | "growth" | "email";
   type AdvancedSubTabType = "rss" | "hosts" | "api-costs" | "feature-flags";
 
   const productFeaturesSubTabs: ProductFeaturesSubTabType[] = ["shop", "categories", "referrals", "support-kb"];
-  const internalToolsSubTabs: InternalToolsSubTabType[] = ["mturk", "pending", "analytics", "errors"];
+  const internalToolsSubTabs: InternalToolsSubTabType[] = ["mturk", "pending", "analytics", "errors", "alerts"];
   const analyticsSubTabs: AnalyticsSubTabType[] = ["acquisition", "affiliates", "growth", "email"];
   const advancedSubTabs: AdvancedSubTabType[] = ["rss", "hosts", "api-costs", "feature-flags"];
 
@@ -151,12 +152,12 @@ export default function Admin() {
         if (segments[2] && analyticsSubTabs.includes(segments[2] as AnalyticsSubTabType)) {
           result.analyticsSub = segments[2] as AnalyticsSubTabType;
         }
-      } else if (sub && (["mturk", "pending", "errors"] as string[]).includes(sub)) {
+      } else if (sub && (["mturk", "pending", "errors", "alerts"] as string[]).includes(sub)) {
         result.internalToolsSub = sub as InternalToolsSubTabType;
       }
       return result;
     }
-    if ((["mturk", "pending", "errors"] as string[]).includes(first)) {
+    if ((["mturk", "pending", "errors", "alerts"] as string[]).includes(first)) {
       result.tab = "internal-tools";
       result.internalToolsSub = first as InternalToolsSubTabType;
       return result;
@@ -808,6 +809,7 @@ export default function Admin() {
                     { key: "pending" as const, label: "Email Log", icon: Inbox },
                     { key: "analytics" as const, label: "Analytics", icon: BarChart3 },
                     { key: "errors" as const, label: "Errors", icon: AlertTriangle },
+                    { key: "alerts" as const, label: "Alerts", icon: Shield },
                   ]).map(({ key, label, icon: Icon }) => (
                     <button
                       key={key}
@@ -870,6 +872,11 @@ export default function Admin() {
                 {internalToolsSubTab === "errors" && (
                   <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
                     <AdminErrorLogs />
+                  </Suspense>
+                )}
+                {internalToolsSubTab === "alerts" && (
+                  <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
+                    <AdminAlerts />
                   </Suspense>
                 )}
               </div>

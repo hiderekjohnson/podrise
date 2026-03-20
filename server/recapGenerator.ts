@@ -3,6 +3,20 @@ import { openai } from "./replit_integrations/image/client";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 import { pool } from "./db";
 import { TOPICS } from "../client/src/data/topicData";
+import { sendCriticalApiAlert, isCriticalOpenAIError, classifyOpenAIError } from "./adminAlertService";
+
+function checkAndAlertOpenAIError(err: unknown, context: string): void {
+  if (isCriticalOpenAIError(err)) {
+    const errorType = classifyOpenAIError(err);
+    const msg = err instanceof Error ? err.message : String(err);
+    sendCriticalApiAlert({
+      apiName: "OpenAI",
+      errorType,
+      errorMessage: `${context}: ${msg}`,
+      adminPath: "/admin/internal-tools/alerts",
+    }).catch(() => {});
+  }
+}
 
 
 const CURATED_TOPIC_SLUGS = TOPICS.map(t => t.slug);
@@ -439,6 +453,7 @@ Write exactly 4 takeaways. Respond ONLY with JSON: {"keyInsights": ["takeaway1",
     }
   } catch (err) {
     console.warn(`[RecapGenerator] Pass 2 failed for "${episodeTitle}", falling back to inline insights:`, err);
+    checkAndAlertOpenAIError(err, `Key insights extraction for "${episodeTitle}"`);
   }
   return [];
 }
@@ -560,6 +575,7 @@ OTHER RULES:
         continue;
       }
       console.error(`[RecapGenerator] Failed to generate recap for "${episodeTitle}" after ${maxAttempts} attempts:`, err);
+      checkAndAlertOpenAIError(err, `Recap generation for "${episodeTitle}"`);
       return null;
     }
   }
@@ -626,6 +642,7 @@ Be EXHAUSTIVE. Include everything noteworthy - it's better to include too much t
         return [parsed];
       } catch (e) {
         console.error(`[RecapGenerator] Notes extraction failed for chunk ${chunkIndex + 1}:`, e);
+        checkAndAlertOpenAIError(e, `Notes extraction chunk ${chunkIndex + 1}`);
         return [];
       }
     },
@@ -750,6 +767,7 @@ OTHER RULES:
     });
   } catch (err) {
     console.error(`[RecapGenerator] Full-transcript synthesis failed for "${episodeTitle}":`, err);
+    checkAndAlertOpenAIError(err, `Full-transcript synthesis for "${episodeTitle}"`);
     return null;
   }
 }
@@ -825,6 +843,7 @@ RULES:
     return Array.isArray(parsed.books) ? parsed.books : [];
   } catch (err) {
     console.error(`[BookExtractor] Failed for "${episodeTitle}":`, err);
+    checkAndAlertOpenAIError(err, `Book extraction for "${episodeTitle}"`);
     return [];
   }
 }
@@ -972,6 +991,7 @@ RULES:
     return quotes.filter((q: any) => q.speakerName && q.quoteText && q.context && q.quoteType);
   } catch (err) {
     console.error(`[QuoteExtractor] Failed for "${episodeTitle}":`, err);
+    checkAndAlertOpenAIError(err, `Quote extraction for "${episodeTitle}"`);
     return [];
   }
 }

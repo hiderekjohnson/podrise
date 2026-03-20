@@ -1,6 +1,7 @@
 import { pool } from "./db";
 import { openai } from "./replit_integrations/image/client";
 import { processFullTranscript } from "./transcriptChunker";
+import { sendCriticalApiAlert, isCriticalOpenAIError, classifyOpenAIError } from "./adminAlertService";
 
 const BOOK_SLUG = process.argv[2];
 if (!BOOK_SLUG) {
@@ -251,6 +252,9 @@ async function main() {
       generated++;
     } catch (err: any) {
       console.error(`     ❌ Error: ${err.message}`);
+      if (isCriticalOpenAIError(err)) {
+        sendCriticalApiAlert({ apiName: "OpenAI", errorType: classifyOpenAIError(err), errorMessage: `Book insights generation failed: ${err.message || err}`, adminPath: "/admin/internal-tools/alerts" }).catch(() => {});
+      }
       failed++;
     }
   }

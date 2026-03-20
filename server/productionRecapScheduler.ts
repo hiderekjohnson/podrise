@@ -361,6 +361,34 @@ async function cleanupDuplicateRecaps() {
   }
 }
 
+const STALL_CHECK_INTERVAL_MS = 30 * 60 * 1000;
+
+async function checkRecapStall() {
+  try {
+    const result = await pool.query(
+      `SELECT COUNT(*) as count FROM landing_page_recaps WHERE created_at >= NOW() - INTERVAL '6 hours'`
+    );
+    const recentCount = parseInt(result.rows[0].count);
+    if (recentCount === 0) {
+      const lastResult = await pool.query(
+        `SELECT created_at FROM landing_page_recaps ORDER BY created_at DESC LIMIT 1`
+      );
+      const lastAt = lastResult.rows[0]?.created_at;
+      const lastStr = lastAt ? new Date(lastAt).toISOString() : "never";
+      const { sendCriticalApiAlert } = await import("./adminAlertService");
+      await sendCriticalApiAlert({
+        apiName: "Recap Pipeline",
+        errorType: "Recap Stall Detected",
+        errorMessage: `No new episode recaps have been created in the last 6 hours. Last recap was created at ${lastStr}. This may indicate an issue with Taddy, OpenAI, or the transcript pipeline.`,
+        severity: "critical",
+        adminPath: "/admin/internal-tools/alerts",
+      });
+    }
+  } catch (err) {
+    console.error("[ProdRecap] Stall check error:", err);
+  }
+}
+
 export function startProductionRecapScheduler() {
   if (process.env.NODE_ENV !== "production") {
     console.log("[ProdRecap] Not in production, skipping scheduler");
@@ -376,5 +404,8 @@ export function startProductionRecapScheduler() {
 
     catchUpMissingHeadlines();
     setInterval(catchUpMissingHeadlines, HEADLINE_CATCHUP_INTERVAL_MS);
+
+    checkRecapStall();
+    setInterval(checkRecapStall, STALL_CHECK_INTERVAL_MS);
   }, 120_000);
 }

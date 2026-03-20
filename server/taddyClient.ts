@@ -484,6 +484,9 @@ async function taddyRequest(query: string, skipBudgetCheck: boolean = false): Pr
   if (response.status === 429) {
     markTaddyRateLimited(120000);
     console.error("[Taddy] Rate limited (429)");
+    import("./adminAlertService").then(({ sendCriticalApiAlert, classifyTaddyError }) =>
+      sendCriticalApiAlert({ apiName: "Taddy", errorType: classifyTaddyError(429, ""), errorMessage: "Taddy API returned HTTP 429. Episode ingestion is blocked.", adminPath: "/admin/internal-tools/alerts" })
+    ).catch(() => {});
     return null;
   }
 
@@ -492,18 +495,34 @@ async function taddyRequest(query: string, skipBudgetCheck: boolean = false): Pr
     if (text.includes("API_RATE_LIMIT_EXCEEDED")) {
       markTaddyRateLimited(300000);
       console.error("[Taddy] API rate limit exceeded");
-      return null;
     }
+    import("./adminAlertService").then(({ sendCriticalApiAlert, isCriticalTaddyError, classifyTaddyError }) => {
+      if (isCriticalTaddyError(response.status, text)) {
+        sendCriticalApiAlert({ apiName: "Taddy", errorType: classifyTaddyError(response.status, text), errorMessage: `Taddy API error (HTTP ${response.status}): ${text.substring(0, 300)}. Episode ingestion may be blocked.`, adminPath: "/admin/internal-tools/alerts" }).catch(() => {});
+      }
+    }).catch(() => {});
+    if (text.includes("API_RATE_LIMIT_EXCEEDED")) return null;
     console.error("Taddy API error:", response.status, text);
     return null;
   }
 
   const data = await response.json();
 
-  if (data?.errors?.some((e: any) => e?.message?.includes("API_RATE_LIMIT_EXCEEDED"))) {
+  const errorMessages = (data?.errors || []).map((e: { message?: string }) => e?.message || "").join(" ");
+  if (errorMessages.includes("API_RATE_LIMIT_EXCEEDED")) {
     markTaddyRateLimited(300000);
     console.error("[Taddy] API rate limit exceeded (in response)");
+    import("./adminAlertService").then(({ sendCriticalApiAlert, classifyTaddyError }) =>
+      sendCriticalApiAlert({ apiName: "Taddy", errorType: classifyTaddyError(200, errorMessages), errorMessage: "Taddy API rate limit exceeded in response body. Episode ingestion is blocked.", adminPath: "/admin/internal-tools/alerts" })
+    ).catch(() => {});
     return null;
+  }
+  if (data?.errors?.length > 0) {
+    import("./adminAlertService").then(({ sendCriticalApiAlert, isCriticalTaddyError, classifyTaddyError }) => {
+      if (isCriticalTaddyError(200, errorMessages)) {
+        sendCriticalApiAlert({ apiName: "Taddy", errorType: classifyTaddyError(200, errorMessages), errorMessage: `Taddy GraphQL errors: ${errorMessages.substring(0, 300)}`, adminPath: "/admin/internal-tools/alerts" }).catch(() => {});
+      }
+    }).catch(() => {});
   }
 
   if (isTaddyBudgetWarning()) {
