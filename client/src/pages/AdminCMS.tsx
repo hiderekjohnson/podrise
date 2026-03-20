@@ -11,7 +11,7 @@ import {
   Image, Clock, Calendar, Hash, Eye, EyeOff, AlertCircle,
   Globe, Star, CheckCircle, XCircle, Copy, Check, Sparkles,
   CircleDot, Link, BookOpen, Tag, Newspaper, X, Shield, ShieldOff,
-  Download
+  Download, Headphones, Play, Pause, Volume2
 } from "lucide-react";
 
 function useDebouncedValue(value: string, delay = 300) {
@@ -2504,6 +2504,180 @@ function parseJSON<T>(val: string | undefined | null, fallback: T): T {
   try { return JSON.parse(val); } catch { return fallback; }
 }
 
+function ElevenLabsSection({ podcastSlug, episodeSlug }: { podcastSlug: string; episodeSlug: string }) {
+  const { toast } = useToast();
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const { data, isLoading, refetch } = useQuery<{ audio: any; playbackStats: any }>({
+    queryKey: ["/api/admin/audio-recap", podcastSlug, episodeSlug, "status"],
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/audio-recap/${podcastSlug}/${episodeSlug}/status`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+  });
+
+  const generateMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", `/api/admin/audio-recap/${podcastSlug}/${episodeSlug}/generate`);
+      return res.json();
+    },
+    onSuccess: (result: any) => {
+      refetch();
+      if (result.success) {
+        toast({ title: "Audio generated", description: "ElevenLabs audio recap is ready." });
+      } else {
+        toast({ title: "Generation failed", description: result.error || "Unknown error", variant: "destructive" });
+      }
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const audio = data?.audio;
+  const stats = data?.playbackStats;
+  const status = audio?.status || "not_generated";
+
+  const statusColors: Record<string, string> = {
+    "not_generated": "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400",
+    "generating": "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400",
+    "ready": "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
+    "error": "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",
+  };
+
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  return (
+    <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4" data-testid="elevenlabs-section">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Headphones className="w-4 h-4 text-violet-500" />
+          <h3 className="text-sm font-bold text-foreground">ElevenLabs Audio Recap</h3>
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColors[status] || statusColors["not_generated"]}`} data-testid="elevenlabs-status">
+            {status === "not_generated" ? "Not Generated" : status.charAt(0).toUpperCase() + status.slice(1)}
+          </span>
+        </div>
+        <button
+          onClick={() => generateMutation.mutate()}
+          disabled={generateMutation.isPending || status === "generating"}
+          className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-xl text-sm font-semibold hover:bg-violet-700 disabled:opacity-50 transition-colors"
+          data-testid="button-run-elevenlabs"
+        >
+          {generateMutation.isPending || status === "generating" ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Volume2 className="w-4 h-4" />
+          )}
+          {status === "ready" ? "Regenerate" : "Run ElevenLabs on this Episode"}
+        </button>
+      </div>
+
+      {isLoading && (
+        <div className="flex items-center justify-center py-4">
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+        </div>
+      )}
+
+      {audio?.error_message && (
+        <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+          <p className="text-xs text-red-700 dark:text-red-400" data-testid="elevenlabs-error">{audio.error_message}</p>
+        </div>
+      )}
+
+      {status === "ready" && audio && (
+        <>
+          <div className="flex items-center gap-3 bg-muted/30 rounded-xl p-3" data-testid="elevenlabs-audio-player">
+            <button onClick={togglePlay} className="w-10 h-10 rounded-full bg-violet-600 text-white flex items-center justify-center hover:bg-violet-700 transition-colors" data-testid="button-play-preview">
+              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
+            </button>
+            <audio
+              ref={audioRef}
+              src={audio.audio_url}
+              onEnded={() => setIsPlaying(false)}
+              onPause={() => setIsPlaying(false)}
+              onPlay={() => setIsPlaying(true)}
+              preload="none"
+            />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-foreground">Audio Preview</p>
+              <p className="text-xs text-muted-foreground">
+                {audio.audio_duration ? `${Math.floor(audio.audio_duration / 60)}:${String(Math.floor(audio.audio_duration % 60)).padStart(2, "0")}` : "Unknown"} duration
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-testid="elevenlabs-metadata">
+            <div>
+              <p className="text-xs text-muted-foreground">Request ID</p>
+              <p className="text-xs font-mono text-foreground truncate" data-testid="text-elevenlabs-request-id">{audio.elevenlabs_request_id || "N/A"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Characters</p>
+              <p className="text-sm font-semibold text-foreground" data-testid="text-elevenlabs-chars">{audio.character_count?.toLocaleString() || 0}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Voice</p>
+              <p className="text-xs font-mono text-foreground" data-testid="text-elevenlabs-voice">{audio.voice_id || "N/A"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Generated</p>
+              <p className="text-xs text-foreground" data-testid="text-elevenlabs-timestamp">
+                {audio.updated_at ? new Date(audio.updated_at).toLocaleString() : "N/A"}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 pt-3 border-t border-border" data-testid="elevenlabs-costs">
+            <div>
+              <p className="text-xs text-muted-foreground">OpenAI Script Cost</p>
+              <p className="text-sm font-semibold text-foreground">${(audio.openai_script_cost || 0).toFixed(4)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">ElevenLabs TTS Cost</p>
+              <p className="text-sm font-semibold text-foreground">${(audio.elevenlabs_cost || 0).toFixed(4)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Total Cost</p>
+              <p className="text-sm font-bold text-violet-600">${(audio.total_cost || 0).toFixed(4)}</p>
+            </div>
+          </div>
+
+          {stats && (
+            <div className="grid grid-cols-4 gap-3 pt-3 border-t border-border" data-testid="elevenlabs-playback-stats">
+              <div>
+                <p className="text-xs text-muted-foreground">Total Plays</p>
+                <p className="text-sm font-semibold text-foreground" data-testid="text-play-count">{stats.play_count || 0}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Unique Listeners</p>
+                <p className="text-sm font-semibold text-foreground" data-testid="text-unique-listeners">{stats.unique_listeners || 0}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Completions</p>
+                <p className="text-sm font-semibold text-foreground" data-testid="text-completions">{stats.completion_count || 0}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Avg % Listened</p>
+                <p className="text-sm font-semibold text-foreground" data-testid="text-avg-percentage">{(stats.avg_percentage || 0).toFixed(0)}%</p>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: string; episodeSlug: string; onNavigate: (view: CMSView) => void }) {
   const { toast } = useToast();
   const [showTranscript, setShowTranscript] = useState(false);
@@ -2718,6 +2892,8 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
           </div>
         );
       })()}
+
+      <ElevenLabsSection podcastSlug={podcastSlug} episodeSlug={episodeSlug} />
 
       {episode.transcript && (
         <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl overflow-hidden">

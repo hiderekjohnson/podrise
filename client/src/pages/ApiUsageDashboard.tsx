@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, DollarSign, Zap, Activity, Cpu, BarChart3, AlertTriangle, TrendingUp } from "lucide-react";
+import { useState } from "react";
+import { Loader2, DollarSign, Zap, Activity, Cpu, BarChart3, AlertTriangle, TrendingUp, Filter } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 
 const BUDGET_MONTHLY = 100;
@@ -55,6 +56,36 @@ interface OpenAIActualData {
   summary: { today: number; week: number; month: number };
 }
 
+interface ServiceUsage {
+  service: string;
+  calls: number;
+  tokens: string;
+  cost: string;
+}
+
+interface EpisodeCost {
+  podcast_slug: string;
+  episode_slug: string;
+  service: string;
+  calls: number;
+  cost: string;
+}
+
+interface PodcastCost {
+  podcast_slug: string;
+  calls: number;
+  cost: string;
+}
+
+interface Projections {
+  monthCost: number;
+  dailyRate: number;
+  projectedMonthly: number;
+  burnRateTrend: string;
+  costPerUser: number;
+  avgCostPerEpisode: number;
+}
+
 function formatCost(val: number | string): string {
   const n = typeof val === "string" ? parseFloat(val) : val;
   if (isNaN(n)) return "$0.00";
@@ -83,6 +114,9 @@ function featureLabel(feature: string): string {
 }
 
 export default function ApiUsageDashboard() {
+  const [serviceFilter, setServiceFilter] = useState("all");
+  const [podcastFilter, setPodcastFilter] = useState("");
+
   const { data: summary, isLoading: summaryLoading } = useQuery<UsageSummary>({
     queryKey: ["/api/admin/api-usage/summary"],
   });
@@ -107,6 +141,49 @@ export default function ApiUsageDashboard() {
     queryKey: ["/api/admin/api-usage/openai-actual"],
     staleTime: 5 * 60 * 1000,
     retry: 1,
+  });
+
+  const { data: byService } = useQuery<ServiceUsage[]>({
+    queryKey: ["/api/admin/api-usage/by-service", serviceFilter, podcastFilter],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (serviceFilter !== "all") params.set("service", serviceFilter);
+      if (podcastFilter) params.set("podcast", podcastFilter);
+      const res = await fetch(`/api/admin/api-usage/by-service?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+  });
+
+  const { data: byEpisode } = useQuery<EpisodeCost[]>({
+    queryKey: ["/api/admin/api-usage/by-episode", serviceFilter, podcastFilter],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (serviceFilter !== "all") params.set("service", serviceFilter);
+      if (podcastFilter) params.set("podcast", podcastFilter);
+      const res = await fetch(`/api/admin/api-usage/by-episode?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+  });
+
+  const { data: byPodcast } = useQuery<PodcastCost[]>({
+    queryKey: ["/api/admin/api-usage/by-podcast", serviceFilter],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (serviceFilter !== "all") params.set("service", serviceFilter);
+      const res = await fetch(`/api/admin/api-usage/by-podcast?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+  });
+
+  const { data: projections } = useQuery<Projections>({
+    queryKey: ["/api/admin/api-usage/projections"],
+  });
+
+  const { data: podcastsList } = useQuery<string[]>({
+    queryKey: ["/api/admin/api-usage/podcasts-list"],
   });
 
   if (summaryLoading) {
@@ -158,8 +235,52 @@ export default function ApiUsageDashboard() {
       };
     });
 
+  const trendLabel: Record<string, string> = {
+    increasing: "Increasing",
+    decreasing: "Decreasing",
+    stable: "Stable",
+    insufficient_data: "Not enough data",
+  };
+
+  const trendColor: Record<string, string> = {
+    increasing: "text-red-600",
+    decreasing: "text-green-600",
+    stable: "text-amber-600",
+    insufficient_data: "text-muted-foreground",
+  };
+
   return (
     <div className="space-y-6" data-testid="api-usage-dashboard">
+      <div className="flex items-center gap-3 flex-wrap" data-testid="cost-filters">
+        <div className="flex items-center gap-1 bg-black/[0.03] dark:bg-white/[0.06] rounded-xl p-1">
+          {["all", "openai", "elevenlabs"].map((svc) => (
+            <button
+              key={svc}
+              onClick={() => setServiceFilter(svc)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                serviceFilter === svc ? "bg-white dark:bg-zinc-800 text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+              data-testid={`service-filter-${svc}`}
+            >
+              {svc === "all" ? "All Services" : svc.charAt(0).toUpperCase() + svc.slice(1)}
+            </button>
+          ))}
+        </div>
+        {podcastsList && podcastsList.length > 0 && (
+          <select
+            value={podcastFilter}
+            onChange={(e) => setPodcastFilter(e.target.value)}
+            className="text-xs px-3 py-1.5 border border-border rounded-lg bg-background"
+            data-testid="podcast-filter"
+          >
+            <option value="">All Podcasts</option>
+            {podcastsList.map((slug) => (
+              <option key={slug} value={slug}>{slug}</option>
+            ))}
+          </select>
+        )}
+      </div>
+
       <div className="glass-panel rounded-2xl p-5" data-testid="api-usage-budget">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-bold text-foreground">
@@ -182,6 +303,51 @@ export default function ApiUsageDashboard() {
           {budgetPercent.toFixed(1)}% used
         </p>
       </div>
+
+      {projections && (
+        <div className="glass-panel rounded-2xl p-5" data-testid="cost-projections">
+          <h3 className="text-sm font-bold text-foreground mb-3">Projections & Burn Rate</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div>
+              <p className="text-xs text-muted-foreground">Daily Rate</p>
+              <p className="text-sm font-bold text-foreground">{formatCostShort(projections.dailyRate)}/day</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Projected Monthly</p>
+              <p className="text-sm font-bold text-foreground">{formatCostShort(projections.projectedMonthly)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Burn Rate Trend</p>
+              <p className={`text-sm font-bold ${trendColor[projections.burnRateTrend] || "text-foreground"}`}>
+                {trendLabel[projections.burnRateTrend] || projections.burnRateTrend}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Cost per User</p>
+              <p className="text-sm font-bold text-foreground">{formatCost(projections.costPerUser)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Avg Cost / Episode</p>
+              <p className="text-sm font-bold text-foreground" data-testid="text-avg-cost-per-episode">{formatCost(projections.avgCostPerEpisode)}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {byService && byService.length > 0 && (
+        <div className="glass-panel rounded-2xl p-5" data-testid="cost-by-service">
+          <h3 className="text-sm font-bold text-foreground mb-3">Cost by Service (30 Days)</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {byService.map((row) => (
+              <div key={row.service} className="bg-muted/20 rounded-xl p-3" data-testid={`service-cost-${row.service}`}>
+                <p className="text-xs font-semibold text-muted-foreground uppercase">{row.service}</p>
+                <p className="text-lg font-bold text-foreground">{formatCostShort(row.cost)}</p>
+                <p className="text-xs text-muted-foreground">{row.calls} calls</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div>
         <div className="flex items-center gap-2 mb-3">
@@ -427,6 +593,64 @@ export default function ApiUsageDashboard() {
           )}
         </div>
       </div>
+
+      {byEpisode && byEpisode.length > 0 && (
+        <div className="glass-panel rounded-2xl p-5" data-testid="cost-by-episode">
+          <h3 className="text-sm font-bold text-foreground mb-3">Per-Episode Costs (30 Days)</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-black/[0.06]">
+                  <th className="text-left py-2 font-semibold text-muted-foreground">Podcast</th>
+                  <th className="text-left py-2 font-semibold text-muted-foreground">Episode</th>
+                  <th className="text-left py-2 font-semibold text-muted-foreground">Service</th>
+                  <th className="text-right py-2 font-semibold text-muted-foreground">Calls</th>
+                  <th className="text-right py-2 font-semibold text-muted-foreground">Cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                {byEpisode.slice(0, 20).map((row, i) => (
+                  <tr key={i} className="border-b border-black/[0.03]" data-testid={`episode-cost-row-${i}`}>
+                    <td className="py-1.5 text-foreground">{row.podcast_slug}</td>
+                    <td className="py-1.5 text-foreground truncate max-w-[200px]">{row.episode_slug}</td>
+                    <td className="py-1.5">
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${row.service === "elevenlabs" ? "bg-violet-100 text-violet-700" : "bg-blue-100 text-blue-700"}`}>
+                        {row.service}
+                      </span>
+                    </td>
+                    <td className="py-1.5 text-right text-foreground">{row.calls}</td>
+                    <td className="py-1.5 text-right font-semibold text-foreground">{formatCost(row.cost)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {byPodcast && byPodcast.length > 0 && (
+        <div className="glass-panel rounded-2xl p-5" data-testid="cost-by-podcast">
+          <h3 className="text-sm font-bold text-foreground mb-3">Per-Podcast Costs (30 Days)</h3>
+          <div className="space-y-2">
+            {byPodcast.map((row) => {
+              const cost = parseFloat(row.cost) || 0;
+              const maxCost = Math.max(...byPodcast.map((r) => parseFloat(r.cost) || 0));
+              const pct = maxCost > 0 ? (cost / maxCost) * 100 : 0;
+              return (
+                <div key={row.podcast_slug} data-testid={`podcast-cost-${row.podcast_slug}`}>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="text-xs font-semibold text-foreground">{row.podcast_slug}</span>
+                    <span className="text-xs text-muted-foreground">{formatCost(row.cost)} / {row.calls} calls</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-black/[0.04] rounded-full overflow-hidden">
+                    <div className="h-full bg-violet-500/60 rounded-full" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="glass-panel rounded-2xl p-5" data-testid="api-usage-recaps">
         <h3 className="text-sm font-bold text-foreground mb-3">Recap Generation</h3>

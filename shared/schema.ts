@@ -650,6 +650,9 @@ export const apiUsageLogs = pgTable("api_usage_logs", {
   totalTokens: integer("total_tokens").default(0),
   estimatedCost: real("estimated_cost").default(0),
   metadata: jsonb("metadata"),
+  service: text("service").default("openai"),
+  podcastSlug: text("podcast_slug"),
+  episodeSlug: text("episode_slug"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -1058,4 +1061,42 @@ export const youtubeReviewLog = pgTable("youtube_review_log", {
 export const insertYoutubeReviewLogSchema = createInsertSchema(youtubeReviewLog).omit({ id: true, createdAt: true });
 export type InsertYoutubeReviewLog = z.infer<typeof insertYoutubeReviewLogSchema>;
 export type YoutubeReviewLog = typeof youtubeReviewLog.$inferSelect;
+
+export const recapAudio = pgTable("recap_audio", {
+  id: serial("id").primaryKey(),
+  podcastSlug: text("podcast_slug").notNull(),
+  episodeSlug: text("episode_slug").notNull(),
+  audioUrl: text("audio_url"),
+  elevenlabsRequestId: text("elevenlabs_request_id"),
+  voiceId: text("voice_id"),
+  characterCount: integer("character_count").default(0),
+  audioDuration: real("audio_duration").default(0),
+  openaiScriptCost: real("openai_script_cost").default(0),
+  elevenlabsCost: real("elevenlabs_cost").default(0),
+  totalCost: real("total_cost").default(0),
+  narrationScript: text("narration_script"),
+  status: text("status").notNull().default("not_generated"),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertRecapAudioSchema = createInsertSchema(recapAudio).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertRecapAudio = z.infer<typeof insertRecapAudioSchema>;
+export type RecapAudio = typeof recapAudio.$inferSelect;
+
+export const audioPlaybackEvents = pgTable("audio_playback_events", {
+  id: serial("id").primaryKey(),
+  podcastSlug: text("podcast_slug").notNull(),
+  episodeSlug: text("episode_slug").notNull(),
+  eventType: text("event_type").notNull(),
+  percentageReached: real("percentage_reached").default(0),
+  sessionId: text("session_id"),
+  userId: integer("user_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAudioPlaybackEventSchema = createInsertSchema(audioPlaybackEvents).omit({ id: true, createdAt: true });
+export type InsertAudioPlaybackEvent = z.infer<typeof insertAudioPlaybackEventSchema>;
+export type AudioPlaybackEvent = typeof audioPlaybackEvents.$inferSelect;
 

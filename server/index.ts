@@ -235,9 +235,16 @@ process.on("uncaughtException", (err) => {
         try {
           const { ensureApiUsageTable } = await import("./apiUsageTracker");
           await ensureApiUsageTable();
-          console.log("api_usage_logs table ready");
+          console.log("api_usage_logs table ready (with recap_audio & playback_events)");
         } catch (err) {
           console.warn("api_usage_logs migration skipped:", err);
+        }
+
+        try {
+          const { ensureRecapAudioConstraint } = await import("./audioRecapGenerator");
+          await ensureRecapAudioConstraint();
+        } catch (err) {
+          console.warn("recap_audio constraint migration skipped:", err);
         }
 
         try {

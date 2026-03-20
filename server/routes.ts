@@ -16840,6 +16840,386 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     }
   });
 
+  app.post("/api/admin/audio-recap/:podcastSlug/:episodeSlug/generate", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { podcastSlug, episodeSlug } = req.params;
+      const { generateAudioForEpisode } = await import("./audioRecapGenerator");
+      const result = await generateAudioForEpisode(podcastSlug, episodeSlug);
+      res.json(result);
+    } catch (err) {
+      console.error("[AudioRecap] Generate error:", err);
+      res.status(500).json({ error: "Failed to generate audio recap" });
+    }
+  });
+
+  app.get("/api/admin/audio-recap/:podcastSlug/:episodeSlug/status", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { podcastSlug, episodeSlug } = req.params;
+      const { getRecapAudioStatus, getPlaybackStats } = await import("./audioRecapGenerator");
+      const audio = await getRecapAudioStatus(podcastSlug, episodeSlug);
+      const playbackStats = await getPlaybackStats(podcastSlug, episodeSlug);
+      res.json({ audio, playbackStats });
+    } catch (err) {
+      console.error("[AudioRecap] Status error:", err);
+      res.status(500).json({ error: "Failed to fetch audio status" });
+    }
+  });
+
+  app.get("/api/audio-recap/:podcastSlug/:episodeSlug", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      const { podcastSlug, episodeSlug } = req.params;
+      if (podcastSlug !== "my-first-million") {
+        return res.status(403).json({ error: "Audio recaps not available for this podcast" });
+      }
+      const { getRecapAudioStatus } = await import("./audioRecapGenerator");
+      const audio = await getRecapAudioStatus(podcastSlug, episodeSlug);
+      if (!audio || audio.status !== "ready" || !audio.audio_url) {
+        return res.status(404).json({ error: "Audio not available" });
+      }
+      res.json({ audioUrl: audio.audio_url, duration: audio.audio_duration, status: audio.status });
+    } catch (err) {
+      console.error("[AudioRecap] Public status error:", err);
+      res.status(500).json({ error: "Failed to fetch audio status" });
+    }
+  });
+
+  app.get("/api/audio-recap-file/:podcastSlug/:episodeSlug", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      const { podcastSlug, episodeSlug } = req.params;
+      if (podcastSlug !== "my-first-million") {
+        return res.status(403).json({ error: "Audio recaps not available for this podcast" });
+      }
+      const sanitizedPodcast = podcastSlug.replace(/[^a-z0-9_-]/gi, "");
+      const sanitizedEpisode = episodeSlug.replace(/[^a-z0-9_-]/gi, "");
+      const filePath = path.join(process.cwd(), "data", "audio-recaps", `${sanitizedPodcast}_${sanitizedEpisode}.mp3`);
+      const fs = await import("fs");
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: "Audio file not found" });
+      }
+      res.setHeader("Content-Type", "audio/mpeg");
+      res.setHeader("Cache-Control", "private, max-age=3600");
+      fs.createReadStream(filePath).pipe(res);
+    } catch (err) {
+      console.error("[AudioRecap] File serve error:", err);
+      res.status(500).json({ error: "Failed to serve audio file" });
+    }
+  });
+
+  app.post("/api/audio-playback-event", async (req, res) => {
+    try {
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      const { podcastSlug, episodeSlug, eventType, percentageReached, sessionId } = req.body;
+      if (!podcastSlug || !episodeSlug || !eventType) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      const allowedEvents = ["play", "pause", "progress", "complete"];
+      if (!allowedEvents.includes(eventType)) {
+        return res.status(400).json({ error: "Invalid event type" });
+      }
+      const pct = Math.max(0, Math.min(100, Number(percentageReached) || 0));
+      const userId = req.session.userId;
+      await pool.query(
+        `INSERT INTO audio_playback_events (podcast_slug, episode_slug, event_type, percentage_reached, session_id, user_id)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [podcastSlug, episodeSlug, eventType, pct, sessionId || null, userId]
+      );
+      res.json({ success: true });
+    } catch (err) {
+      console.error("[AudioPlayback] Event error:", err);
+      res.status(500).json({ error: "Failed to log playback event" });
+    }
+  });
+
+  app.get("/api/admin/audio-analytics/overview", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { rows: [overview] } = await pool.query(`
+        SELECT
+          COUNT(*) FILTER (WHERE event_type = 'play')::int AS total_plays,
+          COALESCE(AVG(percentage_reached) FILTER (WHERE event_type = 'progress'), 0) AS avg_completion_rate,
+          COUNT(*) FILTER (WHERE event_type = 'complete')::int AS total_completions,
+          COUNT(DISTINCT COALESCE(session_id, user_id::text)) FILTER (WHERE event_type = 'play') AS unique_listeners
+        FROM audio_playback_events
+      `);
+      const { rows: [audioStats] } = await pool.query(`
+        SELECT
+          COUNT(*) FILTER (WHERE status = 'ready')::int AS total_episodes_with_audio,
+          COALESCE(SUM(audio_duration) FILTER (WHERE status = 'ready'), 0) AS total_audio_seconds
+        FROM recap_audio
+      `);
+      res.json({
+        totalPlays: parseInt(overview.total_plays) || 0,
+        avgCompletionRate: parseFloat(overview.avg_completion_rate) || 0,
+        totalCompletions: parseInt(overview.total_completions) || 0,
+        uniqueListeners: parseInt(overview.unique_listeners) || 0,
+        totalEpisodesWithAudio: parseInt(audioStats.total_episodes_with_audio) || 0,
+        totalAudioHours: (parseFloat(audioStats.total_audio_seconds) || 0) / 3600,
+      });
+    } catch (err) {
+      console.error("[AudioAnalytics] Overview error:", err);
+      res.status(500).json({ error: "Failed to fetch audio analytics" });
+    }
+  });
+
+  app.get("/api/admin/audio-analytics/by-podcast", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { rows } = await pool.query(`
+        SELECT
+          podcast_slug,
+          COUNT(*) FILTER (WHERE event_type = 'play')::int AS play_count,
+          COUNT(*) FILTER (WHERE event_type = 'complete')::int AS completion_count,
+          COUNT(DISTINCT COALESCE(session_id, user_id::text)) FILTER (WHERE event_type = 'play') AS unique_listeners,
+          COALESCE(AVG(percentage_reached) FILTER (WHERE event_type = 'progress'), 0) AS avg_percentage
+        FROM audio_playback_events
+        GROUP BY podcast_slug
+        ORDER BY play_count DESC
+      `);
+      res.json(rows);
+    } catch (err) {
+      console.error("[AudioAnalytics] By-podcast error:", err);
+      res.status(500).json({ error: "Failed to fetch podcast audio analytics" });
+    }
+  });
+
+  app.get("/api/admin/audio-analytics/by-episode", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { rows } = await pool.query(`
+        SELECT
+          ape.podcast_slug, ape.episode_slug,
+          lpr.episode_title, lpr.podcast_name,
+          COUNT(*) FILTER (WHERE ape.event_type = 'play')::int AS play_count,
+          COUNT(*) FILTER (WHERE ape.event_type = 'complete')::int AS completion_count,
+          COUNT(DISTINCT COALESCE(ape.session_id, ape.user_id::text)) FILTER (WHERE ape.event_type = 'play') AS unique_listeners,
+          COALESCE(AVG(ape.percentage_reached) FILTER (WHERE ape.event_type = 'progress'), 0) AS avg_percentage
+        FROM audio_playback_events ape
+        LEFT JOIN landing_page_recaps lpr ON lpr.slug = ape.podcast_slug AND lpr.episode_slug = ape.episode_slug
+        GROUP BY ape.podcast_slug, ape.episode_slug, lpr.episode_title, lpr.podcast_name
+        ORDER BY play_count DESC
+        LIMIT 50
+      `);
+      res.json(rows);
+    } catch (err) {
+      console.error("[AudioAnalytics] By-episode error:", err);
+      res.status(500).json({ error: "Failed to fetch episode audio analytics" });
+    }
+  });
+
+  app.get("/api/admin/audio-analytics/plays-over-time", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const granularity = (req.query.granularity as string) || "daily";
+      const days = parseInt(req.query.days as string) || 30;
+      const dateExpr = granularity === "monthly" ? "DATE_TRUNC('month', created_at)" :
+                       granularity === "weekly" ? "DATE_TRUNC('week', created_at)" :
+                       "DATE(created_at)";
+      const { rows } = await pool.query(`
+        SELECT
+          ${dateExpr} AS date,
+          COUNT(*) FILTER (WHERE event_type = 'play')::int AS plays,
+          COUNT(*) FILTER (WHERE event_type = 'complete')::int AS completions,
+          COUNT(DISTINCT COALESCE(session_id, user_id::text)) FILTER (WHERE event_type = 'play') AS unique_listeners
+        FROM audio_playback_events
+        WHERE created_at >= NOW() - INTERVAL '${days} days'
+        GROUP BY ${dateExpr}
+        ORDER BY date
+      `);
+      res.json(rows);
+    } catch (err) {
+      console.error("[AudioAnalytics] Plays over time error:", err);
+      res.status(500).json({ error: "Failed to fetch plays over time" });
+    }
+  });
+
+  app.get("/api/admin/audio-analytics/completion-funnel", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { rows: [counts] } = await pool.query(`
+        SELECT
+          COUNT(DISTINCT COALESCE(session_id, user_id::text)) FILTER (WHERE event_type = 'play') AS started,
+          COUNT(DISTINCT COALESCE(session_id, user_id::text)) FILTER (WHERE percentage_reached >= 25) AS reached_25,
+          COUNT(DISTINCT COALESCE(session_id, user_id::text)) FILTER (WHERE percentage_reached >= 50) AS reached_50,
+          COUNT(DISTINCT COALESCE(session_id, user_id::text)) FILTER (WHERE percentage_reached >= 75) AS reached_75,
+          COUNT(DISTINCT COALESCE(session_id, user_id::text)) FILTER (WHERE event_type = 'complete' OR percentage_reached >= 100) AS reached_100
+        FROM audio_playback_events
+      `);
+      const started = parseInt(counts.started) || 0;
+      res.json({
+        started,
+        reached_25: parseInt(counts.reached_25) || 0,
+        reached_50: parseInt(counts.reached_50) || 0,
+        reached_75: parseInt(counts.reached_75) || 0,
+        reached_100: parseInt(counts.reached_100) || 0,
+        pct_25: started > 0 ? ((parseInt(counts.reached_25) || 0) / started * 100) : 0,
+        pct_50: started > 0 ? ((parseInt(counts.reached_50) || 0) / started * 100) : 0,
+        pct_75: started > 0 ? ((parseInt(counts.reached_75) || 0) / started * 100) : 0,
+        pct_100: started > 0 ? ((parseInt(counts.reached_100) || 0) / started * 100) : 0,
+      });
+    } catch (err) {
+      console.error("[AudioAnalytics] Completion funnel error:", err);
+      res.status(500).json({ error: "Failed to fetch completion funnel" });
+    }
+  });
+
+  app.get("/api/admin/api-usage/by-service", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const serviceFilter = req.query.service as string;
+      const podcastFilter = req.query.podcast as string;
+      let whereConditions = ["created_at >= NOW() - INTERVAL '30 days'"];
+      const params: any[] = [];
+      if (serviceFilter && serviceFilter !== "all") {
+        params.push(serviceFilter);
+        whereConditions.push(`COALESCE(service, 'openai') = $${params.length}`);
+      }
+      if (podcastFilter) {
+        params.push(podcastFilter);
+        whereConditions.push(`podcast_slug = $${params.length}`);
+      }
+      const where = whereConditions.join(" AND ");
+      const { rows } = await pool.query(`
+        SELECT
+          COALESCE(service, 'openai') AS service,
+          COUNT(*)::int AS calls,
+          COALESCE(SUM(total_tokens), 0) AS tokens,
+          COALESCE(SUM(estimated_cost), 0) AS cost
+        FROM api_usage_logs
+        WHERE ${where}
+        GROUP BY COALESCE(service, 'openai')
+        ORDER BY cost DESC
+      `, params);
+      res.json(rows);
+    } catch (err) {
+      console.error("[ApiUsage] By-service error:", err);
+      res.status(500).json({ error: "Failed to fetch usage by service" });
+    }
+  });
+
+  app.get("/api/admin/api-usage/by-episode", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const serviceFilter = req.query.service as string;
+      const podcastFilter = req.query.podcast as string;
+      let whereConditions = ["created_at >= NOW() - INTERVAL '30 days'", "episode_slug IS NOT NULL"];
+      const params: any[] = [];
+      if (serviceFilter && serviceFilter !== "all") {
+        params.push(serviceFilter);
+        whereConditions.push(`COALESCE(service, 'openai') = $${params.length}`);
+      }
+      if (podcastFilter) {
+        params.push(podcastFilter);
+        whereConditions.push(`podcast_slug = $${params.length}`);
+      }
+      const where = whereConditions.join(" AND ");
+      const { rows } = await pool.query(`
+        SELECT
+          podcast_slug, episode_slug,
+          COALESCE(service, 'openai') AS service,
+          COUNT(*)::int AS calls,
+          COALESCE(SUM(estimated_cost), 0) AS cost
+        FROM api_usage_logs
+        WHERE ${where}
+        GROUP BY podcast_slug, episode_slug, COALESCE(service, 'openai')
+        ORDER BY cost DESC
+        LIMIT 100
+      `, params);
+      res.json(rows);
+    } catch (err) {
+      console.error("[ApiUsage] By-episode error:", err);
+      res.status(500).json({ error: "Failed to fetch usage by episode" });
+    }
+  });
+
+  app.get("/api/admin/api-usage/by-podcast", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const serviceFilter = req.query.service as string;
+      let whereConditions = ["created_at >= NOW() - INTERVAL '30 days'", "podcast_slug IS NOT NULL"];
+      const params: any[] = [];
+      if (serviceFilter && serviceFilter !== "all") {
+        params.push(serviceFilter);
+        whereConditions.push(`COALESCE(service, 'openai') = $${params.length}`);
+      }
+      const where = whereConditions.join(" AND ");
+      const { rows } = await pool.query(`
+        SELECT
+          podcast_slug,
+          COUNT(*)::int AS calls,
+          COALESCE(SUM(estimated_cost), 0) AS cost
+        FROM api_usage_logs
+        WHERE ${where}
+        GROUP BY podcast_slug
+        ORDER BY cost DESC
+      `, params);
+      res.json(rows);
+    } catch (err) {
+      console.error("[ApiUsage] By-podcast error:", err);
+      res.status(500).json({ error: "Failed to fetch usage by podcast" });
+    }
+  });
+
+  app.get("/api/admin/api-usage/projections", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { rows: [summary] } = await pool.query(`
+        SELECT
+          COALESCE(SUM(CASE WHEN created_at >= NOW() - INTERVAL '30 days' THEN estimated_cost ELSE 0 END), 0) AS month_cost,
+          COALESCE(SUM(CASE WHEN created_at >= NOW() - INTERVAL '7 days' THEN estimated_cost ELSE 0 END), 0) AS week_cost,
+          COUNT(DISTINCT DATE(created_at)) FILTER (WHERE created_at >= NOW() - INTERVAL '30 days')::int AS active_days,
+          COUNT(DISTINCT user_id) FILTER (WHERE user_id IS NOT NULL)::int AS active_users,
+          COUNT(DISTINCT episode_slug) FILTER (WHERE episode_slug IS NOT NULL AND created_at >= NOW() - INTERVAL '30 days')::int AS distinct_episodes
+        FROM api_usage_logs
+        WHERE created_at >= NOW() - INTERVAL '30 days'
+      `);
+      const activeDays = parseInt(summary.active_days) || 1;
+      const monthCost = parseFloat(summary.month_cost) || 0;
+      const dailyRate = monthCost / activeDays;
+      const projectedMonthly = dailyRate * 30;
+      const weekCost = parseFloat(summary.week_cost) || 0;
+      const weeklyRate = weekCost / 7;
+      const burnRateTrend = activeDays >= 14 ? (weeklyRate > (dailyRate * 0.9) ? "increasing" : weeklyRate < (dailyRate * 0.7) ? "decreasing" : "stable") : "insufficient_data";
+      const activeUsers = parseInt(summary.active_users) || 1;
+      const costPerUser = monthCost / activeUsers;
+      const distinctEpisodes = parseInt(summary.distinct_episodes) || 1;
+
+      res.json({
+        monthCost,
+        dailyRate,
+        projectedMonthly,
+        burnRateTrend,
+        costPerUser,
+        avgCostPerEpisode: monthCost / Math.max(distinctEpisodes, 1),
+      });
+    } catch (err) {
+      console.error("[ApiUsage] Projections error:", err);
+      res.status(500).json({ error: "Failed to calculate projections" });
+    }
+  });
+
+  app.get("/api/admin/api-usage/podcasts-list", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { rows } = await pool.query(`
+        SELECT DISTINCT podcast_slug FROM api_usage_logs WHERE podcast_slug IS NOT NULL ORDER BY podcast_slug
+      `);
+      res.json(rows.map(r => r.podcast_slug));
+    } catch (err) {
+      console.error("[ApiUsage] Podcasts list error:", err);
+      res.status(500).json({ error: "Failed to fetch podcast list" });
+    }
+  });
+
   app.get("/api/admin/advertisers", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     try {
