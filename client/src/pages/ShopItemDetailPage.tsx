@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Link } from "wouter";
-import { BookOpen, ShoppingBag, ExternalLink, ChevronDown, FileText, ArrowLeft, Bookmark } from "lucide-react";
+import { BookOpen, ShoppingBag, ExternalLink, ChevronDown, FileText, ArrowLeft, Bookmark, Mic, Search } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { BookCover as SharedBookCover } from "@/components/BookCover";
@@ -771,9 +771,11 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData, is
                 </p>
               )}
 
-              <div className="mb-4">
-                <PodcastMicBadge count={item.podcastCount} size="lg" />
-              </div>
+              {item.podcastCount > 0 && (
+                <div className="mb-4">
+                  <PodcastMicBadge count={item.podcastCount} size="lg" />
+                </div>
+              )}
 
               <div className="flex items-center gap-3 mb-5">
                 {primaryUrlHref && (
@@ -821,7 +823,7 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData, is
                 )}
               </div>
 
-              {featuredPodcasts.length > 0 && (
+              {featuredPodcasts.length > 0 ? (
                 <>
                   <p className="text-[11px] font-bold tracking-[1px] uppercase text-[#A1A1AA] mb-2.5">Featured on</p>
                   <div className="flex gap-2.5 flex-wrap" data-testid="artwork-strip">
@@ -845,12 +847,17 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData, is
                     )}
                   </div>
                 </>
-              )}
+              ) : isBook ? (
+                <div data-testid="artwork-strip-empty">
+                  <p className="text-[11px] font-bold tracking-[1px] uppercase text-[#A1A1AA] mb-2.5">Featured on</p>
+                  <p className="text-[13px] text-[#A1A1AA] dark:text-[#71717A] italic">Not yet featured on any podcasts we track.</p>
+                </div>
+              ) : null}
             </div>
           </div>
 
 
-          {(item.podcastBuzz || item.podcastBuzzFallback) && (
+          {(item.podcastBuzz || item.podcastBuzzFallback) ? (
             <div className="bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.08] border-l-[3px] border-l-[#6366F1] rounded-[0_12px_12px_0] px-5 py-4 mb-7 shadow-[0_1px_3px_rgba(0,0,0,0.07)]" data-testid="section-podcast-buzz">
               <div className="text-[11px] font-bold tracking-[1.5px] uppercase text-[#6366F1] mb-2">What top podcasters are saying</div>
               {item.podcastBuzz ? (
@@ -867,9 +874,14 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData, is
                 </div>
               ) : null}
             </div>
-          )}
+          ) : isBook ? (
+            <div className="bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.08] border-l-[3px] border-l-[#6366F1]/40 rounded-[0_12px_12px_0] px-5 py-4 mb-7 shadow-[0_1px_3px_rgba(0,0,0,0.07)]" data-testid="section-podcast-buzz-empty">
+              <div className="text-[11px] font-bold tracking-[1.5px] uppercase text-[#A1A1AA] mb-2">Podcast buzz</div>
+              <p className="text-[15px] text-[#A1A1AA] dark:text-[#71717A] leading-[1.75] italic">No podcast buzz available yet — check back soon.</p>
+            </div>
+          ) : null}
 
-          {episodesWithContext.length > 0 && (
+          {episodesWithContext.length > 0 ? (
             <>
               <h2 className="text-[20px] font-bold tracking-tight text-[#09090B] dark:text-white mb-4 scroll-mt-[140px]" id="appearances" data-testid="heading-appearances">
                 What podcasters said about this {isBook ? "book" : "product"}
@@ -899,9 +911,21 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData, is
 
               <hr className="border-t border-[#F0F0F2] dark:border-white/[0.06] my-7" />
             </>
-          )}
+          ) : isBook ? (
+            <>
+              <h2 className="text-[20px] font-bold tracking-tight text-[#09090B] dark:text-white mb-4 scroll-mt-[140px]" id="appearances" data-testid="heading-appearances">
+                What podcasters said about this book
+              </h2>
+              <div className="bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.08] rounded-xl px-6 py-8 text-center mb-7" data-testid="section-no-appearances">
+                <Mic className="w-10 h-10 text-[#A1A1AA]/30 mx-auto mb-3" />
+                <p className="text-[15px] font-semibold text-[#52525B] dark:text-[#A1A1AA] mb-1">No podcast mentions yet</p>
+                <p className="text-[13px] text-[#A1A1AA] dark:text-[#71717A]">We haven't found any podcast episodes discussing this book — check back soon.</p>
+              </div>
+              <hr className="border-t border-[#F0F0F2] dark:border-white/[0.06] my-7" />
+            </>
+          ) : null}
 
-          {item.relatedItems.length > 0 && (
+          {item.relatedItems.length > 0 ? (
             <>
               <div className="text-[18px] font-bold text-[#09090B] dark:text-white mb-4" data-testid="heading-related">
                 {isBook ? "People who bought this also read" : "You might also like"}
@@ -915,9 +939,23 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData, is
               </div>
               <hr className="border-t border-[#F0F0F2] dark:border-white/[0.06] my-7" />
             </>
-          )}
+          ) : isBook ? (
+            <>
+              <div className="text-[18px] font-bold text-[#09090B] dark:text-white mb-4" data-testid="heading-related">
+                Discover more books
+              </div>
+              <div className="bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.08] rounded-xl px-6 py-6 text-center" data-testid="section-no-related">
+                <Search className="w-8 h-8 text-[#A1A1AA]/30 mx-auto mb-2.5" />
+                <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] mb-3">Looking for your next great read?</p>
+                <Link href="/shop" className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-[#6366F1] hover:text-[#4F46E5] transition-colors" data-testid="link-discover-books">
+                  Browse the Pod Shop →
+                </Link>
+              </div>
+              <hr className="border-t border-[#F0F0F2] dark:border-white/[0.06] my-7" />
+            </>
+          ) : null}
 
-          {item.description && (
+          {item.description ? (
             <>
               <p className="text-[12px] font-bold tracking-[1.5px] uppercase text-[#A1A1AA] mb-2.5">About this {isBook ? "book" : "product"}</p>
               {isBook ? (
@@ -932,9 +970,16 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData, is
                 </p>
               )}
             </>
-          )}
+          ) : isBook ? (
+            <>
+              <p className="text-[12px] font-bold tracking-[1.5px] uppercase text-[#A1A1AA] mb-2.5">About this book</p>
+              <p className="text-[15px] text-[#A1A1AA] dark:text-[#71717A] leading-[1.85] italic" data-testid="text-description-empty">
+                No description available for this book.
+              </p>
+            </>
+          ) : null}
 
-          {isBook && metaItems.length > 0 && (
+          {isBook && (
             <div>
               <button
                 onClick={() => setDetailsOpen(!detailsOpen)}
@@ -948,12 +993,16 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData, is
               </button>
               <div id="book-details-body" className={`overflow-hidden transition-all duration-300 ${detailsOpen ? "max-h-[400px]" : "max-h-0"}`}>
                 <div className="pt-2">
-                  {metaItems.map(mi => (
+                  {metaItems.length > 0 ? metaItems.map(mi => (
                     <div key={mi.label} className="flex justify-between text-sm py-2 border-b border-[#F0F0F2] dark:border-white/[0.06] last:border-b-0">
                       <span className="text-[#A1A1AA]">{mi.label}</span>
                       <span className="font-medium text-[#09090B] dark:text-white">{mi.value}</span>
                     </div>
-                  ))}
+                  )) : (
+                    <div className="text-sm text-[#A1A1AA] py-2 italic" data-testid="text-details-empty">
+                      Details coming soon.
+                    </div>
+                  )}
                   {item.amazonUrl && (
                     <div className="flex justify-between text-sm py-2">
                       <span className="text-[#A1A1AA]">Buy</span>
