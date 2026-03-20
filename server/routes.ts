@@ -2503,7 +2503,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     const codeChallenge = crypto.createHash("sha256").update(codeVerifier).digest("base64url");
     req.session.spotifyCodeVerifier = codeVerifier;
 
-    let returnTo = "/my-podcasts";
+    let returnTo = "/settings?tab=my-podcasts";
     const rawReturn = req.query.return_to as string;
     if (rawReturn && typeof rawReturn === "string" && rawReturn.startsWith("/") && !rawReturn.startsWith("//") && !rawReturn.includes("://")) {
       returnTo = rawReturn;
@@ -2521,25 +2521,26 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     try {
       const { code, state, error } = req.query as { code?: string; state?: string; error?: string };
 
-      const returnTo = req.session.spotifyOAuthRedirect || "/my-podcasts";
+      const returnTo = req.session.spotifyOAuthRedirect || "/settings?tab=my-podcasts";
       delete req.session.spotifyOAuthRedirect;
+      const sep = returnTo.includes("?") ? "&" : "?";
 
       if (error) {
         console.warn("[SpotifyAuth] User denied or error:", error);
         delete req.session.spotifyOAuthState;
-        return res.redirect(`${returnTo}?spotify_error=denied`);
+        return res.redirect(`${returnTo}${sep}spotify_error=denied`);
       }
 
       if (!code) {
         console.error("[SpotifyAuth] Missing code param");
         delete req.session.spotifyOAuthState;
-        return res.redirect(`${returnTo}?spotify_error=invalid`);
+        return res.redirect(`${returnTo}${sep}spotify_error=invalid`);
       }
 
       if (!state || state !== req.session.spotifyOAuthState) {
         console.error("[SpotifyAuth] State mismatch");
         delete req.session.spotifyOAuthState;
-        return res.redirect(`${returnTo}?spotify_error=invalid`);
+        return res.redirect(`${returnTo}${sep}spotify_error=invalid`);
       }
       delete req.session.spotifyOAuthState;
 
@@ -2578,7 +2579,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
         import("./adminAlertService").then(({ sendCriticalApiAlert }) =>
           sendCriticalApiAlert({ apiName: "Spotify", errorType: "Token Exchange Failed", errorMessage: `Spotify OAuth token exchange failed for user. Error: ${tokenData.error || "unknown"}`, severity: "warning", adminPath: "/admin/internal-tools/alerts" })
         ).catch(() => {});
-        return res.redirect(`${returnTo}?spotify_error=token_failed`);
+        return res.redirect(`${returnTo}${sep}spotify_error=token_failed`);
       }
 
       const expiresAt = Date.now() + (tokenData.expires_in || 3600) * 1000;
@@ -2589,7 +2590,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       );
 
       req.session.save(() => {
-        res.redirect(`${returnTo}?spotify_connected=true`);
+        res.redirect(`${returnTo}${sep}spotify_connected=true`);
       });
     } catch (err: unknown) {
       console.error("[SpotifyAuth] Callback error:", err);
@@ -2597,7 +2598,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       import("./adminAlertService").then(({ sendCriticalApiAlert }) =>
         sendCriticalApiAlert({ apiName: "Spotify", errorType: "OAuth Callback Error", errorMessage: `Spotify OAuth callback failed: ${errMsg}`, severity: "warning", adminPath: "/admin/internal-tools/alerts" })
       ).catch(() => {});
-      res.redirect("/my-podcasts?spotify_error=unknown");
+      res.redirect("/settings?tab=my-podcasts&spotify_error=unknown");
     }
   });
 

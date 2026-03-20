@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import {
   Home, Compass, ShoppingBag, HelpCircle, Bookmark,
-  Award, Settings, Radio, Menu, X
+  Award, Settings, Menu, X
 } from "lucide-react";
 import { RightSidebar } from "@/components/RightSidebar";
 
@@ -16,9 +16,7 @@ const ALL_NAV_ITEMS = [
   { key: "discover", path: "/discover", label: "Discover", Icon: Compass },
   { key: "shop", path: "/shop", label: "Pod Shop", Icon: ShoppingBag },
   { key: "bookmarks", path: "/bookmarks", label: "Saved Episodes", Icon: Bookmark },
-  { key: "my-podcasts", path: "/my-podcasts", label: "My Podcasts", Icon: Radio },
   { key: "pod-squad", path: "/pod-squad", label: "Pod Squad", Icon: Award, badge: true },
-  { key: "settings", path: "/settings", label: "Settings", Icon: Settings },
 ];
 
 function MobileBottomNav({ currentPath, navItems }: { currentPath: string; navItems: typeof ALL_NAV_ITEMS }) {
@@ -45,7 +43,7 @@ function MobileBottomNav({ currentPath, navItems }: { currentPath: string; navIt
     item => !primaryTabs.some(t => t.key === item.key) && item.key !== "pod-squad"
   );
 
-  const isMoreActive = moreItems.some(item => currentPath === item.path);
+  const isMoreActive = moreItems.some(item => currentPath === item.path) || currentPath === "/settings" || currentPath === "/help";
 
   return (
     <nav
@@ -78,6 +76,16 @@ function MobileBottomNav({ currentPath, navItems }: { currentPath: string; navIt
                 </button>
               );
             })}
+            <button
+              onClick={() => { navigate("/settings"); setMoreOpen(false); }}
+              className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl transition-colors active:scale-95 ${
+                currentPath === "/settings" ? "bg-[#EEF2FF] text-[#6366F1]" : "text-[#71717A] hover:bg-[#F4F4F5]"
+              }`}
+              data-testid="bottom-nav-more-settings"
+            >
+              <Settings className="w-5 h-5" />
+              <span className="text-[11px] font-medium leading-none">Settings</span>
+            </button>
             <button
               onClick={() => { navigate("/help"); setMoreOpen(false); }}
               className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl transition-colors active:scale-95 ${
@@ -184,9 +192,26 @@ export function DashboardLayout({ children, hideRightSidebar }: DashboardLayoutP
         </nav>
 
         <div className="flex flex-col items-center gap-[6px]">
+          <Link href="/settings">
+            <div
+              className={`sidebar-icon-item w-11 h-11 rounded-[10px] flex items-center justify-center cursor-pointer transition-all relative ${
+                isActive("/settings")
+                  ? "bg-[#EEF2FF] text-[#6366F1]"
+                  : "text-[#A1A1AA] hover:bg-[#F7F7FC] hover:text-[#52525B]"
+              }`}
+              data-label="Settings"
+              data-testid="sidebar-nav-settings"
+            >
+              <Settings className="w-5 h-5" />
+            </div>
+          </Link>
           <Link href="/help">
             <div
-              className="sidebar-icon-item w-11 h-11 rounded-[10px] flex items-center justify-center cursor-pointer transition-all text-[#A1A1AA] hover:bg-[#F7F7FC] hover:text-[#52525B] relative"
+              className={`sidebar-icon-item w-11 h-11 rounded-[10px] flex items-center justify-center cursor-pointer transition-all relative ${
+                isActive("/help")
+                  ? "bg-[#EEF2FF] text-[#6366F1]"
+                  : "text-[#A1A1AA] hover:bg-[#F7F7FC] hover:text-[#52525B]"
+              }`}
               data-label="Help"
               data-testid="sidebar-nav-help"
             >

@@ -52,7 +52,6 @@ const CategoryDirectory = lazy(() => import("./pages/CategoryDirectory"));
 const Advertise = lazy(() => import("./pages/Advertise"));
 const Disclosure = lazy(() => import("./pages/Disclosure"));
 const PodSquad = lazy(() => import("./pages/PodSquad"));
-const MyPodcastsPage = lazy(() => import("./pages/MyPodcastsPage"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const YouTubeReviewPage = lazy(() => import("./pages/YouTubeReviewPage"));
 
@@ -86,7 +85,7 @@ function Router() {
         <Route path="/settings" component={SettingsPage} />
         <Route path="/help" component={HelpPage} />
         <Route path="/bookmarks" component={BookmarksPage} />
-        <Route path="/my-podcasts" component={MyPodcastsPage} />
+        <Route path="/my-podcasts">{() => { window.location.replace("/settings?tab=my-podcasts"); return null; }}</Route>
         <Route path="/admin/users/:id" component={AdminUserProfile} />
         <Route path="/admin/*" component={Admin} />
         <Route path="/admin" component={Admin} />
