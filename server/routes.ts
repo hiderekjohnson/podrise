@@ -15851,6 +15851,48 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
     }
   });
 
+  app.get("/api/admin/shop/books-no-mentions-count", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { rows } = await pool.query(
+        `SELECT COUNT(*)::int as count
+         FROM book_enrichments be
+         LEFT JOIN LATERAL (
+           SELECT COUNT(DISTINCT eem.podcast_slug)::int as podcast_count
+           FROM entity_episode_mentions eem
+           WHERE eem.entity_type = 'book' AND eem.entity_slug = be.slug
+         ) eem_stats ON true
+         WHERE be.cover_approved = true AND COALESCE(eem_stats.podcast_count, 0) = 0`
+      );
+      res.json({ count: rows[0]?.count || 0 });
+    } catch (err: any) {
+      console.error("[BooksNoMentionsCount] Error:", err);
+      res.status(500).json({ message: err?.message || "Failed to count" });
+    }
+  });
+
+  app.delete("/api/admin/shop/bulk-delete-no-mentions", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { rows } = await pool.query(
+        `DELETE FROM book_enrichments be
+         WHERE be.cover_approved = true
+           AND NOT EXISTS (
+             SELECT 1 FROM entity_episode_mentions eem
+             WHERE eem.entity_type = 'book' AND eem.entity_slug = be.slug
+             AND eem.podcast_slug IS NOT NULL
+           )
+         RETURNING be.id`
+      );
+      const deletedCount = rows.length;
+      shopCache.invalidate();
+      res.json({ deleted: deletedCount });
+    } catch (err: any) {
+      console.error("[BulkDeleteNoMentions] Error:", err);
+      res.status(500).json({ message: err?.message || "Failed to bulk delete" });
+    }
+  });
+
   app.post("/api/admin/shop/:sourceType/:id/move-to-queue", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
     try {

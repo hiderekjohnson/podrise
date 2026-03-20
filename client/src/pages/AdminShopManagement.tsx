@@ -1047,6 +1047,58 @@ function ApprovedBooks({ onViewBook }: { onViewBook: (id: number) => void }) {
     current: string;
   } | null>(null);
 
+  const [bulkDeleteState, setBulkDeleteState] = useState<{
+    phase: "idle" | "counting" | "confirm" | "deleting" | "done";
+    count: number;
+    deleted: number;
+    error: string | null;
+  }>({ phase: "idle", count: 0, deleted: 0, error: null });
+
+  const handleBulkDeleteNoMentions = async () => {
+    setBulkDeleteState({ phase: "counting", count: 0, deleted: 0, error: null });
+    try {
+      const res = await fetch("/api/admin/shop/books-no-mentions-count", { credentials: "include" });
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody.message || "Failed to fetch count");
+      }
+      const { count } = await res.json();
+      if (count === 0) {
+        toast({ title: "No Books Found", description: "There are no approved books with zero podcast mentions." });
+        setBulkDeleteState({ phase: "idle", count: 0, deleted: 0, error: null });
+        return;
+      }
+      setBulkDeleteState({ phase: "confirm", count, deleted: 0, error: null });
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Failed to count books.", variant: "destructive" });
+      setBulkDeleteState({ phase: "idle", count: 0, deleted: 0, error: null });
+    }
+  };
+
+  const confirmBulkDelete = async () => {
+    setBulkDeleteState(prev => ({ ...prev, phase: "deleting" }));
+    try {
+      const res = await fetch("/api/admin/shop/bulk-delete-no-mentions", {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody.message || "Failed to delete");
+      }
+      const { deleted } = await res.json();
+      setBulkDeleteState(prev => ({ ...prev, phase: "done", deleted }));
+      toast({
+        title: "Bulk Delete Complete",
+        description: `Deleted ${deleted} book${deleted !== 1 ? 's' : ''} with no podcast mentions.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/approved"] });
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Bulk delete failed.", variant: "destructive" });
+      setBulkDeleteState(prev => ({ ...prev, phase: "idle", error: err?.message || "Failed" }));
+    }
+  };
+
   const { data: missingBuzzData } = useQuery<{ count: number }>({
     queryKey: ["/api/admin/books/missing-buzz-count"],
   });
@@ -1184,8 +1236,78 @@ function ApprovedBooks({ onViewBook }: { onViewBook: (id: number) => void }) {
             )}
             {requeueNoCoverMutation.isPending ? "Requeuing..." : "Requeue Missing Covers"}
           </button>
+          <button
+            onClick={handleBulkDeleteNoMentions}
+            disabled={bulkDeleteState.phase !== "idle" && bulkDeleteState.phase !== "done"}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 transition-all disabled:opacity-50"
+            data-testid="button-bulk-delete-no-mentions"
+          >
+            {bulkDeleteState.phase === "counting" ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Trash2 className="w-3.5 h-3.5" />
+            )}
+            {bulkDeleteState.phase === "counting" ? "Checking..." : "Delete Books With No Mentions"}
+          </button>
         </div>
       </div>
+
+      {(bulkDeleteState.phase === "confirm" || bulkDeleteState.phase === "deleting" || bulkDeleteState.phase === "done") && (
+        <div className="rounded-xl border border-black/[0.06] bg-white p-4" data-testid="bulk-delete-progress">
+          {bulkDeleteState.phase === "confirm" && (
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <AlertCircle className="w-5 h-5 text-red-500" />
+                <span className="text-sm font-bold text-foreground">
+                  {bulkDeleteState.count} book{bulkDeleteState.count !== 1 ? 's' : ''} have no podcast mentions
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">
+                This will permanently delete these books from the shop. This action cannot be undone.
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={confirmBulkDelete}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-red-600 hover:bg-red-700 transition-all"
+                  data-testid="button-confirm-bulk-delete"
+                >
+                  Delete {bulkDeleteState.count} Book{bulkDeleteState.count !== 1 ? 's' : ''}
+                </button>
+                <button
+                  onClick={() => setBulkDeleteState({ phase: "idle", count: 0, deleted: 0, error: null })}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-all"
+                  data-testid="button-cancel-bulk-delete"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+          {bulkDeleteState.phase === "deleting" && (
+            <div className="flex items-center gap-3">
+              <Loader2 className="w-5 h-5 animate-spin text-red-500" />
+              <span className="text-sm font-bold text-foreground">Deleting books with no podcast mentions...</span>
+            </div>
+          )}
+          {bulkDeleteState.phase === "done" && (
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                <span className="text-sm font-bold text-foreground">
+                  Deleted {bulkDeleteState.deleted} book{bulkDeleteState.deleted !== 1 ? 's' : ''} with no podcast mentions
+                </span>
+              </div>
+              <button
+                onClick={() => setBulkDeleteState({ phase: "idle", count: 0, deleted: 0, error: null })}
+                className="mt-2 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-primary hover:bg-primary/90 transition-all"
+                data-testid="button-bulk-delete-done"
+              >
+                Done
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {buzzProgress && (
         <div className="rounded-xl border border-black/[0.06] bg-white p-4" data-testid="buzz-generation-progress">
