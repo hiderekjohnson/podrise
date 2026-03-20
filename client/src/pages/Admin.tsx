@@ -898,14 +898,12 @@ export default function Admin() {
                               </button>
                             </th>
                             <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">Podcasts</th>
-                            <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">Settings</th>
-                            <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-black/[0.04]">
                           {filteredUsers.length === 0 ? (
                             <tr>
-                              <td colSpan={6} className="px-5 py-12 text-center text-sm text-muted-foreground">
+                              <td colSpan={4} className="px-5 py-12 text-center text-sm text-muted-foreground">
                                 {searchTerm ? "No users match your search." : "No users yet."}
                               </td>
                             </tr>
@@ -942,71 +940,13 @@ export default function Admin() {
                                   </div>
                                 </td>
                                 <td className="px-5 py-4">
-                                  <div className="flex flex-wrap gap-1.5" data-testid={`text-user-podcasts-${user.id}`}>
+                                  <span className="text-sm text-foreground" data-testid={`text-user-podcasts-${user.id}`}>
                                     {user.podcasts.length === 0 ? (
-                                      <span className="text-xs text-muted-foreground italic">None</span>
+                                      <span className="text-muted-foreground italic">None</span>
                                     ) : (
-                                      user.podcasts.map((p, i) => (
-                                        <span
-                                          key={i}
-                                          className="inline-flex items-center gap-1 bg-secondary text-foreground px-2 py-0.5 rounded-full text-xs font-medium max-w-[180px] truncate"
-                                        >
-                                          <Podcast className="w-3 h-3 text-primary shrink-0" />
-                                          {parsePodcastName(p)}
-                                        </span>
-                                      ))
+                                      `${user.podcasts.length} ${user.podcasts.length === 1 ? "podcast" : "podcasts"}`
                                     )}
-                                  </div>
-                                </td>
-                                <td className="px-5 py-4">
-                                  <div className="text-xs text-muted-foreground space-y-0.5">
-                                    <p>{user.deliveryTime} · {user.deliveryTimezone?.replace("America/", "").replace("_", " ") || "ET"}</p>
-                                  </div>
-                                </td>
-                                <td className="px-5 py-4" onClick={(e) => e.stopPropagation()}>
-                                  <div className="flex items-center gap-2">
-                                    <button
-                                      data-testid={`button-impersonate-${user.id}`}
-                                      onClick={() => impersonateMutation.mutate(user.id)}
-                                      disabled={impersonateMutation.isPending}
-                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-primary border border-primary/20 hover:bg-primary/5 transition-colors disabled:opacity-50"
-                                    >
-                                      <UserCheck className="w-3.5 h-3.5" />
-                                      Impersonate
-                                    </button>
-                                    {confirmDeleteId === user.id ? (
-                                      <div className="flex items-center gap-1.5">
-                                        <button
-                                          data-testid={`button-confirm-delete-${user.id}`}
-                                          onClick={() => deleteUserMutation.mutate(user.id)}
-                                          disabled={deleteUserMutation.isPending}
-                                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-50"
-                                        >
-                                          {deleteUserMutation.isPending ? (
-                                            <Loader2 className="w-3 h-3 animate-spin" />
-                                          ) : (
-                                            "Confirm"
-                                          )}
-                                        </button>
-                                        <button
-                                          data-testid={`button-cancel-delete-${user.id}`}
-                                          onClick={() => setConfirmDeleteId(null)}
-                                          className="px-3 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground border border-black/10 hover:bg-black/[0.03] transition-colors"
-                                        >
-                                          Cancel
-                                        </button>
-                                      </div>
-                                    ) : (
-                                      <button
-                                        data-testid={`button-delete-${user.id}`}
-                                        onClick={() => setConfirmDeleteId(user.id)}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-red-500 border border-red-200 hover:bg-red-50 transition-colors"
-                                      >
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                        Delete
-                                      </button>
-                                    )}
-                                  </div>
+                                  </span>
                                 </td>
                               </tr>
                             ))
