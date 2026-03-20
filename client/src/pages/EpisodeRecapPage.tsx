@@ -574,7 +574,6 @@ export default function EpisodeRecapPage() {
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [showSignUpCTA, setShowSignUpCTA] = useState(false);
   const [stickyDismissed, setStickyDismissed] = useState(false);
-  const [loggedOutTab, setLoggedOutTab] = useState<"takeaways" | "recap" | "guest">("takeaways");
   const ctaSectionRef = useRef<HTMLDivElement>(null);
 
   const { data: bookmarksData } = useQuery<{ id: number; episodeSlug: string; podcastSlug: string }[]>({
@@ -738,13 +737,6 @@ export default function EpisodeRecapPage() {
     window.scrollTo(0, 0);
   }, [podcastSlug, episodeSlug]);
 
-  useEffect(() => {
-    if (episode?.keyInsights?.length > 0) {
-      setLoggedOutTab("takeaways");
-    } else {
-      setLoggedOutTab("recap");
-    }
-  }, [episode?.keyInsights]);
 
   useEffect(() => {
     if (!episode) {
@@ -1666,40 +1658,13 @@ export default function EpisodeRecapPage() {
               )}
             </div>
 
-            <div className="flex gap-0 border-t border-[#E4E4E7] dark:border-white/[0.06] mt-1" data-testid="episode-tabs">
-              {episode.keyInsights?.length > 0 && (
-                <button
-                  onClick={() => setLoggedOutTab("takeaways")}
-                  className={`text-[13px] font-medium py-3 px-4 border-b-2 transition-colors ${loggedOutTab === "takeaways" ? "text-[#6366F1] border-[#6366F1]" : "text-[#71717A] border-transparent hover:text-[#09090B]"}`}
-                  data-testid="tab-takeaways"
-                >
-                  Takeaways
-                </button>
-              )}
-              <button
-                onClick={() => setLoggedOutTab("recap")}
-                className={`text-[13px] font-medium py-3 px-4 border-b-2 transition-colors ${loggedOutTab === "recap" ? "text-[#6366F1] border-[#6366F1]" : "text-[#71717A] border-transparent hover:text-[#09090B]"}`}
-                data-testid="tab-recap"
-              >
-                Recap
-              </button>
-              {guests.length > 0 && (
-                <button
-                  onClick={() => setLoggedOutTab("guest")}
-                  className={`text-[13px] font-medium py-3 px-4 border-b-2 transition-colors ${loggedOutTab === "guest" ? "text-[#6366F1] border-[#6366F1]" : "text-[#71717A] border-transparent hover:text-[#09090B]"}`}
-                  data-testid="tab-guest"
-                >
-                  Guest
-                </button>
-              )}
-            </div>
           </div>
         </div>
 
         <main className="flex-1">
           <div className="max-w-7xl mx-auto px-4 sm:px-7 py-8 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_300px] gap-8 items-start">
             <div>
-              {loggedOutTab === "takeaways" && episode.keyInsights?.length > 0 && (
+              {episode.keyInsights?.length > 0 && (
                 <div className="bg-white dark:bg-zinc-900 border border-[#E4E4E7] dark:border-white/[0.1] rounded-xl p-6 mb-5" data-testid="section-key-insights">
                   <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[#6366F1] mb-4 flex items-center gap-1.5">
                     <Lightbulb className="w-[14px] h-[14px]" />
@@ -1735,64 +1700,17 @@ export default function EpisodeRecapPage() {
                 </div>
               )}
 
-              {loggedOutTab === "recap" && (
-                <div className="bg-white dark:bg-zinc-900 border border-[#E4E4E7] dark:border-white/[0.1] rounded-xl p-6 mb-5" data-testid="section-what-happened">
-                  <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[#6366F1] mb-4 flex items-center gap-1.5">
-                    <BookOpen className="w-[14px] h-[14px]" />
-                    Episode recap
+              <div className="bg-white dark:bg-zinc-900 border border-[#E4E4E7] dark:border-white/[0.1] rounded-xl p-6 mb-5" data-testid="section-what-happened">
+                <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[#6366F1] mb-4 flex items-center gap-1.5">
+                  <BookOpen className="w-[14px] h-[14px]" />
+                  Episode recap
+                </p>
+                {whatHappenedParagraphs.map((paragraph: string, i: number) => (
+                  <p key={i} className="text-[15px] leading-[1.8] text-[#52525B] dark:text-[#A1A1AA] mb-4 last:mb-0">
+                    {paragraph}
                   </p>
-                  {whatHappenedParagraphs.map((paragraph: string, i: number) => (
-                    <p key={i} className="text-[15px] leading-[1.8] text-[#52525B] dark:text-[#A1A1AA] mb-4 last:mb-0">
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
-              )}
-
-              {loggedOutTab === "guest" && guests.length > 0 && (
-                <div data-testid="section-guests">
-                  {guests.map((guest, i) => (
-                    <div key={i} className="bg-white dark:bg-zinc-900 border border-[#E4E4E7] dark:border-white/[0.1] rounded-xl p-5 mb-5" data-testid={`guest-card-${i}`}>
-                      <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[#6366F1] mb-3 flex items-center gap-1.5">
-                        <Users className="w-[14px] h-[14px]" />
-                        Guest
-                      </p>
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-11 h-11 rounded-full bg-[#EEF2FF] flex items-center justify-center text-[14px] font-medium text-[#6366F1] shrink-0">
-                          {guest.name.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="text-[15px] font-medium text-[#09090B] dark:text-white mb-[2px]" data-testid={`guest-name-${i}`}>{guest.name}</p>
-                          {guest.title && <p className="text-[12px] text-[#A1A1AA]">{guest.title}</p>}
-                        </div>
-                      </div>
-                      {guest.bio && (
-                        <p className="text-[13px] text-[#52525B] dark:text-[#A1A1AA] leading-[1.65]">{guest.bio}</p>
-                      )}
-                      {(guest.twitter || guest.linkedin || guest.website) && (
-                        <div className="flex gap-2 mt-[10px]">
-                          {guest.website && (
-                            <a href={guest.website.startsWith("http") ? guest.website : `https://${guest.website}`} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#6366F1] hover:underline flex items-center gap-1" data-testid={`guest-website-${i}`}>
-                              <Globe className="w-3 h-3" />
-                              {guest.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
-                            </a>
-                          )}
-                          {guest.twitter && (
-                            <a href={guest.twitter.startsWith("http") ? guest.twitter : `https://x.com/${guest.twitter.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#6366F1] hover:underline flex items-center gap-1" data-testid={`guest-twitter-${i}`}>
-                              <SiX className="w-3 h-3" />
-                            </a>
-                          )}
-                          {guest.linkedin && (
-                            <a href={guest.linkedin.startsWith("http") ? guest.linkedin : `https://linkedin.com/in/${guest.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#6366F1] hover:underline flex items-center gap-1" data-testid={`guest-linkedin-${i}`}>
-                              <SiLinkedin className="w-3 h-3" />
-                            </a>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+                ))}
+              </div>
 
               {previousEpisodes.length > 0 && (
                 <div className="mt-5" data-testid="section-more-episodes">
