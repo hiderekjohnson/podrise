@@ -1,19 +1,45 @@
 import { pool } from "./db";
 import { openai } from "./replit_integrations/image/client";
 import { logCompletionUsage, logElevenLabsUsage, estimateElevenLabsCost } from "./apiUsageTracker";
-import { writeFileSync, mkdirSync, existsSync } from "fs";
-import path from "path";
+import { objectStorageClient } from "./replit_integrations/object_storage";
 
 const ELEVENLABS_API_URL = "https://api.elevenlabs.io/v1";
 const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM";
 const DEFAULT_MODEL_ID = "eleven_multilingual_v2";
 
-const AUDIO_DIR = path.join(process.cwd(), "data", "audio-recaps");
-
-function ensureAudioDir() {
-  if (!existsSync(AUDIO_DIR)) {
-    mkdirSync(AUDIO_DIR, { recursive: true });
+function getAudioBucketName(): string {
+  const bucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
+  if (!bucketId) {
+    throw new Error("DEFAULT_OBJECT_STORAGE_BUCKET_ID not configured");
   }
+  return bucketId;
+}
+
+function getAudioObjectPath(podcastSlug: string, episodeSlug: string): string {
+  return `audio-recaps/${podcastSlug}_${episodeSlug}.mp3`;
+}
+
+export async function uploadAudioToStorage(audioBuffer: Buffer, podcastSlug: string, episodeSlug: string): Promise<void> {
+  const bucketName = getAudioBucketName();
+  const objectPath = getAudioObjectPath(podcastSlug, episodeSlug);
+  const bucket = objectStorageClient.bucket(bucketName);
+  const file = bucket.file(objectPath);
+  await file.save(audioBuffer, {
+    contentType: "audio/mpeg",
+    resumable: false,
+  });
+}
+
+export async function streamAudioFromStorage(podcastSlug: string, episodeSlug: string): Promise<NodeJS.ReadableStream | null> {
+  const bucketName = getAudioBucketName();
+  const objectPath = getAudioObjectPath(podcastSlug, episodeSlug);
+  const bucket = objectStorageClient.bucket(bucketName);
+  const file = bucket.file(objectPath);
+  const [exists] = await file.exists();
+  if (!exists) {
+    return null;
+  }
+  return file.createReadStream();
 }
 
 interface RecapData {
@@ -185,10 +211,8 @@ export async function generateAudioForEpisode(
     console.log(`[AudioRecap] Step 2: Generating ElevenLabs audio (${script.length} chars)...`);
     const { audioBuffer, requestId, characterCount } = await generateElevenLabsAudio(script);
 
-    ensureAudioDir();
-    const fileName = `${podcastSlug}_${episodeSlug}.mp3`;
-    const filePath = path.join(AUDIO_DIR, fileName);
-    writeFileSync(filePath, audioBuffer);
+    console.log(`[AudioRecap] Step 3: Uploading audio to persistent storage...`);
+    await uploadAudioToStorage(audioBuffer, podcastSlug, episodeSlug);
 
     const audioUrl = `/api/audio-recap-file/${podcastSlug}/${episodeSlug}`;
     const elevenlabsCost = estimateElevenLabsCost(characterCount);

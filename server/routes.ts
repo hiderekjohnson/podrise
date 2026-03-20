@@ -16899,14 +16899,20 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       }
       const sanitizedPodcast = podcastSlug.replace(/[^a-z0-9_-]/gi, "");
       const sanitizedEpisode = episodeSlug.replace(/[^a-z0-9_-]/gi, "");
-      const filePath = path.join(process.cwd(), "data", "audio-recaps", `${sanitizedPodcast}_${sanitizedEpisode}.mp3`);
-      const fs = await import("fs");
-      if (!fs.existsSync(filePath)) {
+      const { streamAudioFromStorage } = await import("./audioRecapGenerator");
+      const stream = await streamAudioFromStorage(sanitizedPodcast, sanitizedEpisode);
+      if (!stream) {
         return res.status(404).json({ error: "Audio file not found" });
       }
       res.setHeader("Content-Type", "audio/mpeg");
       res.setHeader("Cache-Control", "private, max-age=3600");
-      fs.createReadStream(filePath).pipe(res);
+      stream.on("error", (streamErr: any) => {
+        console.error("[AudioRecap] Stream error:", streamErr);
+        if (!res.headersSent) {
+          res.status(500).json({ error: "Error streaming audio file" });
+        }
+      });
+      stream.pipe(res);
     } catch (err) {
       console.error("[AudioRecap] File serve error:", err);
       res.status(500).json({ error: "Failed to serve audio file" });

@@ -48,6 +48,8 @@ PodRise is a full-stack web application designed to provide personalized daily p
 - **Task agents work on isolated environments**: Their database changes are lost after merge. Any data fix from a task agent must be accompanied by startup migration code, not just SQL scripts.
 - **Always verify against production**: Use `POST /api/admin/sql` with `{"query": "SELECT ..."}` to verify data on the live production database. Never assume dev DB state matches production.
 
+**Audio Recaps**: ElevenLabs TTS-powered audio narrations of episode recaps. Currently scoped to `my-first-million` podcast only. Audio files are stored in Replit Object Storage (persistent across deploys) via `server/audioRecapGenerator.ts`. The generator uses `ObjectStorageService` to upload MP3s to the `audio-recaps/` prefix in the default bucket, and the serving route streams directly from storage. Database tables: `recap_audio`, `audio_playback_events`. Requires `ELEVENLABS_API_KEY` secret.
+
 ## External Dependencies
 - **Stripe**: Payment processing and subscription management.
 - **OpenAI**: AI models for content generation and chat.
