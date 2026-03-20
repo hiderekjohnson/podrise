@@ -571,6 +571,75 @@ async function autoPopulateDirectory(podcasts: string[]) {
   }
 }
 
+async function recalculateBookMentions(dbPool: any): Promise<{ created: number; books_matched: number }> {
+  const client = await dbPool.connect();
+  try {
+    await client.query('BEGIN');
+
+    await client.query(`DELETE FROM entity_episode_mentions WHERE entity_type = 'book'`);
+
+    const { rows: recaps } = await client.query(
+      `SELECT lpr.id, lpr.slug as podcast_slug, lpr.episode_slug, lpr.resources
+       FROM landing_page_recaps lpr
+       WHERE lpr.resources IS NOT NULL AND lpr.resources::text != '[]'`
+    );
+
+    const { rows: bookEnrichments } = await client.query(
+      `SELECT slug, book_key FROM book_enrichments`
+    );
+
+    const bookKeyToSlug = new Map<string, string>();
+    for (const b of bookEnrichments) {
+      if (b.book_key && b.slug) bookKeyToSlug.set(b.book_key, b.slug);
+    }
+
+    let created = 0;
+    let errors = 0;
+    const matchedBooks = new Set<string>();
+
+    for (const recap of recaps) {
+      let resources: any[];
+      try {
+        const parsed = typeof recap.resources === 'string' ? JSON.parse(recap.resources) : recap.resources;
+        if (!Array.isArray(parsed)) continue;
+        resources = parsed;
+      } catch { continue; }
+
+      for (const r of resources) {
+        if (!r || r.type !== 'book' || !r.name || r.name === '_books_checked') continue;
+
+        const nameKey = r.name.toLowerCase().trim();
+        const bookSlug = bookKeyToSlug.get(nameKey);
+        if (!bookSlug) continue;
+
+        matchedBooks.add(bookSlug);
+        const context = r.context || '';
+
+        try {
+          const { rowCount } = await client.query(
+            `INSERT INTO entity_episode_mentions (entity_type, entity_slug, recap_id, episode_slug, podcast_slug, context)
+             VALUES ('book', $1, $2, $3, $4, $5) ON CONFLICT (entity_type, entity_slug, recap_id) DO NOTHING`,
+            [bookSlug, recap.id, recap.episode_slug, recap.podcast_slug, context]
+          );
+          if (rowCount && rowCount > 0) created++;
+        } catch (e: any) {
+          errors++;
+          if (errors <= 5) console.warn(`[RecalculateBookCounts] Insert error for ${bookSlug}:`, e.message);
+        }
+      }
+    }
+
+    await client.query('COMMIT');
+    console.log(`[RecalculateBookCounts] Created ${created} mention records for ${matchedBooks.size} books${errors > 0 ? `, ${errors} errors` : ''}`);
+    return { created, books_matched: matchedBooks.size };
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -982,6 +1051,13 @@ export async function registerRoutes(
         } catch {}
       }
       if (inserted > 0) console.log(`[startup] Backfilled ${inserted} entity episode mentions from cache`);
+    }
+
+    try {
+      const result = await recalculateBookMentions(seedPool);
+      if (result.created > 0) console.log(`[startup] Backfilled ${result.created} book episode mentions for ${result.books_matched} books`);
+    } catch (e: any) {
+      console.error("[startup] Book mentions seed error:", e.message);
     }
   } catch (e: any) {
     console.error("[startup] Entity seed error:", e.message);
@@ -15362,6 +15438,17 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
         res.write(`data: ${JSON.stringify({ type: "error", message: err?.message || "Fatal error" })}\n\n`);
         res.end();
       }
+    }
+  });
+
+  app.post("/api/admin/shop/recalculate-book-counts", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const result = await recalculateBookMentions(pool);
+      res.json(result);
+    } catch (err: any) {
+      console.error("[RecalculateBookCounts] Error:", err);
+      res.status(500).json({ message: err?.message || "Failed to recalculate book counts" });
     }
   });
 

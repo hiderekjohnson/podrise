@@ -1152,6 +1152,18 @@ function ApprovedBooks({ onViewBook }: { onViewBook: (id: number) => void }) {
     }
   };
 
+  const recalculateCountsMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/shop/recalculate-book-counts"),
+    onSuccess: async (res: Response) => {
+      const result: { created: number; books_matched: number } = await res.json();
+      toast({ title: "Counts Recalculated", description: `Created ${result.created} mention records for ${result.books_matched} books.` });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/approved"] });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to recalculate counts.", variant: "destructive" });
+    },
+  });
+
   const requeueNoCoverMutation = useMutation({
     mutationFn: () => apiRequest("POST", "/api/admin/shop/requeue-no-cover"),
     onSuccess: async (res: Response) => {
@@ -1248,6 +1260,19 @@ function ApprovedBooks({ onViewBook }: { onViewBook: (id: number) => void }) {
               <Trash2 className="w-3.5 h-3.5" />
             )}
             {bulkDeleteState.phase === "counting" ? "Checking..." : "Delete Books With No Mentions"}
+          </button>
+          <button
+            onClick={() => recalculateCountsMutation.mutate()}
+            disabled={recalculateCountsMutation.isPending}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 transition-all disabled:opacity-50"
+            data-testid="button-recalculate-book-counts"
+          >
+            {recalculateCountsMutation.isPending ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <RefreshCw className="w-3.5 h-3.5" />
+            )}
+            {recalculateCountsMutation.isPending ? "Recalculating..." : "Recalculate Counts"}
           </button>
         </div>
       </div>
