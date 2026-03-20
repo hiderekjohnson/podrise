@@ -199,12 +199,12 @@ export function FeedEpisodeCard({
           {duration && !hosts && (
             <div className="text-[12px] text-[#A1A1AA] mt-1.5">{duration}</div>
           )}
-          {headerAction && (
-            <div className="mt-3">
-              {headerAction}
-            </div>
-          )}
         </div>
+        {headerAction && (
+          <div className="flex-shrink-0 flex items-center">
+            {headerAction}
+          </div>
+        )}
       </div>
 
       <EpisodeContentSection
