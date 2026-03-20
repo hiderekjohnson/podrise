@@ -290,8 +290,10 @@ export default function YouTubeReviewPage() {
               />
             )}
             <div className="min-w-0 flex-1">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-400" data-testid="label-podcast">Podcast</span>
               <p className="text-sm font-bold text-red-500 uppercase tracking-wide" data-testid="text-podcast-name">{episode.podcastName}</p>
-              <h2 className="text-xl font-bold leading-tight mt-1" data-testid="text-episode-title">{episode.episodeTitle}</h2>
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mt-2 inline-block" data-testid="label-episode">Episode</span>
+              <h2 className="text-xl font-bold leading-tight" data-testid="text-episode-title">{episode.episodeTitle}</h2>
               <div className="flex flex-wrap gap-x-5 gap-y-1 mt-2 text-base text-gray-500">
                 {episode.publishDate && <span data-testid="text-publish-date">{episode.publishDate}</span>}
                 {episode.duration && <span data-testid="text-duration">{episode.duration}</span>}
