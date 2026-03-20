@@ -307,22 +307,7 @@ function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName,
         />
       );
     }
-    if (isLoggedIn) {
-      return null;
-    }
-    return (
-      <button
-        onClick={() => {
-          setShowAuthGate(true);
-        }}
-        className="fixed bottom-[calc(60px+env(safe-area-inset-bottom,0px))] right-4 sm:bottom-6 sm:right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-105 transition-all md:bottom-4"
-        data-testid="open-ai-chat-fab"
-      >
-        <Sparkles className="w-4 h-4" />
-        <span className="hidden sm:inline text-[16px] font-semibold">Ask AI about this episode</span>
-        <span className="sm:hidden text-[16px] font-semibold">Ask AI</span>
-      </button>
-    );
+    return null;
   }
 
   return (
@@ -1737,6 +1722,22 @@ export default function EpisodeRecapPage() {
             </div>
 
             <aside className="flex flex-col gap-4" data-testid="episode-sidebar">
+              {!isLoggedIn && (
+                <div className="bg-white dark:bg-zinc-900 border border-[#E4E4E7] dark:border-white/[0.1] rounded-xl p-[18px]" data-testid="sidebar-ask-ai-cta">
+                  <p className="text-[13px] font-medium text-[#09090B] dark:text-white flex items-center gap-1.5 mb-[6px]">
+                    <Sparkles className="w-[14px] h-[14px] text-[#6366F1]" />
+                    Ask AI about this episode
+                  </p>
+                  <p className="text-[12px] text-[#71717A] mb-[14px] leading-[1.5]">Get answers to anything about this episode. Available when you create a free account.</p>
+                  <Link
+                    href="/register"
+                    className="block w-full bg-[#6366F1] text-white text-[13px] font-medium py-[9px] rounded-lg text-center hover:bg-[#4F46E5] transition-colors"
+                    data-testid="sidebar-ask-ai-signup"
+                  >
+                    Sign up to ask AI →
+                  </Link>
+                </div>
+              )}
               {guests.length > 0 && (
                 <div className="bg-white dark:bg-zinc-900 border border-[#E4E4E7] dark:border-white/[0.1] rounded-xl overflow-hidden" data-testid="sidebar-guests">
                   <div className="px-4 py-[14px] border-b border-[#F0F0F2] dark:border-white/[0.06]">
