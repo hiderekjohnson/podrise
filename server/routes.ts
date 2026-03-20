@@ -14740,6 +14740,10 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
                 CASE WHEN cover_approved IS NULL THEN 'pending' WHEN cover_approved = true THEN 'approved' ELSE 'rejected' END as status,
                 'pending' as image_status, created_at
          FROM book_enrichments WHERE cover_approved IS NULL
+           AND (NULLIF(UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')), '') IS NULL
+                OR UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')) NOT IN (
+                  SELECT UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')) FROM book_enrichments
+                  WHERE cover_approved = true AND NULLIF(UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')), '') IS NOT NULL))
          ORDER BY ${bookOrderBy}
          LIMIT $1 OFFSET $2`,
         [limit, offset]
@@ -14747,7 +14751,11 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
 
       const { rows: statsRows } = await pool.query(
         `SELECT
-          (SELECT COUNT(*)::int FROM book_enrichments WHERE cover_approved IS NULL) as books_pending,
+          (SELECT COUNT(*)::int FROM book_enrichments WHERE cover_approved IS NULL
+            AND (NULLIF(UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')), '') IS NULL
+                 OR UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')) NOT IN (
+                   SELECT UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')) FROM book_enrichments
+                   WHERE cover_approved = true AND NULLIF(UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')), '') IS NOT NULL))) as books_pending,
           (SELECT COUNT(*)::int FROM book_enrichments WHERE cover_approved = true) as books_approved,
           (SELECT COUNT(*)::int FROM book_enrichments WHERE cover_approved = false) as books_rejected`
       );
@@ -14762,6 +14770,104 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
     } catch (err: any) {
       console.error("[ShopQueue] Error:", err);
       res.status(500).json({ message: err?.message || "Failed to load queue" });
+    }
+  });
+
+  app.post("/api/admin/shop/remove-queue-duplicates", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { rows: dupsWithApproved } = await pool.query<{ id: number }>(
+        `SELECT p.id FROM book_enrichments p
+         INNER JOIN book_enrichments a ON UPPER(REGEXP_REPLACE(p.isbn, '[^0-9X]', '', 'gi')) = UPPER(REGEXP_REPLACE(a.isbn, '[^0-9X]', '', 'gi'))
+           AND a.cover_approved = true AND NULLIF(UPPER(REGEXP_REPLACE(a.isbn, '[^0-9X]', '', 'gi')), '') IS NOT NULL
+         WHERE p.cover_approved IS NULL AND NULLIF(UPPER(REGEXP_REPLACE(p.isbn, '[^0-9X]', '', 'gi')), '') IS NOT NULL`
+      );
+
+      const { rows: dupsWithinQueue } = await pool.query<{ id: number }>(
+        `SELECT id FROM book_enrichments
+         WHERE cover_approved IS NULL AND NULLIF(UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')), '') IS NOT NULL
+           AND id NOT IN (
+             SELECT MIN(id) FROM book_enrichments
+             WHERE cover_approved IS NULL AND NULLIF(UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')), '') IS NOT NULL
+             GROUP BY UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi'))
+           )`
+      );
+
+      const allDupIds = [...new Set([
+        ...dupsWithApproved.map((r) => r.id),
+        ...dupsWithinQueue.map((r) => r.id),
+      ])];
+
+      if (allDupIds.length > 0) {
+        await pool.query(
+          `UPDATE book_enrichments SET cover_approved = false, rejection_reason = 'duplicate', updated_at = NOW() WHERE id = ANY($1::int[])`,
+          [allDupIds]
+        );
+        shopCache.invalidate();
+      }
+
+      res.json({ removed: allDupIds.length });
+    } catch (err: any) {
+      console.error("[RemoveQueueDuplicates] Error:", err);
+      res.status(500).json({ message: err?.message || "Failed to remove duplicates" });
+    }
+  });
+
+  app.post("/api/admin/shop/remove-approved-duplicates", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      interface ApprovedBookRow {
+        id: number;
+        isbn: string;
+        has_cover: boolean;
+        description: string | null;
+        rating_count: number | null;
+        podcast_buzz: string | null;
+      }
+
+      const { rows } = await pool.query<ApprovedBookRow>(
+        `SELECT id, isbn, has_cover, description, rating_count, podcast_buzz
+         FROM book_enrichments
+         WHERE cover_approved = true AND NULLIF(UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')), '') IS NOT NULL`
+      );
+
+      const groups: Record<string, ApprovedBookRow[]> = {};
+      for (const row of rows) {
+        const normalizedIsbn = (row.isbn || "").replace(/[^0-9X]/gi, "").toUpperCase();
+        if (!normalizedIsbn) continue;
+        if (!groups[normalizedIsbn]) groups[normalizedIsbn] = [];
+        groups[normalizedIsbn].push(row);
+      }
+
+      const rejectIds: number[] = [];
+      for (const isbn of Object.keys(groups)) {
+        const group = groups[isbn];
+        if (group.length <= 1) continue;
+
+        group.sort((a, b) => {
+          const scoreA = (a.has_cover ? 10 : 0) + (a.description ? 5 : 0) + (a.podcast_buzz ? 3 : 0) + (a.rating_count || 0);
+          const scoreB = (b.has_cover ? 10 : 0) + (b.description ? 5 : 0) + (b.podcast_buzz ? 3 : 0) + (b.rating_count || 0);
+          if (scoreB !== scoreA) return scoreB - scoreA;
+          return b.id - a.id;
+        });
+
+        for (let i = 1; i < group.length; i++) {
+          rejectIds.push(group[i].id);
+        }
+      }
+
+      if (rejectIds.length > 0) {
+        await pool.query(
+          `UPDATE book_enrichments SET cover_approved = false, rejection_reason = 'duplicate', updated_at = NOW() WHERE id = ANY($1::int[])`,
+          [rejectIds]
+        );
+        shopCache.invalidate();
+      }
+
+      res.json({ removed: rejectIds.length });
+    } catch (err: any) {
+      console.error("[RemoveApprovedDuplicates] Error:", err);
+      res.status(500).json({ message: err?.message || "Failed to remove duplicates" });
     }
   });
 

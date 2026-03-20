@@ -244,6 +244,21 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
     },
   });
 
+  const removeQueueDupsMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/shop/remove-queue-duplicates"),
+    onSuccess: async (res: Response) => {
+      const result: { removed: number } = await res.json();
+      const count = result.removed || 0;
+      toast({ title: "Duplicates Removed", description: `Removed ${count} duplicate${count !== 1 ? 's' : ''} from the queue.` });
+      setCurrentIndex(0);
+      resetImageState();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/queue"] });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to remove duplicates.", variant: "destructive" });
+    },
+  });
+
   const uploadImageMutation = useMutation({
     mutationFn: async ({ item, file }: { item: ShopItem; file: File }) => {
       const formData = new FormData();
@@ -322,7 +337,20 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
         )}
       </div>
 
-      <div className="flex items-center justify-end" data-testid="queue-sort-controls">
+      <div className="flex items-center justify-between" data-testid="queue-sort-controls">
+        <button
+          onClick={() => removeQueueDupsMutation.mutate()}
+          disabled={removeQueueDupsMutation.isPending}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-all disabled:opacity-50"
+          data-testid="button-remove-queue-duplicates"
+        >
+          {removeQueueDupsMutation.isPending ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <Trash2 className="w-3.5 h-3.5" />
+          )}
+          {removeQueueDupsMutation.isPending ? "Removing..." : "Remove Duplicates"}
+        </button>
         <div className="relative">
           <select
             value={queueSort}
@@ -1000,6 +1028,7 @@ function BookDetailPage({ bookId, onBack }: { bookId: number; onBack: () => void
 }
 
 function ApprovedBooks({ onViewBook }: { onViewBook: (id: number) => void }) {
+  const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sortBy, setSortBy] = useState("alphabetical");
@@ -1023,6 +1052,20 @@ function ApprovedBooks({ onViewBook }: { onViewBook: (id: number) => void }) {
     },
   });
 
+  const removeApprovedDupsMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/shop/remove-approved-duplicates"),
+    onSuccess: async (res: Response) => {
+      const result: { removed: number } = await res.json();
+      const count = result.removed || 0;
+      toast({ title: "Duplicates Removed", description: `Removed ${count} duplicate${count !== 1 ? 's' : ''} from approved books.` });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/approved"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/queue"] });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to remove duplicates.", variant: "destructive" });
+    },
+  });
+
   const items = data?.items || [];
 
   if (isLoading) {
@@ -1042,6 +1085,19 @@ function ApprovedBooks({ onViewBook }: { onViewBook: (id: number) => void }) {
             {data?.total || 0} books live on the shop.
           </p>
         </div>
+        <button
+          onClick={() => removeApprovedDupsMutation.mutate()}
+          disabled={removeApprovedDupsMutation.isPending}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-all disabled:opacity-50"
+          data-testid="button-remove-approved-duplicates"
+        >
+          {removeApprovedDupsMutation.isPending ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <Trash2 className="w-3.5 h-3.5" />
+          )}
+          {removeApprovedDupsMutation.isPending ? "Removing..." : "Remove Duplicates"}
+        </button>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
