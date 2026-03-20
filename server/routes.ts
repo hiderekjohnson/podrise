@@ -9,7 +9,7 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { PODCAST_ENRICHMENT_FIELDS, EPISODE_ENRICHMENT_FIELDS, computeEnrichmentFromRecord } from "@shared/enrichment";
 import { z } from "zod";
-import { insertBookBookmarkSchema } from "@shared/schema";
+import { insertBookBookmarkSchema, type LandingPageRecap } from "@shared/schema";
 import { getUncachableResendClient } from "./resendClient";
 import { markdownToEmailHtml, recapHasContent, type EpisodeMetaForEmail } from "./emailTemplate";
 import { generateRecap } from "./recapGenerator";
@@ -1072,7 +1072,11 @@ export async function registerRoutes(
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
   }
 
-  function buildRssXml(recaps: any[], feedTitle: string, feedDescription: string, feedLink: string): string {
+  interface RssGuest { name?: string; title?: string }
+  interface RssSponsor { name?: string; deal?: string; url?: string }
+  interface RssResource { name?: string; type?: string; url?: string }
+
+  function buildRssXml(recaps: LandingPageRecap[], feedTitle: string, feedDescription: string, feedLink: string): string {
     const DOMAIN = "https://podrise.com";
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
     xml += `<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom">\n`;
@@ -1093,6 +1097,32 @@ export async function registerRoutes(
       const episodeUrl = `${DOMAIN}/podcasts/${recap.slug}/${recap.episodeSlug}`;
       const pubDate = recap.publishDate ? new Date(recap.publishDate).toUTCString() : new Date(recap.createdAt).toUTCString();
 
+      const itemTitle = recap.tabloidHeadline
+        ? recap.tabloidHeadline
+        : `${recap.podcastName} - ${recap.episodeTitle}`;
+
+      const itemDescription = recap.tabloidSubHeadline || recap.tldl || "";
+
+      let guestNames: string[] = [];
+      try {
+        const parsed: RssGuest[] = recap.guests ? JSON.parse(recap.guests) : [];
+        guestNames = (Array.isArray(parsed) ? parsed : [])
+          .map((g) => (g.name || "").trim())
+          .filter(Boolean);
+      } catch (e) { console.warn(`[RSS] Failed to parse guests for ${recap.slug}/${recap.episodeSlug}:`, e); }
+
+      let sponsorsList: RssSponsor[] = [];
+      try {
+        const rawSponsors = recap.sponsors ? JSON.parse(recap.sponsors) : [];
+        sponsorsList = (Array.isArray(rawSponsors) ? rawSponsors : []).filter((s: RssSponsor) => s.name);
+      } catch (e) { console.warn(`[RSS] Failed to parse sponsors for ${recap.slug}/${recap.episodeSlug}:`, e); sponsorsList = []; }
+
+      let resourcesList: RssResource[] = [];
+      try {
+        const rawResources = typeof recap.resources === "string" ? JSON.parse(recap.resources) : (recap.resources || []);
+        resourcesList = (Array.isArray(rawResources) ? rawResources : []).filter((r: RssResource) => r.name);
+      } catch (e) { console.warn(`[RSS] Failed to parse resources for ${recap.slug}/${recap.episodeSlug}:`, e); resourcesList = []; }
+
       let insightsHtml = "";
       if (recap.keyInsights && recap.keyInsights.length > 0) {
         insightsHtml = `<h3>Key Insights</h3><ul>${recap.keyInsights.map((i: string) => `<li>${escapeXml(i)}</li>`).join("")}</ul>`;
@@ -1103,25 +1133,68 @@ export async function registerRoutes(
         quoteHtml = `<blockquote>"${escapeXml(recap.quote)}"${recap.quoteAttribution ? ` - ${escapeXml(recap.quoteAttribution)}` : ""}</blockquote>`;
       }
 
+      let guestsHtml = "";
+      if (guestNames.length > 0) {
+        guestsHtml = `<p><strong>Guests:</strong> ${escapeXml(guestNames.join(", "))}</p>`;
+      }
+
+      let linksHtml = `<p><a href="${escapeXml(episodeUrl)}">Read full recap on PodRise</a></p>`;
+      if (recap.appleEpisodeUrl) {
+        linksHtml += `<p><a href="${escapeXml(recap.appleEpisodeUrl)}">Listen on Apple Podcasts</a></p>`;
+      }
+      if (recap.spotifyEpisodeUrl) {
+        linksHtml += `<p><a href="${escapeXml(recap.spotifyEpisodeUrl)}">Listen on Spotify</a></p>`;
+      }
+      if (recap.youtubeUrl) {
+        linksHtml += `<p><a href="${escapeXml(recap.youtubeUrl)}">Watch on YouTube</a></p>`;
+      }
+
+      let sponsorsHtml = "";
+      if (sponsorsList.length > 0) {
+        sponsorsHtml = `<h3>Sponsors</h3><ul>${sponsorsList.map((s) => {
+          let li = escapeXml(s.name || "");
+          if (s.deal) li += ` — ${escapeXml(s.deal)}`;
+          if (s.url) li = `<a href="${escapeXml(s.url)}">${li}</a>`;
+          return `<li>${li}</li>`;
+        }).join("")}</ul>`;
+      }
+
+      let resourcesHtml = "";
+      if (resourcesList.length > 0) {
+        resourcesHtml = `<h3>Resources Mentioned</h3><ul>${resourcesList.map((r) => {
+          let li = escapeXml(r.name || "");
+          if (r.type) li += ` (${escapeXml(r.type)})`;
+          if (r.url) li = `<a href="${escapeXml(r.url)}">${li}</a>`;
+          return `<li>${li}</li>`;
+        }).join("")}</ul>`;
+      }
+
       const contentHtml = `<h2>${escapeXml(recap.episodeTitle)}</h2>` +
         `<p><strong>Podcast:</strong> ${escapeXml(recap.podcastName)}</p>` +
         (recap.hosts ? `<p><strong>Hosts:</strong> ${escapeXml(recap.hosts)}</p>` : "") +
+        guestsHtml +
         (recap.duration ? `<p><strong>Duration:</strong> ${escapeXml(recap.duration)}</p>` : "") +
         `<h3>TL;DL (Too Long; Didn't Listen)</h3><p>${escapeXml(recap.tldl)}</p>` +
         `<h3>What Happened</h3><p>${escapeXml(recap.whatHappened)}</p>` +
         insightsHtml +
         quoteHtml +
-        `<p><a href="${episodeUrl}">Read full recap on PodRise</a></p>` +
-        (recap.appleEpisodeUrl ? `<p><a href="${escapeXml(recap.appleEpisodeUrl)}">Listen on Apple Podcasts</a></p>` : "");
+        sponsorsHtml +
+        resourcesHtml +
+        linksHtml;
 
       xml += `  <item>\n`;
-      xml += `    <title>${escapeXml(recap.podcastName + " - " + recap.episodeTitle)}</title>\n`;
-      xml += `    <link>${episodeUrl}</link>\n`;
-      xml += `    <guid isPermaLink="true">${episodeUrl}</guid>\n`;
+      xml += `    <title>${escapeXml(itemTitle)}</title>\n`;
+      xml += `    <link>${escapeXml(episodeUrl)}</link>\n`;
+      xml += `    <guid isPermaLink="true">${escapeXml(episodeUrl)}</guid>\n`;
       xml += `    <pubDate>${pubDate}</pubDate>\n`;
       xml += `    <dc:creator>${escapeXml(recap.podcastName)}</dc:creator>\n`;
       xml += `    <category>${escapeXml(recap.podcastName)}</category>\n`;
-      xml += `    <description>${escapeXml(recap.tldl)}</description>\n`;
+      if (recap.keyTopics && Array.isArray(recap.keyTopics)) {
+        for (const topic of recap.keyTopics) {
+          if (topic) xml += `    <category>${escapeXml(topic)}</category>\n`;
+        }
+      }
+      xml += `    <description>${escapeXml(itemDescription)}</description>\n`;
       xml += `    <content:encoded><![CDATA[${contentHtml}]]></content:encoded>\n`;
       if (recap.artworkUrl) {
         xml += `    <enclosure url="${escapeXml(recap.artworkUrl)}" type="image/jpeg" length="0"/>\n`;
