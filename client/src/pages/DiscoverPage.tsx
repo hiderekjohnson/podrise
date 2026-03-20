@@ -56,35 +56,6 @@ function SelectCheckbox({
   );
 }
 
-function FollowAllButton({
-  unfollowedCount,
-  onClick,
-  testId,
-  isPending,
-}: {
-  unfollowedCount: number;
-  onClick: () => void;
-  testId: string;
-  isPending?: boolean;
-}) {
-  const allFollowed = unfollowedCount === 0;
-  const isDisabled = allFollowed || isPending;
-  return (
-    <button
-      onClick={onClick}
-      disabled={isDisabled}
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all active:scale-95 ${
-        isDisabled
-          ? "bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#A1A1AA] cursor-not-allowed"
-          : "bg-[#6366F1] text-white hover:bg-[#5558E6]"
-      }`}
-      data-testid={testId}
-    >
-      {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckSquare className="w-3.5 h-3.5" />}
-      {allFollowed ? "All Followed" : `Follow All (${unfollowedCount})`}
-    </button>
-  );
-}
 
 function AllPodcastsGrid({
   podcasts,
@@ -94,9 +65,7 @@ function AllPodcastsGrid({
   isLoggedIn,
   selectedSlugs,
   onToggleSelect,
-  onFollowAll,
   onSelectAllVisible,
-  bulkPending,
 }: {
   podcasts: DirectoryPodcast[];
   followedSlugs: Set<string>;
@@ -105,13 +74,10 @@ function AllPodcastsGrid({
   isLoggedIn: boolean;
   selectedSlugs: Set<string>;
   onToggleSelect: (slug: string) => void;
-  onFollowAll: (slugs: string[]) => void;
   onSelectAllVisible: (slugs: string[], deselect?: boolean) => void;
-  bulkPending?: boolean;
 }) {
   const [visibleCount, setVisibleCount] = useState(20);
   const visible = podcasts.slice(0, visibleCount);
-  const allUnfollowedSlugs = podcasts.filter((p) => !followedSlugs.has(p.slug)).map((p) => p.slug);
   const visibleSlugs = visible.map((p) => p.slug);
   const allVisibleSelected = visibleSlugs.length > 0 && visibleSlugs.every((s) => selectedSlugs.has(s));
 
@@ -129,12 +95,6 @@ function AllPodcastsGrid({
               <CheckSquare className="w-3.5 h-3.5" />
               {allVisibleSelected ? "Deselect All" : "Select All"}
             </button>
-            <FollowAllButton
-              unfollowedCount={allUnfollowedSlugs.length}
-              onClick={() => onFollowAll(allUnfollowedSlugs)}
-              testId="follow-all-podcasts"
-              isPending={bulkPending}
-            />
           </div>
         )}
       </div>
@@ -211,9 +171,7 @@ function TopicPodcastsGrid({
   isLoggedIn,
   selectedSlugs,
   onToggleSelect,
-  onFollowAll,
   onSelectAllVisible,
-  bulkPending,
 }: {
   topicSlug: string;
   followedSlugs: Set<string>;
@@ -222,9 +180,7 @@ function TopicPodcastsGrid({
   isLoggedIn: boolean;
   selectedSlugs: Set<string>;
   onToggleSelect: (slug: string) => void;
-  onFollowAll: (slugs: string[]) => void;
   onSelectAllVisible: (slugs: string[], deselect?: boolean) => void;
-  bulkPending?: boolean;
 }) {
   const { data: podcasts, isLoading, isError } = useQuery<DirectoryPodcast[]>({
     queryKey: ["/api/podcasts/directory/by-topic", topicSlug],
@@ -236,11 +192,6 @@ function TopicPodcastsGrid({
       category: p.category,
     })),
   });
-
-  const unfollowedSlugs = useMemo(() => {
-    if (!podcasts) return [];
-    return podcasts.filter((p) => !followedSlugs.has(p.slug)).map((p) => p.slug);
-  }, [podcasts, followedSlugs]);
 
   if (isLoading) {
     return (
@@ -281,12 +232,6 @@ function TopicPodcastsGrid({
               <CheckSquare className="w-3.5 h-3.5" />
               {allSelected ? "Deselect All" : "Select All"}
             </button>
-            <FollowAllButton
-              unfollowedCount={unfollowedSlugs.length}
-              onClick={() => onFollowAll(unfollowedSlugs)}
-              testId={`follow-all-topic-${topicSlug}`}
-              isPending={bulkPending}
-            />
           </div>
         );
       })()}
@@ -566,18 +511,6 @@ export default function DiscoverPage() {
       onComplete?.(succeededSlugs);
     });
   }, [user, bulkFollowPending, resolvedFollowedSlugs, toast]);
-
-  const handleFollowAll = (slugs: string[]) => {
-    bulkFollow(slugs, (succeededSlugs) => {
-      if (succeededSlugs.length > 0) {
-        setSelectedSlugs((prev) => {
-          const next = new Set(prev);
-          succeededSlugs.forEach((s) => next.delete(s));
-          return next;
-        });
-      }
-    });
-  };
 
   const handleFollowSelected = useCallback(() => {
     bulkFollow(Array.from(selectedSlugs), (succeededSlugs) => {
@@ -886,9 +819,7 @@ export default function DiscoverPage() {
                       isLoggedIn={!!user}
                       selectedSlugs={selectedSlugs}
                       onToggleSelect={toggleSelect}
-                      onFollowAll={handleFollowAll}
                       onSelectAllVisible={handleSelectAllVisible}
-                      bulkPending={bulkFollowPending}
                     />
                   </div>
                 )}
@@ -903,9 +834,7 @@ export default function DiscoverPage() {
                   isLoggedIn={!!user}
                   selectedSlugs={selectedSlugs}
                   onToggleSelect={toggleSelect}
-                  onFollowAll={handleFollowAll}
                   onSelectAllVisible={handleSelectAllVisible}
-                  bulkPending={bulkFollowPending}
                 />
               )}
             </>
