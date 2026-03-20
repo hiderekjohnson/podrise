@@ -230,6 +230,7 @@ export async function getMissingBuzzCount(): Promise<number> {
   const { rows } = await pool.query(
     `SELECT COUNT(*) as count FROM book_enrichments 
      WHERE slug IS NOT NULL 
+     AND cover_approved = true
      AND (podcast_buzz IS NULL OR podcast_buzz = '' OR podcast_buzz = 'No podcast buzz available yet — check back soon.')
      AND book_key NOT IN (SELECT book_key FROM book_blocklist)`
   );
@@ -245,6 +246,7 @@ export async function generateMissingBuzz(
   const { rows: missingRows } = await pool.query(
     `SELECT book_key, book_title FROM book_enrichments 
      WHERE slug IS NOT NULL 
+     AND cover_approved = true
      AND (podcast_buzz IS NULL OR podcast_buzz = '' OR podcast_buzz = 'No podcast buzz available yet — check back soon.')
      AND book_key NOT IN (SELECT book_key FROM book_blocklist)
      ORDER BY book_title`
