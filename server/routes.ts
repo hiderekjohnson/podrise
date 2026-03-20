@@ -988,6 +988,7 @@ export async function registerRoutes(
   }
 
   app.use((req, res, next) => {
+    if (req.path.startsWith("/api/webhooks/")) return next();
     const host = req.hostname || req.headers.host?.split(":")[0];
     if (host === "www.podrise.com") {
       return res.redirect(301, `https://podrise.com${req.originalUrl}`);
@@ -16096,6 +16097,12 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     }
   });
 
+  app.get("/api/webhooks/taddy", (_req, res) => {
+    res.status(200).json({ status: "ok", message: "Taddy webhook endpoint active. Use POST to deliver events." });
+  });
+  app.get("/api/webhooks/taddy/", (_req, res) => {
+    res.status(200).json({ status: "ok", message: "Taddy webhook endpoint active. Use POST to deliver events." });
+  });
   app.post("/api/webhooks/taddy/", (req, res, next) => next());
   app.post("/api/webhooks/taddy", async (req, res) => {
     try {
@@ -16110,7 +16117,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
 
       const payload = req.body;
       const { taddyType, action, data } = payload || {};
-      console.log(`[TaddyWebhook] Received: taddyType=${taddyType} action=${action} uuid=${data?.uuid?.slice(0, 12)}...`);
+      console.log(`[TaddyWebhook] Received: taddyType=${taddyType} action=${action} uuid=${data?.uuid?.slice(0, 12)}... host=${req.hostname}`);
 
       if (!taddyType || !action || !data) {
         return res.status(200).json({ success: true });
