@@ -2587,7 +2587,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       `SELECT spotify_refresh_token FROM users WHERE id = $1`,
       [userId]
     );
-    res.json({ connected: !!result.rows[0]?.spotify_refresh_token });
+    res.json({ connected: !!result.rows[0]?.spotify_refresh_token, configured: !!process.env.SPOTIFY_CLIENT_ID });
   });
 
   app.post("/api/spotify/disconnect", async (req, res) => {

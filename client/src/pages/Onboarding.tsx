@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Check, Search, Podcast, Sparkles, X, Plus } from "lucide-react";
+import { SiSpotify } from "react-icons/si";
 import { motion } from "framer-motion";
 import { PodRiseWordmark } from "@/components/PodRiseHeader";
 import { hiResArtwork } from "@/lib/utils";
@@ -59,6 +60,7 @@ function RecommendationCard({ podcast, onAdd }: { podcast: RelatedPodcast; onAdd
 export default function Onboarding() {
   const { data: user } = useAuth();
   const [, navigate] = useLocation();
+  const searchString = useSearch();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -67,6 +69,12 @@ export default function Onboarding() {
   const [selectedPodcasts, setSelectedPodcasts] = useState<Map<string, { name: string; artworkUrl: string }>>(new Map());
   const [relatedPodcasts, setRelatedPodcasts] = useState<RelatedPodcast[]>([]);
   const [loadingRelated, setLoadingRelated] = useState(false);
+  const [importingSpotify, setImportingSpotify] = useState(false);
+  const spotifyImportHandled = useRef(false);
+
+  const { data: spotifyStatus } = useQuery<{ configured: boolean; connected: boolean }>({
+    queryKey: ["/api/spotify/status"],
+  });
 
   useEffect(() => {
     document.title = "Set Up Your Feed | PodRise";
@@ -116,6 +124,74 @@ export default function Onboarding() {
     }
     setLoadingRelated(false);
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchString);
+    if (spotifyImportHandled.current) return;
+
+    if (params.get("spotify_error")) {
+      spotifyImportHandled.current = true;
+      const errorType = params.get("spotify_error");
+      toast({
+        title: "Spotify import failed",
+        description: errorType === "denied"
+          ? "You denied access to your Spotify account. You can still search for podcasts manually."
+          : "Something went wrong connecting to Spotify. Please try again.",
+        variant: "destructive",
+      });
+      window.history.replaceState({}, "", "/onboarding");
+      return;
+    }
+
+    if (params.get("spotify_connected") === "true") {
+      spotifyImportHandled.current = true;
+      window.history.replaceState({}, "", "/onboarding");
+      setImportingSpotify(true);
+
+      (async () => {
+        try {
+          const res = await fetch("/api/spotify/shows", { credentials: "include" });
+          if (!res.ok) throw new Error("Failed to fetch shows");
+          const data = await res.json();
+          const shows = data.shows || [];
+          if (shows.length === 0) {
+            toast({ title: "No podcasts found", description: "We didn't find any saved shows on your Spotify account." });
+            setImportingSpotify(false);
+            return;
+          }
+
+          let addedCount = 0;
+          setSelectedPodcasts(prev => {
+            const next = new Map(prev);
+            for (const show of shows) {
+              const slug = show.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+              if (!next.has(slug)) {
+                next.set(slug, { name: show.name, artworkUrl: show.artworkUrl || "" });
+                addedCount++;
+              }
+            }
+            const slugs = Array.from(next.keys());
+            fetchRelatedPodcasts(slugs);
+            return next;
+          });
+
+          toast({
+            title: "Podcasts imported!",
+            description: addedCount > 0
+              ? `Added ${addedCount} podcast${addedCount !== 1 ? "s" : ""} from your Spotify library.`
+              : "All your Spotify podcasts were already in your picks!",
+          });
+        } catch {
+          toast({
+            title: "Import failed",
+            description: "Could not import your Spotify podcasts. Please try again or search manually.",
+            variant: "destructive",
+          });
+        }
+        setImportingSpotify(false);
+      })();
+    }
+  }, [searchString, toast, fetchRelatedPodcasts]);
 
   const searchPodcasts = useCallback(async (term: string) => {
     if (term.trim().length < 2) {
@@ -244,6 +320,35 @@ export default function Onboarding() {
                 </button>
               )}
             </div>
+
+            {spotifyStatus?.configured && (
+              <div className="mb-4 flex-shrink-0">
+                <button
+                  onClick={() => { window.location.href = "/api/auth/spotify?return_to=/onboarding"; }}
+                  disabled={importingSpotify}
+                  className="flex items-center justify-center gap-2 w-full h-[44px] rounded-xl border border-[#ECECEE] dark:border-[#27272A] bg-[#1DB954]/10 hover:bg-[#1DB954]/20 text-[#1DB954] font-semibold text-[14px] transition-all disabled:opacity-50"
+                  data-testid="onboarding-spotify-import"
+                >
+                  {importingSpotify ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Importing from Spotify...
+                    </>
+                  ) : (
+                    <>
+                      <SiSpotify className="w-4.5 h-4.5" />
+                      Import from Spotify
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {importingSpotify && (
+              <div className="flex justify-center py-8">
+                <Loader2 className="w-5 h-5 animate-spin text-[#1DB954]" />
+              </div>
+            )}
 
             {isSearching && (
               <div className="flex justify-center py-8">
