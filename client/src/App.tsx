@@ -17,7 +17,6 @@ import { useMetaPixelEvents } from "@/hooks/use-meta-pixel-events";
 const Login = lazy(() => import("./pages/Login"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Admin = lazy(() => import("./pages/Admin"));
-const AdminSetup = lazy(() => import("./pages/AdminSetup"));
 const AdminUserProfile = lazy(() => import("./pages/AdminUserProfile"));
 const PodcastRouter = lazy(() => import("./pages/PodcastRouter"));
 const PodcastSubRouter = lazy(() => import("./pages/PodcastSubRouter"));
@@ -88,7 +87,6 @@ function Router() {
         <Route path="/help" component={HelpPage} />
         <Route path="/bookmarks" component={BookmarksPage} />
         <Route path="/my-podcasts" component={MyPodcastsPage} />
-        <Route path="/admin/setup" component={AdminSetup} />
         <Route path="/admin/users/:id" component={AdminUserProfile} />
         <Route path="/admin/*" component={Admin} />
         <Route path="/admin" component={Admin} />

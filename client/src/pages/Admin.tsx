@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, FileText, Inbox, Rss, Key, Database, Settings, ShoppingBag, MousePointerClick, DollarSign, Megaphone, Wrench, List, AlertTriangle, Gift, BookOpen, ToggleLeft, Plus, X, ArrowUpDown } from "lucide-react";
+import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, FileText, Inbox, Rss, Database, Settings, ShoppingBag, MousePointerClick, DollarSign, Megaphone, Wrench, List, AlertTriangle, Gift, BookOpen, ToggleLeft, Plus, X, ArrowUpDown } from "lucide-react";
 import { motion } from "framer-motion";
 const PendingEmails = lazy(() => import("./PendingEmails"));
 const RssFeedsManager = lazy(() => import("./RssFeedsManager"));
@@ -93,7 +93,6 @@ function useAdminPath() {
 export default function Admin() {
   const { path: adminPath, navigate: adminNavigate } = useAdminPath();
   const { toast } = useToast();
-  const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
   type TabType = "cms" | "users" | "advertisers" | "landing-pages" | "product-features" | "internal-tools" | "advanced" | "admin-users";
@@ -237,69 +236,29 @@ export default function Admin() {
   }, [adminNavigate]);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
-  const { data: adminAuth, isLoading: authLoading } = useQuery<{ isAdmin: boolean } | null>({
+  const { data: adminAuth, isLoading: authLoading, error: adminAuthError } = useQuery<{ isAdmin: boolean } | null>({
     queryKey: ["/api/admin/me"],
     retry: false,
     queryFn: async () => {
       const res = await fetch("/api/admin/me", { credentials: "include" });
       if (res.status === 401) return null;
+      if (res.status === 403) {
+        const data = await res.json();
+        throw new Error(data.message || "Access denied");
+      }
       if (!res.ok) throw new Error("Failed to check admin auth");
       return res.json();
     },
   });
 
   const isAdmin = adminAuth?.isAdmin === true;
-
-  const loginMutation = useMutation({
-    mutationFn: (pw: string) => apiRequest("POST", "/api/admin/login", { password: pw }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/me"] });
-      toast({ title: "Welcome", description: "Admin access granted." });
-    },
-    onError: () => {
-      toast({ title: "Access denied", description: "Invalid admin password.", variant: "destructive" });
-    },
-  });
+  const isAccessDenied = adminAuthError?.message?.includes("Access denied") || adminAuthError?.message?.includes("admin privileges");
 
   const logoutMutation = useMutation({
     mutationFn: () => apiRequest("POST", "/api/admin/logout"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/me"] });
       queryClient.removeQueries({ queryKey: ["/api/admin/users"] });
-    },
-  });
-
-  const [showChangePw, setShowChangePw] = useState(false);
-  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
-  const settingsMenuRef = useRef<HTMLDivElement>(null);
-  const [currentPw, setCurrentPw] = useState("");
-  const [newPw, setNewPw] = useState("");
-  const [confirmPw, setConfirmPw] = useState("");
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (settingsMenuRef.current && !settingsMenuRef.current.contains(event.target as Node)) {
-        setShowSettingsMenu(false);
-      }
-    }
-    if (showSettingsMenu) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
-    }
-  }, [showSettingsMenu]);
-
-  const changePwMutation = useMutation({
-    mutationFn: (data: { currentPassword: string; newPassword: string }) =>
-      apiRequest("POST", "/api/admin/change-password", data),
-    onSuccess: () => {
-      toast({ title: "Password updated", description: "Your admin password has been changed." });
-      setShowChangePw(false);
-      setCurrentPw("");
-      setNewPw("");
-      setConfirmPw("");
-    },
-    onError: (err: any) => {
-      toast({ title: "Failed", description: err.message || "Could not change password.", variant: "destructive" });
     },
   });
 
@@ -347,7 +306,7 @@ export default function Admin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/impersonation-status"] });
-      navigate("/dashboard");
+      adminNavigate("/dashboard");
     },
     onError: () => {
       toast({ title: "Error", description: "Failed to impersonate user.", variant: "destructive" });
@@ -365,11 +324,6 @@ export default function Admin() {
       toast({ title: "Error", description: "Failed to delete user.", variant: "destructive" });
     },
   });
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password.trim()) loginMutation.mutate(password);
-  };
 
   if (authLoading) {
     return (
@@ -399,36 +353,41 @@ export default function Admin() {
               <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
                 <Shield className="w-7 h-7 text-primary" />
               </div>
-              <div className="text-center">
-                <h1 className="text-xl font-display font-bold text-foreground mb-1">Admin Access</h1>
-                <p className="text-sm text-muted-foreground">Enter the admin password to continue</p>
-              </div>
-              <form onSubmit={handleLogin} className="w-full flex flex-col gap-3">
-                <input
-                  data-testid="input-admin-password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Admin password"
-                  autoFocus
-                  className="w-full h-12 px-4 bg-black/[0.03] border border-black/[0.06] rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium placeholder:text-muted-foreground/50"
-                />
-                <button
-                  data-testid="button-admin-login"
-                  type="submit"
-                  disabled={loginMutation.isPending || !password.trim()}
-                  className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.99]"
-                >
-                  {loginMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Verifying...
-                    </>
-                  ) : (
-                    "Log In"
-                  )}
-                </button>
-              </form>
+              {isAccessDenied ? (
+                <>
+                  <div className="text-center">
+                    <h1 className="text-xl font-display font-bold text-foreground mb-1" data-testid="text-access-denied-title">Access Denied</h1>
+                    <p className="text-sm text-muted-foreground" data-testid="text-access-denied-message">Your account does not have admin privileges. Only @podrise.com accounts with admin access can sign in here.</p>
+                  </div>
+                  <a
+                    href="/dashboard"
+                    data-testid="link-back-to-dashboard"
+                    className="w-full h-12 flex items-center justify-center gap-2 rounded-xl font-display font-bold text-sm bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.99]"
+                  >
+                    Back to Dashboard
+                  </a>
+                </>
+              ) : (
+                <>
+                  <div className="text-center">
+                    <h1 className="text-xl font-display font-bold text-foreground mb-1" data-testid="text-admin-login-title">Admin Access</h1>
+                    <p className="text-sm text-muted-foreground">Sign in with your @podrise.com Google account</p>
+                  </div>
+                  <a
+                    href="/api/auth/google?redirect=/admin"
+                    data-testid="button-admin-google-login"
+                    className="w-full h-12 flex items-center justify-center gap-3 rounded-xl font-display font-bold text-sm bg-white border border-black/[0.08] text-foreground shadow-sm hover:shadow-md hover:bg-gray-50 transition-all active:scale-[0.99]"
+                  >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24">
+                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    Sign in with Google
+                  </a>
+                </>
+              )}
             </div>
           </motion.div>
         </main>
@@ -484,40 +443,6 @@ export default function Admin() {
           <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-bold rounded-md uppercase tracking-wide">Admin</span>
         </div>
         <div className="flex items-center gap-3">
-          <div className="relative" ref={settingsMenuRef}>
-            <button
-              data-testid="button-settings"
-              onClick={() => setShowSettingsMenu(!showSettingsMenu)}
-              className={`flex items-center gap-2 text-sm font-medium transition-colors ${
-                showSettingsMenu || activeTab === "admin-users"
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Settings className="w-4 h-4" />
-              Settings
-            </button>
-            {showSettingsMenu && (
-              <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-black/[0.08] rounded-xl shadow-lg py-1.5 z-50" data-testid="settings-dropdown">
-                <button
-                  data-testid="button-change-password"
-                  onClick={() => { setShowChangePw(!showChangePw); setShowSettingsMenu(false); }}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-foreground hover:bg-black/[0.04] transition-colors"
-                >
-                  <Key className="w-4 h-4 text-muted-foreground" />
-                  Change Password
-                </button>
-                <button
-                  data-testid="button-settings-admins"
-                  onClick={() => { setActiveTab("admin-users"); adminNavigate("/admin/admin-users"); setShowSettingsMenu(false); }}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-foreground hover:bg-black/[0.04] transition-colors"
-                >
-                  <Shield className="w-4 h-4 text-muted-foreground" />
-                  Admins
-                </button>
-              </div>
-            )}
-          </div>
           <button
             data-testid="button-admin-logout"
             onClick={() => logoutMutation.mutate()}
@@ -528,71 +453,6 @@ export default function Admin() {
           </button>
         </div>
       </header>
-
-      {showChangePw && (
-        <div className="w-full max-w-md mx-auto px-4 mb-4">
-          <div className="bg-white border border-black/[0.06] rounded-xl p-5 shadow-sm" data-testid="section-change-password">
-            <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-              <Key className="w-4 h-4 text-primary" />
-              Change Admin Password
-            </h3>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (newPw !== confirmPw) {
-                  toast({ title: "Mismatch", description: "New passwords don't match.", variant: "destructive" });
-                  return;
-                }
-                changePwMutation.mutate({ currentPassword: currentPw, newPassword: newPw });
-              }}
-              className="space-y-3"
-            >
-              <input
-                type="password"
-                value={currentPw}
-                onChange={(e) => setCurrentPw(e.target.value)}
-                placeholder="Current password"
-                className="w-full h-10 px-3 bg-white border border-black/[0.08] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
-                data-testid="input-current-password"
-              />
-              <input
-                type="password"
-                value={newPw}
-                onChange={(e) => setNewPw(e.target.value)}
-                placeholder="New password (min 6 characters)"
-                className="w-full h-10 px-3 bg-white border border-black/[0.08] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
-                data-testid="input-new-password"
-              />
-              <input
-                type="password"
-                value={confirmPw}
-                onChange={(e) => setConfirmPw(e.target.value)}
-                placeholder="Confirm new password"
-                className="w-full h-10 px-3 bg-white border border-black/[0.08] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
-                data-testid="input-confirm-password"
-              />
-              <div className="flex gap-2 pt-1">
-                <button
-                  type="submit"
-                  disabled={!currentPw || !newPw || !confirmPw || newPw.length < 6 || changePwMutation.isPending}
-                  className="h-9 px-4 rounded-lg font-bold text-sm bg-primary text-white hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                  data-testid="button-submit-password"
-                >
-                  {changePwMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Update Password"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setShowChangePw(false); setCurrentPw(""); setNewPw(""); setConfirmPw(""); }}
-                  className="h-9 px-4 rounded-lg font-bold text-sm text-muted-foreground hover:text-foreground hover:bg-black/[0.04] transition-all"
-                  data-testid="button-cancel-password"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       <main className="flex-1 flex flex-col px-6 lg:px-10 xl:px-16 pb-16">
         <section className="w-full pt-8 pb-6">

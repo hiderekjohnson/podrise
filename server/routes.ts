@@ -35,6 +35,7 @@ declare module "express-session" {
     utmCampaign?: string;
     utmContent?: string;
     utmTerm?: string;
+    adminRedirect?: string;
   }
 }
 
@@ -2118,11 +2119,15 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     delete req.session.utmCampaign;
     delete req.session.utmContent;
     delete req.session.utmTerm;
+    delete req.session.adminRedirect;
     if (req.query.utm_source) req.session.utmSource = req.query.utm_source as string;
     if (req.query.utm_medium) req.session.utmMedium = req.query.utm_medium as string;
     if (req.query.utm_campaign) req.session.utmCampaign = req.query.utm_campaign as string;
     if (req.query.utm_content) req.session.utmContent = req.query.utm_content as string;
     if (req.query.utm_term) req.session.utmTerm = req.query.utm_term as string;
+    if (req.query.redirect && typeof req.query.redirect === "string" && req.query.redirect.startsWith("/") && !req.query.redirect.startsWith("//")) {
+      req.session.adminRedirect = req.query.redirect;
+    }
     const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}&state=${state}&access_type=offline&prompt=select_account`;
     req.session.save((err) => {
       if (err) console.error("[GoogleAuth] Session save error before redirect:", err);
@@ -2232,13 +2237,31 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
         req.session.userId = user.id;
         pool.query(`UPDATE users SET last_login_at = NOW() WHERE id = $1`, [user.id]).catch(e => console.error("[LastLogin] Failed:", e));
+
+        try {
+          const { db: adminDb } = await import("./db");
+          const { eq: adminEq } = await import("drizzle-orm");
+          const { adminUsers: adminUsersTable } = await import("@shared/schema");
+          const [adminRow] = await adminDb.select().from(adminUsersTable).where(adminEq(adminUsersTable.email, user.email)).limit(1);
+          req.session.isAdmin = !!adminRow;
+        } catch (e) {
+          console.error("[GoogleAuth] Failed to check admin status:", e);
+          req.session.isAdmin = false;
+        }
+
+        const adminRedirect = req.session.adminRedirect;
         delete req.session.utmSource;
         delete req.session.utmMedium;
         delete req.session.utmCampaign;
         delete req.session.utmContent;
         delete req.session.utmTerm;
+        delete req.session.adminRedirect;
         req.session.save(() => {
-          res.redirect("/onboarding");
+          if (adminRedirect) {
+            res.redirect(adminRedirect);
+          } else {
+            res.redirect("/onboarding");
+          }
         });
         return;
       }
@@ -2270,13 +2293,31 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
       req.session.userId = user.id;
       pool.query(`UPDATE users SET last_login_at = NOW() WHERE id = $1`, [user.id]).catch(e => console.error("[LastLogin] Failed:", e));
+
+      try {
+        const { db: adminDb } = await import("./db");
+        const { eq: adminEq } = await import("drizzle-orm");
+        const { adminUsers: adminUsersTable } = await import("@shared/schema");
+        const [adminRow] = await adminDb.select().from(adminUsersTable).where(adminEq(adminUsersTable.email, user.email)).limit(1);
+        req.session.isAdmin = !!adminRow;
+      } catch (e) {
+        console.error("[GoogleAuth] Failed to check admin status:", e);
+        req.session.isAdmin = false;
+      }
+
+      const adminRedirect = req.session.adminRedirect;
       delete req.session.utmSource;
       delete req.session.utmMedium;
       delete req.session.utmCampaign;
       delete req.session.utmContent;
       delete req.session.utmTerm;
+      delete req.session.adminRedirect;
       req.session.save(() => {
-        res.redirect(user.onboardingCompleted ? "/dashboard" : "/onboarding");
+        if (adminRedirect) {
+          res.redirect(adminRedirect);
+        } else {
+          res.redirect(user.onboardingCompleted ? "/dashboard" : "/onboarding");
+        }
       });
     } catch (err: any) {
       console.error("[GoogleAuth] Callback error:", err);
@@ -7543,118 +7584,29 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
-  const adminLoginAttempts = new Map<string, { count: number; resetAt: number }>();
 
-  app.post("/api/admin/login", async (req, res) => {
-    const ip = req.ip || "unknown";
-    const now = Date.now();
-    const attempt = adminLoginAttempts.get(ip);
-    if (attempt && attempt.count >= 5 && now < attempt.resetAt) {
-      return res.status(429).json({ message: "Too many attempts. Try again later." });
+
+  app.get("/api/admin/me", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
     }
-    if (!attempt || now >= (attempt?.resetAt ?? 0)) {
-      adminLoginAttempts.set(ip, { count: 0, resetAt: now + 15 * 60 * 1000 });
-    }
-
-    const parsed = z.object({ password: z.string().min(1) }).safeParse(req.body);
-    if (!parsed.success) {
-      return res.status(400).json({ message: "Password is required" });
-    }
-
-    const { db } = await import("./db");
-    const { eq } = await import("drizzle-orm");
-    const { adminSettings } = await import("@shared/schema");
-    const bcrypt = await import("bcryptjs");
-
-    let isValid = false;
-    let adminEmail: string | null = null;
     try {
-      const dbPw = await db.select().from(adminSettings).where(eq(adminSettings.key, "admin_password_hash")).limit(1);
-      if (dbPw.length > 0) {
-        isValid = await bcrypt.compare(parsed.data.password, dbPw[0].value);
-      } else {
-        isValid = parsed.data.password === process.env.ADMIN_PASSWORD;
-      }
-    } catch {
-      isValid = parsed.data.password === process.env.ADMIN_PASSWORD;
-    }
-
-    if (!isValid) {
-      try {
-        const { rows: adminUserRows } = await pool.query(
-          `SELECT id, email, password_hash FROM admin_users WHERE password_hash IS NOT NULL AND status = 'active'`
-        );
-        for (const au of adminUserRows) {
-          if (await bcrypt.compare(parsed.data.password, au.password_hash)) {
-            isValid = true;
-            adminEmail = au.email;
-            break;
-          }
+      const user = await storage.getUserById(req.session.userId);
+      if (user) {
+        const { db: adminDb } = await import("./db");
+        const { eq: adminEq } = await import("drizzle-orm");
+        const { adminUsers: adminUsersTable } = await import("@shared/schema");
+        const [adminRow] = await adminDb.select().from(adminUsersTable).where(adminEq(adminUsersTable.email, user.email)).limit(1);
+        if (adminRow) {
+          req.session.isAdmin = true;
+          return res.json({ isAdmin: true });
         }
-      } catch {}
-    }
-
-    if (!isValid) {
-      const entry = adminLoginAttempts.get(ip)!;
-      entry.count++;
-      return res.status(401).json({ message: "Invalid admin password" });
-    }
-
-    adminLoginAttempts.delete(ip);
-    req.session.isAdmin = true;
-    res.json({ message: "Admin authenticated", email: adminEmail });
-  });
-
-  app.post("/api/admin/change-password", async (req, res) => {
-    if (!req.session.isAdmin) {
-      return res.status(401).json({ message: "Not authenticated as admin" });
-    }
-    const parsed = z.object({
-      currentPassword: z.string().min(1),
-      newPassword: z.string().min(6, "New password must be at least 6 characters"),
-    }).safeParse(req.body);
-    if (!parsed.success) {
-      return res.status(400).json({ message: parsed.error.errors[0]?.message || "Invalid input" });
-    }
-
-    const { db } = await import("./db");
-    const { eq } = await import("drizzle-orm");
-    const { adminSettings } = await import("@shared/schema");
-    const bcrypt = await import("bcryptjs");
-
-    let isCurrentValid = false;
-    try {
-      const dbPw = await db.select().from(adminSettings).where(eq(adminSettings.key, "admin_password_hash")).limit(1);
-      if (dbPw.length > 0) {
-        isCurrentValid = await bcrypt.compare(parsed.data.currentPassword, dbPw[0].value);
-      } else {
-        isCurrentValid = parsed.data.currentPassword === process.env.ADMIN_PASSWORD;
       }
-    } catch {
-      isCurrentValid = parsed.data.currentPassword === process.env.ADMIN_PASSWORD;
+    } catch (e) {
+      console.error("[AdminMe] Failed to check admin status:", e);
     }
-
-    if (!isCurrentValid) {
-      return res.status(401).json({ message: "Current password is incorrect" });
-    }
-
-    const hashedPassword = await bcrypt.hash(parsed.data.newPassword, 12);
-    await db.insert(adminSettings).values({
-      key: "admin_password_hash",
-      value: hashedPassword,
-    }).onConflictDoUpdate({
-      target: adminSettings.key,
-      set: { value: hashedPassword, updatedAt: new Date() },
-    });
-
-    res.json({ message: "Password updated successfully" });
-  });
-
-  app.get("/api/admin/me", (req, res) => {
-    if (!req.session.isAdmin) {
-      return res.status(401).json({ message: "Not authenticated as admin" });
-    }
-    res.json({ isAdmin: true });
+    req.session.isAdmin = false;
+    return res.status(403).json({ message: "Access denied. Your account does not have admin privileges." });
   });
 
   app.post("/api/admin/logout", (req, res) => {
@@ -7664,19 +7616,10 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
   app.get("/api/admin/admin-users", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
-    const { pool } = await import("./db");
-    const { rows } = await pool.query(
-      `SELECT id, email, name, role, status, invite_sent_at, created_at FROM admin_users ORDER BY created_at DESC`
-    );
-    res.json(rows.map((r: any) => ({
-      id: r.id,
-      email: r.email,
-      name: r.name,
-      role: r.role,
-      status: r.status || "pending",
-      inviteSentAt: r.invite_sent_at,
-      createdAt: r.created_at,
-    })));
+    const { db } = await import("./db");
+    const { adminUsers } = await import("@shared/schema");
+    const rows = await db.select().from(adminUsers).orderBy(adminUsers.createdAt);
+    res.json(rows);
   });
 
   app.post("/api/admin/admin-users", async (req, res) => {
@@ -7684,9 +7627,13 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     const { insertAdminUserSchema, adminUsers } = await import("@shared/schema");
     const parsed = insertAdminUserSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ message: parsed.error.errors[0]?.message || "Invalid input" });
+    const normalizedEmail = parsed.data.email.toLowerCase();
+    if (!normalizedEmail.endsWith("@podrise.com")) {
+      return res.status(400).json({ message: "Only @podrise.com email addresses can be added as admins" });
+    }
     const { db } = await import("./db");
     try {
-      const [row] = await db.insert(adminUsers).values(parsed.data).returning();
+      const [row] = await db.insert(adminUsers).values({ ...parsed.data, email: normalizedEmail }).returning();
       res.json(row);
     } catch (e: any) {
       if (e.code === "23505") return res.status(409).json({ message: "An admin with this email already exists" });
@@ -7705,7 +7652,11 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (req.body.email) {
       const emailParsed = z.string().email().safeParse(req.body.email);
       if (!emailParsed.success) return res.status(400).json({ message: "Invalid email" });
-      updates.email = emailParsed.data;
+      const normalizedEmail = emailParsed.data.toLowerCase();
+      if (!normalizedEmail.endsWith("@podrise.com")) {
+        return res.status(400).json({ message: "Only @podrise.com email addresses are allowed" });
+      }
+      updates.email = normalizedEmail;
     }
     if (req.body.name !== undefined) updates.name = req.body.name || null;
     if (req.body.role) {
@@ -7735,57 +7686,6 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     res.json({ message: "Admin user deleted" });
   });
 
-  app.post("/api/admin/admin-users/:id/invite", async (req, res) => {
-    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
-    const { db, pool } = await import("./db");
-    const { eq } = await import("drizzle-orm");
-    const { adminUsers } = await import("@shared/schema");
-    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, id));
-    if (!user) return res.status(404).json({ message: "Admin user not found" });
-
-    const crypto = await import("crypto");
-    const token = crypto.randomBytes(32).toString("hex");
-    await pool.query(
-      `UPDATE admin_users SET invite_token = $1, invite_sent_at = NOW(), status = 'invited' WHERE id = $2`,
-      [token, id]
-    );
-
-    const baseUrl = process.env.REPLIT_DEPLOYMENT === "1"
-      ? "https://podrise.com"
-      : process.env.REPLIT_DEV_DOMAIN
-        ? `https://${process.env.REPLIT_DEV_DOMAIN}`
-        : "https://podrise.com";
-    const setupUrl = `${baseUrl}/admin/setup?token=${token}`;
-
-    try {
-      const { getUncachableResendClient } = await import("./resendClient");
-      const { client, fromEmail } = await getUncachableResendClient();
-      await client.emails.send({
-        from: `PodRise <${fromEmail}>`,
-        to: user.email,
-        subject: "You've been invited to PodRise Admin",
-        html: `
-          <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:480px;margin:0 auto;padding:40px 20px;">
-            <div style="text-align:center;margin-bottom:32px;">
-              <h1 style="font-size:24px;font-weight:700;color:#18181B;margin:0;">Welcome to PodRise Admin</h1>
-            </div>
-            <p style="color:#52525B;font-size:15px;line-height:1.6;margin:0 0 16px;">Hi${user.name ? ` ${user.name}` : ''},</p>
-            <p style="color:#52525B;font-size:15px;line-height:1.6;margin:0 0 24px;">You've been invited as an <strong>${user.role}</strong> on PodRise. Click the button below to set up your password and activate your admin account.</p>
-            <div style="text-align:center;margin:32px 0;">
-              <a href="${setupUrl}" style="display:inline-block;padding:14px 32px;background:#6366F1;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:10px;">Set Up Your Account</a>
-            </div>
-            <p style="color:#A1A1AA;font-size:13px;line-height:1.5;margin:24px 0 0;">This link expires in 7 days. If you didn't expect this invitation, you can ignore this email.</p>
-          </div>
-        `,
-      });
-      res.json({ message: `Invite sent to ${user.email}` });
-    } catch (err: any) {
-      console.error("[AdminInvite] Failed to send invite email:", err.message);
-      res.json({ message: `Invite link created but email failed to send. Share this link manually: ${setupUrl}` });
-    }
-  });
 
   app.get("/api/feature-flags", async (req, res) => {
     const userId = getAuthUserId(req) || (req.session.userId ?? null);
@@ -7873,101 +7773,6 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     res.json({ message: "Override removed" });
   });
 
-  app.post("/api/admin/admin-users/:id/reset-password", async (req, res) => {
-    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
-    const { db, pool } = await import("./db");
-    const { eq } = await import("drizzle-orm");
-    const { adminUsers } = await import("@shared/schema");
-    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, id));
-    if (!user) return res.status(404).json({ message: "Admin user not found" });
-
-    const crypto = await import("crypto");
-    const token = crypto.randomBytes(32).toString("hex");
-    await pool.query(
-      `UPDATE admin_users SET invite_token = $1, invite_sent_at = NOW(), status = 'invited' WHERE id = $2`,
-      [token, id]
-    );
-
-    const baseUrl = process.env.REPLIT_DEPLOYMENT === "1"
-      ? "https://podrise.com"
-      : process.env.REPLIT_DEV_DOMAIN
-        ? `https://${process.env.REPLIT_DEV_DOMAIN}`
-        : "https://podrise.com";
-    const resetUrl = `${baseUrl}/admin/setup?token=${token}`;
-
-    try {
-      const { getUncachableResendClient } = await import("./resendClient");
-      const { client, fromEmail } = await getUncachableResendClient();
-      await client.emails.send({
-        from: `PodRise <${fromEmail}>`,
-        to: user.email,
-        subject: "Reset Your PodRise Admin Password",
-        html: `
-          <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:480px;margin:0 auto;padding:40px 20px;">
-            <div style="text-align:center;margin-bottom:32px;">
-              <h1 style="font-size:24px;font-weight:700;color:#18181B;margin:0;">Reset Your Admin Password</h1>
-            </div>
-            <p style="color:#52525B;font-size:15px;line-height:1.6;margin:0 0 16px;">Hi${user.name ? ` ${user.name}` : ''},</p>
-            <p style="color:#52525B;font-size:15px;line-height:1.6;margin:0 0 24px;">A password reset was requested for your PodRise admin account. Click the button below to set a new password.</p>
-            <div style="text-align:center;margin:32px 0;">
-              <a href="${resetUrl}" style="display:inline-block;padding:14px 32px;background:#6366F1;color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:10px;">Reset Password</a>
-            </div>
-            <p style="color:#A1A1AA;font-size:13px;line-height:1.5;margin:24px 0 0;">This link expires in 7 days. If you didn't request this, you can ignore this email.</p>
-          </div>
-        `,
-      });
-      res.json({ message: `Password reset email sent to ${user.email}` });
-    } catch (err: any) {
-      console.error("[AdminReset] Failed to send reset email:", err.message);
-      res.json({ message: `Reset link created but email failed to send. Share this link manually: ${resetUrl}` });
-    }
-  });
-
-  app.get("/api/admin/setup/verify", async (req, res) => {
-    const { token } = req.query;
-    if (!token || typeof token !== "string") return res.status(400).json({ message: "Token required" });
-    const { pool } = await import("./db");
-    const { rows } = await pool.query(
-      `SELECT id, email, name, role, invite_sent_at FROM admin_users WHERE invite_token = $1`,
-      [token]
-    );
-    if (rows.length === 0) return res.status(404).json({ message: "Invalid or expired invite link" });
-    const user = rows[0];
-    const sentAt = new Date(user.invite_sent_at);
-    const now = new Date();
-    if (now.getTime() - sentAt.getTime() > 7 * 24 * 60 * 60 * 1000) {
-      return res.status(410).json({ message: "This invite link has expired. Please ask an admin to resend it." });
-    }
-    res.json({ email: user.email, name: user.name, role: user.role });
-  });
-
-  app.post("/api/admin/setup/complete", async (req, res) => {
-    const { token, password } = req.body;
-    if (!token || !password) return res.status(400).json({ message: "Token and password required" });
-    if (password.length < 8) return res.status(400).json({ message: "Password must be at least 8 characters" });
-    const { pool } = await import("./db");
-    const { rows } = await pool.query(
-      `SELECT id, email, invite_sent_at FROM admin_users WHERE invite_token = $1`,
-      [token]
-    );
-    if (rows.length === 0) return res.status(404).json({ message: "Invalid or expired invite link" });
-    const user = rows[0];
-    const sentAt = new Date(user.invite_sent_at);
-    const now = new Date();
-    if (now.getTime() - sentAt.getTime() > 7 * 24 * 60 * 60 * 1000) {
-      return res.status(410).json({ message: "This invite link has expired" });
-    }
-    const bcrypt = await import("bcryptjs");
-    const hash = await bcrypt.hash(password, 10);
-    await pool.query(
-      `UPDATE admin_users SET password_hash = $1, invite_token = NULL, status = 'active' WHERE id = $2`,
-      [hash, user.id]
-    );
-    req.session.isAdmin = true;
-    res.json({ message: "Account set up successfully" });
-  });
 
   app.post("/api/admin/refresh-caches", async (req, res) => {
     if (!req.session.isAdmin) {

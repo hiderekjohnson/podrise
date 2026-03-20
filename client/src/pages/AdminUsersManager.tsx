@@ -2,15 +2,13 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Pencil, Trash2, Shield, Crown, X, UserPlus, Send, Check, KeyRound } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Shield, Crown, X, UserPlus } from "lucide-react";
 
 interface AdminUserRow {
   id: number;
   email: string;
   name: string | null;
   role: string;
-  status: string;
-  inviteSentAt: string | null;
   createdAt: string | null;
 }
 
@@ -25,6 +23,7 @@ export default function AdminUsersManager() {
   const [newName, setNewName] = useState("");
   const [newRole, setNewRole] = useState("admin");
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [emailError, setEmailError] = useState("");
 
   const { data: adminUsers, isLoading } = useQuery<AdminUserRow[]>({
     queryKey: ["/api/admin/admin-users"],
@@ -39,7 +38,8 @@ export default function AdminUsersManager() {
       setNewEmail("");
       setNewName("");
       setNewRole("admin");
-      toast({ title: "Admin added", description: "New admin user has been created." });
+      setEmailError("");
+      toast({ title: "Admin added", description: "New admin user has been created. They will get admin access next time they sign in with Google." });
     },
     onError: (err: any) => {
       toast({ title: "Failed", description: err.message || "Could not add admin.", variant: "destructive" });
@@ -71,30 +71,6 @@ export default function AdminUsersManager() {
     },
   });
 
-  const inviteMutation = useMutation({
-    mutationFn: (id: number) => apiRequest("POST", `/api/admin/admin-users/${id}/invite`),
-    onSuccess: async (res) => {
-      const data = await res.json();
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/admin-users"] });
-      toast({ title: "Invite sent", description: data.message });
-    },
-    onError: (err: any) => {
-      toast({ title: "Failed", description: err.message || "Could not send invite.", variant: "destructive" });
-    },
-  });
-
-  const resetPasswordMutation = useMutation({
-    mutationFn: (id: number) => apiRequest("POST", `/api/admin/admin-users/${id}/reset-password`),
-    onSuccess: async (res) => {
-      const data = await res.json();
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/admin-users"] });
-      toast({ title: "Reset email sent", description: data.message });
-    },
-    onError: (err: any) => {
-      toast({ title: "Failed", description: err.message || "Could not send reset email.", variant: "destructive" });
-    },
-  });
-
   const startEditing = (user: AdminUserRow) => {
     setEditingId(user.id);
     setEditEmail(user.email);
@@ -102,15 +78,8 @@ export default function AdminUsersManager() {
     setEditRole(user.role);
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "active":
-        return <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-green-100 text-green-700">Active</span>;
-      case "invited":
-        return <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-blue-100 text-blue-700">Invited</span>;
-      default:
-        return <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-gray-100 text-gray-600">Pending</span>;
-    }
+  const validatePodriseEmail = (email: string): boolean => {
+    return email.trim().toLowerCase().endsWith("@podrise.com");
   };
 
   if (isLoading) {
@@ -130,7 +99,7 @@ export default function AdminUsersManager() {
             Admin Users
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Manage who has admin access. {adminUsers?.length || 0} admin{(adminUsers?.length || 0) !== 1 ? "s" : ""} total.
+            Manage who has admin access. Only @podrise.com accounts can be added. {adminUsers?.length || 0} admin{(adminUsers?.length || 0) !== 1 ? "s" : ""} total.
           </p>
         </div>
         <button
@@ -153,6 +122,11 @@ export default function AdminUsersManager() {
             onSubmit={(e) => {
               e.preventDefault();
               if (!newEmail.trim()) return;
+              if (!validatePodriseEmail(newEmail)) {
+                setEmailError("Only @podrise.com email addresses can be added as admins");
+                return;
+              }
+              setEmailError("");
               addMutation.mutate({ email: newEmail.trim(), name: newName.trim() || undefined, role: newRole });
             }}
             className="space-y-3"
@@ -163,12 +137,15 @@ export default function AdminUsersManager() {
                 <input
                   type="email"
                   value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
-                  placeholder="admin@example.com"
+                  onChange={(e) => { setNewEmail(e.target.value); setEmailError(""); }}
+                  placeholder="name@podrise.com"
                   className="w-full h-10 px-3 bg-white border border-black/[0.08] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
                   data-testid="input-new-admin-email"
                   required
                 />
+                {emailError && (
+                  <p className="text-xs text-red-500 mt-1" data-testid="text-email-error">{emailError}</p>
+                )}
               </div>
               <div>
                 <label className="text-xs font-semibold text-muted-foreground mb-1 block">Name</label>
@@ -205,7 +182,7 @@ export default function AdminUsersManager() {
               </button>
               <button
                 type="button"
-                onClick={() => { setShowAdd(false); setNewEmail(""); setNewName(""); setNewRole("admin"); }}
+                onClick={() => { setShowAdd(false); setNewEmail(""); setNewName(""); setNewRole("admin"); setEmailError(""); }}
                 className="h-9 px-4 rounded-lg font-bold text-sm text-muted-foreground hover:text-foreground hover:bg-black/[0.03] transition-all"
                 data-testid="button-cancel-add-admin"
               >
@@ -233,6 +210,10 @@ export default function AdminUsersManager() {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
+                  if (!validatePodriseEmail(editEmail)) {
+                    toast({ title: "Invalid email", description: "Only @podrise.com email addresses are allowed.", variant: "destructive" });
+                    return;
+                  }
                   updateMutation.mutate({
                     id: user.id,
                     email: editEmail.trim(),
@@ -313,7 +294,6 @@ export default function AdminUsersManager() {
                       <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${user.role === "owner" ? "bg-amber-100 text-amber-700" : "bg-primary/10 text-primary"}`}>
                         {user.role}
                       </span>
-                      {getStatusBadge(user.status)}
                       {user.createdAt && (
                         <span>Added {new Date(user.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
                       )}
@@ -321,43 +301,6 @@ export default function AdminUsersManager() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  {user.status !== "active" && (
-                    <button
-                      onClick={() => inviteMutation.mutate(user.id)}
-                      disabled={inviteMutation.isPending}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-primary hover:bg-primary/5 transition-all"
-                      data-testid={`button-invite-admin-${user.id}`}
-                      title={user.status === "invited" ? "Resend invite" : "Send invite"}
-                    >
-                      {inviteMutation.isPending ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Send className="w-3.5 h-3.5" />
-                      )}
-                      {user.status === "invited" ? "Resend" : "Invite"}
-                    </button>
-                  )}
-                  {user.status === "active" && (
-                    <>
-                      <button
-                        onClick={() => resetPasswordMutation.mutate(user.id)}
-                        disabled={resetPasswordMutation.isPending}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-amber-600 hover:bg-amber-50 transition-all"
-                        data-testid={`button-reset-password-admin-${user.id}`}
-                        title="Send password reset email"
-                      >
-                        {resetPasswordMutation.isPending ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <KeyRound className="w-3.5 h-3.5" />
-                        )}
-                        Reset
-                      </button>
-                      <span className="flex items-center gap-1 px-2 py-1 text-xs text-green-600">
-                        <Check className="w-3.5 h-3.5" />
-                      </span>
-                    </>
-                  )}
                   <button
                     onClick={() => startEditing(user)}
                     className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-black/[0.04] transition-all"
