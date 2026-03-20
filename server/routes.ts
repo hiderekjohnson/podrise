@@ -762,6 +762,12 @@ export async function registerRoutes(
     // Note: podcast_directory has no legacy 'published' boolean column to backfill from.
     // It only has 'has_landing_page' (operational, controls page rendering) which is separate
     // from editorial 'status'. All podcast_directory rows default to status='published'.
+    await migrationPool.query(`
+      INSERT INTO admin_users (email, name, role)
+      VALUES ('derek@podrise.com', 'Derek', 'owner')
+      ON CONFLICT (email) DO UPDATE SET role = 'owner';
+    `);
+
     console.log("[startup] Schema migration check complete");
 
     
