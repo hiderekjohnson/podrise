@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { Loader2, Radio, UserMinus, ArrowLeft } from "lucide-react";
+import { Loader2, Radio, UserMinus, ArrowLeft, Compass } from "lucide-react";
 import { Link } from "wouter";
 import { hiResArtwork } from "@/lib/utils";
 
@@ -158,6 +158,23 @@ export default function MyPodcastsPage() {
                   </div>
                 );
               })}
+
+              <div className="mt-6 bg-gradient-to-r from-[#EEF2FF] to-[#F0EBFF] dark:from-[#1a1a2e] dark:to-[#1e1b2e] border border-[#E0E7FF] dark:border-[#2d2b45] rounded-2xl p-5 flex items-center justify-between gap-4" data-testid="discover-cta-section">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#6366F1]/10 flex items-center justify-center">
+                    <Compass className="w-5 h-5 text-[#6366F1]" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[15px] font-semibold text-[#09090B] dark:text-white">Looking for more?</p>
+                    <p className="text-[13px] text-[#71717A] dark:text-[#A1A1AA] truncate">Browse trending and top-rated podcasts</p>
+                  </div>
+                </div>
+                <Link href="/discover">
+                  <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-[14px] bg-[#6366F1] text-white hover:bg-[#4F46E5] transition-colors whitespace-nowrap" data-testid="link-discover-more">
+                    Discover Podcasts
+                  </span>
+                </Link>
+              </div>
             </div>
           )}
         </div>
