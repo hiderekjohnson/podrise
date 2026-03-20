@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Loader2, X, Brain, Rocket, BarChart3, Coins, Heart, BookOpen, Zap, Globe, Mic, ArrowLeft, Check, CheckSquare, ArrowUpDown, ChevronDown } from "lucide-react";
+import { SiSpotify } from "react-icons/si";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Link } from "wouter";
 import { RequestPodcastDialog } from "@/components/RequestPodcastDialog";
@@ -709,25 +710,38 @@ export default function DiscoverPage() {
             </button>
             <h1 className="text-[22px] md:text-[26px] font-bold text-[#09090B] dark:text-white">Discover</h1>
           </div>
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A1A1AA]" />
-            <input
-              type="text"
-              placeholder="Search podcasts…"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#F4F4F5] dark:bg-[#1C1C22] rounded-2xl py-3.5 pl-12 pr-12 text-[16px] md:text-[17px] text-[#09090B] dark:text-white placeholder:text-[#A1A1AA] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/30 transition-all"
-              data-testid="discover-search-input"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#A1A1AA] flex items-center justify-center"
-                aria-label="Clear search"
-                data-testid="discover-search-clear"
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch">
+            <div className={`relative flex-1${user ? " sm:basis-[65%] sm:flex-none" : ""}`}>
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A1A1AA]" />
+              <input
+                type="text"
+                placeholder="Search podcasts…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-[#F4F4F5] dark:bg-[#1C1C22] rounded-2xl py-3.5 pl-12 pr-12 text-[16px] md:text-[17px] text-[#09090B] dark:text-white placeholder:text-[#A1A1AA] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/30 transition-all"
+                data-testid="discover-search-input"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#A1A1AA] flex items-center justify-center"
+                  aria-label="Clear search"
+                  data-testid="discover-search-clear"
+                >
+                  <X className="w-3 h-3 text-white" strokeWidth={3} />
+                </button>
+              )}
+            </div>
+            {user && (
+              <Link
+                href="/onboarding"
+                className="sm:flex-1 inline-flex items-center justify-center gap-2 bg-[#1DB954] hover:bg-[#1aa34a] text-white font-semibold rounded-2xl px-5 py-3.5 text-[15px] md:text-[16px] transition-colors whitespace-nowrap"
+                data-testid="button-import-spotify"
               >
-                <X className="w-3 h-3 text-white" strokeWidth={3} />
-              </button>
+                <SiSpotify className="w-5 h-5 flex-shrink-0" />
+                <span className="hidden sm:inline">Import from Spotify</span>
+                <span className="sm:hidden">Import</span>
+              </Link>
             )}
           </div>
         </div>
