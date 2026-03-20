@@ -324,7 +324,7 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
   const rejectItem = showRejectModal !== null ? items.find(i => i.id === showRejectModal) : null;
 
   return (
-    <div className="space-y-5" data-testid="section-approval-queue">
+    <div className={`space-y-5 ${selectedIds.size > 0 ? "pb-20" : ""}`} data-testid="section-approval-queue">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h3 className="text-base font-bold text-foreground">Approval Queue</h3>
@@ -454,36 +454,38 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
         </div>
       ) : (
         <>
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <label className="flex items-center gap-2 cursor-pointer select-none" data-testid="checkbox-select-all">
-              <button
-                onClick={toggleSelectAll}
-                className="flex items-center justify-center w-5 h-5 rounded border border-black/[0.15] hover:border-primary/50 transition-all"
-              >
-                {selectedIds.size === items.length && items.length > 0 ? (
-                  <CheckSquare className="w-4 h-4 text-primary" />
-                ) : selectedIds.size > 0 ? (
-                  <div className="w-2.5 h-2.5 rounded-sm bg-primary/60" />
-                ) : null}
-              </button>
-              <span className="text-xs font-semibold text-muted-foreground">
-                {selectedIds.size === items.length && items.length > 0 ? "Deselect All" : "Select All"} ({items.length})
-              </span>
-            </label>
-            {selectedIds.size > 0 && (
-              <button
-                onClick={() => bulkApproveMutation.mutate(Array.from(selectedIds))}
-                disabled={bulkApproveMutation.isPending}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-all sticky top-0 z-10"
-                data-testid="button-bulk-approve"
-              >
-                {bulkApproveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                Approve Selected ({selectedIds.size})
-              </button>
-            )}
+          <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-black/[0.06] -mx-1 px-1 py-3" data-testid="bulk-action-bar">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <label className="flex items-center gap-2 cursor-pointer select-none" data-testid="checkbox-select-all">
+                <button
+                  onClick={toggleSelectAll}
+                  className="flex items-center justify-center w-6 h-6 rounded-md border-2 border-black/[0.15] hover:border-primary/50 transition-all"
+                >
+                  {selectedIds.size === items.length && items.length > 0 ? (
+                    <CheckSquare className="w-5 h-5 text-primary" />
+                  ) : selectedIds.size > 0 ? (
+                    <div className="w-3 h-3 rounded-sm bg-primary/60" />
+                  ) : null}
+                </button>
+                <span className="text-sm font-semibold text-muted-foreground">
+                  {selectedIds.size === items.length && items.length > 0 ? "Deselect All" : "Select All"} ({items.length})
+                </span>
+              </label>
+              {selectedIds.size > 0 && (
+                <button
+                  onClick={() => bulkApproveMutation.mutate(Array.from(selectedIds))}
+                  disabled={bulkApproveMutation.isPending}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-all shadow-md"
+                  data-testid="button-bulk-approve"
+                >
+                  {bulkApproveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                  Approve Selected ({selectedIds.size})
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {items.map((item) => (
               <div
                 key={`queue-${item.id}`}
@@ -547,6 +549,34 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
               </div>
             ))}
           </div>
+
+          {selectedIds.size > 0 && (
+            <div className="fixed bottom-0 left-0 right-0 z-50 bg-green-600 text-white py-3 px-4 sm:px-6 shadow-lg" data-testid="fixed-bottom-approve-bar">
+              <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-2">
+                <span className="text-sm font-semibold">
+                  {selectedIds.size} book{selectedIds.size !== 1 ? "s" : ""} selected
+                </span>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <button
+                    onClick={() => setSelectedIds(new Set())}
+                    className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold bg-white/20 hover:bg-white/30 transition-all"
+                    data-testid="button-bottom-clear-selection"
+                  >
+                    Clear
+                  </button>
+                  <button
+                    onClick={() => bulkApproveMutation.mutate(Array.from(selectedIds))}
+                    disabled={bulkApproveMutation.isPending}
+                    className="flex items-center gap-2 px-4 sm:px-6 py-2 rounded-lg text-xs sm:text-sm font-bold bg-white text-green-700 hover:bg-green-50 disabled:opacity-50 transition-all shadow-sm"
+                    data-testid="button-bottom-bulk-approve"
+                  >
+                    {bulkApproveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                    Approve ({selectedIds.size})
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
 
