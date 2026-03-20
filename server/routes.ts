@@ -15918,7 +15918,27 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
       if (sourceType === "product") {
         await pool.query(`DELETE FROM extracted_products WHERE id = $1`, [numId]);
       } else if (sourceType === "book") {
-        await pool.query(`DELETE FROM book_enrichments WHERE id = $1`, [numId]);
+        const client = await pool.connect();
+        try {
+          await client.query("BEGIN");
+          const { rows: bookRows } = await client.query(`SELECT book_key, slug FROM book_enrichments WHERE id = $1`, [numId]);
+          if (bookRows.length > 0) {
+            const { book_key, slug } = bookRows[0];
+            if (book_key) {
+              await client.query(`DELETE FROM book_aliases WHERE canonical_key = $1 OR alias_key = $1`, [book_key]);
+            }
+            if (slug) {
+              await client.query(`DELETE FROM book_bookmarks WHERE book_slug = $1`, [slug]);
+            }
+          }
+          await client.query(`DELETE FROM book_enrichments WHERE id = $1`, [numId]);
+          await client.query("COMMIT");
+        } catch (txErr) {
+          await client.query("ROLLBACK");
+          throw txErr;
+        } finally {
+          client.release();
+        }
       } else {
         return res.status(400).json({ message: "Invalid source type" });
       }
@@ -15952,23 +15972,52 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
 
   app.delete("/api/admin/shop/bulk-delete-no-mentions", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    const client = await pool.connect();
     try {
-      const { rows } = await pool.query(
-        `DELETE FROM book_enrichments be
+      await client.query("BEGIN");
+      const { rows: booksToDelete } = await client.query(
+        `SELECT be.id, be.book_key, be.slug FROM book_enrichments be
          WHERE be.cover_approved = true
            AND NOT EXISTS (
              SELECT 1 FROM entity_episode_mentions eem
              WHERE eem.entity_type = 'book' AND eem.entity_slug = be.slug
              AND eem.podcast_slug IS NOT NULL
-           )
-         RETURNING be.id`
+           )`
       );
-      const deletedCount = rows.length;
+      if (booksToDelete.length > 0) {
+        type BookToDelete = { id: number; book_key: string | null; slug: string | null };
+        const bookKeys = booksToDelete.map((b: BookToDelete) => b.book_key).filter(Boolean) as string[];
+        const slugs = booksToDelete.map((b: BookToDelete) => b.slug).filter(Boolean) as string[];
+        const ids = booksToDelete.map((b: BookToDelete) => b.id);
+        if (bookKeys.length > 0) {
+          const keyPlaceholders = bookKeys.map((_, i) => `$${i + 1}`).join(",");
+          await client.query(
+            `DELETE FROM book_aliases WHERE canonical_key IN (${keyPlaceholders}) OR alias_key IN (${keyPlaceholders})`,
+            bookKeys
+          );
+        }
+        if (slugs.length > 0) {
+          const slugPlaceholders = slugs.map((_, i) => `$${i + 1}`).join(",");
+          await client.query(
+            `DELETE FROM book_bookmarks WHERE book_slug IN (${slugPlaceholders})`,
+            slugs
+          );
+        }
+        const idPlaceholders = ids.map((_, i) => `$${i + 1}`).join(",");
+        await client.query(
+          `DELETE FROM book_enrichments WHERE id IN (${idPlaceholders})`,
+          ids
+        );
+      }
+      await client.query("COMMIT");
       shopCache.invalidate();
-      res.json({ deleted: deletedCount });
+      res.json({ deleted: booksToDelete.length });
     } catch (err: any) {
+      await client.query("ROLLBACK");
       console.error("[BulkDeleteNoMentions] Error:", err);
       res.status(500).json({ message: err?.message || "Failed to bulk delete" });
+    } finally {
+      client.release();
     }
   });
 
