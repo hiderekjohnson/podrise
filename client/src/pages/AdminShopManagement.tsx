@@ -1136,6 +1136,20 @@ function ApprovedBooks({ onViewBook }: { onViewBook: (id: number) => void }) {
   const [sortBy, setSortBy] = useState("alphabetical");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
+  const requeueNoCoverMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/shop/requeue-no-cover"),
+    onSuccess: async (res: Response) => {
+      const result: { requeued: number } = await res.json();
+      const count = result.requeued || 0;
+      toast({ title: "Books Requeued", description: `Sent ${count} book${count !== 1 ? 's' : ''} with missing covers back to the approval queue.` });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/approved"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/queue"] });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to requeue books.", variant: "destructive" });
+    },
+  });
+
   const handleSearch = (val: string) => {
     setSearch(val);
     clearTimeout(debounceRef.current);
@@ -1173,6 +1187,19 @@ function ApprovedBooks({ onViewBook }: { onViewBook: (id: number) => void }) {
             {data?.total || 0} books live on the shop.
           </p>
         </div>
+        <button
+          onClick={() => requeueNoCoverMutation.mutate()}
+          disabled={requeueNoCoverMutation.isPending}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 transition-all disabled:opacity-50"
+          data-testid="button-requeue-no-cover"
+        >
+          {requeueNoCoverMutation.isPending ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <ImageIcon className="w-3.5 h-3.5" />
+          )}
+          {requeueNoCoverMutation.isPending ? "Requeuing..." : "Requeue Missing Covers"}
+        </button>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">

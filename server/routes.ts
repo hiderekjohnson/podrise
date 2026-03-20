@@ -14970,6 +14970,22 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
     }
   });
 
+  app.post("/api/admin/shop/requeue-no-cover", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { rowCount } = await pool.query(
+        `UPDATE book_enrichments
+         SET cover_approved = NULL, rejection_reason = NULL, updated_at = NOW()
+         WHERE cover_approved = true AND (has_cover IS NULL OR has_cover = false)`
+      );
+      if (rowCount && rowCount > 0) shopCache.invalidate();
+      res.json({ requeued: rowCount || 0 });
+    } catch (err: any) {
+      console.error("[RequeueNoCover] Error:", err);
+      res.status(500).json({ message: err?.message || "Failed to requeue books" });
+    }
+  });
+
   app.get("/api/admin/shop/transcript-excerpt", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
     try {
