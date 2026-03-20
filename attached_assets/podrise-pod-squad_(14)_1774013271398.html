@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Pod Squad — Referrals Get Rewarded | PodRise</title>
+<meta name="description" content="Refer friends to PodRise and earn real rewards. Every confirmed signup counts.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Serif+Display&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── RESET & BASE ─── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --indigo:        #6366F1;
+  --indigo-dark:   #4F46E5;
+  --indigo-deep:   #3730A3;
+  --violet:        #8B5CF6;
+  --indigo-light:  #EEF2FF;
+  --indigo-mid:    #C7D2FE;
+  --text:          #09090B;
+  --text-2:        #52525B;
+  --text-3:        #71717A;
+  --text-4:        #A1A1AA;
+  --bg:            #F7F7FC;
+  --card:          #FFFFFF;
+  --border:        #E4E4E7;
+  --border-light:  #F0F0F2;
+  --green:         #16A34A;
+  --green-bg:      #DCFCE7;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body { display: flex; }
+
+/* ─── LEFT NAV ─── */
+.leftnav {
+  width: 56px;
+  background: var(--card);
+  border-right: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 0;
+  gap: 2px;
+  flex-shrink: 0;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.nav-logo {
+  width: 32px; height: 32px;
+  background: linear-gradient(145deg, #6366F1, #8B5CF6);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.nav-item {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-4);
+  text-decoration: none;
+  transition: background 0.12s, color 0.12s;
+}
+.nav-item:hover  { background: #F4F4F5; color: var(--indigo); }
+.nav-item.active { background: var(--indigo-light); color: var(--indigo); }
+.nav-spacer { flex: 1; }
+
+/* ─── MAIN SHELL ─── */
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.topbar {
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-light);
+  padding: 0 24px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.logo-word {
+  font-size: 15px; font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  text-decoration: none;
+}
+.logo-word span { color: var(--indigo); font-weight: 300; }
+
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+
+.topbar-avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--indigo-light);
+  border: 1.5px solid var(--indigo-mid);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700;
+  color: var(--indigo);
+  letter-spacing: 0.02em;
+}
+
+/* ─── TWO-COL LAYOUT ─── */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 268px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.left-col {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.left-col::-webkit-scrollbar { width: 4px; }
+.left-col::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* ─── HERO ─── */
+.hero {
+  background: linear-gradient(140deg, #3730A3 0%, #4F46E5 38%, #6366F1 68%, #7C3AED 100%);
+  padding: 20px 28px;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -100px;
+  width: 380px; height: 380px;
+  background: radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -40px; left: -40px;
+  width: 220px; height: 220px;
+  background: radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-inner { position: relative; z-index: 1; }
+
+.hero-kicker {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 999px;
+  padding: 3px 11px;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 12px;
+}
+
+.hero-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: center;
+}
+
+.hero-title {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 30px;
+  color: #fff;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+
+.hero-sub {
+  font-size: 13px;
+  color: rgba(255,255,255,0.62);
+  line-height: 1.55;
+  margin-bottom: 14px;
+  max-width: 280px;
+}
+
+.hero-stat-pill {
+  display: inline-flex; align-items: baseline; gap: 7px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 10px;
+  padding: 8px 14px;
+}
+.hero-stat-num  { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -0.04em; line-height: 1; }
+.hero-stat-label { font-size: 12px; color: rgba(255,255,255,0.58); }
+
+/* Reward track */
+.reward-track-label {
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: rgba(255,255,255,0.48);
+  margin-bottom: 8px;
+}
+
+.reward-items { display: flex; flex-direction: column; gap: 5px; }
+
+.reward-item {
+  display: flex; align-items: center; gap: 9px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.11);
+  border-radius: 8px;
+  padding: 7px 11px;
+  position: relative;
+  transition: background 0.1s;
+}
+
+.reward-item.ri-next {
+  background: rgba(255,255,255,0.18);
+  border-color: rgba(255,255,255,0.34);
+}
+
+.ri-next-badge {
+  position: absolute; top: -6px; right: 9px;
+  background: #fff; color: var(--indigo-deep);
+  font-size: 8px; font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  border-radius: 999px; padding: 2px 7px;
+  white-space: nowrap;
+}
+
+.ri-icon  { font-size: 14px; flex-shrink: 0; width: 18px; text-align: center; }
+.ri-name  { flex: 1; font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.85); }
+.ri-count {
+  font-size: 10px; font-weight: 600;
+  font-family: 'DM Mono', monospace;
+  color: rgba(255,255,255,0.5);
+  background: rgba(0,0,0,0.15);
+  border-radius: 4px; padding: 2px 6px;
+}
+.ri-count.ri-next-count {
+  color: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.16);
+}
+
+/* ─── CONTENT AREA ─── */
+.content { padding: 20px 24px 40px; }
+
+.section-label {
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--indigo);
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* ─── SHARE CARD ─── */
+.share-card {
+  background: var(--card);
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* Click-to-copy link field */
+.link-field {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light);
+  background: #FAFAFE;
+  cursor: pointer;
+  transition: background 0.12s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.link-field:hover { background: var(--indigo-light); }
+.link-field:hover .link-field-badge {
+  background: var(--indigo); color: #fff; border-color: var(--indigo);
+}
+.link-field:hover .link-field-url { color: var(--indigo-dark); }
+.link-field:active { background: #E0E7FF; }
+
+.link-field-icon { flex-shrink: 0; color: var(--text-4); transition: color 0.12s; }
+.link-field:hover .link-field-icon { color: var(--indigo); }
+
+.link-field-url {
+  flex: 1; min-width: 0;
+  font-size: 14px; font-family: 'DM Mono', monospace;
+  color: var(--text-2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  transition: color 0.12s;
+}
+
+.link-field-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 600;
+  color: var(--indigo);
+  background: var(--indigo-light);
+  border: 1px solid var(--indigo-mid);
+  border-radius: 7px;
+  padding: 6px 13px;
+  flex-shrink: 0;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+.link-field-badge.copied {
+  background: #DCFCE7; color: #15803D; border-color: #86EFAC;
+}
+
+/* 8-channel row */
+.channels-row {
+  display: flex; align-items: center;
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.ch {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  text-decoration: none;
+  padding: 7px 6px;
+  border-radius: 10px;
+  flex: 1;
+  transition: background 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.ch:hover { background: var(--bg); }
+.ch:active { background: var(--border-light); }
+
+.ch-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.1s;
+}
+.ch:hover .ch-icon { transform: translateY(-1px); }
+
+.ch-label {
+  font-size: 10.5px; font-weight: 500;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.ch-divider {
+  width: 1px; height: 44px;
+  background: var(--border-light);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+.card-footer {
+  padding: 12px 20px;
+  background: #FDFDFE;
+  border-top: 1px solid var(--border-light);
+}
+.terms-note { font-size: 11.5px; color: var(--text-4); }
+.terms-note a { color: var(--indigo); text-decoration: none; }
+.terms-note a:hover { text-decoration: underline; }
+
+/* ─── RIGHT SIDEBAR ─── */
+.right-col {
+  border-left: 1px solid var(--border-light);
+  background: var(--card);
+  padding: 20px 18px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.right-col::-webkit-scrollbar { width: 4px; }
+.right-col::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.sb-header {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 3px;
+}
+.sb-section-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.sb-updated { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--text-4); letter-spacing: 0.04em; }
+.sb-section-sub { font-size: 12px; color: var(--text-4); margin-bottom: 14px; }
+
+.sb-lb {
+  background: var(--bg);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.sb-lb-row {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border-light);
+  transition: background 0.1s;
+}
+.sb-lb-row:last-child { border-bottom: none; }
+.sb-lb-row:hover:not(.me) { background: #FAFAFE; }
+.sb-lb-row.me { background: var(--indigo-light); }
+
+.sb-lb-rank {
+  font-size: 11px; font-weight: 700;
+  width: 16px; flex-shrink: 0;
+  font-family: 'DM Mono', monospace;
+  text-align: center;
+  color: var(--text-4);
+}
+.sb-lb-rank.gold   { color: #D97706; }
+.sb-lb-rank.silver { color: #64748B; }
+.sb-lb-rank.bronze { color: #92400E; }
+
+.sb-lb-avatar {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+.sb-lb-name {
+  flex: 1;
+  font-size: 12.5px; font-weight: 500;
+  color: var(--text);
+  display: flex; align-items: center; gap: 5px;
+  min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sb-lb-name.you { color: var(--indigo); }
+
+.sb-you-badge {
+  font-size: 8px; font-weight: 700;
+  background: var(--indigo); color: #fff;
+  border-radius: 3px; padding: 1px 5px;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.sb-lb-count {
+  font-size: 11px; font-weight: 600;
+  color: var(--text-4);
+  font-family: 'DM Mono', monospace;
+  flex-shrink: 0;
+}
+.sb-lb-count.active { color: var(--indigo); }
+
+/* ─── TOAST ─── */
+.toast {
+  position: fixed; bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: #09090B; color: #fff;
+  font-size: 13px; font-weight: 500;
+  padding: 10px 18px;
+  border-radius: 10px;
+  opacity: 0;
+  transition: opacity 0.18s, transform 0.18s;
+  pointer-events: none;
+  z-index: 1000;
+  display: flex; align-items: center; gap: 8px;
+  white-space: nowrap;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.22), 0 1px 4px rgba(0,0,0,0.12);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- LEFT NAV -->
+<nav class="leftnav" aria-label="Main navigation">
+  <div class="nav-logo" aria-hidden="true">
+    <svg viewBox="0 0 28 28" width="18" height="18" fill="none" aria-hidden="true">
+      <rect x="1"    y="11" width="3.5" height="6"  rx="1.75" fill="white" opacity="0.5"/>
+      <rect x="6.5"  y="7"  width="3.5" height="14" rx="1.75" fill="white" opacity="0.75"/>
+      <rect x="12"   y="4"  width="3.5" height="20" rx="1.75" fill="white"/>
+      <rect x="17.5" y="8"  width="3.5" height="12" rx="1.75" fill="white" opacity="0.85"/>
+      <rect x="23"   y="5"  width="3.5" height="18" rx="1.75" fill="white" opacity="0.6"/>
+    </svg>
+  </div>
+  <a href="/feed"        class="nav-item"        aria-label="Feed">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+  </a>
+  <a href="/discover"    class="nav-item"        aria-label="Discover">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  </a>
+  <a href="/shop"        class="nav-item"        aria-label="Shop">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+  </a>
+  <a href="/saved"       class="nav-item"        aria-label="Saved">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+  </a>
+  <a href="/my-podcasts" class="nav-item"        aria-label="My Podcasts">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+  </a>
+  <a href="/pod-squad"   class="nav-item active" aria-label="Pod Squad" aria-current="page">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+  </a>
+  <div class="nav-spacer"></div>
+  <a href="/settings"    class="nav-item"        aria-label="Settings">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+  </a>
+</nav>
+
+<div class="main">
+  <header class="topbar">
+    <a href="/" class="logo-word">Pod<span>Rise</span></a>
+    <div class="topbar-right">
+      <div class="topbar-avatar" aria-label="Your account">DJ</div>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- ── LEFT COLUMN ── -->
+    <div class="left-col">
+
+      <!-- HERO -->
+      <div class="hero" role="banner">
+        <div class="hero-inner">
+          <div class="hero-kicker">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            The Pod Squad
+          </div>
+          <div class="hero-body">
+            <div>
+              <h1 class="hero-title">Refer friends.<br>Get gear.</h1>
+              <p class="hero-sub">Share PodRise with people who'll love it. Every confirmed signup unlocks a real reward.</p>
+              <div class="hero-stat-pill">
+                <span class="hero-stat-num">0</span>
+                <span class="hero-stat-label">referrals so far</span>
+              </div>
+            </div>
+            <div>
+              <p class="reward-track-label">Reward tiers</p>
+              <div class="reward-items">
+                <div class="reward-item ri-next">
+                  <span class="ri-next-badge">Up next</span>
+                  <span class="ri-icon">🏷️</span>
+                  <span class="ri-name">Sticker pack</span>
+                  <span class="ri-count ri-next-count">3 refs</span>
+                </div>
+                <div class="reward-item">
+                  <span class="ri-icon">👕</span>
+                  <span class="ri-name">PodRise tee</span>
+                  <span class="ri-count">5 refs</span>
+                </div>
+                <div class="reward-item">
+                  <span class="ri-icon">🧦</span>
+                  <span class="ri-name">Branded socks</span>
+                  <span class="ri-count">10 refs</span>
+                </div>
+                <div class="reward-item">
+                  <span class="ri-icon">🎁</span>
+                  <span class="ri-name">Mystery item</span>
+                  <span class="ri-count">15 refs</span>
+                </div>
+                <div class="reward-item">
+                  <span class="ri-icon">🎧</span>
+                  <span class="ri-name">AirPods</span>
+                  <span class="ri-count">25 refs</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SHARE CARD -->
+      <div class="content">
+        <p class="section-label">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Share your referral link
+        </p>
+
+        <div class="share-card">
+
+          <!-- Click-to-copy field -->
+          <div class="link-field" role="button" tabindex="0" aria-label="Copy referral link" onclick="copyLink()" onkeydown="if(event.key==='Enter'||event.key===' ')copyLink()">
+            <svg class="link-field-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            <span class="link-field-url" id="link-url">podrise.com/?ref=derek123</span>
+            <span class="link-field-badge" id="link-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy
+            </span>
+          </div>
+
+          <!-- 8 share channels -->
+          <div class="channels-row" role="list" aria-label="Share via">
+
+            <a class="ch" role="listitem"
+               href="sms:?body=Been%20using%20this%20app%20called%20PodRise%20%E2%80%94%20pulls%20key%20takeaways%20from%20podcasts%20so%20you%20never%20have%20to%20listen%20to%20everything.%20podrise.com%2F%3Fref%3Dderek123"
+               aria-label="Share via iMessage">
+              <div class="ch-icon" style="background:#DCFCE7;">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <span class="ch-label">iMessage</span>
+            </a>
+
+            <a class="ch" role="listitem"
+               href="https://wa.me/?text=Been%20using%20this%20app%20called%20PodRise%20%E2%80%94%20pulls%20key%20takeaways%20from%20podcasts%20so%20you%20never%20have%20to%20listen%20to%20everything.%20podrise.com%2F%3Fref%3Dderek123"
+               target="_blank" rel="noopener noreferrer"
+               aria-label="Share via WhatsApp">
+              <div class="ch-icon" style="background:#DCFCE7;">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="#25D366" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              </div>
+              <span class="ch-label">WhatsApp</span>
+            </a>
+
+            <a class="ch" role="listitem"
+               href="https://twitter.com/intent/tweet?text=Been%20using%20PodRise%20%E2%80%94%20pulls%20key%20takeaways%20from%20podcasts%20so%20you%20never%20have%20to%20listen%20to%20everything.%20podrise.com%2F%3Fref%3Dderek123"
+               target="_blank" rel="noopener noreferrer"
+               aria-label="Share on X / Twitter">
+              <div class="ch-icon" style="background:#EFF6FF;">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="#1d4ed8" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.735l7.73-8.835L1.254 2.25H8.08l4.213 5.567zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              </div>
+              <span class="ch-label">X</span>
+            </a>
+
+            <a class="ch" role="listitem"
+               href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fpodrise.com%2F%3Fref%3Dderek123"
+               target="_blank" rel="noopener noreferrer"
+               aria-label="Share on LinkedIn">
+              <div class="ch-icon" style="background:#EFF6FF;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#0369a1" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+              </div>
+              <span class="ch-label">LinkedIn</span>
+            </a>
+
+            <div class="ch-divider" role="separator" aria-hidden="true"></div>
+
+            <a class="ch" role="listitem"
+               href="https://mail.google.com/mail/?view=cm&su=You+have+to+try+PodRise&body=Been+using+this+app+called+PodRise+%E2%80%94+pulls+key+takeaways+from+podcasts+so+you+never+have+to+listen+to+everything.+podrise.com%2F%3Fref%3Dderek123"
+               target="_blank" rel="noopener noreferrer"
+               aria-label="Send via Gmail">
+              <div class="ch-icon" style="background:#FEF2F2;">
+                <svg viewBox="0 0 48 48" width="19" height="19" aria-hidden="true">
+                  <path fill="#EA4335" d="M4.5 10.5v27l9-9v-9z"/>
+                  <path fill="#FBBC05" d="M43.5 10.5l-9 9v9l9 9z"/>
+                  <path fill="#34A853" d="M34.5 37.5l-9-7.5-9 7.5h18z"/>
+                  <path fill="#4285F4" d="M4.5 10.5L24 25.5l19.5-15H4.5z"/>
+                  <path fill="#C5221F" d="M4.5 10.5h39L24 25.5z"/>
+                </svg>
+              </div>
+              <span class="ch-label">Gmail</span>
+            </a>
+
+            <a class="ch" role="listitem"
+               href="https://outlook.live.com/mail/0/deeplink/compose?subject=You+have+to+try+PodRise&body=Been+using+this+app+called+PodRise+%E2%80%94+pulls+key+takeaways+from+podcasts+so+you+never+have+to+listen+to+everything.+podrise.com%2F%3Fref%3Dderek123"
+               target="_blank" rel="noopener noreferrer"
+               aria-label="Send via Outlook">
+              <div class="ch-icon" style="background:#EFF6FF;">
+                <svg viewBox="0 0 48 48" width="19" height="19" aria-hidden="true">
+                  <rect width="48" height="48" rx="4" fill="#0078D4"/>
+                  <rect x="5" y="5" width="20" height="20" rx="2" fill="#50C0FF"/>
+                  <rect x="19" y="19" width="20" height="20" rx="2" fill="#0A5EA8"/>
+                  <ellipse cx="15" cy="15" rx="5.5" ry="6.5" fill="white"/>
+                </svg>
+              </div>
+              <span class="ch-label">Outlook</span>
+            </a>
+
+            <a class="ch" role="listitem"
+               href="https://compose.mail.yahoo.com/?subject=You+have+to+try+PodRise&body=Been+using+this+app+called+PodRise+%E2%80%94+pulls+key+takeaways+from+podcasts+so+you+never+have+to+listen+to+everything.+podrise.com%2F%3Fref%3Dderek123"
+               target="_blank" rel="noopener noreferrer"
+               aria-label="Send via Yahoo Mail">
+              <div class="ch-icon" style="background:#F5F0FF;">
+                <svg viewBox="0 0 48 48" width="19" height="19" aria-hidden="true">
+                  <rect width="48" height="48" rx="4" fill="#6001D2"/>
+                  <text x="50%" y="35" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="24" font-weight="900" fill="white">Y!</text>
+                </svg>
+              </div>
+              <span class="ch-label">Yahoo</span>
+            </a>
+
+            <a class="ch" role="listitem"
+               href="mailto:?subject=You%20have%20to%20try%20PodRise&body=Been%20using%20this%20app%20called%20PodRise%20%E2%80%94%20pulls%20key%20takeaways%20from%20podcasts%20so%20you%20never%20have%20to%20listen%20to%20everything.%20podrise.com%2F%3Fref%3Dderek123"
+               aria-label="Send via Apple Mail or default email app">
+              <div class="ch-icon" style="background:#EFF6FF;">
+                <svg viewBox="0 0 48 48" width="19" height="19" aria-hidden="true">
+                  <rect width="48" height="48" rx="4" fill="#1C8EF9"/>
+                  <rect x="7" y="12" width="34" height="24" rx="2" fill="none" stroke="white" stroke-width="3"/>
+                  <path d="M7 14l17 13L41 14" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <span class="ch-label">Mail</span>
+            </a>
+
+          </div><!-- /channels-row -->
+
+          <div class="card-footer">
+            <p class="terms-note">By participating you agree to the <a href="/referral-terms">Referral Program Terms</a>.</p>
+          </div>
+
+        </div><!-- /share-card -->
+      </div><!-- /content -->
+
+    </div><!-- /left-col -->
+
+    <!-- ── RIGHT SIDEBAR ── -->
+    <aside class="right-col" aria-label="Leaderboard">
+      <div class="sb-header">
+        <p class="sb-section-title">Leaderboard</p>
+        <span class="sb-updated">Updated daily</span>
+      </div>
+      <p class="sb-section-sub">Top referrers this month</p>
+
+      <div class="sb-lb" role="list">
+
+        <div class="sb-lb-row me" role="listitem">
+          <span class="sb-lb-rank gold" aria-label="Rank 1">1</span>
+          <div class="sb-lb-avatar" style="background:var(--indigo);color:#fff;" aria-hidden="true">DJ</div>
+          <span class="sb-lb-name you">Derek J. <span class="sb-you-badge">You</span></span>
+          <span class="sb-lb-count">0</span>
+        </div>
+
+        <div class="sb-lb-row" role="listitem">
+          <span class="sb-lb-rank silver" aria-label="Rank 2">2</span>
+          <div class="sb-lb-avatar" style="background:#FEF9C3;color:#854D0E;" aria-hidden="true">SK</div>
+          <span class="sb-lb-name">Sarah K.</span>
+          <span class="sb-lb-count">—</span>
+        </div>
+
+        <div class="sb-lb-row" role="listitem">
+          <span class="sb-lb-rank bronze" aria-label="Rank 3">3</span>
+          <div class="sb-lb-avatar" style="background:#FCE7F3;color:#9D174D;" aria-hidden="true">MR</div>
+          <span class="sb-lb-name">Marcus R.</span>
+          <span class="sb-lb-count">—</span>
+        </div>
+
+        <div class="sb-lb-row" role="listitem">
+          <span class="sb-lb-rank" aria-label="Rank 4">4</span>
+          <div class="sb-lb-avatar" style="background:#F0FDF4;color:#166534;" aria-hidden="true">JP</div>
+          <span class="sb-lb-name">James P.</span>
+          <span class="sb-lb-count">—</span>
+        </div>
+
+        <div class="sb-lb-row" role="listitem">
+          <span class="sb-lb-rank" aria-label="Rank 5">5</span>
+          <div class="sb-lb-avatar" style="background:#EFF6FF;color:#1d4ed8;" aria-hidden="true">AL</div>
+          <span class="sb-lb-name">Amy L.</span>
+          <span class="sb-lb-count">—</span>
+        </div>
+
+        <div class="sb-lb-row" role="listitem">
+          <span class="sb-lb-rank" aria-label="Rank 6">6</span>
+          <div class="sb-lb-avatar" style="background:#FFF7ED;color:#C2410C;" aria-hidden="true">TC</div>
+          <span class="sb-lb-name">Tom C.</span>
+          <span class="sb-lb-count">—</span>
+        </div>
+
+        <div class="sb-lb-row" role="listitem">
+          <span class="sb-lb-rank" aria-label="Rank 7">7</span>
+          <div class="sb-lb-avatar" style="background:#F0FDF4;color:#15803D;" aria-hidden="true">RN</div>
+          <span class="sb-lb-name">Rachel N.</span>
+          <span class="sb-lb-count">—</span>
+        </div>
+
+        <div class="sb-lb-row" role="listitem">
+          <span class="sb-lb-rank" aria-label="Rank 8">8</span>
+          <div class="sb-lb-avatar" style="background:#FDF4FF;color:#7E22CE;" aria-hidden="true">BW</div>
+          <span class="sb-lb-name">Ben W.</span>
+          <span class="sb-lb-count">—</span>
+        </div>
+
+        <div class="sb-lb-row" role="listitem">
+          <span class="sb-lb-rank" aria-label="Rank 9">9</span>
+          <div class="sb-lb-avatar" style="background:#FAFAFA;color:#52525B;" aria-hidden="true">OM</div>
+          <span class="sb-lb-name">Olivia M.</span>
+          <span class="sb-lb-count">—</span>
+        </div>
+
+        <div class="sb-lb-row" role="listitem">
+          <span class="sb-lb-rank" aria-label="Rank 10">10</span>
+          <div class="sb-lb-avatar" style="background:#FEF2F2;color:#B91C1C;" aria-hidden="true">HS</div>
+          <span class="sb-lb-name">Harry S.</span>
+          <span class="sb-lb-count">—</span>
+        </div>
+
+      </div><!-- /sb-lb -->
+    </aside>
+
+  </div><!-- /layout -->
+</div><!-- /main -->
+
+<!-- Toast notification -->
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toast-msg">Link copied</span>
+</div>
+
+<script>
+(function () {
+  var REFERRAL_URL = 'https://podrise.com/?ref=derek123';
+
+  function copyLink() {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(REFERRAL_URL).catch(function () {
+        fallbackCopy(REFERRAL_URL);
+      });
+    } else {
+      fallbackCopy(REFERRAL_URL);
+    }
+    showCopied();
+    showToast('Link copied to clipboard');
+  }
+
+  function fallbackCopy(text) {
+    var el = document.createElement('textarea');
+    el.value = text;
+    el.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+    document.body.appendChild(el);
+    el.focus();
+    el.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(el);
+  }
+
+  function showCopied() {
+    var badge = document.getElementById('link-badge');
+    if (!badge) return;
+    badge.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+    badge.classList.add('copied');
+    clearTimeout(badge._timer);
+    badge._timer = setTimeout(function () {
+      badge.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy';
+      badge.classList.remove('copied');
+    }, 2200);
+  }
+
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    var m = document.getElementById('toast-msg');
+    if (!t || !m) return;
+    m.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function () { t.classList.remove('show'); }, 2500);
+  }
+
+  // Expose to inline onclick
+  window.copyLink = copyLink;
+}());
+</script>
+</body>
+</html>
