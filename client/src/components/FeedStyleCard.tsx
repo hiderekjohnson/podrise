@@ -1,15 +1,10 @@
 import { Link } from "wouter";
+import { hiResArtwork } from "@/lib/utils";
 
 function getHeaderTint(identifier: string): string {
   const hash = identifier ? identifier.split("").reduce((a, c) => a + c.charCodeAt(0), 0) : 0;
   const tints = ["#F0F0FF", "#F0FBF5", "#FEF8ED", "#FEF0F5", "#F0F8FF"];
   return tints[hash % tints.length];
-}
-
-function hiResArtwork(url: string): string {
-  if (!url) return "";
-  if (url.startsWith("/artwork/")) return url;
-  return url.replace(/\/\d+x\d+bb\./, "/240x240bb.");
 }
 
 interface MetaItem {

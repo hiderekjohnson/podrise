@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Check, Search, Podcast, Sparkles, X, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import { PodRiseWordmark } from "@/components/PodRiseHeader";
+import { hiResArtwork } from "@/lib/utils";
 
 interface SearchResult {
   id: string;
@@ -26,12 +27,6 @@ interface RelatedPodcast {
   category: string | null;
   description: string | null;
   followers: number | null;
-}
-
-function hiResArtwork(url: string): string {
-  if (!url) return "";
-  if (url.startsWith("/artwork/")) return url;
-  return url.replace(/\/\d+x\d+bb\./, "/100x100bb.");
 }
 
 function RecommendationCard({ podcast, onAdd }: { podcast: RelatedPodcast; onAdd: (p: RelatedPodcast) => void }) {

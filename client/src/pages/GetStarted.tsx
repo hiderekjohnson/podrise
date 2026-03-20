@@ -7,10 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PodcastSearch } from "@/components/PodcastSearch";
 import { Footer } from "@/components/Footer";
 import { PodRiseWordmark } from "@/components/PodRiseHeader";
-
-function hiResArtwork(url: string) {
-  return url.replace(/\/\d+x\d+bb\./, "/300x300bb.");
-}
+import { hiResArtwork } from "@/lib/utils";
 
 interface SelectedPodcast {
   id: string;

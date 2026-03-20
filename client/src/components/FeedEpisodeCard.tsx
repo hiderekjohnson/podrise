@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { Calendar, ArrowRight } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import { useAuth } from "@/hooks/use-auth";
+import { hiResArtwork } from "@/lib/utils";
 import { BlurredInsightGate } from "@/components/BlurredInsightGate";
 import { SignUpCTAModal } from "@/components/SignUpCTAModal";
 
@@ -24,11 +25,7 @@ export function relativeTime(dateStr: string | null): string {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export function hiResArtwork(url: string | null): string {
-  if (!url) return "";
-  if (url.startsWith("/artwork/")) return url;
-  return url.replace(/\/\d+x\d+bb\./, "/100x100bb.");
-}
+export { hiResArtwork };
 
 export function getHeaderTint(source: string): { light: string; dark: string } {
   const hash = source ? source.split("").reduce((a, c) => a + c.charCodeAt(0), 0) : 0;

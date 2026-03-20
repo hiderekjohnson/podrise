@@ -8,6 +8,7 @@ import { Footer } from "@/components/Footer";
 import { PODCAST_LANDINGS, type PodcastLandingConfig } from "@/data/podcastLandingData";
 import { SiteHeader } from "@/components/SiteHeader";
 import { RequestPodcastDialog } from "@/components/RequestPodcastDialog";
+import { hiResArtwork } from "@/lib/utils";
 
 interface PodcastStat {
   slug: string;
@@ -556,7 +557,7 @@ export default function PodcastsExplorer() {
                 >
                   <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
                     {ep.artworkUrl ? (
-                      <img src={ep.artworkUrl.replace(/\/\d+x\d+bb\./, "/100x100bb.")} alt={ep.episodeTitle} className="w-full h-full object-cover" loading="lazy" />
+                      <img src={hiResArtwork(ep.artworkUrl)} alt={ep.episodeTitle} className="w-full h-full object-cover" loading="lazy" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center"><Mic className="w-4 h-4 text-muted-foreground" /></div>
                     )}

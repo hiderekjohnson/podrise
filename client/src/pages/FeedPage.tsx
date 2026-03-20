@@ -61,11 +61,7 @@ function relativeTime(dateStr: string): string {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-function hiResArtwork(url: string): string {
-  if (!url) return "";
-  if (url.startsWith("/artwork/")) return url;
-  return url.replace(/\/\d+x\d+bb\./, "/100x100bb.");
-}
+
 
 function getHeaderTint(artworkUrl: string): string {
   const hash = artworkUrl ? artworkUrl.split("").reduce((a, c) => a + c.charCodeAt(0), 0) : 0;

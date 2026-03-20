@@ -5,6 +5,7 @@ import { useState, useMemo, useEffect } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { hiResArtwork } from "@/lib/utils";
 
 
 interface ReferralStats {
@@ -157,7 +158,7 @@ function SidebarSearch() {
                       >
                         <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-[#F0F0F2]">
                           {result.artworkUrl ? (
-                            <img src={result.artworkUrl.replace(/\/\d+x\d+bb\./, "/100x100bb.")} alt={result.name} className="w-full h-full object-cover" loading="lazy" />
+                            <img src={hiResArtwork(result.artworkUrl)} alt={result.name} className="w-full h-full object-cover" loading="lazy" />
                           ) : (
                             <div className="w-full h-full bg-[#E4E4E7] flex items-center justify-center"><Mic className="w-3 h-3 text-[#A1A1AA]" /></div>
                           )}
@@ -174,7 +175,7 @@ function SidebarSearch() {
                       >
                         <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-[#F0F0F2]">
                           {result.artworkUrl ? (
-                            <img src={result.artworkUrl.replace(/\/\d+x\d+bb\./, "/100x100bb.")} alt={result.name} className="w-full h-full object-cover" loading="lazy" />
+                            <img src={hiResArtwork(result.artworkUrl)} alt={result.name} className="w-full h-full object-cover" loading="lazy" />
                           ) : (
                             <div className="w-full h-full bg-[#E4E4E7] flex items-center justify-center"><Mic className="w-3 h-3 text-[#A1A1AA]" /></div>
                           )}
@@ -211,7 +212,7 @@ function SidebarSearch() {
                     >
                       <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-[#F0F0F2]">
                         {result.artworkUrl ? (
-                          <img src={result.artworkUrl.replace(/\/\d+x\d+bb\./, "/100x100bb.")} alt={result.name} className="w-full h-full object-cover" loading="lazy" />
+                          <img src={hiResArtwork(result.artworkUrl)} alt={result.name} className="w-full h-full object-cover" loading="lazy" />
                         ) : (
                           <div className="w-full h-full bg-[#E4E4E7] flex items-center justify-center"><Mic className="w-3 h-3 text-[#A1A1AA]" /></div>
                         )}
@@ -253,7 +254,7 @@ function SidebarSearch() {
                     >
                       <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-[#F0F0F2]">
                         {ep.artworkUrl ? (
-                          <img src={ep.artworkUrl.replace(/\/\d+x\d+bb\./, "/100x100bb.")} alt={ep.episodeTitle} className="w-full h-full object-cover" loading="lazy" />
+                          <img src={hiResArtwork(ep.artworkUrl)} alt={ep.episodeTitle} className="w-full h-full object-cover" loading="lazy" />
                         ) : (
                           <div className="w-full h-full bg-[#E4E4E7] flex items-center justify-center"><Mic className="w-3 h-3 text-[#A1A1AA]" /></div>
                         )}

@@ -6,16 +6,13 @@ import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PODCAST_LANDINGS } from "@/data/podcastLandingData";
 import { useAuth } from "@/hooks/use-auth";
+import { hiResArtwork } from "@/lib/utils";
 
 const FEATURED_PODCAST_SLUGS = [
   "joerogan", "melrobbins", "hubermanlab", "myfirstmillion",
   "callherdaddy", "acquired", "pivot", "goal-digger",
   "allin", "smartless", "daretolead", "diaryofaceo",
 ];
-
-function hiResArtwork(url: string) {
-  return url.replace(/\/\d+x\d+bb\./, "/300x300bb.");
-}
 
 function SEOHead() {
   const title = "PodRise — Every Podcast You Follow, Recapped Daily";

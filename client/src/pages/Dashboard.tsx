@@ -8,6 +8,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth, useUpdateUser, useLogout } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { hiResArtwork } from "@/lib/utils";
 import { PodcastSearch } from "@/components/PodcastSearch";
 import ReactMarkdown from "react-markdown";
 import { PodRiseWordmark } from "@/components/PodRiseHeader";
@@ -63,10 +64,6 @@ function parsePodcastName(raw: string): string {
     if (parsed && typeof parsed === "object" && parsed.name) return parsed.name;
   } catch {}
   return raw;
-}
-
-function hiResArtwork(url: string) {
-  return url.replace(/\/\d+x\d+bb\./, "/200x200bb.");
 }
 
 function fixMarkdownLinks(md: string): string {

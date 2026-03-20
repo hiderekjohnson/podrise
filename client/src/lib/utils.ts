@@ -5,6 +5,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export function hiResArtwork(url: string | null): string {
+  if (!url) return "";
+  if (url.startsWith("/artwork/")) return url;
+  return url.replace(/\/\d+x\d+bb\./, "/300x300bb.");
+}
+
 const TRACKABLE_DOMAINS = [
   "amazon.com", "amzn.to",
   "blinkist.com", "go.blinkist.com",

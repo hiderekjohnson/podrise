@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Loader2, Radio, UserMinus, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
+import { hiResArtwork } from "@/lib/utils";
 
 interface FollowedPodcast {
   slug: string;
@@ -13,12 +14,6 @@ interface FollowedPodcast {
   category: string | null;
   hosts: string | null;
   hasLandingPage: boolean;
-}
-
-function hiResArtwork(url: string | null): string {
-  if (!url) return "";
-  if (url.startsWith("/artwork/")) return url;
-  return url.replace(/\/\d+x\d+bb\./, "/100x100bb.");
 }
 
 function ExternalPodcastName({ name, slug }: { name: string; slug: string }) {
