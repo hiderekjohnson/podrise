@@ -39,28 +39,35 @@ export function getHeaderTint(source: string): { light: string; dark: string } {
   return tints[hash % tints.length];
 }
 
-export function EpisodeContentSection({ podcastSlug, episodeSlug, episodeTitle, tldl, publishDate, testIdPrefix }: {
+export function EpisodeContentSection({ podcastSlug, episodeSlug, episodeTitle, tldl, publishDate, testIdPrefix, isLoggedIn }: {
   podcastSlug: string;
   episodeSlug: string;
   episodeTitle: string;
   tldl?: string | null;
   publishDate?: string | null;
   testIdPrefix: string;
+  isLoggedIn?: boolean;
 }) {
+  const titleRow = (
+    <div className="flex items-baseline justify-between gap-3 mb-[10px]">
+      <span className="text-[13px] text-[#71717A] dark:text-[#8B8B95] overflow-hidden text-ellipsis line-clamp-2 flex-1 min-w-0 leading-[1.4]" style={{ fontFamily: "var(--font-mono)" }} data-testid={`${testIdPrefix}-episode-title-${episodeSlug}`}>
+        {episodeTitle}
+      </span>
+      {publishDate && (
+        <span className="text-[12px] text-[#A1A1AA] whitespace-nowrap flex-shrink-0" style={{ fontFamily: "var(--font-mono)" }} data-testid={`${testIdPrefix}-time-${episodeSlug}`}>
+          {relativeTime(publishDate)}
+        </span>
+      )}
+    </div>
+  );
+
   return (
     <div className="px-5 md:px-6 py-[18px] border-t border-[#F0F0F2] dark:border-[#1C1C22] border-b border-b-[#F0F0F2] dark:border-b-[#1C1C22]">
-      <Link href={`/podcasts/${podcastSlug}/${episodeSlug}`} className="block group">
-        <div className="flex items-baseline justify-between gap-3 mb-[10px]">
-          <span className="text-[13px] text-[#71717A] dark:text-[#8B8B95] overflow-hidden text-ellipsis line-clamp-2 flex-1 min-w-0 leading-[1.4]" style={{ fontFamily: "var(--font-mono)" }} data-testid={`${testIdPrefix}-episode-title-${episodeSlug}`}>
-            {episodeTitle}
-          </span>
-          {publishDate && (
-            <span className="text-[12px] text-[#A1A1AA] whitespace-nowrap flex-shrink-0" style={{ fontFamily: "var(--font-mono)" }} data-testid={`${testIdPrefix}-time-${episodeSlug}`}>
-              {relativeTime(publishDate)}
-            </span>
-          )}
-        </div>
-      </Link>
+      {isLoggedIn ? titleRow : (
+        <Link href={`/podcasts/${podcastSlug}/${episodeSlug}`} className="block group">
+          {titleRow}
+        </Link>
+      )}
       {tldl && (
         <h3 className="text-[25px] sm:text-[26px] font-normal text-[#09090B] dark:text-white leading-[1.22] tracking-[-0.015em]" style={{ fontFamily: "var(--font-serif)" }} data-testid={`${testIdPrefix}-tldl-${episodeSlug}`}>
           {tldl}
@@ -201,6 +208,7 @@ export function FeedEpisodeCard({
         tldl={tldl}
         publishDate={publishDate}
         testIdPrefix={testIdPrefix}
+        isLoggedIn={!!authUser}
       />
 
       {(insights.length > 0 || quote) && (
