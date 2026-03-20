@@ -360,25 +360,85 @@ export default function Admin() {
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const isCmsRoute = adminPath.startsWith("/admin/cms");
-  const [activeTab, setActiveTab] = useState<"users" | "analytics" | "pending" | "directory" | "shop" | "advertisers" | "admin-users" | "categories" | "advanced" | "errors" | "referrals" | "support-kb" | "cms" | "landing-pages" | "mturk">(isCmsRoute ? "cms" : "advanced");
+
+  type TabType = "users" | "analytics" | "pending" | "directory" | "shop" | "advertisers" | "admin-users" | "categories" | "advanced" | "errors" | "referrals" | "support-kb" | "cms" | "landing-pages" | "mturk";
+  type AnalyticsSubTabType = "acquisition" | "affiliates" | "growth" | "email";
+  type AdvancedSubTabType = "backfill" | "rss" | "hosts" | "api-costs" | "feature-flags";
+  type BackfillSubTabType = "transcripts" | "pages" | "tools";
+
+  const allTabs: TabType[] = ["users", "analytics", "pending", "directory", "shop", "advertisers", "admin-users", "categories", "advanced", "errors", "referrals", "support-kb", "cms", "landing-pages", "mturk"];
+  const analyticsSubTabs: AnalyticsSubTabType[] = ["acquisition", "affiliates", "growth", "email"];
+  const advancedSubTabs: AdvancedSubTabType[] = ["backfill", "rss", "hosts", "api-costs", "feature-flags"];
+  const backfillSubTabs: BackfillSubTabType[] = ["transcripts", "pages", "tools"];
+
+  const deriveTabFromPath = useCallback((path: string): { tab: TabType; analyticsSub: AnalyticsSubTabType; advancedSub: AdvancedSubTabType; backfillSub: BackfillSubTabType } => {
+    const result = { tab: "advanced" as TabType, analyticsSub: "acquisition" as AnalyticsSubTabType, advancedSub: "backfill" as AdvancedSubTabType, backfillSub: "transcripts" as BackfillSubTabType };
+    const segments = path.replace(/^\/admin\/?/, "").split("/").filter(Boolean);
+    if (segments.length === 0) { return result; }
+    const firstSeg = segments[0] as TabType;
+    if (firstSeg === "cms") {
+      result.tab = "cms";
+      return result;
+    }
+    if (allTabs.includes(firstSeg)) {
+      result.tab = firstSeg;
+    }
+    if (firstSeg === "analytics" && segments[1] && analyticsSubTabs.includes(segments[1] as AnalyticsSubTabType)) {
+      result.analyticsSub = segments[1] as AnalyticsSubTabType;
+    }
+    if (firstSeg === "advanced" && segments[1] && advancedSubTabs.includes(segments[1] as AdvancedSubTabType)) {
+      result.advancedSub = segments[1] as AdvancedSubTabType;
+      if (segments[1] === "backfill" && segments[2] && backfillSubTabs.includes(segments[2] as BackfillSubTabType)) {
+        result.backfillSub = segments[2] as BackfillSubTabType;
+      }
+    }
+    return result;
+  }, []);
+
+  const initialState = deriveTabFromPath(adminPath);
+  const [activeTab, setActiveTab] = useState<TabType>(initialState.tab);
+  const [analyticsSubTab, setAnalyticsSubTab] = useState<AnalyticsSubTabType>(initialState.analyticsSub);
+  const [advancedSubTab, setAdvancedSubTab] = useState<AdvancedSubTabType>(initialState.advancedSub);
+  const [backfillSubTab, setBackfillSubTab] = useState<BackfillSubTabType>(initialState.backfillSub);
 
   useEffect(() => {
-    if (adminPath.startsWith("/admin/cms")) {
-      setActiveTab("cms");
-    }
-  }, [adminPath]);
+    const derived = deriveTabFromPath(adminPath);
+    setActiveTab(derived.tab);
+    setAnalyticsSubTab(derived.analyticsSub);
+    setAdvancedSubTab(derived.advancedSub);
+    setBackfillSubTab(derived.backfillSub);
+  }, [adminPath, deriveTabFromPath]);
 
-  const switchTab = useCallback((tab: typeof activeTab) => {
+  const switchTab = useCallback((tab: TabType) => {
     setActiveTab(tab);
     setSearchTerm("");
-    if (adminPath.startsWith("/admin/cms")) {
-      adminNavigate("/admin");
+    if (tab === "analytics") {
+      adminNavigate(`/admin/analytics/acquisition`);
+    } else if (tab === "advanced") {
+      adminNavigate(`/admin/advanced/backfill/transcripts`);
+    } else {
+      adminNavigate(`/admin/${tab}`);
     }
-  }, [adminPath, adminNavigate]);
-  const [analyticsSubTab, setAnalyticsSubTab] = useState<"acquisition" | "affiliates" | "growth" | "email">("acquisition");
-  const [advancedSubTab, setAdvancedSubTab] = useState<"backfill" | "rss" | "hosts" | "api-costs" | "feature-flags">("backfill");
-  const [backfillSubTab, setBackfillSubTab] = useState<"transcripts" | "pages" | "tools">("transcripts");
+  }, [adminNavigate]);
+
+  const switchAnalyticsSubTab = useCallback((sub: AnalyticsSubTabType) => {
+    setAnalyticsSubTab(sub);
+    adminNavigate(`/admin/analytics/${sub}`);
+  }, [adminNavigate]);
+
+  const switchAdvancedSubTab = useCallback((sub: AdvancedSubTabType) => {
+    setAdvancedSubTab(sub);
+    if (sub === "backfill") {
+      adminNavigate(`/admin/advanced/backfill/${backfillSubTab}`);
+    } else {
+      adminNavigate(`/admin/advanced/${sub}`);
+    }
+  }, [adminNavigate, backfillSubTab]);
+
+  const switchBackfillSubTab = useCallback((sub: BackfillSubTabType) => {
+    setBackfillSubTab(sub);
+    adminNavigate(`/admin/advanced/backfill/${sub}`);
+  }, [adminNavigate]);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const { data: adminAuth, isLoading: authLoading } = useQuery<{ isAdmin: boolean } | null>({
@@ -1020,7 +1080,7 @@ export default function Admin() {
                     <button
                       key={key}
                       data-testid={`analytics-tab-${key}`}
-                      onClick={() => setAnalyticsSubTab(key)}
+                      onClick={() => switchAnalyticsSubTab(key)}
                       className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
                         analyticsSubTab === key
                           ? "bg-white dark:bg-zinc-800 text-foreground shadow-sm"
@@ -1071,7 +1131,7 @@ export default function Admin() {
                 <div className="flex items-center gap-1 mb-5 bg-black/[0.03] rounded-xl p-1" data-testid="advanced-sub-tabs">
                   <button
                     data-testid="advanced-subtab-backfill"
-                    onClick={() => setAdvancedSubTab("backfill")}
+                    onClick={() => switchAdvancedSubTab("backfill")}
                     className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                       advancedSubTab === "backfill"
                         ? "bg-white text-foreground shadow-sm"
@@ -1083,7 +1143,7 @@ export default function Admin() {
                   </button>
                   <button
                     data-testid="advanced-subtab-rss"
-                    onClick={() => setAdvancedSubTab("rss")}
+                    onClick={() => switchAdvancedSubTab("rss")}
                     className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                       advancedSubTab === "rss"
                         ? "bg-white text-foreground shadow-sm"
@@ -1095,7 +1155,7 @@ export default function Admin() {
                   </button>
                   <button
                     data-testid="advanced-subtab-hosts"
-                    onClick={() => setAdvancedSubTab("hosts")}
+                    onClick={() => switchAdvancedSubTab("hosts")}
                     className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                       advancedSubTab === "hosts"
                         ? "bg-white text-foreground shadow-sm"
@@ -1107,7 +1167,7 @@ export default function Admin() {
                   </button>
                   <button
                     data-testid="advanced-subtab-api-costs"
-                    onClick={() => setAdvancedSubTab("api-costs")}
+                    onClick={() => switchAdvancedSubTab("api-costs")}
                     className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                       advancedSubTab === "api-costs"
                         ? "bg-white text-foreground shadow-sm"
@@ -1119,7 +1179,7 @@ export default function Admin() {
                   </button>
                   <button
                     data-testid="advanced-subtab-feature-flags"
-                    onClick={() => setAdvancedSubTab("feature-flags")}
+                    onClick={() => switchAdvancedSubTab("feature-flags")}
                     className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                       advancedSubTab === "feature-flags"
                         ? "bg-white text-foreground shadow-sm"
@@ -1136,7 +1196,7 @@ export default function Admin() {
                     <div className="flex items-center gap-1 mb-5 bg-black/[0.03] rounded-xl p-1" data-testid="backfill-sub-tabs">
                       <button
                         data-testid="subtab-transcripts"
-                        onClick={() => setBackfillSubTab("transcripts")}
+                        onClick={() => switchBackfillSubTab("transcripts")}
                         className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                           backfillSubTab === "transcripts"
                             ? "bg-white text-foreground shadow-sm"
@@ -1148,7 +1208,7 @@ export default function Admin() {
                       </button>
                       <button
                         data-testid="subtab-pages"
-                        onClick={() => setBackfillSubTab("pages")}
+                        onClick={() => switchBackfillSubTab("pages")}
                         className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                           backfillSubTab === "pages"
                             ? "bg-white text-foreground shadow-sm"
@@ -1160,7 +1220,7 @@ export default function Admin() {
                       </button>
                       <button
                         data-testid="subtab-tools"
-                        onClick={() => setBackfillSubTab("tools")}
+                        onClick={() => switchBackfillSubTab("tools")}
                         className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                           backfillSubTab === "tools"
                             ? "bg-white text-foreground shadow-sm"
