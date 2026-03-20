@@ -404,7 +404,7 @@ export function CardBottomAccordion({ item, bottomBar, isLoggedIn }: {
           >
             <div className="flex items-center flex-shrink-0">
               <SpotifyIcon className={`w-[22px] h-[22px] ${hasSpotify ? "text-[#1DB954]" : "text-[#1DB954]/30"}`} />
-              <YouTubeIcon className={`w-[22px] h-[22px] -ml-[4px] ${hasYoutube ? "text-[#FF0000]" : "text-[#FF0000]/30"}`} />
+              {hasYoutube && <YouTubeIcon className="w-[22px] h-[22px] -ml-[4px] text-[#FF0000]" />}
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[14px] font-bold text-[#09090B]">Listen to this episode</div>
