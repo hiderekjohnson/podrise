@@ -102,6 +102,7 @@ interface CMSPodcast {
   avg_episodes_per_week: number;
 
   follower_count: number;
+  created_at: string | null;
 }
 
 interface TopicStat {
@@ -678,7 +679,7 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
-      setSortOrder(field === "avg_per_week" ? "desc" : "asc");
+      setSortOrder(field === "avg_per_week" || field === "date_added" ? "desc" : "asc");
     }
   };
 
@@ -990,13 +991,22 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
                   Enrichment {sortField === "enrichment" && (sortOrder === "asc" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
                 </span>
               </th>
+              <th
+                className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3 cursor-pointer hover:text-foreground"
+                onClick={() => toggleSort("date_added")}
+                data-testid="sort-podcast-date-added"
+              >
+                <span className="flex items-center gap-1">
+                  Added {sortField === "date_added" && (sortOrder === "asc" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
+                </span>
+              </th>
               <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {(!podcasts || podcasts.length === 0) ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-sm text-muted-foreground">
+                <td colSpan={9} className="px-4 py-12 text-center text-sm text-muted-foreground">
                   {search ? "No matching podcasts found." : "No podcasts in directory yet."}
                 </td>
               </tr>
@@ -1074,6 +1084,11 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
                         </div>
                       ))}
                     </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="text-sm text-muted-foreground" data-testid={`text-date-added-${p.id}`}>
+                      {p.created_at ? new Date(p.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
+                    </span>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">

@@ -10294,7 +10294,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         params.push(status);
         query += ` AND pd.status = $${params.length}`;
       }
-      const sortCol = sort === "name" ? "pd.name" : sort === "episodes" ? "episode_count" : sort === "avg_per_week" ? "avg_episodes_per_week" : sort === "followers" ? "pd.name" : "pd.name";
+      const sortCol = sort === "name" ? "pd.name" : sort === "episodes" ? "episode_count" : sort === "avg_per_week" ? "avg_episodes_per_week" : sort === "date_added" ? "pd.created_at" : sort === "followers" ? "pd.name" : "pd.name";
       const sortOrder = order === "desc" ? "DESC" : "ASC";
       query += ` ORDER BY ${sortCol} ${sortOrder}`;
       const { rows } = await pool.query(query, params);
