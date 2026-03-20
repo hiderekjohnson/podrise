@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Die With Zero by Bill Perkins — 11 Podcast Mentions | PodRise</title>
+<meta name="description" content="Die With Zero has been mentioned on 11 podcasts including My First Million, All the Hacks, We Study Billionaires and more.">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --indigo: #6366F1; --indigo-dark: #4F46E5; --indigo-light: #EEF2FF; --indigo-mid: #C7D2FE;
+  --text: #09090B; --text-2: #52525B; --text-3: #71717A; --text-4: #A1A1AA;
+  --bg: #F7F7FC; --card: #FFFFFF; --border: #E4E4E7; --border-light: #F0F0F2;
+  --nav-height: 60px; --bar-height: 52px;
+}
+html { scroll-behavior: smooth; }
+body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+.nav { background: rgba(255,255,255,0.92); backdrop-filter: blur(12px); border-bottom: 0.5px solid var(--border-light); padding: 0 28px; height: var(--nav-height); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+.nav-logo-icon { width: 28px; height: 28px; background: linear-gradient(145deg,#6366F1,#8B5CF6); border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+.nav-logo-word { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; color: var(--text); }
+.nav-logo-word span { color: var(--indigo); font-weight: 300; }
+.nav-right { display: flex; align-items: center; gap: 10px; }
+.nav-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--indigo-light); border: 1.5px solid var(--indigo-mid); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--indigo); cursor: pointer; }
+
+.buy-bar { position: sticky; top: var(--nav-height); z-index: 90; background: rgba(255,255,255,0.96); backdrop-filter: blur(12px); border-bottom: 0.5px solid var(--border-light); padding: 0 28px; height: var(--bar-height); display: flex; align-items: center; }
+.buy-bar-inner { max-width: 960px; margin: 0 auto; width: 100%; display: flex; align-items: center; gap: 12px; }
+.buy-bar-cover { width: 24px; height: 36px; border-radius: 2px; object-fit: cover; flex-shrink: 0; }
+.buy-bar-meta { flex: 1; min-width: 0; }
+.buy-bar-title { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.buy-bar-author { font-size: 12px; color: var(--text-3); }
+.buy-bar-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+.buy-bar-save { display: flex; align-items: center; gap: 5px; background: none; border: 0.5px solid var(--border); border-radius: 7px; padding: 6px 12px; font-size: 12px; font-weight: 500; color: var(--text-2); cursor: pointer; font-family: inherit; }
+.buy-bar-save:hover { background: var(--bg); border-color: var(--indigo-mid); color: var(--indigo); }
+.buy-bar-save.saved { background: var(--indigo-light); border-color: var(--indigo-mid); color: var(--indigo); }
+.buy-bar-btn { display: flex; align-items: center; gap: 6px; background: var(--indigo); color: #fff; border: none; border-radius: 7px; padding: 7px 14px; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; font-family: inherit; }
+.buy-bar-btn:hover { background: var(--indigo-dark); }
+
+.page { max-width: 960px; margin: 0 auto; padding: 32px 28px 80px; }
+.breadcrumb { font-size: 12px; color: var(--text-4); margin-bottom: 24px; display: flex; align-items: center; gap: 6px; }
+.breadcrumb a { color: var(--text-3); text-decoration: none; }
+.breadcrumb a:hover { color: var(--indigo); }
+
+.layout { display: grid; grid-template-columns: minmax(0,1fr) 260px; gap: 32px; align-items: start; }
+
+/* Sticky sidebar */
+.sidebar-sticky { position: sticky; top: calc(var(--nav-height) + var(--bar-height) + 24px); }
+
+/* HERO */
+.hero-card { background: var(--card); border: 0.5px solid var(--border); border-radius: 16px; padding: 28px; margin-bottom: 24px; display: flex; gap: 32px; align-items: flex-start; }
+.hero-cover-link { flex-shrink: 0; display: block; }
+.hero-cover { width: 150px; border-radius: 5px 10px 10px 5px; display: block; box-shadow: -3px 0 0 rgba(0,0,0,0.14), 0 10px 28px rgba(0,0,0,0.18); transition: transform 0.2s, box-shadow 0.2s; }
+.hero-cover-link:hover .hero-cover { transform: translateY(-2px); box-shadow: -3px 0 0 rgba(0,0,0,0.14), 0 14px 32px rgba(0,0,0,0.22); }
+.hero-meta { flex: 1; min-width: 0; padding-top: 4px; }
+.hero-title { font-family: 'DM Serif Display', serif; font-size: 28px; font-weight: 400; line-height: 1.2; color: var(--text); margin: 0 0 5px; }
+.hero-author { font-size: 14px; color: var(--text-3); margin: 0 0 18px; }
+
+/* Personal context banner */
+.personal-banner { display: flex; align-items: flex-start; gap: 10px; background: #F0FDF4; border: 0.5px solid #BBF7D0; border-radius: 10px; padding: 10px 14px; margin-bottom: 18px; }
+.personal-banner-text { font-size: 12px; color: #166534; line-height: 1.5; }
+.personal-banner-text strong { font-weight: 500; }
+
+.mention-count-badge { display: inline-flex; align-items: center; gap: 10px; background: var(--indigo-light); border: 0.5px solid var(--indigo-mid); border-radius: 10px; padding: 10px 16px; margin-bottom: 18px; }
+.mention-count-num { font-size: 24px; font-weight: 700; color: #4338CA; letter-spacing: -0.03em; line-height: 1; }
+.mention-count-label { font-size: 14px; color: var(--indigo); }
+
+.show-avatars-wrap { display: flex; align-items: center; gap: 0; margin-bottom: 22px; }
+.show-avatar { width: 44px; height: 44px; border-radius: 11px; border: 2.5px solid #fff; object-fit: cover; flex-shrink: 0; background: var(--bg); box-shadow: 0 1px 4px rgba(0,0,0,0.12); margin-right: -8px; }
+.show-avatar-more { width: 44px; height: 44px; border-radius: 11px; border: 2.5px solid #fff; background: var(--indigo-light); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #4338CA; flex-shrink: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-right: -8px; }
+
+.hero-actions { display: flex; align-items: center; gap: 10px; }
+.amazon-btn { display: inline-flex; align-items: center; gap: 7px; background: var(--indigo); color: #fff; border: none; border-radius: 9px; padding: 11px 20px; font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; font-family: inherit; }
+.amazon-btn:hover { background: var(--indigo-dark); }
+.save-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--card); color: var(--text-2); border: 0.5px solid var(--border); border-radius: 9px; padding: 11px 16px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; }
+.save-btn:hover { background: var(--bg); border-color: var(--indigo-mid); color: var(--indigo); }
+.save-btn.saved { background: var(--indigo-light); border-color: var(--indigo-mid); color: var(--indigo); }
+.amazon-note { font-size: 11px; color: var(--text-4); margin-top: 8px; }
+
+.buzz-card { background: var(--indigo-light); border: 0.5px solid var(--indigo-mid); border-left: 3px solid var(--indigo); border-radius: 0 12px 12px 0; padding: 16px 20px; margin-bottom: 24px; }
+.buzz-label { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--indigo); margin: 0 0 7px; }
+.buzz-text { font-size: 14px; color: #3730A3; line-height: 1.7; margin: 0; font-style: italic; }
+
+.section-label { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--indigo); margin: 0 0 14px; display: flex; align-items: center; gap: 7px; }
+
+.mention { background: var(--card); border: 0.5px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 10px; transition: border-color 0.15s; }
+.mention:hover { border-color: var(--indigo-mid); }
+.mention-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px 12px; border-bottom: 0.5px solid var(--border-light); }
+.mention-show-art { width: 40px; height: 40px; border-radius: 9px; flex-shrink: 0; object-fit: cover; background: var(--bg); }
+.mention-show-info { flex: 1; min-width: 0; }
+.mention-show-name { font-size: 13px; font-weight: 500; color: var(--indigo); margin: 0 0 2px; text-decoration: none; display: block; }
+.mention-show-name:hover { text-decoration: underline; }
+.mention-ep { font-size: 12px; color: var(--text-3); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mention-date { font-size: 11px; color: var(--text-4); flex-shrink: 0; font-family: 'DM Mono', monospace; }
+.mention-following-tag { font-size: 10px; font-weight: 500; background: #F0FDF4; color: #166534; border-radius: 4px; padding: 2px 6px; flex-shrink: 0; }
+.mention-body { padding: 14px 16px; }
+.mention-why-label { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-4); margin: 0 0 6px; }
+.mention-why-text { font-size: 13px; color: var(--text-2); line-height: 1.7; margin: 0; }
+.mention-footer { border-top: 0.5px solid var(--border-light); padding: 10px 16px; }
+.mention-ep-link { font-size: 12px; color: var(--indigo); font-weight: 500; text-decoration: none; }
+.mention-ep-link:hover { text-decoration: underline; }
+
+.about-card { background: var(--card); border: 0.5px solid var(--border); border-radius: 12px; padding: 22px; margin-top: 24px; }
+.about-text { font-size: 14px; color: var(--text-2); line-height: 1.8; }
+.about-text b { color: var(--text); font-weight: 500; }
+
+.details-card { background: var(--card); border: 0.5px solid var(--border); border-radius: 12px; overflow: hidden; margin-top: 12px; }
+.details-row { display: flex; align-items: center; justify-content: space-between; padding: 11px 16px; border-bottom: 0.5px solid var(--border-light); font-size: 13px; }
+.details-row:last-child { border-bottom: none; }
+.details-key { color: var(--text-4); }
+.details-val { color: var(--text-2); font-weight: 500; }
+.details-val a { color: var(--indigo); text-decoration: none; }
+
+/* SIDEBAR */
+.sidebar-card { background: var(--card); border: 0.5px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 14px; }
+.sidebar-head { padding: 13px 14px 11px; border-bottom: 0.5px solid var(--border-light); }
+.sidebar-head-title { font-size: 13px; font-weight: 500; color: var(--text); margin: 0 0 2px; display: flex; align-items: center; gap: 6px; }
+.sidebar-head-sub { font-size: 11px; color: var(--text-4); margin: 0; }
+
+.book-row { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-bottom: 0.5px solid var(--border-light); text-decoration: none; }
+.book-row:last-child { border-bottom: none; }
+.book-row:hover { background: #FAFAFA; }
+.book-cover-sm { width: 28px; height: 40px; border-radius: 2px 3px 3px 2px; object-fit: cover; flex-shrink: 0; background: var(--bg); box-shadow: -1px 0 0 rgba(0,0,0,0.08), 0 2px 5px rgba(0,0,0,0.1); }
+.book-info { flex: 1; min-width: 0; }
+.book-title { font-size: 12px; font-weight: 500; color: var(--text); margin: 0 0 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.book-author-text { font-size: 11px; color: var(--text-4); margin: 0; }
+.book-arrow { color: #D4D4D8; margin-left: auto; font-size: 13px; flex-shrink: 0; }
+
+/* Your shows card */
+.your-shows-card { background: var(--card); border: 0.5px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 14px; }
+.your-shows-inner { padding: 13px 14px; }
+.your-shows-title { font-size: 13px; font-weight: 500; color: var(--text); margin: 0 0 2px; display: flex; align-items: center; gap: 6px; }
+.your-shows-sub { font-size: 11px; color: var(--text-4); margin: 0 0 12px; }
+.your-show-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.your-show-row:last-child { margin-bottom: 0; }
+.your-show-art { width: 32px; height: 32px; border-radius: 7px; object-fit: cover; flex-shrink: 0; background: var(--bg); }
+.your-show-name { font-size: 12px; font-weight: 500; color: var(--text-2); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.your-show-tag { font-size: 10px; font-weight: 500; background: #F0FDF4; color: #166534; border-radius: 4px; padding: 2px 6px; flex-shrink: 0; }
+
+footer { border-top: 0.5px solid var(--border-light); background: rgba(255,255,255,0.7); backdrop-filter: blur(8px); padding: 48px 28px 36px; margin-top: 40px; }
+.footer-inner { max-width: 960px; margin: 0 auto; }
+.footer-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 32px; margin-bottom: 40px; }
+.footer-col-title { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(9,9,11,0.5); margin: 0 0 14px; }
+.footer-links { display: flex; flex-direction: column; gap: 10px; }
+.footer-links a { font-size: 13px; color: var(--text-2); text-decoration: none; }
+.footer-links a:hover { color: var(--indigo); }
+.footer-bottom { border-top: 0.5px solid var(--border-light); padding-top: 24px; display: flex; align-items: center; justify-content: space-between; }
+.footer-copy { font-size: 12px; color: var(--text-4); }
+
+@media (max-width: 700px) {
+  .layout { grid-template-columns: 1fr; }
+  .hero-card { flex-direction: column; }
+  .page { padding: 20px 16px 60px; }
+  .nav { padding: 0 16px; }
+  .footer-grid { grid-template-columns: repeat(2,1fr); }
+  .sidebar-sticky { position: static; }
+}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a href="/" class="nav-logo">
+    <div class="nav-logo-icon">
+      <svg viewBox="0 0 28 28" width="16" height="16" fill="none">
+        <rect x="1" y="11" width="3.5" height="6" rx="1.75" fill="white" opacity="0.5"/>
+        <rect x="6.5" y="7" width="3.5" height="14" rx="1.75" fill="white" opacity="0.75"/>
+        <rect x="12" y="4" width="3.5" height="20" rx="1.75" fill="white"/>
+        <rect x="17.5" y="8" width="3.5" height="12" rx="1.75" fill="white" opacity="0.85"/>
+        <rect x="23" y="5" width="3.5" height="18" rx="1.75" fill="white" opacity="0.6"/>
+      </svg>
+    </div>
+    <div class="nav-logo-word">Pod<span>Rise</span></div>
+  </a>
+  <div class="nav-right">
+    <div class="nav-avatar">DJ</div>
+  </div>
+</header>
+
+<div class="buy-bar">
+  <div class="buy-bar-inner">
+    <img class="buy-bar-cover" src="https://podrise.com/books/die-with-zero-bill-perkins.jpg" alt="" onerror="this.style.background='#EEF2FF'">
+    <div class="buy-bar-meta">
+      <div class="buy-bar-title">Die With Zero</div>
+      <div class="buy-bar-author">Bill Perkins</div>
+    </div>
+    <div class="buy-bar-actions">
+      <button class="buy-bar-save" id="bar-save-btn" onclick="toggleSave()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        <span id="bar-save-label">Save</span>
+      </button>
+      <a href="https://www.amazon.com/s?k=Die+With+Zero+Bill+Perkins&tag=podcap-20" target="_blank" rel="sponsored noopener" class="buy-bar-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        Buy on Amazon
+      </a>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="page">
+    <div class="breadcrumb">
+      <a href="/">Home</a><span>›</span>
+      <a href="/shop">Bookstore</a><span>›</span>
+      <span>Die With Zero</span>
+    </div>
+
+    <div class="layout">
+      <div>
+        <!-- HERO -->
+        <div class="hero-card">
+          <a class="hero-cover-link" href="https://www.amazon.com/s?k=Die+With+Zero+Bill+Perkins&tag=podcap-20" target="_blank" rel="sponsored noopener">
+            <img class="hero-cover" src="https://podrise.com/books/die-with-zero-bill-perkins.jpg" alt="Die With Zero" onerror="this.style.background='#EEF2FF';this.style.height='225px'">
+          </a>
+          <div class="hero-meta">
+            <h1 class="hero-title">Die With Zero</h1>
+            <p class="hero-author">by Bill Perkins</p>
+
+            <!-- Personal context — shows they follow -->
+            <div class="personal-banner">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#166534" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+              <p class="personal-banner-text"><strong>My First Million</strong> and <strong>All the Hacks</strong> mentioned this book — both shows you follow.</p>
+            </div>
+
+            <div class="mention-count-badge">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+              <span class="mention-count-num">11</span>
+              <span class="mention-count-label">podcast mentions</span>
+            </div>
+
+            <div class="show-avatars-wrap">
+              <img class="show-avatar" src="https://podrise.com/artwork/myfirstmillion.jpg" alt="My First Million" onerror="this.style.background='#1a1a2e';this.removeAttribute('src')">
+              <img class="show-avatar" src="https://podrise.com/artwork/allthehacks.jpg" alt="All the Hacks" onerror="this.style.background='#0f3460';this.removeAttribute('src')">
+              <img class="show-avatar" src="https://podrise.com/artwork/westudybillionaires.jpg" alt="We Study Billionaires" onerror="this.style.background='#064e3b';this.removeAttribute('src')">
+              <img class="show-avatar" src="https://podrise.com/artwork/sidehustleshow.jpg" alt="Side Hustle Show" onerror="this.style.background='#7c3aed';this.removeAttribute('src')">
+              <img class="show-avatar" src="https://podrise.com/artwork/themoneyguyshow.jpg" alt="Money Guy Show" onerror="this.style.background='#1e3a5f';this.removeAttribute('src')">
+              <div class="show-avatar-more">+6</div>
+            </div>
+
+            <div class="hero-actions">
+              <a href="https://www.amazon.com/s?k=Die+With+Zero+Bill+Perkins&tag=podcap-20" target="_blank" rel="sponsored noopener" class="amazon-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                Buy on Amazon
+              </a>
+              <button class="save-btn" id="hero-save-btn" onclick="toggleSave()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                <span id="hero-save-label">Save to library</span>
+              </button>
+            </div>
+            <p class="amazon-note">We earn a small commission — it helps keep PodRise free.</p>
+          </div>
+        </div>
+
+        <!-- BUZZ -->
+        <div class="buzz-card">
+          <p class="buzz-label">The recurring theme across all 11 mentions</p>
+          <p class="buzz-text">Hosts keep returning to the same core provocation: most people die with money they never spent on experiences they kept postponing. Bill Perkins calls this the biggest financial mistake people make — not losing money, but never converting it into memories while they still could.</p>
+        </div>
+
+        <!-- MENTIONS -->
+        <p class="section-label">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+          What podcasters said about this book
+        </p>
+
+        <div class="mention">
+          <div class="mention-header">
+            <img class="mention-show-art" src="https://podrise.com/artwork/myfirstmillion.jpg" alt="" onerror="this.style.display='none'">
+            <div class="mention-show-info">
+              <a class="mention-show-name" href="/podcasts/myfirstmillion">My First Million</a>
+              <p class="mention-ep">The best stuff we've read in the last 12 months</p>
+            </div>
+            <span class="mention-following-tag">Following</span>
+            <span class="mention-date" style="margin-left:8px;">Jan 2026</span>
+          </div>
+          <div class="mention-body">
+            <p class="mention-why-label">What they said</p>
+            <p class="mention-why-text">Sam brought it up as the book that most changed his actual behavior in 2025 — not his philosophy, his behavior. He said reading it made him immediately book a trip he'd been postponing for three years because he realized the reason he kept delaying it had nothing to do with money and everything to do with a vague idea that there would be a better time later.</p>
+          </div>
+          <div class="mention-footer">
+            <a class="mention-ep-link" href="/podcasts/myfirstmillion/best-stuff-weve-read">See full episode recap →</a>
+          </div>
+        </div>
+
+        <div class="mention">
+          <div class="mention-header">
+            <img class="mention-show-art" src="https://podrise.com/artwork/allthehacks.jpg" alt="" onerror="this.style.display='none'">
+            <div class="mention-show-info">
+              <a class="mention-show-name" href="/podcasts/allthehacks">All the Hacks</a>
+              <p class="mention-ep">Contrarian Takes on Money, Risk, and Retirement with Tyler Gardner</p>
+            </div>
+            <span class="mention-following-tag">Following</span>
+            <span class="mention-date" style="margin-left:8px;">Sep 2025</span>
+          </div>
+          <div class="mention-body">
+            <p class="mention-why-label">What they said</p>
+            <p class="mention-why-text">Tyler Gardner brought up the book's concept of "memory dividends" — the idea that experiences you invest in at 35 pay psychological returns for decades. He argued that accumulating wealth without spending it on formative experiences is a category of financial regret that never shows up in a balance sheet but dominates people's final years.</p>
+          </div>
+          <div class="mention-footer">
+            <a class="mention-ep-link" href="/podcasts/allthehacks/contrarian-money-risk-retirement">See full episode recap →</a>
+          </div>
+        </div>
+
+        <div class="mention">
+          <div class="mention-header">
+            <img class="mention-show-art" src="https://podrise.com/artwork/westudybillionaires.jpg" alt="" onerror="this.style.display='none'">
+            <div class="mention-show-info">
+              <a class="mention-show-name" href="/podcasts/westudybillionaires">We Study Billionaires</a>
+              <p class="mention-ep">TIP796: Die with Zero &amp; Linde Stock Analysis w/ Clay Finck</p>
+            </div>
+            <span class="mention-date">Mar 2026</span>
+          </div>
+          <div class="mention-body">
+            <p class="mention-why-label">What they said</p>
+            <p class="mention-why-text">Clay Finck dedicated an entire episode to the book's central argument — that optimizing for a large estate is the wrong financial goal. He walked through Perkins' "net worth curve" concept, which plots the ideal time to spend money based on health and energy levels rather than retirement age. His key takeaway: most people's peak spending capacity arrives decades before they'd plan to use it.</p>
+          </div>
+          <div class="mention-footer">
+            <a class="mention-ep-link" href="/podcasts/westudybillionaires/tip796-die-with-zero">See full episode recap →</a>
+          </div>
+        </div>
+
+        <div class="mention">
+          <div class="mention-header">
+            <img class="mention-show-art" src="https://podrise.com/artwork/themoneyguyshow.jpg" alt="" onerror="this.style.display='none'">
+            <div class="mention-show-info">
+              <a class="mention-show-name" href="/podcasts/moneyguyshow">The Money Guy Show</a>
+              <p class="mention-ep">Her Coast FIRE Plan Has Some MAJOR Holes | Making a Millionaire</p>
+            </div>
+            <span class="mention-date">Jan 2026</span>
+          </div>
+          <div class="mention-body">
+            <p class="mention-why-label">What they said</p>
+            <p class="mention-why-text">Danielle brought up the book as the philosophy underpinning her entire Coast FIRE plan — she doesn't want children and doesn't intend to leave a large inheritance, so she's building her financial plan around maximum experience spending before 60. The hosts pushed back on whether the book's math holds for people without significant existing wealth.</p>
+          </div>
+          <div class="mention-footer">
+            <a class="mention-ep-link" href="/podcasts/moneyguyshow/coast-fire-plan-holes">See full episode recap →</a>
+          </div>
+        </div>
+
+        <div class="mention">
+          <div class="mention-header">
+            <img class="mention-show-art" src="https://podrise.com/artwork/sidehustleshow.jpg" alt="" onerror="this.style.display='none'">
+            <div class="mention-show-info">
+              <a class="mention-show-name" href="/podcasts/sidehustleshow">The Side Hustle Show</a>
+              <p class="mention-ep">714: My 2025 Progress Report: What Worked, What Didn't, and What's Next?</p>
+            </div>
+            <span class="mention-date">Dec 2025</span>
+          </div>
+          <div class="mention-body">
+            <p class="mention-why-label">What they said</p>
+            <p class="mention-why-text">Nick Loper said the book directly changed how he and his wife think about retirement timing. Instead of maximizing savings for a distant future, they're now deliberately planning bigger experiences in their 40s — while they have the physical capacity to enjoy them — even if it means a smaller number at 65.</p>
+          </div>
+          <div class="mention-footer">
+            <a class="mention-ep-link" href="/podcasts/sidehustleshow/2025-progress-report">See full episode recap →</a>
+          </div>
+        </div>
+
+        <!-- ABOUT -->
+        <p class="section-label" style="margin-top:28px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          About this book
+        </p>
+        <div class="about-card">
+          <p class="about-text">Bill Perkins argues that most people optimize their entire financial lives around a goal that defeats the purpose of earning money in the first place — dying with a large number in an account. <b>Die With Zero</b> makes the case for converting money into experiences at the moment when you have both the resources and the physical ability to fully enjoy them. His core tool is the "net worth curve" — a model for when you should be spending versus saving based on your life stage, not a fixed retirement date.</p>
+        </div>
+        <div class="details-card">
+          <div class="details-row"><span class="details-key">Published</span><span class="details-val">2020</span></div>
+          <div class="details-row"><span class="details-key">Pages</span><span class="details-val">240</span></div>
+          <div class="details-row"><span class="details-key">Author</span><span class="details-val">Bill Perkins</span></div>
+          <div class="details-row"><span class="details-key">Buy</span><span class="details-val"><a href="https://www.amazon.com/s?k=Die+With+Zero+Bill+Perkins&tag=podcap-20" target="_blank" rel="sponsored noopener">Amazon →</a></span></div>
+        </div>
+      </div>
+
+      <!-- STICKY SIDEBAR -->
+      <div class="sidebar-sticky">
+
+        <!-- Shows they follow that mentioned this -->
+        <div class="your-shows-card">
+          <div class="your-shows-inner">
+            <p class="your-shows-title">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#166534" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+              Your shows talked about this
+            </p>
+            <p class="your-shows-sub">Shows you follow that mentioned this book</p>
+            <div class="your-show-row">
+              <img class="your-show-art" src="https://podrise.com/artwork/myfirstmillion.jpg" alt="" onerror="this.style.background='#1a1a2e';this.removeAttribute('src')">
+              <span class="your-show-name">My First Million</span>
+              <span class="your-show-tag">Following</span>
+            </div>
+            <div class="your-show-row">
+              <img class="your-show-art" src="https://podrise.com/artwork/allthehacks.jpg" alt="" onerror="this.style.background='#0f3460';this.removeAttribute('src')">
+              <span class="your-show-name">All the Hacks</span>
+              <span class="your-show-tag">Following</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Also mentioned -->
+        <div class="sidebar-card">
+          <div class="sidebar-head">
+            <p class="sidebar-head-title">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+              Also mentioned
+            </p>
+            <p class="sidebar-head-sub">Books that come up in the same episodes</p>
+          </div>
+          <a class="book-row" href="/shop/48-laws-of-power">
+            <img class="book-cover-sm" src="https://podrise.com/books/48-laws-of-power.jpg" alt="" onerror="this.style.background='#EEF2FF'">
+            <div class="book-info"><p class="book-title">48 Laws of Power</p><p class="book-author-text">Robert Greene</p></div>
+            <span class="book-arrow">›</span>
+          </a>
+          <a class="book-row" href="/shop/poor-charlies-almanack">
+            <img class="book-cover-sm" src="https://podrise.com/books/poor-charlies-almanack.jpg" alt="" onerror="this.style.background='#EEF2FF'">
+            <div class="book-info"><p class="book-title">Poor Charlie's Almanack</p><p class="book-author-text">Charlie Munger</p></div>
+            <span class="book-arrow">›</span>
+          </a>
+          <a class="book-row" href="/shop/atomic-habits">
+            <img class="book-cover-sm" src="https://covers.openlibrary.org/b/isbn/9780735211292-M.jpg" alt="" onerror="this.style.background='#EEF2FF'">
+            <div class="book-info"><p class="book-title">Atomic Habits</p><p class="book-author-text">James Clear</p></div>
+            <span class="book-arrow">›</span>
+          </a>
+          <a class="book-row" href="/shop/the-terminal-list">
+            <img class="book-cover-sm" src="https://podrise.com/books/the-terminal-list.jpg" alt="" onerror="this.style.background='#EEF2FF'">
+            <div class="book-info"><p class="book-title">The Terminal List</p><p class="book-author-text">Jack Carr</p></div>
+            <span class="book-arrow">›</span>
+          </a>
+          <a class="book-row" href="/shop/the-psychology-of-money">
+            <img class="book-cover-sm" src="https://covers.openlibrary.org/b/isbn/9780857197689-M.jpg" alt="" onerror="this.style.background='#EEF2FF'">
+            <div class="book-info"><p class="book-title">The Psychology of Money</p><p class="book-author-text">Morgan Housel</p></div>
+            <span class="book-arrow">›</span>
+          </a>
+          <a class="book-row" href="/shop/same-as-ever">
+            <img class="book-cover-sm" src="https://covers.openlibrary.org/b/isbn/9780593238714-M.jpg" alt="" onerror="this.style.background='#EEF2FF'">
+            <div class="book-info"><p class="book-title">Same as Ever</p><p class="book-author-text">Morgan Housel</p></div>
+            <span class="book-arrow">›</span>
+          </a>
+          <a class="book-row" href="/shop/the-will-of-the-many">
+            <img class="book-cover-sm" src="https://podrise.com/books/the-will-of-the-many.jpg" alt="" onerror="this.style.background='#EEF2FF'">
+            <div class="book-info"><p class="book-title">The Will of the Many</p><p class="book-author-text">James Islington</p></div>
+            <span class="book-arrow">›</span>
+          </a>
+          <a class="book-row" href="/shop/outlive">
+            <img class="book-cover-sm" src="https://covers.openlibrary.org/b/isbn/9780593236598-M.jpg" alt="" onerror="this.style.background='#EEF2FF'">
+            <div class="book-info"><p class="book-title">Outlive</p><p class="book-author-text">Peter Attia</p></div>
+            <span class="book-arrow">›</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div><p class="footer-col-title">Discover</p><div class="footer-links"><a href="/podcasts">Podcasts</a><a href="/shop">Bookstore</a><a href="/trends">Trends</a></div></div>
+      <div><p class="footer-col-title">Company</p><div class="footer-links"><a href="/about">About</a><a href="/advertise">Advertise</a><a href="/updates">What's New</a></div></div>
+      <div><p class="footer-col-title">Support</p><div class="footer-links"><a href="/register">Create Account</a><a href="/login">Log In</a><a href="/contact">Contact</a></div></div>
+      <div><p class="footer-col-title">Legal</p><div class="footer-links"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/cookies">Cookies</a></div></div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2026 PodRise, Inc. All rights reserved.</span>
+      <span class="footer-copy">We listened so you didn't have to.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+var saved = false;
+function toggleSave() {
+  saved = !saved;
+  var heroBtn = document.getElementById('hero-save-btn');
+  var barBtn = document.getElementById('bar-save-btn');
+  var heroLabel = document.getElementById('hero-save-label');
+  var barLabel = document.getElementById('bar-save-label');
+  if (saved) {
+    heroBtn.classList.add('saved');
+    barBtn.classList.add('saved');
+    heroLabel.textContent = 'Saved to library';
+    barLabel.textContent = 'Saved';
+  } else {
+    heroBtn.classList.remove('saved');
+    barBtn.classList.remove('saved');
+    heroLabel.textContent = 'Save to library';
+    barLabel.textContent = 'Save';
+  }
+}
+</script>
+</body>
+</html>
