@@ -10168,6 +10168,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       }
 
       let query = `SELECT pd.*, (SELECT COUNT(*) FROM landing_page_recaps lpr WHERE lpr.slug = pd.slug) as episode_count,
+        COALESCE((SELECT COUNT(*) FILTER (WHERE lpr2.key_insights IS NOT NULL AND array_length(lpr2.key_insights, 1) > 0) FROM landing_page_recaps lpr2 WHERE lpr2.slug = pd.slug), 0) as episodes_with_takeaways,
+        COALESCE((SELECT COUNT(*) FILTER (WHERE lpr2.what_happened IS NOT NULL AND lpr2.what_happened != '') FROM landing_page_recaps lpr2 WHERE lpr2.slug = pd.slug), 0) as episodes_with_recaps,
+        COALESCE((SELECT COUNT(*) FILTER (WHERE lpr2.tabloid_headline IS NOT NULL AND lpr2.tabloid_headline != '') FROM landing_page_recaps lpr2 WHERE lpr2.slug = pd.slug), 0) as episodes_with_headlines,
         COALESCE((
           SELECT CASE
             WHEN COUNT(*) <= 1 THEN 0
@@ -10192,15 +10195,21 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       query += ` ORDER BY ${sortCol} ${sortOrder}`;
       const { rows } = await pool.query(query, params);
 
-      const computeEnrichmentScore = (r: any) => {
-        return computeEnrichmentFromRecord(r, PODCAST_ENRICHMENT_FIELDS).score;
-      };
-
-      const enrichedRows = rows.map((r: any) => ({
-        ...r,
-        follower_count: followerMap.get(String(r.itunes_id)) || 0,
-        enrichment_score: computeEnrichmentScore(r),
-      }));
+      const enrichedRows = rows.map((r: any) => {
+        const totalEps = Number(r.episode_count) || 0;
+        const takeawaysPct = totalEps > 0 ? Math.round((Number(r.episodes_with_takeaways) / totalEps) * 100) : 0;
+        const recapsPct = totalEps > 0 ? Math.round((Number(r.episodes_with_recaps) / totalEps) * 100) : 0;
+        const headlinesPct = totalEps > 0 ? Math.round((Number(r.episodes_with_headlines) / totalEps) * 100) : 0;
+        const enrichment_score = Math.round((takeawaysPct + recapsPct + headlinesPct) / 3);
+        return {
+          ...r,
+          follower_count: followerMap.get(String(r.itunes_id)) || 0,
+          enrichment_score,
+          takeaways_pct: takeawaysPct,
+          recaps_pct: recapsPct,
+          headlines_pct: headlinesPct,
+        };
+      });
 
       if (sort === "followers") {
         enrichedRows.sort((a: any, b: any) => {

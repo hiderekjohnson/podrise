@@ -96,6 +96,9 @@ interface CMSPodcast {
   status: string;
   episode_count: number;
   enrichment_score: number;
+  takeaways_pct: number;
+  recaps_pct: number;
+  headlines_pct: number;
   avg_episodes_per_week: number;
 
   follower_count: number;
@@ -1049,18 +1052,27 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
                     <span className="text-sm font-medium text-foreground" data-testid={`text-follower-count-${p.id}`}>{p.follower_count || 0}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2" data-testid={`text-enrichment-${p.id}`}>
-                      <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all ${
-                            p.enrichment_score >= 75 ? "bg-emerald-500" : p.enrichment_score >= 40 ? "bg-amber-500" : "bg-red-400"
-                          }`}
-                          style={{ width: `${p.enrichment_score}%` }}
-                        />
-                      </div>
-                      <span className={`text-xs font-medium ${
-                        p.enrichment_score >= 75 ? "text-emerald-600 dark:text-emerald-400" : p.enrichment_score >= 40 ? "text-amber-600 dark:text-amber-400" : "text-red-500 dark:text-red-400"
-                      }`}>{p.enrichment_score}%</span>
+                    <div className="flex flex-col gap-1" data-testid={`text-enrichment-${p.id}`}>
+                      {[
+                        { label: "Takeaways", pct: p.takeaways_pct, testId: `enrichment-takeaways-${p.id}` },
+                        { label: "Recaps", pct: p.recaps_pct, testId: `enrichment-recaps-${p.id}` },
+                        { label: "Headlines", pct: p.headlines_pct, testId: `enrichment-headlines-${p.id}` },
+                      ].map((item) => (
+                        <div key={item.label} className="flex items-center gap-1.5" data-testid={item.testId}>
+                          <span className="text-[10px] text-muted-foreground w-16 truncate">{item.label}</span>
+                          <div className="w-12 h-1 rounded-full bg-muted overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${
+                                item.pct >= 75 ? "bg-emerald-500" : item.pct >= 40 ? "bg-amber-500" : "bg-red-400"
+                              }`}
+                              style={{ width: `${item.pct}%` }}
+                            />
+                          </div>
+                          <span className={`text-[10px] font-medium min-w-[28px] ${
+                            item.pct >= 75 ? "text-emerald-600 dark:text-emerald-400" : item.pct >= 40 ? "text-amber-600 dark:text-amber-400" : "text-red-500 dark:text-red-400"
+                          }`}>{item.pct}%</span>
+                        </div>
+                      ))}
                     </div>
                   </td>
                   <td className="px-4 py-3">
