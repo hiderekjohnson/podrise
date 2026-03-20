@@ -1,16 +1,15 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Link } from "wouter";
 import {
-  Copy, MessageSquare, Check, Lock, Trophy, Users,
-  Send, Star, Crown, Zap, Award, Target,
-  BookUser, ChevronRight
+  Copy, Check, Trophy, Users,
+  Star, Crown, Zap, Award,
+  Mail
 } from "lucide-react";
-import { SiWhatsapp, SiX, SiLinkedin, SiFacebook } from "react-icons/si";
+import { SiWhatsapp, SiX, SiLinkedin } from "react-icons/si";
 
 interface ReferralTier {
   id: number;
@@ -38,17 +37,101 @@ interface LeaderboardEntry {
   count: number;
 }
 
-const TIER_ICONS = [Star, Zap, Award, Crown, Trophy];
+const TIER_EMOJIS = ["⭐", "⚡", "🏅", "👑", "🏆"];
 
-const DEFAULT_INVITE_MESSAGE = `Thought you'd find this useful. PodRise tracks your favorite podcasts and pulls out the key takeaways, so you always know what's going on without sitting through hours of audio. Free:`;
+const SHARE_CHANNELS = [
+  {
+    key: "imessage",
+    label: "iMessage",
+    icon: "💬",
+    bg: "bg-[#34C759]",
+    getHref: (link: string, text: string) =>
+      `sms:?body=${encodeURIComponent(`${text} ${link}`)}`,
+  },
+  {
+    key: "whatsapp",
+    label: "WhatsApp",
+    icon: null,
+    iconComponent: SiWhatsapp,
+    bg: "bg-[#25D366]",
+    getHref: (link: string, text: string) =>
+      `https://wa.me/?text=${encodeURIComponent(`${text} ${link}`)}`,
+  },
+  {
+    key: "x",
+    label: "X",
+    icon: null,
+    iconComponent: SiX,
+    bg: "bg-[#09090B] dark:bg-[#E4E4E7]",
+    iconClass: "text-white dark:text-[#09090B]",
+    getHref: (link: string, text: string) =>
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(link)}`,
+  },
+  {
+    key: "linkedin",
+    label: "LinkedIn",
+    icon: null,
+    iconComponent: SiLinkedin,
+    bg: "bg-[#0A66C2]",
+    getHref: (link: string) =>
+      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(link)}`,
+  },
+  {
+    key: "gmail",
+    label: "Gmail",
+    icon: "✉️",
+    bg: "bg-[#EA4335]",
+    getHref: (link: string, text: string) =>
+      `https://mail.google.com/mail/?view=cm&body=${encodeURIComponent(`${text} ${link}`)}&su=${encodeURIComponent("Check out PodRise")}`,
+  },
+  {
+    key: "outlook",
+    label: "Outlook",
+    icon: "📧",
+    bg: "bg-[#0078D4]",
+    getHref: (link: string, text: string) =>
+      `https://outlook.live.com/mail/0/deeplink/compose?body=${encodeURIComponent(`${text} ${link}`)}&subject=${encodeURIComponent("Check out PodRise")}`,
+  },
+  {
+    key: "yahoo",
+    label: "Yahoo",
+    icon: "📨",
+    bg: "bg-[#6001D2]",
+    getHref: (link: string, text: string) =>
+      `https://compose.mail.yahoo.com/?body=${encodeURIComponent(`${text} ${link}`)}&subject=${encodeURIComponent("Check out PodRise")}`,
+  },
+  {
+    key: "mail",
+    label: "Mail",
+    icon: null,
+    iconComponent: Mail,
+    bg: "bg-[#52525B]",
+    getHref: (link: string, text: string) =>
+      `mailto:?body=${encodeURIComponent(`${text} ${link}`)}&subject=${encodeURIComponent("Check out PodRise")}`,
+  },
+];
+
+const AVATAR_COLORS = [
+  "bg-[#6366F1] text-white",
+  "bg-[#EC4899] text-white",
+  "bg-[#F59E0B] text-white",
+  "bg-[#10B981] text-white",
+  "bg-[#8B5CF6] text-white",
+  "bg-[#EF4444] text-white",
+  "bg-[#3B82F6] text-white",
+  "bg-[#14B8A6] text-white",
+];
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+}
 
 export default function PodSquad() {
   const { data: user } = useAuth();
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
-  const [inviteEmails, setInviteEmails] = useState("");
-  const [inviteMessage, setInviteMessage] = useState(DEFAULT_INVITE_MESSAGE);
-  const [showContactsPicker, setShowContactsPicker] = useState(false);
 
   useEffect(() => {
     document.title = "The Pod Squad — Referrals Get Rewarded | PodRise";
@@ -76,25 +159,6 @@ export default function PodSquad() {
     queryKey: ["/api/referrals/leaderboard"],
   });
 
-  const sendInviteMutation = useMutation({
-    mutationFn: async (emails: string) => {
-      const emailList = emails.split(",").map(e => e.trim()).filter(Boolean);
-      const results = [];
-      for (const email of emailList) {
-        const res = await apiRequest("POST", "/api/referrals/send-invite", { email });
-        results.push(await res.json());
-      }
-      return results;
-    },
-    onSuccess: (results) => {
-      toast({ title: "Invites sent!", description: `${results.length} invitation${results.length > 1 ? "s" : ""} sent successfully.` });
-      setInviteEmails("");
-    },
-    onError: (err: Error) => {
-      toast({ title: "Failed to send", description: err.message || "Please try again.", variant: "destructive" });
-    },
-  });
-
   const handleCopyLink = () => {
     if (stats?.referralLink) {
       navigator.clipboard.writeText(stats.referralLink);
@@ -104,29 +168,7 @@ export default function PodSquad() {
     }
   };
 
-  const handleAddContacts = async () => {
-    if ("contacts" in navigator && "ContactsManager" in window) {
-      try {
-        const contacts = await (navigator as any).contacts.select(["email"], { multiple: true });
-        const emails = contacts
-          .flatMap((c: any) => c.email || [])
-          .filter(Boolean)
-          .join(", ");
-        if (emails) {
-          setInviteEmails(prev => prev ? `${prev}, ${emails}` : emails);
-          toast({ title: "Contacts added!" });
-        }
-      } catch {
-        toast({ title: "Could not access contacts", variant: "destructive" });
-      }
-    } else {
-      setShowContactsPicker(true);
-    }
-  };
-
-  const smsShareText = `Have you seen this? Tracks your favorite podcasts and sends you the key takeaways without listening. Free:`;
-  const linkedInShareText = `Been using PodRise to keep up with the podcasts in my space without actually listening. It tracks your favorite shows and delivers the key takeaways. Free:`;
-  const twitterShareText = `Have you seen this? Tracks your favorite podcasts and sends you the key takeaways without listening. Free:`;
+  const shareText = `Have you seen this? Tracks your favorite podcasts and sends you the key takeaways without listening. Free:`;
 
   if (!user) {
     return (
@@ -147,322 +189,217 @@ export default function PodSquad() {
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout hideRightSidebar>
       <div className="min-h-screen bg-[#F9F9FB] dark:bg-[#09090B] pb-24 md:pb-8" data-testid="pod-squad-page">
-        {/* Hero Banner with Reward Tiers */}
-        <div
-          className="relative overflow-hidden"
-          style={{ background: "linear-gradient(145deg, #6366F1, #8B5CF6)" }}
-          data-testid="hero-banner"
-        >
-          <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-            <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-white/[0.06]" />
-            <div className="absolute bottom-10 -left-16 w-48 h-48 rounded-full bg-white/[0.04]" />
-            <div className="absolute top-1/2 right-1/4 w-32 h-32 rounded-full bg-white/[0.03]" />
-          </div>
-          <div className="relative z-10 max-w-5xl mx-auto px-4 md:px-8 pt-8 md:pt-10 text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.15] text-white/90 text-[13px] font-semibold mb-3" data-testid="badge-pod-squad">
-              <Trophy className="w-4 h-4" />
-              THE POD SQUAD
-            </div>
-            <h1 className="text-[1.75rem] md:text-[2.25rem] font-bold text-white leading-[1.1] tracking-[-0.03em] mb-2" data-testid="heading-hero">
-              Referrals Get Rewarded
-            </h1>
-            <p className="text-[15px] md:text-[17px] text-white/80 max-w-lg mx-auto mb-8">
-              Share PodRise with friends. As they sign up, you'll unlock exclusive rewards.
-            </p>
-
-            {!statsLoading && stats?.tiers && stats.tiers.length > 0 && (
-              <div className="pb-8">
-                <div className="flex gap-3 md:gap-4 overflow-x-auto pb-2 px-1 justify-start md:justify-center" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                  {stats.tiers.map((tier, i) => {
-                    const isUnlocked = stats.count >= tier.threshold;
-                    const isNext = stats.nextTier?.id === tier.id;
-                    const Icon = TIER_ICONS[i % TIER_ICONS.length];
-
-                    return (
-                      <div
-                        key={tier.id}
-                        className={`relative flex-shrink-0 w-[120px] md:w-[140px] rounded-2xl p-3 md:p-4 text-center transition-all ${
-                          isUnlocked
-                            ? "bg-white/[0.25] ring-2 ring-white/40"
-                            : isNext
-                            ? "bg-white/[0.18] ring-2 ring-white/30"
-                            : "bg-white/[0.10]"
-                        }`}
-                        data-testid={`tier-card-${tier.id}`}
-                      >
-                        {isUnlocked && (
-                          <div className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
-                            <Check className="w-3.5 h-3.5 text-white" />
-                          </div>
-                        )}
-                        {isNext && (
-                          <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-yellow-400 text-yellow-900 text-[10px] font-bold rounded-full uppercase tracking-wide">
-                            Next
-                          </div>
-                        )}
-                        <div className={`w-14 h-14 md:w-16 md:h-16 mx-auto mb-2 rounded-xl flex items-center justify-center ${
-                          isUnlocked ? "bg-white/[0.3]" : "bg-white/[0.15]"
-                        }`}>
-                          {tier.imageUrl ? (
-                            <img
-                              src={tier.imageUrl}
-                              alt={tier.rewardName}
-                              className={`w-10 h-10 md:w-12 md:h-12 object-contain ${!isUnlocked && !isNext ? "opacity-50 grayscale" : ""}`}
-                            />
-                          ) : (
-                            <Icon className={`w-7 h-7 md:w-8 md:h-8 ${
-                              isUnlocked ? "text-white" : isNext ? "text-white/80" : "text-white/40"
-                            }`} />
-                          )}
-                        </div>
-                        <p className={`text-[13px] md:text-[14px] font-bold leading-tight mb-1 ${
-                          isUnlocked ? "text-white" : isNext ? "text-white/90" : "text-white/50"
-                        }`}>
-                          {tier.rewardName}
-                        </p>
-                        <p className={`text-[22px] md:text-[26px] font-extrabold leading-none ${
-                          isUnlocked ? "text-white" : isNext ? "text-white/80" : "text-white/40"
-                        }`}>
-                          {tier.threshold}
-                        </p>
+        <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column - Hero + Share Card */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Compact Hero Banner */}
+              <div
+                className="relative overflow-hidden rounded-2xl"
+                style={{ background: "linear-gradient(145deg, #6366F1, #8B5CF6)" }}
+                data-testid="hero-banner"
+              >
+                <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+                  <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-white/[0.06]" />
+                  <div className="absolute bottom-8 -left-12 w-36 h-36 rounded-full bg-white/[0.04]" />
+                </div>
+                <div className="relative z-10 p-6 md:p-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    {/* Left: Title + Stat */}
+                    <div>
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.15] text-white/90 text-[12px] font-semibold mb-3" data-testid="badge-pod-squad">
+                        <Trophy className="w-3.5 h-3.5" />
+                        THE POD SQUAD
                       </div>
+                      <h1 className="text-[1.5rem] md:text-[1.75rem] font-bold text-white leading-[1.15] tracking-[-0.02em] mb-2" data-testid="heading-hero">
+                        Refer friends.<br />Get gear.
+                      </h1>
+                      <p className="text-[14px] md:text-[15px] text-white/75 mb-5 leading-relaxed">
+                        Share PodRise with friends. As they sign up, you'll unlock exclusive rewards.
+                      </p>
+                      {!statsLoading && (
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.2] backdrop-blur-sm" data-testid="stat-pill-referrals">
+                          <Users className="w-4 h-4 text-white/80" />
+                          <span className="text-[14px] font-bold text-white" data-testid="text-referral-count">{stats?.count ?? 0}</span>
+                          <span className="text-[13px] text-white/70">referral{(stats?.count ?? 0) !== 1 ? "s" : ""}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right: Reward Tiers List */}
+                    {!statsLoading && stats?.tiers && stats.tiers.length > 0 && (
+                      <div className="space-y-2" data-testid="tier-list">
+                        {stats.tiers.map((tier, i) => {
+                          const isUnlocked = stats.count >= tier.threshold;
+                          const isNext = stats.nextTier?.id === tier.id;
+                          const emoji = TIER_EMOJIS[i % TIER_EMOJIS.length];
+
+                          return (
+                            <div
+                              key={tier.id}
+                              className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all ${
+                                isNext
+                                  ? "bg-white/[0.2] ring-1 ring-white/30"
+                                  : isUnlocked
+                                  ? "bg-white/[0.12]"
+                                  : "bg-white/[0.06]"
+                              }`}
+                              data-testid={`tier-card-${tier.id}`}
+                            >
+                              <span className="text-[18px] flex-shrink-0">{emoji}</span>
+                              <span className={`text-[13px] font-semibold flex-1 min-w-0 truncate ${
+                                isUnlocked || isNext ? "text-white" : "text-white/50"
+                              }`}>
+                                {tier.rewardName}
+                              </span>
+                              <span className={`text-[12px] font-bold flex-shrink-0 ${
+                                isUnlocked ? "text-white" : isNext ? "text-white/80" : "text-white/40"
+                              }`}>
+                                {tier.threshold} refs
+                              </span>
+                              {isNext && (
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-400 text-yellow-900 uppercase tracking-wide flex-shrink-0" data-testid={`tier-up-next-${tier.id}`}>
+                                  Up next
+                                </span>
+                              )}
+                              {isUnlocked && (
+                                <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                                  <Check className="w-3 h-3 text-white" />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Share Card */}
+              <div className="rounded-2xl bg-white dark:bg-[#111114] border border-[#ECECEE] dark:border-[#1C1C22] p-5 md:p-6" data-testid="share-section">
+                {/* Click-to-copy referral link */}
+                <div
+                  className="flex items-center gap-2 px-4 py-3 rounded-xl bg-[#F9F9FB] dark:bg-[#09090B] border border-[#ECECEE] dark:border-[#27272A] cursor-pointer group hover:border-[#6366F1]/40 transition-colors mb-6"
+                  onClick={handleCopyLink}
+                  data-testid="input-referral-link"
+                >
+                  <span className="flex-1 text-[13px] font-mono text-[#52525B] dark:text-[#A1A1AA] truncate">
+                    {stats?.referralLink || "Loading..."}
+                  </span>
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[12px] font-semibold transition-all ${
+                      copied
+                        ? "bg-green-500 text-white"
+                        : "bg-[#6366F1] text-white group-hover:bg-[#4F46E5]"
+                    }`}
+                    data-testid="button-copy-link"
+                  >
+                    {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    {copied ? "Copied!" : "Copy"}
+                  </span>
+                </div>
+
+                {/* Share channel icons */}
+                <div className="grid grid-cols-4 sm:grid-cols-8 gap-3 mb-5" data-testid="share-channels">
+                  {SHARE_CHANNELS.map((channel) => {
+                    const href = channel.getHref(stats?.referralLink || "", shareText);
+                    const isExternal = href.startsWith("http");
+                    const IconComp = channel.iconComponent;
+                    return (
+                      <a
+                        key={channel.key}
+                        href={href}
+                        target={isExternal ? "_blank" : undefined}
+                        rel={isExternal ? "noopener noreferrer" : undefined}
+                        className="flex flex-col items-center gap-1.5 group/icon"
+                        data-testid={`share-${channel.key}`}
+                      >
+                        <div className={`w-10 h-10 rounded-xl ${channel.bg} flex items-center justify-center transition-transform group-hover/icon:scale-110`}>
+                          {channel.icon ? (
+                            <span className="text-[18px]">{channel.icon}</span>
+                          ) : IconComp ? (
+                            <IconComp className={`w-4.5 h-4.5 ${channel.iconClass || "text-white"}`} style={{ width: 18, height: 18 }} />
+                          ) : null}
+                        </div>
+                        <span className="text-[11px] font-medium text-[#71717A] dark:text-[#A1A1AA]">{channel.label}</span>
+                      </a>
                     );
                   })}
                 </div>
-                <p className="text-[12px] text-white/50 mt-3">
-                  * By participating in the Referral Program, you agree to abide by these{" "}
-                  <Link href="/terms" className="underline hover:text-white/80">Referral Program Terms and Conditions</Link>.
+
+                {/* Terms footer */}
+                <p className="text-[11px] text-[#A1A1AA] dark:text-[#52525B]">
+                  By participating in the Referral Program, you agree to abide by these{" "}
+                  <Link href="/terms" className="underline hover:text-[#6366F1] transition-colors" data-testid="link-referral-terms">Referral Program Terms and Conditions</Link>.
                 </p>
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Referral Count Banner */}
-        <div className="max-w-5xl mx-auto px-4 md:px-8 -mt-4 relative z-20">
-          <div className="rounded-2xl bg-white dark:bg-[#111114] border border-[#ECECEE] dark:border-[#1C1C22] shadow-lg p-4 md:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4" data-testid="referral-count-badge">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-[#6366F1] flex items-center justify-center">
-                <Target className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className="text-[13px] text-[#52525B] dark:text-[#A1A1AA] font-medium">Your Referral Count</p>
-                <p className="text-[28px] font-extrabold text-[#09090B] dark:text-white leading-none" data-testid="text-referral-count">{stats?.count ?? 0}</p>
-              </div>
-              {(stats?.pendingCount ?? 0) > 0 && (
-                <div className="ml-1 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40">
-                  <p className="text-[12px] text-amber-600 dark:text-amber-400 font-medium">
-                    {stats!.pendingCount} pending
-                  </p>
-                  <p className="text-[11px] text-amber-500/70 dark:text-amber-400/60">awaiting email confirmation</p>
-                </div>
-              )}
-            </div>
-            {stats?.nextTier && (
-              <div className="flex-1 w-full sm:w-auto">
-                <p className="text-[13px] text-[#52525B] dark:text-[#A1A1AA] font-medium mb-0.5">
-                  You're only <span className="font-bold text-[#6366F1]">{stats.nextTier.threshold - stats.count} referrals</span> away from winning
-                </p>
-                <p className="text-[15px] font-bold text-[#09090B] dark:text-white mb-2">{stats.nextTier.rewardName}!</p>
-                <div className="h-2.5 bg-[#F4F4F5] dark:bg-[#1C1C22] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min(100, (stats.count / stats.nextTier.threshold) * 100)}%` }}
-                  />
-                </div>
-              </div>
-            )}
-            {!stats?.nextTier && stats?.count !== undefined && stats.count > 0 && (
-              <div className="flex-1">
-                <p className="text-[15px] font-bold text-[#6366F1]">All rewards unlocked! You're a legend.</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Two Column: Share (left) + Leaderboard (right) */}
-        <div className="max-w-5xl mx-auto px-4 md:px-8 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            {/* Left Column - Share */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* Share your link */}
-              <section data-testid="share-section">
-                <h2 className="text-[18px] font-bold text-foreground mb-1">Share your link</h2>
-                <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] mb-4">Rack up referrals by sharing your unique link.</p>
-                <div className="rounded-2xl bg-white dark:bg-[#111114] border border-[#ECECEE] dark:border-[#1C1C22] p-5 space-y-4">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      readOnly
-                      value={stats?.referralLink || "Loading..."}
-                      className="flex-1 text-[#09090B] dark:text-white bg-[#F9F9FB] dark:bg-[#09090B] rounded-xl px-4 py-3 border border-[#ECECEE] dark:border-[#27272A] font-mono text-[13px]"
-                      data-testid="input-referral-link"
-                    />
-                    <button
-                      onClick={handleCopyLink}
-                      className="px-5 py-3 bg-[#6366F1] text-white rounded-xl font-semibold flex items-center gap-2 hover:bg-[#4F46E5] transition-colors active:scale-95 whitespace-nowrap"
-                      data-testid="button-copy-link"
-                    >
-                      {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                      {copied ? "Copied!" : "Copy Link"}
-                    </button>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <a
-                      href={`sms:?body=${encodeURIComponent(`${smsShareText} ${stats?.referralLink || ""}`)}`}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#34C759] text-white rounded-xl font-semibold hover:bg-[#2DB84D] transition-colors"
-                      data-testid="button-text-friend"
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                      Text a Friend
-                    </a>
-                    <a
-                      href={`https://wa.me/?text=${encodeURIComponent(`${smsShareText} ${stats?.referralLink || ""}`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#25D366] text-white rounded-xl font-semibold hover:bg-[#1EBE5C] transition-colors"
-                      data-testid="button-whatsapp"
-                    >
-                      <SiWhatsapp className="w-4 h-4" />
-                      WhatsApp
-                    </a>
-                  </div>
-                </div>
-              </section>
-
-              {/* Share via email */}
-              <section data-testid="email-invite-section">
-                <h2 className="text-[18px] font-bold text-foreground mb-1">Share via email</h2>
-                <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] mb-4">
-                  Invite people to subscribe to PodRise by entering their emails. (We'll automatically add your referral link!)
-                </p>
-                <div className="rounded-2xl bg-white dark:bg-[#111114] border border-[#ECECEE] dark:border-[#1C1C22] p-5 space-y-4">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={inviteEmails}
-                      onChange={(e) => setInviteEmails(e.target.value)}
-                      placeholder="To: (enter contact's email)"
-                      className="flex-1 text-[15px] text-[#09090B] dark:text-white bg-[#F9F9FB] dark:bg-[#09090B] rounded-xl px-4 py-3 border border-[#ECECEE] dark:border-[#27272A] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/20 placeholder:text-[#A1A1AA]"
-                      data-testid="input-invite-emails"
-                    />
-                    <button
-                      onClick={handleAddContacts}
-                      className="px-4 py-3 bg-[#09090B] dark:bg-white text-white dark:text-[#09090B] rounded-xl font-semibold flex items-center gap-2 hover:bg-[#27272A] dark:hover:bg-[#E4E4E7] transition-colors whitespace-nowrap"
-                      data-testid="button-add-contacts"
-                    >
-                      <BookUser className="w-4 h-4" />
-                      Add From Contacts
-                    </button>
-                  </div>
-                  <p className="text-[12px] text-[#A1A1AA]">Separate multiple emails with commas.</p>
-                  <textarea
-                    value={inviteMessage}
-                    onChange={(e) => setInviteMessage(e.target.value)}
-                    rows={5}
-                    className="w-full text-[14px] text-[#09090B] dark:text-white bg-[#F9F9FB] dark:bg-[#09090B] rounded-xl px-4 py-3 border border-[#ECECEE] dark:border-[#27272A] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/20 resize-y"
-                    data-testid="textarea-invite-message"
-                  />
-                  <button
-                    onClick={() => {
-                      if (inviteEmails.trim()) sendInviteMutation.mutate(inviteEmails.trim());
-                    }}
-                    disabled={sendInviteMutation.isPending || !inviteEmails.trim()}
-                    className="px-6 py-3 bg-[#09090B] dark:bg-white text-white dark:text-[#09090B] rounded-xl font-semibold flex items-center gap-2 hover:bg-[#27272A] dark:hover:bg-[#E4E4E7] disabled:opacity-50 transition-colors"
-                    data-testid="button-send-invite"
-                  >
-                    <Send className="w-4 h-4" />
-                    Send The Invite
-                  </button>
-                </div>
-              </section>
-
-              {/* Share on social */}
-              <section data-testid="social-share-section">
-                <h2 className="text-[18px] font-bold text-foreground mb-1">Share on social</h2>
-                <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] mb-4">Rack up referrals by sharing on your social channels.</p>
-                <div className="flex gap-2">
-                  <a
-                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(stats?.referralLink || "")}&quote=${encodeURIComponent(smsShareText)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#1877F2] text-white hover:opacity-90 transition-opacity"
-                    data-testid="button-facebook"
-                  >
-                    <SiFacebook className="w-5 h-5" />
-                  </a>
-                  <a
-                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(twitterShareText)}&url=${encodeURIComponent(stats?.referralLink || "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#09090B] dark:bg-white text-white dark:text-[#09090B] hover:opacity-90 transition-opacity"
-                    data-testid="button-twitter"
-                  >
-                    <SiX className="w-4 h-4" />
-                  </a>
-                  <a
-                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(stats?.referralLink || "")}&summary=${encodeURIComponent(linkedInShareText)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#0A66C2] text-white hover:opacity-90 transition-opacity"
-                    data-testid="button-linkedin"
-                  >
-                    <SiLinkedin className="w-5 h-5" />
-                  </a>
-                  <button
-                    onClick={handleCopyLink}
-                    className="h-11 px-4 flex items-center justify-center gap-2 rounded-xl bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#09090B] dark:text-white text-[13px] font-semibold hover:bg-[#E4E4E7] dark:hover:bg-[#27272A] transition-colors"
-                    data-testid="button-copy-social"
-                  >
-                    <Copy className="w-4 h-4" />
-                    Copy
-                  </button>
-                </div>
-              </section>
             </div>
 
             {/* Right Column - Leaderboard */}
-            <div className="lg:col-span-2">
-              <section data-testid="leaderboard-section" className="sticky top-4">
-                <h2 className="text-[18px] font-bold text-foreground mb-1">Leaderboard</h2>
-                <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] mb-4">See how you stack up against other members.</p>
+            <div className="lg:col-span-1">
+              <div className="lg:sticky lg:top-4" data-testid="leaderboard-section">
                 <div className="rounded-2xl bg-white dark:bg-[#111114] border border-[#ECECEE] dark:border-[#1C1C22] overflow-hidden">
+                  <div className="px-5 py-4 border-b border-[#F4F4F5] dark:border-[#1C1C22]">
+                    <h2 className="text-[16px] font-bold text-foreground flex items-center gap-2" data-testid="heading-leaderboard">
+                      <Trophy className="w-4 h-4 text-[#F59E0B]" />
+                      Leaderboard
+                    </h2>
+                  </div>
+
                   {(!leaderboard || leaderboard.length === 0) ? (
                     <div className="px-5 py-10 text-center text-[#A1A1AA]">
                       <Users className="w-10 h-10 mx-auto mb-3 opacity-40" />
-                      <p className="text-[15px] font-semibold text-foreground mb-1">No referrals yet</p>
+                      <p className="text-[15px] font-semibold text-foreground mb-1" data-testid="text-leaderboard-empty">No referrals yet</p>
                       <p className="text-[13px]">Be the first to share and climb the board!</p>
                     </div>
                   ) : (
                     <div className="divide-y divide-[#F4F4F5] dark:divide-[#1C1C22]">
                       {leaderboard.map((entry, i) => {
                         const isCurrentUser = entry.userId === (user as any)?.id;
+                        const rankStyle =
+                          i === 0
+                            ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 ring-1 ring-yellow-300 dark:ring-yellow-700"
+                            : i === 1
+                            ? "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300 ring-1 ring-gray-300 dark:ring-gray-600"
+                            : i === 2
+                            ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 ring-1 ring-orange-300 dark:ring-orange-700"
+                            : "bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#71717A]";
+                        const avatarColor = AVATAR_COLORS[i % AVATAR_COLORS.length];
+
                         return (
                           <div
                             key={entry.userId}
-                            className={`flex items-center gap-3 px-4 py-3 ${isCurrentUser ? "bg-[#6366F1]/[0.05]" : ""}`}
+                            className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                              isCurrentUser ? "bg-[#6366F1]/[0.06] dark:bg-[#6366F1]/[0.1]" : ""
+                            }`}
                             data-testid={`leaderboard-entry-${entry.userId}`}
                           >
-                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[13px] font-bold flex-shrink-0 ${
-                              i === 0
-                                ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                                : i === 1
-                                ? "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
-                                : i === 2
-                                ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
-                                : "bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#71717A]"
-                            }`}>
+                            {/* Rank */}
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 ${rankStyle}`}>
                               {i + 1}
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <span className={`text-[14px] font-semibold truncate block ${isCurrentUser ? "text-[#6366F1]" : "text-foreground"}`}>
-                                {entry.displayName} {isCurrentUser && "(You)"}
-                              </span>
+                            {/* Avatar */}
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold flex-shrink-0 ${avatarColor}`}>
+                              {getInitials(entry.displayName)}
                             </div>
-                            <span className="text-[13px] font-bold text-[#6366F1]" data-testid={`leaderboard-count-${entry.userId}`}>
+                            {/* Name */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className={`text-[13px] font-semibold truncate ${isCurrentUser ? "text-[#6366F1]" : "text-foreground"}`}>
+                                  {entry.displayName}
+                                </span>
+                                {isCurrentUser && (
+                                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#6366F1] text-white flex-shrink-0" data-testid={`badge-you-${entry.userId}`}>
+                                    You
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {/* Count */}
+                            <span className="text-[13px] font-bold text-[#6366F1] flex-shrink-0" data-testid={`leaderboard-count-${entry.userId}`}>
                               {entry.count}
                             </span>
                           </div>
@@ -471,140 +408,10 @@ export default function PodSquad() {
                     </div>
                   )}
                 </div>
-              </section>
-            </div>
-          </div>
-        </div>
-
-        {/* Monitor Your Progress */}
-        <div className="max-w-5xl mx-auto px-4 md:px-8 pb-12">
-          <h2 className="text-[20px] font-bold text-foreground mb-1">Monitor your progress</h2>
-          <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] mb-6">Track your referrals and unlock rewards as you go.</p>
-
-          {statsLoading ? (
-            <div className="flex justify-center py-10">
-              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {stats?.tiers.map((tier, i) => {
-                const isUnlocked = stats.count >= tier.threshold;
-                const isNext = stats.nextTier?.id === tier.id;
-                const Icon = TIER_ICONS[i % TIER_ICONS.length];
-                const prevThreshold = i > 0 ? stats.tiers[i - 1].threshold : 0;
-                const progress = isNext
-                  ? Math.min(100, ((stats.count - prevThreshold) / (tier.threshold - prevThreshold)) * 100)
-                  : isUnlocked ? 100 : 0;
-
-                return (
-                  <div
-                    key={tier.id}
-                    className={`rounded-2xl border p-5 transition-all ${
-                      isNext
-                        ? "bg-white dark:bg-[#111114] border-[#6366F1]/30 ring-2 ring-[#6366F1]/15 shadow-sm"
-                        : isUnlocked
-                        ? "bg-white dark:bg-[#111114] border-[#ECECEE] dark:border-[#1C1C22]"
-                        : "bg-[#FAFAFA] dark:bg-[#0A0A0C] border-[#ECECEE] dark:border-[#1C1C22] opacity-50"
-                    }`}
-                    data-testid={`progress-tier-${tier.id}`}
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                        isUnlocked
-                          ? "bg-[#6366F1]/10 text-[#6366F1]"
-                          : "bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#A1A1AA]"
-                      }`}>
-                        {isUnlocked ? <Icon className="w-5 h-5" /> : <Lock className="w-4 h-4" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className={`text-[16px] font-bold ${isUnlocked || isNext ? "text-foreground" : "text-[#A1A1AA]"}`}>
-                            {tier.rewardName}
-                          </span>
-                          <span className={`text-[13px] font-medium px-2 py-0.5 rounded-full ${
-                            isUnlocked
-                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                              : "bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#A1A1AA]"
-                          }`}>
-                            {isUnlocked ? "Unlocked" : `${tier.threshold} referrals`}
-                          </span>
-                        </div>
-                        <p className={`text-[14px] mt-0.5 ${isUnlocked || isNext ? "text-[#52525B] dark:text-[#A1A1AA]" : "text-[#A1A1AA] dark:text-[#52525B]"}`}>
-                          {tier.rewardDescription}
-                        </p>
-                        {(isNext || isUnlocked) && (
-                          <div className="mt-3">
-                            <div className="flex justify-between text-[12px] text-[#A1A1AA] mb-1">
-                              <span>{isUnlocked ? tier.threshold : stats.count} / {tier.threshold}</span>
-                              <span>{isUnlocked ? "Complete!" : `${tier.threshold - stats.count} to go`}</span>
-                            </div>
-                            <div className="h-2 bg-[#F4F4F5] dark:bg-[#1C1C22] rounded-full overflow-hidden">
-                              <div
-                                className={`h-full rounded-full transition-all duration-500 ${
-                                  isUnlocked
-                                    ? "bg-green-500"
-                                    : "bg-gradient-to-r from-[#6366F1] to-[#8B5CF6]"
-                                }`}
-                                style={{ width: `${progress}%` }}
-                                data-testid={`progress-bar-${tier.id}`}
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Contact Picker Modal */}
-        {showContactsPicker && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowContactsPicker(false)}>
-            <div
-              className="bg-white dark:bg-[#111114] rounded-2xl w-full max-w-md mx-4 overflow-hidden shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-              data-testid="contacts-picker-modal"
-            >
-              <div className="flex items-center justify-between px-6 py-4 border-b border-[#ECECEE] dark:border-[#1C1C22]">
-                <h3 className="text-[18px] font-bold text-foreground">Choose Your Address Book</h3>
-                <button
-                  onClick={() => setShowContactsPicker(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#F4F4F5] dark:hover:bg-[#1C1C22] transition-colors text-[#52525B]"
-                  data-testid="button-close-contacts"
-                >
-                  ✕
-                </button>
-              </div>
-              <div className="divide-y divide-[#F4F4F5] dark:divide-[#1C1C22]">
-                {[
-                  { name: "Sign in with Google", icon: "🔵", action: () => { window.open(`https://contacts.google.com/`, "_blank"); setShowContactsPicker(false); } },
-                  { name: "Yahoo", icon: "🟣", action: () => { window.open("https://mail.yahoo.com/contacts", "_blank"); setShowContactsPicker(false); } },
-                  { name: "Outlook.com", icon: "🔷", action: () => { window.open("https://outlook.live.com/people/", "_blank"); setShowContactsPicker(false); } },
-                  { name: "iCloud", icon: "☁️", action: () => { window.open("https://www.icloud.com/contacts/", "_blank"); setShowContactsPicker(false); } },
-                ].map((provider) => (
-                  <button
-                    key={provider.name}
-                    onClick={provider.action}
-                    className="w-full flex items-center gap-4 px-6 py-4 hover:bg-[#F9F9FB] dark:hover:bg-[#09090B] transition-colors text-left"
-                    data-testid={`contact-provider-${provider.name.toLowerCase().replace(/\s/g, "-")}`}
-                  >
-                    <span className="text-[20px]">{provider.icon}</span>
-                    <span className="text-[15px] font-medium text-foreground">{provider.name}</span>
-                    <ChevronRight className="w-4 h-4 text-[#A1A1AA] ml-auto" />
-                  </button>
-                ))}
-              </div>
-              <div className="px-6 py-4 bg-[#F9F9FB] dark:bg-[#09090B]">
-                <p className="text-[12px] text-[#A1A1AA] text-center">
-                  Copy emails from your address book and paste them into the email field above.
-                </p>
               </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </DashboardLayout>
   );
