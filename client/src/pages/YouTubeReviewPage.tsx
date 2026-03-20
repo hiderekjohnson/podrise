@@ -67,6 +67,17 @@ function parseGuests(guests: string | null): string[] {
   return guests.split(",").map(s => s.trim()).filter(Boolean);
 }
 
+function openInNewWindow(url: string) {
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+
+function getYoutubeVideosUrl(channelUrl: string): string {
+  if (!channelUrl) return channelUrl;
+  const trimmed = channelUrl.replace(/\/+$/, "");
+  if (trimmed.endsWith("/videos")) return trimmed;
+  return trimmed + "/videos";
+}
+
 export default function YouTubeReviewPage() {
   const params = useParams<{ token: string }>();
   const token = params.token || "";
@@ -242,6 +253,7 @@ export default function YouTubeReviewPage() {
   const guests = parseGuests(episode.guests);
   const searchQuery = `${episode.podcastName} ${episode.episodeTitle}`;
   const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`;
+  const youtubeChannelVideosUrl = episode.channelYoutubeUrl ? getYoutubeVideosUrl(episode.channelYoutubeUrl) : null;
   const spotifyShowUrl = episode.channelSpotifyUrl || `https://open.spotify.com/search/${encodeURIComponent(episode.podcastName)}`;
 
   return (
@@ -290,43 +302,6 @@ export default function YouTubeReviewPage() {
                   Guests: {guests.join(", ")}
                 </p>
               )}
-              <div className="flex flex-wrap gap-x-6 gap-y-2 mt-3 text-sm">
-                {episode.channelYoutubeUrl && (
-                  <a
-                    href={episode.channelYoutubeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-red-600 hover:text-red-700 hover:underline font-medium"
-                    data-testid="link-youtube-channel"
-                  >
-                    <Youtube className="w-4 h-4" />
-                    YouTube Channel
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
-                )}
-                <a
-                  href={youtubeSearchUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-700 hover:underline font-medium"
-                  data-testid="link-search-youtube"
-                >
-                  <Search className="w-4 h-4" />
-                  Search YouTube
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-                <a
-                  href={spotifyShowUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-green-600 hover:text-green-700 hover:underline font-medium"
-                  data-testid="link-spotify-show"
-                >
-                  <SiSpotify className="w-4 h-4" />
-                  {episode.channelSpotifyUrl ? "Spotify Show Page" : `Search Spotify`}
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
             </div>
           </div>
         </div>
@@ -338,14 +313,27 @@ export default function YouTubeReviewPage() {
               <h3 className="text-lg font-bold text-gray-900">YouTube Video</h3>
             </div>
 
-            <div className="bg-red-50 border border-red-100 rounded-lg p-4 mb-5 text-sm text-gray-700 leading-relaxed" data-testid="text-youtube-steps">
-              <p className="font-semibold text-red-700 mb-2">How to find the YouTube video:</p>
-              <ol className="list-decimal list-inside space-y-1">
-                <li>Click the <strong>YouTube Channel</strong> or <strong>Search YouTube</strong> link above</li>
-                <li>Find the matching episode in the results</li>
-                <li>Copy the video URL from your browser's address bar</li>
-                <li>Paste it below and click <strong>Test</strong> to verify</li>
-              </ol>
+            <div className="flex flex-wrap gap-x-5 gap-y-2 mb-5 text-sm">
+              {youtubeChannelVideosUrl && (
+                <button
+                  onClick={() => openInNewWindow(youtubeChannelVideosUrl)}
+                  className="inline-flex items-center gap-1.5 text-red-600 hover:text-red-700 hover:underline font-medium cursor-pointer bg-transparent border-none p-0"
+                  data-testid="link-youtube-channel"
+                >
+                  <Youtube className="w-4 h-4" />
+                  YouTube Channel
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </button>
+              )}
+              <button
+                onClick={() => openInNewWindow(youtubeSearchUrl)}
+                className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-700 hover:underline font-medium cursor-pointer bg-transparent border-none p-0"
+                data-testid="link-search-youtube"
+              >
+                <Search className="w-4 h-4" />
+                Search YouTube
+                <ExternalLink className="w-3.5 h-3.5" />
+              </button>
             </div>
 
             {youtubeDisabled && (
@@ -402,14 +390,16 @@ export default function YouTubeReviewPage() {
               <span className="text-sm text-gray-400 ml-1">(optional)</span>
             </div>
 
-            <div className="bg-green-50 border border-green-100 rounded-lg p-4 mb-5 text-sm text-gray-700 leading-relaxed" data-testid="text-spotify-steps">
-              <p className="font-semibold text-green-700 mb-2">How to find the Spotify episode:</p>
-              <ol className="list-decimal list-inside space-y-1">
-                <li>Click the <strong>Spotify Show Page</strong> or <strong>Search Spotify</strong> link above</li>
-                <li>Find the matching episode in the show's episode list</li>
-                <li>Click "Share" → "Copy Episode Link" (or copy the URL from your browser)</li>
-                <li>Paste it below and click <strong>Test</strong> to verify</li>
-              </ol>
+            <div className="flex flex-wrap gap-x-5 gap-y-2 mb-5 text-sm">
+              <button
+                onClick={() => openInNewWindow(spotifyShowUrl)}
+                className="inline-flex items-center gap-1.5 text-green-600 hover:text-green-700 hover:underline font-medium cursor-pointer bg-transparent border-none p-0"
+                data-testid="link-spotify-show"
+              >
+                <SiSpotify className="w-4 h-4" />
+                {episode.channelSpotifyUrl ? "Spotify Show Page" : "Search Spotify"}
+                <ExternalLink className="w-3.5 h-3.5" />
+              </button>
             </div>
 
             <div className="flex gap-3 mb-3">
@@ -454,7 +444,7 @@ export default function YouTubeReviewPage() {
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <button
               onClick={() => submitAction("confirmed")}
               disabled={isSubmitting || !canConfirm}
@@ -462,7 +452,7 @@ export default function YouTubeReviewPage() {
               data-testid="button-confirm"
             >
               {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
-              Correct
+              Save & Next Episode
             </button>
             <button
               onClick={() => submitAction("skipped")}
@@ -472,15 +462,6 @@ export default function YouTubeReviewPage() {
             >
               <SkipForward className="w-5 h-5" />
               Skip
-            </button>
-            <button
-              onClick={() => submitAction("no_video")}
-              disabled={isSubmitting}
-              className="h-14 rounded-xl bg-red-600 hover:bg-red-500 disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold text-lg flex items-center justify-center gap-2 transition-colors"
-              data-testid="button-no-video"
-            >
-              <XCircle className="w-5 h-5" />
-              No Video
             </button>
           </div>
         </div>
