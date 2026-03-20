@@ -38,6 +38,7 @@ interface AdminUser {
   lastLoginAt: string | null;
   emailVerified?: boolean;
   onboardingCompleted?: boolean;
+  signupSource?: string | null;
 }
 
 type UserStatusFilter = "all" | "active" | "pending-verification" | "pending-onboarding";
@@ -495,13 +496,30 @@ export default function Admin() {
 
   const [userSortBy, setUserSortBy] = useState<"signedUp" | "lastLogin">("signedUp");
   const [userStatusFilter, setUserStatusFilter] = useState<UserStatusFilter>("all");
+  const [sourceFilter, setSourceFilter] = useState<string>("");
 
-  const { data: users, isLoading: usersLoading } = useQuery<AdminUser[]>({
-    queryKey: ["/api/admin/users", userSortBy],
+  const { data: usersData, isLoading: usersLoading } = useQuery<{ users: AdminUser[]; totalCount: number }>({
+    queryKey: ["/api/admin/users", userSortBy, sourceFilter],
     queryFn: async () => {
-      const params = userSortBy === "lastLogin" ? "?sortBy=lastLogin" : "";
-      const res = await fetch(`/api/admin/users${params}`, { credentials: "include" });
+      const params = new URLSearchParams();
+      if (userSortBy === "lastLogin") params.set("sortBy", "lastLogin");
+      if (sourceFilter) params.set("source", sourceFilter);
+      const qs = params.toString();
+      const res = await fetch(`/api/admin/users${qs ? `?${qs}` : ""}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch users");
+      return res.json();
+    },
+    enabled: isAdmin,
+  });
+
+  const users = usersData?.users;
+  const totalUserCount = usersData?.totalCount ?? 0;
+
+  const { data: signupSources } = useQuery<string[]>({
+    queryKey: ["/api/admin/users/sources"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/users/sources", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch sources");
       return res.json();
     },
     enabled: isAdmin,
@@ -932,7 +950,7 @@ export default function Admin() {
                 </button>
               </div>
               {activeTab === "users" && (
-                <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="flex flex-wrap items-center gap-3 w-full">
                   <div className="relative w-full sm:w-72">
                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <input
@@ -945,6 +963,17 @@ export default function Admin() {
                     />
                   </div>
                   <select
+                    data-testid="filter-source"
+                    value={sourceFilter}
+                    onChange={(e) => setSourceFilter(e.target.value)}
+                    className="h-10 px-3 bg-black/[0.03] border border-black/[0.06] rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
+                  >
+                    <option value="">All Sources</option>
+                    {(signupSources || []).map((s) => (
+                      <option key={s} value={s}>{s.startsWith("utm:") ? `UTM: ${s.slice(4)}` : s}</option>
+                    ))}
+                  </select>
+                  <select
                     data-testid="select-user-status-filter"
                     value={userStatusFilter}
                     onChange={(e) => setUserStatusFilter(e.target.value as UserStatusFilter)}
@@ -955,6 +984,9 @@ export default function Admin() {
                     <option value="pending-verification">Pending Verification</option>
                     <option value="pending-onboarding">Pending Onboarding</option>
                   </select>
+                  <span className="text-xs text-muted-foreground font-medium ml-auto" data-testid="text-user-count">
+                    Showing {filteredUsers.length} of {totalUserCount} users
+                  </span>
                 </div>
               )}
             </div>
@@ -1000,7 +1032,7 @@ export default function Admin() {
                           {filteredUsers.length === 0 ? (
                             <tr>
                               <td colSpan={5} className="px-5 py-12 text-center text-sm text-muted-foreground">
-                                {searchTerm ? "No users match your search." : "No users yet."}
+                                {(searchTerm || sourceFilter || userStatusFilter !== "all") ? "No users match your filters." : "No users yet."}
                               </td>
                             </tr>
                           ) : (
@@ -1012,8 +1044,20 @@ export default function Admin() {
                                       <Mail className="w-4 h-4 text-primary" />
                                     </div>
                                     <div>
-                                      <p className="text-sm font-semibold text-foreground" data-testid={`text-user-email-${user.id}`}>{user.email}</p>
-                                      <p className="text-xs text-muted-foreground">ID: {user.id}</p>
+                                      <div className="flex items-center gap-2">
+                                        <p className="text-sm font-semibold text-foreground" data-testid={`text-user-email-${user.id}`}>{user.email}</p>
+                                        <span
+                                          data-testid={`badge-user-status-${user.id}`}
+                                          className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none ${
+                                            user.emailVerified
+                                              ? "bg-emerald-100 text-emerald-700"
+                                              : "bg-amber-100 text-amber-700"
+                                          }`}
+                                        >
+                                          {user.emailVerified ? "Active" : "Pending"}
+                                        </span>
+                                      </div>
+                                      <p className="text-xs text-muted-foreground">ID: {user.id}{user.signupSource ? ` · ${user.signupSource}` : ""}</p>
                                     </div>
                                   </div>
                                 </td>

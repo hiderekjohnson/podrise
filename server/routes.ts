@@ -7960,32 +7960,60 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     res.json(status);
   });
 
+  app.get("/api/admin/users/sources", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const result = await pool.query(`SELECT DISTINCT signup_source FROM users WHERE signup_source IS NOT NULL AND signup_source != '' ORDER BY signup_source`);
+    const sources = result.rows.map((r: any) => r.signup_source);
+    const utmResult = await pool.query(`SELECT DISTINCT utm_source FROM users WHERE utm_source IS NOT NULL AND utm_source != '' AND utm_source NOT IN (SELECT DISTINCT signup_source FROM users WHERE signup_source IS NOT NULL)`);
+    const utmSources = utmResult.rows.map((r: any) => `utm:${r.utm_source}`);
+    res.json([...sources, ...utmSources].sort());
+  });
+
   app.get("/api/admin/users", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
     }
     const sortBy = req.query.sortBy as string | undefined;
-    if (sortBy === "lastLogin") {
-      const result = await pool.query(`SELECT * FROM users ORDER BY last_login_at DESC NULLS LAST`);
-      return res.json(result.rows.map((r: any) => ({
-        id: r.id,
-        email: r.email,
-        podcasts: r.podcasts || [],
-        deliveryTime: r.delivery_time,
-        deliveryTimezone: r.delivery_timezone,
-        createdAt: r.created_at,
-        lastLoginAt: r.last_login_at,
-        plan: r.plan,
-        emailVerified: r.email_verified,
-        onboardingCompleted: r.onboarding_completed,
-        signupSource: r.signup_source,
-      })));
+    const source = req.query.source as string | undefined;
+
+    const conditions: string[] = [];
+    const params: any[] = [];
+    let paramIndex = 1;
+
+    if (source) {
+      if (source.startsWith("utm:")) {
+        conditions.push(`utm_source = $${paramIndex++}`);
+        params.push(source.slice(4));
+      } else {
+        conditions.push(`signup_source = $${paramIndex++}`);
+        params.push(source);
+      }
     }
-    const allUsers = await storage.getAllUsers();
-    const usersWithLogin = await pool.query(`SELECT id, last_login_at FROM users`);
-    const loginMap = new Map(usersWithLogin.rows.map((r: any) => [r.id, r.last_login_at]));
-    const enriched = allUsers.map(u => ({ ...u, lastLoginAt: loginMap.get(u.id) || null }));
-    res.json(enriched);
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const orderClause = sortBy === "lastLogin" ? "ORDER BY last_login_at DESC NULLS LAST" : "ORDER BY created_at DESC";
+
+    const result = await pool.query(`SELECT * FROM users ${whereClause} ${orderClause}`, params);
+    const totalResult = await pool.query(`SELECT COUNT(*) FROM users`);
+    const totalCount = parseInt(totalResult.rows[0].count, 10);
+
+    const mapped = result.rows.map((r: any) => ({
+      id: r.id,
+      email: r.email,
+      podcasts: r.podcasts || [],
+      deliveryTime: r.delivery_time,
+      deliveryTimezone: r.delivery_timezone,
+      createdAt: r.created_at,
+      lastLoginAt: r.last_login_at,
+      plan: r.plan,
+      emailVerified: r.email_verified,
+      onboardingCompleted: r.onboarding_completed,
+      signupSource: r.signup_source,
+    }));
+
+    res.json({ users: mapped, totalCount });
   });
 
   app.get("/api/admin/error-logs", async (req, res) => {
