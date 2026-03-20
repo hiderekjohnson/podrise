@@ -12845,6 +12845,70 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.post("/api/admin/users/bulk-delete", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const { userIds } = req.body;
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({ message: "userIds must be a non-empty array" });
+    }
+    const ids = userIds
+      .map((id: unknown) => typeof id === "number" ? id : parseInt(String(id), 10))
+      .filter((id: number) => !isNaN(id));
+    if (ids.length === 0) {
+      return res.status(400).json({ message: "No valid user IDs provided" });
+    }
+    try {
+      let deleted = 0;
+      const failures: number[] = [];
+      for (const id of ids) {
+        try {
+          await storage.deleteUser(id);
+          deleted++;
+        } catch (err) {
+          console.error(`Failed to delete user ${id}:`, err);
+          failures.push(id);
+        }
+      }
+      res.json({ message: `${deleted} user(s) deleted`, deleted, total: ids.length, failures });
+    } catch (err) {
+      console.error("Bulk delete failed:", err);
+      res.status(500).json({ message: "Bulk delete failed" });
+    }
+  });
+
+  app.post("/api/admin/users/bulk-status", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const { userIds, emailVerified } = req.body;
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({ message: "userIds must be a non-empty array" });
+    }
+    if (typeof emailVerified !== "boolean") {
+      return res.status(400).json({ message: "emailVerified must be a boolean" });
+    }
+    const ids = userIds
+      .map((id: unknown) => typeof id === "number" ? id : parseInt(String(id), 10))
+      .filter((id: number) => !isNaN(id));
+    if (ids.length === 0) {
+      return res.status(400).json({ message: "No valid user IDs provided" });
+    }
+    try {
+      const placeholders = ids.map((_: number, i: number) => `$${i + 2}`).join(", ");
+      const result = await pool.query(
+        `UPDATE users SET email_verified = $1 WHERE id IN (${placeholders})`,
+        [emailVerified, ...ids]
+      );
+      const updated = result.rowCount ?? ids.length;
+      res.json({ message: `${updated} user(s) updated`, updated });
+    } catch (err) {
+      console.error("Bulk status update failed:", err);
+      res.status(500).json({ message: "Bulk status update failed" });
+    }
+  });
+
   app.patch("/api/admin/users/:id/plan", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, FileText, Inbox, Rss, Database, Settings, ShoppingBag, MousePointerClick, DollarSign, Megaphone, Wrench, List, AlertTriangle, Gift, BookOpen, ToggleLeft, Plus, X, ArrowUpDown } from "lucide-react";
+import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, FileText, Inbox, Rss, Database, Settings, ShoppingBag, MousePointerClick, DollarSign, Megaphone, Wrench, List, AlertTriangle, Gift, BookOpen, ToggleLeft, Plus, X, ArrowUpDown, ExternalLink, CheckSquare, Square, MinusSquare, ShieldCheck, ShieldOff } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 const PendingEmails = lazy(() => import("./PendingEmails"));
 const RssFeedsManager = lazy(() => import("./RssFeedsManager"));
@@ -277,7 +278,8 @@ export default function Admin() {
     setAdvancedSubTab(sub);
     adminNavigate(`/admin/advanced/${sub}`);
   }, [adminNavigate]);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<number>>(new Set());
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
 
   const { data: adminAuth, isLoading: authLoading, error: adminAuthError } = useQuery<{ isAdmin: boolean } | null>({
     queryKey: ["/api/admin/me"],
@@ -356,17 +358,54 @@ export default function Admin() {
     },
   });
 
-  const deleteUserMutation = useMutation({
-    mutationFn: (userId: number) => apiRequest("DELETE", `/api/admin/users/${userId}`),
-    onSuccess: () => {
+  useEffect(() => {
+    setSelectedUserIds(new Set());
+    setShowBulkDeleteConfirm(false);
+  }, [searchTerm, channelFilter, userStatusFilter, userSortBy]);
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (userIds: number[]) => apiRequest("POST", "/api/admin/users/bulk-delete", { userIds }),
+    onSuccess: async (res: Response) => {
+      const data = await res.json();
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-      setConfirmDeleteId(null);
-      toast({ title: "User deleted", description: "The user account has been removed." });
+      setSelectedUserIds(new Set());
+      setShowBulkDeleteConfirm(false);
+      const failCount = data.failures?.length || 0;
+      if (failCount > 0) {
+        toast({ title: "Partially deleted", description: `${data.deleted} user(s) deleted, ${failCount} failed.`, variant: "destructive" });
+      } else {
+        toast({ title: "Users deleted", description: `${data.deleted} user(s) deleted successfully.` });
+      }
     },
     onError: () => {
-      toast({ title: "Error", description: "Failed to delete user.", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to delete users.", variant: "destructive" });
     },
   });
+
+  const bulkStatusMutation = useMutation({
+    mutationFn: (params: { userIds: number[]; emailVerified: boolean }) => apiRequest("POST", "/api/admin/users/bulk-status", params),
+    onSuccess: async (res: Response) => {
+      const data = await res.json();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      setSelectedUserIds(new Set());
+      toast({ title: "Status updated", description: `${data.updated} user(s) updated successfully.` });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to update user status.", variant: "destructive" });
+    },
+  });
+
+  const toggleUserSelection = useCallback((userId: number) => {
+    setSelectedUserIds(prev => {
+      const next = new Set(prev);
+      if (next.has(userId)) {
+        next.delete(userId);
+      } else {
+        next.add(userId);
+      }
+      return next;
+    });
+  }, []);
 
   if (authLoading) {
     return (
@@ -449,6 +488,18 @@ export default function Admin() {
     if (userStatusFilter === "pending-onboarding") return status.label === "Pending Onboarding";
     return true;
   });
+
+  const visibleIds = filteredUsers.map(u => u.id);
+  const allSelected = visibleIds.length > 0 && visibleIds.every(id => selectedUserIds.has(id));
+  const someSelected = visibleIds.some(id => selectedUserIds.has(id));
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedUserIds(new Set());
+    } else {
+      setSelectedUserIds(new Set(visibleIds));
+    }
+  };
 
   const isDev = import.meta.env.DEV;
 
@@ -655,6 +706,21 @@ export default function Admin() {
                       <table className="w-full" data-testid="table-admin-users">
                         <thead>
                           <tr className="border-b border-black/[0.06] bg-black/[0.02]">
+                            <th className="w-10 px-3 py-3">
+                              <button
+                                data-testid="checkbox-select-all"
+                                onClick={toggleSelectAll}
+                                className="flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                              >
+                                {allSelected ? (
+                                  <CheckSquare className="w-4 h-4 text-primary" />
+                                ) : someSelected ? (
+                                  <MinusSquare className="w-4 h-4 text-primary" />
+                                ) : (
+                                  <Square className="w-4 h-4" />
+                                )}
+                              </button>
+                            </th>
                             <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">User</th>
                             <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">Status</th>
                             <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">
@@ -678,18 +744,32 @@ export default function Admin() {
                               </button>
                             </th>
                             <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">Podcasts</th>
+                            <th className="w-10 px-3 py-3"></th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-black/[0.04]">
                           {filteredUsers.length === 0 ? (
                             <tr>
-                              <td colSpan={5} className="px-5 py-12 text-center text-sm text-muted-foreground">
+                              <td colSpan={7} className="px-5 py-12 text-center text-sm text-muted-foreground">
                                 {(searchTerm || channelFilter || userStatusFilter !== "all") ? "No users match your filters." : "No users yet."}
                               </td>
                             </tr>
                           ) : (
                             filteredUsers.map((user) => (
                               <tr key={user.id} className="hover:bg-black/[0.015] transition-colors cursor-pointer" data-testid={`row-admin-user-${user.id}`} onClick={() => adminNavigate(`/admin/users/${user.id}`)}>
+                                <td className="w-10 px-3 py-4" onClick={(e) => e.stopPropagation()}>
+                                  <button
+                                    data-testid={`checkbox-user-${user.id}`}
+                                    onClick={() => toggleUserSelection(user.id)}
+                                    className="flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                                  >
+                                    {selectedUserIds.has(user.id) ? (
+                                      <CheckSquare className="w-4 h-4 text-primary" />
+                                    ) : (
+                                      <Square className="w-4 h-4" />
+                                    )}
+                                  </button>
+                                </td>
                                 <td className="px-5 py-4">
                                   <div className="flex items-center gap-3">
                                     <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -753,14 +833,102 @@ export default function Admin() {
                                     )}
                                   </span>
                                 </td>
+                                <td className="w-10 px-3 py-4" onClick={(e) => e.stopPropagation()}>
+                                  <a
+                                    href={`/admin/users/${user.id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    data-testid={`link-open-new-tab-${user.id}`}
+                                    className="flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
+                                    title="Open in new tab"
+                                  >
+                                    <ExternalLink className="w-4 h-4" />
+                                  </a>
+                                </td>
                               </tr>
                             ))
                           )}
                         </tbody>
                       </table>
                     </div>
+
+                    {selectedUserIds.size > 0 && (
+                      <div className="sticky bottom-4 mx-4 mb-4 mt-2" data-testid="bulk-action-bar">
+                        <div className="flex items-center justify-between gap-3 px-5 py-3 rounded-xl bg-primary/5 border border-primary/20 shadow-lg backdrop-blur-sm">
+                          <span className="text-sm font-semibold text-foreground" data-testid="text-selected-count">
+                            {selectedUserIds.size} user{selectedUserIds.size !== 1 ? "s" : ""} selected
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              data-testid="button-bulk-verify"
+                              onClick={() => bulkStatusMutation.mutate({ userIds: Array.from(selectedUserIds), emailVerified: true })}
+                              disabled={bulkStatusMutation.isPending}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors disabled:opacity-50"
+                            >
+                              {bulkStatusMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
+                              Mark Verified
+                            </button>
+                            <button
+                              data-testid="button-bulk-unverify"
+                              onClick={() => bulkStatusMutation.mutate({ userIds: Array.from(selectedUserIds), emailVerified: false })}
+                              disabled={bulkStatusMutation.isPending}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors disabled:opacity-50"
+                            >
+                              {bulkStatusMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShieldOff className="w-3.5 h-3.5" />}
+                              Mark Unverified
+                            </button>
+                            <button
+                              data-testid="button-bulk-delete"
+                              onClick={() => setShowBulkDeleteConfirm(true)}
+                              disabled={bulkDeleteMutation.isPending}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 transition-colors disabled:opacity-50"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              Delete
+                            </button>
+                            <button
+                              data-testid="button-clear-selection"
+                              onClick={() => { setSelectedUserIds(new Set()); setShowBulkDeleteConfirm(false); }}
+                              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground border border-black/10 hover:bg-black/[0.03] transition-colors"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                              Clear
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
+
+                <Dialog open={showBulkDeleteConfirm} onOpenChange={setShowBulkDeleteConfirm}>
+                  <DialogContent data-testid="dialog-bulk-delete">
+                    <DialogHeader>
+                      <DialogTitle>Delete {selectedUserIds.size} user{selectedUserIds.size !== 1 ? "s" : ""}?</DialogTitle>
+                      <DialogDescription>
+                        This action cannot be undone. All selected user accounts and their associated data will be permanently removed.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <button
+                        data-testid="button-bulk-delete-cancel"
+                        onClick={() => setShowBulkDeleteConfirm(false)}
+                        className="px-4 py-2 rounded-lg text-sm font-semibold text-muted-foreground border border-black/10 hover:bg-black/[0.03] transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        data-testid="button-bulk-delete-confirm"
+                        onClick={() => bulkDeleteMutation.mutate(Array.from(selectedUserIds))}
+                        disabled={bulkDeleteMutation.isPending}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-50"
+                      >
+                        {bulkDeleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                        {bulkDeleteMutation.isPending ? "Deleting..." : "Delete Users"}
+                      </button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </>
             )}
 
