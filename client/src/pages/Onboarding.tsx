@@ -34,6 +34,33 @@ function hiResArtwork(url: string): string {
   return url.replace(/\/\d+x\d+bb\./, "/100x100bb.");
 }
 
+function RecommendationCard({ podcast, onAdd }: { podcast: RelatedPodcast; onAdd: (p: RelatedPodcast) => void }) {
+  return (
+    <button
+      onClick={() => onAdd(podcast)}
+      className="flex items-center gap-3 px-3 py-2.5 min-h-[44px] rounded-xl border border-[#ECECEE] dark:border-[#27272A] hover:bg-[#FAFAFE] dark:hover:bg-[#111114] hover:border-[#6366F1]/20 transition-all text-left"
+      data-testid={`onboarding-related-${podcast.slug}`}
+    >
+      <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-[#1C1C22]">
+        {podcast.artworkUrl ? (
+          <img src={hiResArtwork(podcast.artworkUrl)} alt={podcast.name} className="w-full h-full object-cover" loading="lazy" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Podcast className="w-4 h-4 text-[#6366F1]" />
+          </div>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold text-[14px] text-[#09090B] dark:text-white truncate">{podcast.name}</p>
+        {podcast.category && <p className="text-[12px] text-[#A1A1AA] truncate">{podcast.category}</p>}
+      </div>
+      <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border border-[#6366F1]/30 text-[#6366F1]">
+        <Plus className="w-3.5 h-3.5" />
+      </div>
+    </button>
+  );
+}
+
 export default function Onboarding() {
   const { data: user } = useAuth();
   const [, navigate] = useLocation();
@@ -176,35 +203,32 @@ export default function Onboarding() {
     );
   }
 
+  const showRecommendations = selectedPodcasts.size > 0;
+
   return (
-    <div className="min-h-screen bg-white dark:bg-[#09090B]" data-testid="onboarding-page">
-      <header className="sticky top-0 z-40 bg-white dark:bg-[#09090B] border-b border-[#F0F0F2] dark:border-[#1C1C22]">
-        <div className="max-w-4xl mx-auto px-5 md:px-8 h-14 flex items-center justify-between">
+    <div className="h-screen flex flex-col bg-white dark:bg-[#09090B] overflow-y-auto md:overflow-hidden" data-testid="onboarding-page">
+      <header className="flex-shrink-0 z-40 bg-white dark:bg-[#09090B]">
+        <div className="px-5 md:px-8 h-14 flex items-center">
           <PodRiseWordmark />
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-5 md:px-8">
-        <motion.div
-          key="search"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.25 }}
-        >
-          <div className="pt-8 md:pt-12 pb-4 md:pb-6 max-w-2xl mx-auto text-center">
-            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-[#EEF2FF] dark:bg-[#1E1B4B] flex items-center justify-center mx-auto mb-4">
-              <Search className="w-6 h-6 md:w-7 md:h-7 text-[#6366F1]" />
+      <motion.div
+        key="search"
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.25 }}
+        className="flex-1 flex flex-col min-h-0"
+      >
+        <div className={`flex-1 min-h-0 flex flex-col ${showRecommendations ? 'md:grid md:grid-cols-2 md:gap-8' : ''} px-5 md:px-8`}>
+          <div className="flex flex-col min-h-0">
+            <div className="pt-4 md:pt-8 pb-4 flex-shrink-0">
+              <h1 className="text-[1.5rem] md:text-[2rem] font-bold text-[#09090B] dark:text-white leading-tight" data-testid="onboarding-search-heading">
+                What podcasts do you listen to?
+              </h1>
             </div>
-            <h1 className="text-[1.5rem] md:text-[2rem] font-bold text-[#09090B] dark:text-white leading-tight" data-testid="onboarding-search-heading">
-              What podcasts do you listen to?
-            </h1>
-            <p className="text-[15px] md:text-[17px] text-[#71717A] dark:text-[#A1A1AA] mt-2 max-w-lg mx-auto">
-              Search for podcasts you already enjoy. We'll use your picks to build your personalized feed.
-            </p>
-          </div>
 
-          <div className="max-w-2xl mx-auto">
-            <div className="relative mb-4">
+            <div className="relative mb-4 flex-shrink-0">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#A1A1AA]" />
               <input
                 type="text"
@@ -239,7 +263,7 @@ export default function Onboarding() {
             )}
 
             {searchResults.length > 0 && (
-              <div className="rounded-2xl border border-[#ECECEE] dark:border-[#27272A] overflow-hidden divide-y divide-[#F0F0F2] dark:divide-[#1C1C22] mb-4">
+              <div className="rounded-2xl border border-[#ECECEE] dark:border-[#27272A] overflow-hidden divide-y divide-[#F0F0F2] dark:divide-[#1C1C22] mb-4 flex-shrink-0 max-h-[240px] overflow-y-auto">
                 {searchResults.map((result) => {
                   const resultSlug = result.slug || result.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
                   const isSelected = selectedPodcasts.has(resultSlug);
@@ -280,8 +304,8 @@ export default function Onboarding() {
             )}
 
             {selectedPodcasts.size > 0 && (
-              <div className="mt-6 mb-4">
-                <h3 className="text-[13px] font-bold text-[#A1A1AA] uppercase tracking-wider mb-3">Your picks ({selectedPodcasts.size})</h3>
+              <div className="mb-4 flex-shrink-0 overflow-y-auto max-h-[200px] md:max-h-none md:flex-1 md:min-h-0">
+                <h3 className="text-[13px] font-bold text-[#A1A1AA] uppercase tracking-wider mb-3 sticky top-0 bg-white dark:bg-[#09090B]">Your picks ({selectedPodcasts.size})</h3>
                 <div className="flex flex-wrap gap-2">
                   {Array.from(selectedPodcasts.entries()).map(([slug, info]) => (
                     <div
@@ -311,8 +335,8 @@ export default function Onboarding() {
               </div>
             )}
 
-            {selectedPodcasts.size > 0 && !searchQuery && (
-              <div className="mt-6 mb-4">
+            {showRecommendations && (
+              <div className="mt-4 mb-4 md:hidden overflow-y-auto">
                 <div className="flex items-center gap-2 mb-3">
                   <Sparkles className="w-4 h-4 text-[#6366F1]" />
                   <h3 className="text-[13px] font-bold text-[#A1A1AA] uppercase tracking-wider">You might also listen to...</h3>
@@ -324,29 +348,7 @@ export default function Onboarding() {
                 ) : relatedPodcasts.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {relatedPodcasts.filter(p => !selectedPodcasts.has(p.slug)).slice(0, 6).map((podcast) => (
-                      <button
-                        key={podcast.slug}
-                        onClick={() => addRelatedPodcast(podcast)}
-                        className="flex items-center gap-3 px-3 py-2.5 min-h-[44px] rounded-xl border border-[#ECECEE] dark:border-[#27272A] hover:bg-[#FAFAFE] dark:hover:bg-[#111114] hover:border-[#6366F1]/20 transition-all text-left"
-                        data-testid={`onboarding-related-${podcast.slug}`}
-                      >
-                        <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-[#1C1C22]">
-                          {podcast.artworkUrl ? (
-                            <img src={hiResArtwork(podcast.artworkUrl)} alt={podcast.name} className="w-full h-full object-cover" loading="lazy" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Podcast className="w-4 h-4 text-[#6366F1]" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-[14px] text-[#09090B] dark:text-white truncate">{podcast.name}</p>
-                          {podcast.category && <p className="text-[12px] text-[#A1A1AA] truncate">{podcast.category}</p>}
-                        </div>
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border border-[#6366F1]/30 text-[#6366F1]">
-                          <Plus className="w-3.5 h-3.5" />
-                        </div>
-                      </button>
+                      <RecommendationCard key={podcast.slug} podcast={podcast} onAdd={addRelatedPodcast} />
                     ))}
                   </div>
                 ) : null}
@@ -354,7 +356,31 @@ export default function Onboarding() {
             )}
           </div>
 
-          <div className="max-w-2xl mx-auto sticky bottom-0 bg-white dark:bg-[#09090B] border-t border-[#F0F0F2] dark:border-[#1C1C22] py-4 mt-6">
+          {showRecommendations && (
+            <div className="hidden md:flex flex-col min-h-0 pt-4 md:pt-8">
+              <div className="flex items-center gap-2 mb-3 flex-shrink-0">
+                <Sparkles className="w-4 h-4 text-[#6366F1]" />
+                <h3 className="text-[13px] font-bold text-[#A1A1AA] uppercase tracking-wider">You might also listen to...</h3>
+              </div>
+              {loadingRelated ? (
+                <div className="flex justify-center py-6">
+                  <Loader2 className="w-5 h-5 animate-spin text-[#6366F1]" />
+                </div>
+              ) : relatedPodcasts.length > 0 ? (
+                <div className="flex-1 overflow-y-auto min-h-0">
+                  <div className="grid grid-cols-1 gap-2">
+                    {relatedPodcasts.filter(p => !selectedPodcasts.has(p.slug)).slice(0, 8).map((podcast) => (
+                      <RecommendationCard key={podcast.slug} podcast={podcast} onAdd={addRelatedPodcast} />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          )}
+        </div>
+
+        <div className="flex-shrink-0 bg-white dark:bg-[#09090B] border-t border-[#F0F0F2] dark:border-[#1C1C22] py-4 px-5 md:px-8">
+          <div className="max-w-md mx-auto md:mx-0 md:max-w-xs">
             <button
               onClick={() => completeMutation.mutate()}
               disabled={completeMutation.isPending}
@@ -370,14 +396,14 @@ export default function Onboarding() {
             <button
               onClick={() => completeMutation.mutate()}
               disabled={completeMutation.isPending}
-              className="w-full mt-3 text-center text-[14px] font-medium text-[#A1A1AA] hover:text-[#52525B] dark:hover:text-white transition-colors py-3 min-h-[44px] disabled:opacity-50"
+              className="w-full mt-1 text-center text-[14px] font-medium text-[#A1A1AA] hover:text-[#52525B] dark:hover:text-white transition-colors py-2 min-h-[44px] disabled:opacity-50"
               data-testid="onboarding-no-podcasts"
             >
               I don't currently listen to podcasts
             </button>
           </div>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
     </div>
   );
 }
