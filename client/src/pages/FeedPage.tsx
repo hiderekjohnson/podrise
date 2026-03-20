@@ -4,7 +4,8 @@ import { useQuery, useMutation, useInfiniteQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MessageCircle, ChevronDown, Gift, ChevronRight } from "lucide-react";
+import { Loader2, MessageCircle, ChevronDown, Gift, ChevronRight, Compass, Headphones, Rss } from "lucide-react";
+import { SiSpotify } from "react-icons/si";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { FeatureTour } from "@/components/FeatureTour";
 import { RecapCard } from "@/components/RecapCard";
@@ -569,19 +570,54 @@ export default function FeedPage() {
               <span className="text-[14px] text-[#A1A1AA]">Loading your feed...</span>
             </div>
           ) : allItems.length === 0 ? (
-            <div className="text-center py-20 px-8">
-              <div className="w-16 h-16 rounded-full bg-[#F4F4F5] dark:bg-[#1C1C22] flex items-center justify-center mx-auto mb-4">
-                <MessageCircle className="w-7 h-7 text-[#A1A1AA]" />
+            activeTab === "following" ? (
+              <div className="text-center py-16 px-6" data-testid="following-empty-state">
+                <div className="relative w-20 h-20 mx-auto mb-6">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#6366F1]/15 to-[#8B5CF6]/15 dark:from-[#6366F1]/20 dark:to-[#8B5CF6]/20 flex items-center justify-center">
+                    <Headphones className="w-9 h-9 text-[#6366F1]" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-[#6366F1] flex items-center justify-center shadow-lg">
+                    <Rss className="w-3.5 h-3.5 text-white" />
+                  </div>
+                </div>
+                <h3 className="text-[20px] font-bold text-[#09090B] dark:text-white mb-2 leading-tight">
+                  PodRise is better when you're<br />actually following podcasts
+                </h3>
+                <p className="text-[14px] text-[#71717A] dark:text-[#A1A1AA] leading-relaxed max-w-[320px] mx-auto mb-8">
+                  Follow your favorites to get personalized recaps delivered right here. Start exploring or import your existing subscriptions.
+                </p>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <Link
+                    href="/discover"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#6366F1] hover:bg-[#4F46E5] text-white text-[14px] font-semibold transition-colors shadow-sm"
+                    data-testid="empty-discover-cta"
+                  >
+                    <Compass className="w-4 h-4" />
+                    Discover Podcasts
+                  </Link>
+                  <Link
+                    href="/settings?spotify_tab=true"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-[#E4E4E7] dark:border-[#27272A] bg-white dark:bg-[#18181B] hover:bg-[#F4F4F5] dark:hover:bg-[#27272A] text-[#09090B] dark:text-white text-[14px] font-semibold transition-colors"
+                    data-testid="empty-spotify-cta"
+                  >
+                    <SiSpotify className="w-4 h-4 text-[#1DB954]" />
+                    Import from Spotify
+                  </Link>
+                </div>
               </div>
-              <p className="text-[17px] font-bold text-[#09090B] dark:text-white mb-1">
-                {activeTab === "following" ? "No followed podcasts yet" : "Nothing here yet"}
-              </p>
-              <p className="text-[14px] text-[#71717A] dark:text-[#A1A1AA] leading-relaxed">
-                {activeTab === "following"
-                  ? "Follow podcasts from the For You tab or Discover to see their recaps here."
-                  : "Check back soon for fresh podcast recaps."}
-              </p>
-            </div>
+            ) : (
+              <div className="text-center py-20 px-8" data-testid="foryou-empty-state">
+                <div className="w-16 h-16 rounded-full bg-[#F4F4F5] dark:bg-[#1C1C22] flex items-center justify-center mx-auto mb-4">
+                  <MessageCircle className="w-7 h-7 text-[#A1A1AA]" />
+                </div>
+                <p className="text-[17px] font-bold text-[#09090B] dark:text-white mb-1">
+                  Nothing here yet
+                </p>
+                <p className="text-[14px] text-[#71717A] dark:text-[#A1A1AA] leading-relaxed">
+                  Check back soon for fresh podcast recaps.
+                </p>
+              </div>
+            )
           ) : (
             <>
               {allItems.map((item, index) => {

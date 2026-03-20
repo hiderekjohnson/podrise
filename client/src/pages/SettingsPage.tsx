@@ -35,7 +35,7 @@ export default function SettingsPage() {
   const [initialized, setInitialized] = useState(false);
   const [activeTab, setActiveTab] = useState<"account" | "display" | "email" | "spotify">(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("spotify_connected") === "true" || params.get("spotify_error")) {
+    if (params.get("spotify_connected") === "true" || params.get("spotify_error") || params.get("spotify_tab") === "true") {
       return "spotify";
     }
     return "account";
