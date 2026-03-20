@@ -189,6 +189,115 @@ export async function enrichAllBooks(limit?: number): Promise<{ processed: numbe
   return { processed, errors };
 }
 
+async function generateBuzzOnly(book: BookAggregation): Promise<string> {
+  const contextSummary = book.contexts.slice(0, 8).join("\n- ");
+  const podcastList = book.podcastNames.join(", ");
+
+  const prompt = `Generate a podcast buzz summary for this book.
+
+BOOK: "${book.name}" by ${book.author || "Unknown Author"}
+MENTIONED ON: ${podcastList} (${book.mentionCount} total mentions)
+CONTEXT FROM EPISODES:
+- ${contextSummary}
+
+Write a 1-2 sentence summary of why podcast hosts love this book. What keeps bringing it up in conversation? Who recommends it and why? Reference specific podcasts by name when possible. Make it feel like social proof from real listeners. Examples of good buzz:
+- "A staple on business podcasts. Tim Ferriss calls it essential reading, and it regularly comes up on The Knowledge Project as a framework for building habits."
+- "Frequently cited on tech podcasts when discussing AI safety. Hosts on Lex Fridman and All-In have called it the most important book of the decade."
+
+Respond with ONLY valid JSON:
+{
+  "podcastBuzz": "Why podcast hosts love it..."
+}`;
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [{ role: "user", content: prompt }],
+    max_tokens: 300,
+    temperature: 0.4,
+    response_format: { type: "json_object" },
+  });
+  const { logCompletionUsage } = await import("./apiUsageTracker");
+  logCompletionUsage(completion, "gpt-4o", "book_buzz_generation");
+
+  const content = completion.choices[0]?.message?.content;
+  if (!content) return "";
+
+  const parsed = JSON.parse(content.trim());
+  return parsed.podcastBuzz || "";
+}
+
+export async function getMissingBuzzCount(): Promise<number> {
+  const { rows } = await pool.query(
+    `SELECT COUNT(*) as count FROM book_enrichments 
+     WHERE slug IS NOT NULL 
+     AND (podcast_buzz IS NULL OR podcast_buzz = '' OR podcast_buzz = 'No podcast buzz available yet — check back soon.')
+     AND book_key NOT IN (SELECT book_key FROM book_blocklist)`
+  );
+  return parseInt(rows[0].count, 10);
+}
+
+export async function generateMissingBuzz(
+  onProgress?: (data: { processed: number; total: number; current: string; errors: number }) => void
+): Promise<{ processed: number; errors: number; total: number }> {
+  const allBooks = await getAllBooks();
+  const booksByKey = new Map(allBooks.map(b => [b.bookKey, b]));
+
+  const { rows: missingRows } = await pool.query(
+    `SELECT book_key, book_title FROM book_enrichments 
+     WHERE slug IS NOT NULL 
+     AND (podcast_buzz IS NULL OR podcast_buzz = '' OR podcast_buzz = 'No podcast buzz available yet — check back soon.')
+     AND book_key NOT IN (SELECT book_key FROM book_blocklist)
+     ORDER BY book_title`
+  );
+
+  const total = missingRows.length;
+  let processed = 0;
+  let errors = 0;
+
+  for (const row of missingRows) {
+    const book = booksByKey.get(row.book_key);
+    if (!book) {
+      processed++;
+      errors++;
+      console.log(`[BuzzGen] Skipped "${row.book_title}" - no source data found`);
+      if (onProgress) onProgress({ processed, total, current: row.book_title, errors });
+      continue;
+    }
+
+    try {
+      console.log(`[BuzzGen] Generating buzz for "${row.book_title}"...`);
+      const buzz = await generateBuzzOnly(book);
+
+      if (buzz) {
+        await pool.query(
+          `UPDATE book_enrichments SET podcast_buzz = $1, updated_at = NOW() WHERE book_key = $2`,
+          [buzz, row.book_key]
+        );
+        processed++;
+        console.log(`[BuzzGen] Done: "${row.book_title}"`);
+      } else {
+        processed++;
+        errors++;
+        console.log(`[BuzzGen] Empty buzz for "${row.book_title}"`);
+      }
+
+      if (onProgress) onProgress({ processed, total, current: row.book_title, errors });
+      await new Promise(r => setTimeout(r, 300));
+    } catch (err) {
+      console.error(`[BuzzGen] Failed: "${row.book_title}":`, err);
+      if (isCriticalOpenAIError(err)) {
+        const msg = err instanceof Error ? err.message : String(err);
+        sendCriticalApiAlert({ apiName: "OpenAI", errorType: classifyOpenAIError(err), errorMessage: `Buzz generation failed for "${row.book_title}": ${msg}`, adminPath: "/admin/internal-tools/alerts" }).catch(() => {});
+      }
+      errors++;
+      processed++;
+      if (onProgress) onProgress({ processed, total, current: row.book_title, errors });
+    }
+  }
+
+  return { processed, errors, total };
+}
+
 const isMainModule = import.meta.url === `file://${process.argv[1]}`;
 if (isMainModule) {
   enrichAllBooks().then(result => {

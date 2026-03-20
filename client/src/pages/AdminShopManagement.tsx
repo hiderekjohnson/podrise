@@ -187,6 +187,18 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
     current: string;
   } | null>(null);
 
+  const [buzzProgress, setBuzzProgress] = useState<{
+    phase: "running" | "done";
+    total: number;
+    processed: number;
+    errors: number;
+    current: string;
+  } | null>(null);
+
+  const { data: missingBuzzData } = useQuery<{ count: number }>({
+    queryKey: ["/api/admin/books/missing-buzz-count"],
+  });
+
   const { data, isLoading, refetch } = useQuery<QueueResponse>({
     queryKey: ["/api/admin/shop/queue", 1, queueSort, queueFilter],
     queryFn: async () => {
@@ -312,6 +324,56 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
     }
   };
 
+  const handleGenerateBuzz = async () => {
+    setBuzzProgress({ phase: "running", total: 0, processed: 0, errors: 0, current: "" });
+    try {
+      const res = await fetch("/api/admin/books/generate-podcast-buzz", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed");
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+      if (!reader) throw new Error("No stream");
+      let buffer = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const event = JSON.parse(line.slice(6));
+            if (event.type === "start") {
+              setBuzzProgress(prev => prev ? { ...prev, total: event.total } : prev);
+            } else if (event.type === "progress") {
+              setBuzzProgress(prev => prev ? { ...prev, processed: event.processed, total: event.total, current: event.current, errors: event.errors } : prev);
+            } else if (event.type === "complete") {
+              setBuzzProgress(prev => prev ? { ...prev, phase: "done", processed: event.processed, total: event.total, errors: event.errors } : prev);
+              toast({
+                title: "Buzz Generation Complete",
+                description: `Generated buzz for ${event.processed - event.errors} book${event.processed - event.errors !== 1 ? 's' : ''}${event.errors > 0 ? `, ${event.errors} error${event.errors !== 1 ? 's' : ''}` : ''}.`,
+              });
+              queryClient.invalidateQueries({ queryKey: ["/api/admin/books/missing-buzz-count"] });
+            } else if (event.type === "error") {
+              toast({ title: "Error", description: event.message || "Buzz generation failed.", variant: "destructive" });
+              setBuzzProgress(null);
+              return;
+            }
+          } catch (parseErr) {
+            // ignore JSON parse errors for partial lines
+          }
+        }
+      }
+      setBuzzProgress(prev => prev && prev.phase !== "done" ? { ...prev, phase: "done" } : prev);
+    } catch {
+      toast({ title: "Error", description: "Buzz generation failed.", variant: "destructive" });
+      setBuzzProgress(null);
+    }
+  };
+
   const uploadImageMutation = useMutation({
     mutationFn: async ({ item, file }: { item: ShopItem; file: File }) => {
       const formData = new FormData();
@@ -418,6 +480,24 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
             )}
             {imageRefreshProgress?.phase === "running" ? "Refreshing..." : "Refresh Images"}
           </button>
+          <button
+            onClick={handleGenerateBuzz}
+            disabled={!!buzzProgress && buzzProgress.phase === "running"}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 transition-all disabled:opacity-50"
+            data-testid="button-generate-missing-buzz"
+          >
+            {buzzProgress?.phase === "running" ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Mic className="w-3.5 h-3.5" />
+            )}
+            {buzzProgress?.phase === "running" ? "Generating..." : "Generate Missing Buzz"}
+            {missingBuzzData && missingBuzzData.count > 0 && !buzzProgress && (
+              <span className="ml-1 px-1.5 py-0.5 rounded-full bg-purple-200 text-purple-800 text-[10px] font-bold" data-testid="badge-missing-buzz-count">
+                {missingBuzzData.count}
+              </span>
+            )}
+          </button>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative">
@@ -482,6 +562,45 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
               onClick={() => setImageRefreshProgress(null)}
               className="mt-3 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-primary hover:bg-primary/90 transition-all"
               data-testid="button-refresh-done"
+            >
+              Done
+            </button>
+          )}
+        </div>
+      )}
+
+      {buzzProgress && (
+        <div className="rounded-xl border border-black/[0.06] bg-white p-4" data-testid="buzz-generation-progress">
+          <div className="flex items-center gap-3 mb-2">
+            {buzzProgress.phase === "done" ? (
+              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+            ) : (
+              <Loader2 className="w-5 h-5 animate-spin text-purple-600" />
+            )}
+            <span className="text-sm font-bold text-foreground">
+              {buzzProgress.phase === "done" ? "Buzz Generation Complete" : "Generating Podcast Buzz..."}
+            </span>
+          </div>
+          <div className="w-full bg-gray-100 rounded-full h-2 mb-2">
+            <div
+              className="bg-purple-500 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${buzzProgress.total > 0 ? Math.round((buzzProgress.processed / buzzProgress.total) * 100) : 0}%` }}
+            />
+          </div>
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>{buzzProgress.processed} of {buzzProgress.total} processed</span>
+            {buzzProgress.errors > 0 && (
+              <span className="text-red-500 font-semibold">{buzzProgress.errors} error{buzzProgress.errors !== 1 ? 's' : ''}</span>
+            )}
+          </div>
+          {buzzProgress.current && buzzProgress.phase === "running" && (
+            <p className="text-xs text-muted-foreground mt-1 truncate" data-testid="text-buzz-current">Processing: {buzzProgress.current}</p>
+          )}
+          {buzzProgress.phase === "done" && (
+            <button
+              onClick={() => setBuzzProgress(null)}
+              className="mt-3 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-primary hover:bg-primary/90 transition-all"
+              data-testid="button-buzz-done"
             >
               Done
             </button>

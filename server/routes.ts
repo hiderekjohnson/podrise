@@ -15173,6 +15173,47 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
     }
   });
 
+  app.get("/api/admin/books/missing-buzz-count", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const { getMissingBuzzCount } = await import("./enrichBooks");
+      const count = await getMissingBuzzCount();
+      res.json({ count });
+    } catch (err: any) {
+      console.error("[MissingBuzzCount] Error:", err);
+      res.status(500).json({ message: err?.message || "Failed to get count" });
+    }
+  });
+
+  app.post("/api/admin/books/generate-podcast-buzz", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      });
+
+      const sendEvent = (data: any) => {
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+      };
+
+      const { generateMissingBuzz, getMissingBuzzCount } = await import("./enrichBooks");
+      const totalCount = await getMissingBuzzCount();
+      sendEvent({ type: "start", total: totalCount });
+
+      const result = await generateMissingBuzz((progress) => {
+        sendEvent({ type: "progress", ...progress });
+      });
+
+      sendEvent({ type: "complete", processed: result.processed, errors: result.errors, total: result.total });
+      res.end();
+    } catch (err: any) {
+      console.error("[GenerateBuzz] Error:", err);
+      try { res.write(`data: ${JSON.stringify({ type: "error", message: err?.message || "Failed" })}\n\n`); res.end(); } catch {}
+    }
+  });
+
   app.post("/api/admin/shop/refresh-queue-images", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
     try {
