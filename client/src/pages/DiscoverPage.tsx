@@ -1,9 +1,9 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Loader2, X, Brain, Rocket, BarChart3, Coins, Heart, BookOpen, Zap, Globe, Mic, ArrowLeft } from "lucide-react";
+import { Search, Loader2, X, Brain, Rocket, BarChart3, Coins, Heart, BookOpen, Zap, Globe, Mic, ArrowLeft, Check, CheckSquare } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Link } from "wouter";
 import { RequestPodcastDialog } from "@/components/RequestPodcastDialog";
@@ -27,51 +27,166 @@ const DISCOVER_TOPICS = [
   { slug: "health-longevity", name: "Health", icon: Heart, color: "#EF4444" },
 ] as const;
 
+function SelectCheckbox({
+  selected,
+  onToggle,
+  slug,
+}: {
+  selected: boolean;
+  onToggle: (slug: string) => void;
+  slug: string;
+}) {
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        onToggle(slug);
+      }}
+      className={`absolute top-2 left-2 z-10 w-7 h-7 rounded-lg flex items-center justify-center transition-all shadow-sm ${
+        selected
+          ? "bg-[#6366F1] text-white scale-100"
+          : "bg-white/80 dark:bg-black/50 text-transparent hover:text-[#A1A1AA] hover:bg-white dark:hover:bg-black/70 backdrop-blur-sm"
+      }`}
+      aria-label={selected ? `Deselect` : `Select`}
+      data-testid={`select-checkbox-${slug}`}
+    >
+      <Check className="w-4 h-4" strokeWidth={3} />
+    </button>
+  );
+}
+
+function FollowAllButton({
+  unfollowedCount,
+  onClick,
+  testId,
+  isPending,
+}: {
+  unfollowedCount: number;
+  onClick: () => void;
+  testId: string;
+  isPending?: boolean;
+}) {
+  const allFollowed = unfollowedCount === 0;
+  const isDisabled = allFollowed || isPending;
+  return (
+    <button
+      onClick={onClick}
+      disabled={isDisabled}
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all active:scale-95 ${
+        isDisabled
+          ? "bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#A1A1AA] cursor-not-allowed"
+          : "bg-[#6366F1] text-white hover:bg-[#5558E6]"
+      }`}
+      data-testid={testId}
+    >
+      {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckSquare className="w-3.5 h-3.5" />}
+      {allFollowed ? "All Followed" : `Follow All (${unfollowedCount})`}
+    </button>
+  );
+}
+
 function AllPodcastsGrid({
   podcasts,
   followedSlugs,
   onFollow,
   onUnfollow,
+  isLoggedIn,
+  selectedSlugs,
+  onToggleSelect,
+  onFollowAll,
+  onSelectAllVisible,
+  bulkPending,
 }: {
   podcasts: DirectoryPodcast[];
   followedSlugs: Set<string>;
   onFollow: (slug: string) => void;
   onUnfollow: (slug: string) => void;
+  isLoggedIn: boolean;
+  selectedSlugs: Set<string>;
+  onToggleSelect: (slug: string) => void;
+  onFollowAll: (slugs: string[]) => void;
+  onSelectAllVisible: (slugs: string[], deselect?: boolean) => void;
+  bulkPending?: boolean;
 }) {
   const [visibleCount, setVisibleCount] = useState(20);
   const visible = podcasts.slice(0, visibleCount);
+  const allUnfollowedSlugs = podcasts.filter((p) => !followedSlugs.has(p.slug)).map((p) => p.slug);
+  const visibleSlugs = visible.map((p) => p.slug);
+  const allVisibleSelected = visibleSlugs.length > 0 && visibleSlugs.every((s) => selectedSlugs.has(s));
 
   return (
     <div className="px-4 md:px-8 pt-2 pb-4" data-testid="all-podcasts-grid">
-      <h2 className="text-[16px] md:text-[18px] font-bold text-[#09090B] dark:text-white mb-3">All Podcasts</h2>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-[16px] md:text-[18px] font-bold text-[#09090B] dark:text-white">All Podcasts</h2>
+        {isLoggedIn && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onSelectAllVisible(visibleSlugs, allVisibleSelected)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all active:scale-95 bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#52525B] dark:text-[#A1A1AA] hover:bg-[#E4E4E7] dark:hover:bg-[#27272A]"
+              data-testid="select-all-visible-podcasts"
+            >
+              <CheckSquare className="w-3.5 h-3.5" />
+              {allVisibleSelected ? "Deselect All" : "Select All"}
+            </button>
+            <FollowAllButton
+              unfollowedCount={allUnfollowedSlugs.length}
+              onClick={() => onFollowAll(allUnfollowedSlugs)}
+              testId="follow-all-podcasts"
+              isPending={bulkPending}
+            />
+          </div>
+        )}
+      </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-        {visible.map((p) => (
-          <div key={p.slug} className="bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.06] rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#6366F1]/20 transition-all duration-200 flex flex-col" data-testid={`discover-podcast-${p.slug}`}>
-            <Link href={`/podcasts/${p.slug}`} className="block">
-              <div className="aspect-square overflow-hidden bg-[#F4F4F5] dark:bg-[#1C1C22]">
-                <img src={p.artworkUrl} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
-              </div>
-            </Link>
-            <div className="p-3 flex flex-col flex-1">
-              <div className="flex-1">
-                <Link href={`/podcasts/${p.slug}`}>
-                  <h3 className="text-[14px] font-bold text-[#09090B] dark:text-white leading-snug line-clamp-2 hover:text-[#6366F1] transition-colors" data-testid={`discover-podcast-name-${p.slug}`}>
-                    {p.name}
-                  </h3>
-                </Link>
-                {p.category && <p className="text-[12px] text-[#A1A1AA] mt-0.5 line-clamp-1">{p.category}</p>}
-              </div>
-              <div className="mt-2">
-                <FollowButton
+        {visible.map((p) => {
+          const isSelected = selectedSlugs.has(p.slug);
+          const isFollowed = followedSlugs.has(p.slug);
+          return (
+            <div
+              key={p.slug}
+              className={`relative bg-white dark:bg-white/[0.03] border rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-200 flex flex-col ${
+                isSelected
+                  ? "border-[#6366F1] ring-2 ring-[#6366F1]/30"
+                  : isFollowed
+                    ? "border-[#E4E4E7] dark:border-white/[0.06] opacity-75"
+                    : "border-[#F0F0F2] dark:border-white/[0.06] hover:border-[#6366F1]/20"
+              }`}
+              data-testid={`discover-podcast-${p.slug}`}
+            >
+              {isLoggedIn && (
+                <SelectCheckbox
+                  selected={isSelected}
+                  onToggle={onToggleSelect}
                   slug={p.slug}
-                  isFollowing={followedSlugs.has(p.slug)}
-                  onFollow={onFollow}
-                  onUnfollow={onUnfollow}
                 />
+              )}
+              <Link href={`/podcasts/${p.slug}`} className="block">
+                <div className="aspect-square overflow-hidden bg-[#F4F4F5] dark:bg-[#1C1C22]">
+                  <img src={p.artworkUrl} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
+                </div>
+              </Link>
+              <div className="p-3 flex flex-col flex-1">
+                <div className="flex-1">
+                  <Link href={`/podcasts/${p.slug}`}>
+                    <h3 className="text-[14px] font-bold text-[#09090B] dark:text-white leading-snug line-clamp-2 hover:text-[#6366F1] transition-colors" data-testid={`discover-podcast-name-${p.slug}`}>
+                      {p.name}
+                    </h3>
+                  </Link>
+                  {p.category && <p className="text-[12px] text-[#A1A1AA] mt-0.5 line-clamp-1">{p.category}</p>}
+                </div>
+                <div className="mt-2">
+                  <FollowButton
+                    slug={p.slug}
+                    isFollowing={isFollowed}
+                    onFollow={onFollow}
+                    onUnfollow={onUnfollow}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       {visibleCount < podcasts.length && (
         <div className="flex justify-center mt-6">
@@ -93,11 +208,23 @@ function TopicPodcastsGrid({
   followedSlugs,
   onFollow,
   onUnfollow,
+  isLoggedIn,
+  selectedSlugs,
+  onToggleSelect,
+  onFollowAll,
+  onSelectAllVisible,
+  bulkPending,
 }: {
   topicSlug: string;
   followedSlugs: Set<string>;
   onFollow: (slug: string) => void;
   onUnfollow: (slug: string) => void;
+  isLoggedIn: boolean;
+  selectedSlugs: Set<string>;
+  onToggleSelect: (slug: string) => void;
+  onFollowAll: (slugs: string[]) => void;
+  onSelectAllVisible: (slugs: string[], deselect?: boolean) => void;
+  bulkPending?: boolean;
 }) {
   const { data: podcasts, isLoading, isError } = useQuery<DirectoryPodcast[]>({
     queryKey: ["/api/podcasts/directory/by-topic", topicSlug],
@@ -109,6 +236,11 @@ function TopicPodcastsGrid({
       category: p.category,
     })),
   });
+
+  const unfollowedSlugs = useMemo(() => {
+    if (!podcasts) return [];
+    return podcasts.filter((p) => !followedSlugs.has(p.slug)).map((p) => p.slug);
+  }, [podcasts, followedSlugs]);
 
   if (isLoading) {
     return (
@@ -135,34 +267,79 @@ function TopicPodcastsGrid({
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3" data-testid="topic-podcasts-grid">
-      {podcasts.map((p) => (
-        <div key={p.slug} className="bg-white dark:bg-white/[0.03] border border-[#F0F0F2] dark:border-white/[0.06] rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#6366F1]/20 transition-all duration-200 flex flex-col" data-testid={`topic-podcast-${p.slug}`}>
-          <Link href={`/podcasts/${p.slug}`} className="block">
-            <div className="aspect-square overflow-hidden bg-[#F4F4F5] dark:bg-[#1C1C22]">
-              <img src={p.artworkUrl} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
-            </div>
-          </Link>
-          <div className="p-3 flex flex-col flex-1">
-            <div className="flex-1">
-              <Link href={`/podcasts/${p.slug}`}>
-                <h3 className="text-[14px] font-bold text-[#09090B] dark:text-white leading-snug line-clamp-2 hover:text-[#6366F1] transition-colors" data-testid={`topic-podcast-name-${p.slug}`}>
-                  {p.name}
-                </h3>
-              </Link>
-              {p.category && <p className="text-[12px] text-[#A1A1AA] mt-0.5 line-clamp-1">{p.category}</p>}
-            </div>
-            <div className="mt-2">
-              <FollowButton
-                slug={p.slug}
-                isFollowing={followedSlugs.has(p.slug)}
-                onFollow={onFollow}
-                onUnfollow={onUnfollow}
-              />
-            </div>
+    <div>
+      {isLoggedIn && podcasts && podcasts.length > 0 && (() => {
+        const allSlugs = podcasts.map((p) => p.slug);
+        const allSelected = allSlugs.length > 0 && allSlugs.every((s) => selectedSlugs.has(s));
+        return (
+          <div className="flex justify-end gap-2 mb-2">
+            <button
+              onClick={() => onSelectAllVisible(allSlugs, allSelected)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all active:scale-95 bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#52525B] dark:text-[#A1A1AA] hover:bg-[#E4E4E7] dark:hover:bg-[#27272A]"
+              data-testid={`select-all-topic-${topicSlug}`}
+            >
+              <CheckSquare className="w-3.5 h-3.5" />
+              {allSelected ? "Deselect All" : "Select All"}
+            </button>
+            <FollowAllButton
+              unfollowedCount={unfollowedSlugs.length}
+              onClick={() => onFollowAll(unfollowedSlugs)}
+              testId={`follow-all-topic-${topicSlug}`}
+              isPending={bulkPending}
+            />
           </div>
-        </div>
-      ))}
+        );
+      })()}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3" data-testid="topic-podcasts-grid">
+        {podcasts.map((p) => {
+          const isSelected = selectedSlugs.has(p.slug);
+          const isFollowed = followedSlugs.has(p.slug);
+          return (
+            <div
+              key={p.slug}
+              className={`relative bg-white dark:bg-white/[0.03] border rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-200 flex flex-col ${
+                isSelected
+                  ? "border-[#6366F1] ring-2 ring-[#6366F1]/30"
+                  : isFollowed
+                    ? "border-[#E4E4E7] dark:border-white/[0.06] opacity-75"
+                    : "border-[#F0F0F2] dark:border-white/[0.06] hover:border-[#6366F1]/20"
+              }`}
+              data-testid={`topic-podcast-${p.slug}`}
+            >
+              {isLoggedIn && (
+                <SelectCheckbox
+                  selected={isSelected}
+                  onToggle={onToggleSelect}
+                  slug={p.slug}
+                />
+              )}
+              <Link href={`/podcasts/${p.slug}`} className="block">
+                <div className="aspect-square overflow-hidden bg-[#F4F4F5] dark:bg-[#1C1C22]">
+                  <img src={p.artworkUrl} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
+                </div>
+              </Link>
+              <div className="p-3 flex flex-col flex-1">
+                <div className="flex-1">
+                  <Link href={`/podcasts/${p.slug}`}>
+                    <h3 className="text-[14px] font-bold text-[#09090B] dark:text-white leading-snug line-clamp-2 hover:text-[#6366F1] transition-colors" data-testid={`topic-podcast-name-${p.slug}`}>
+                      {p.name}
+                    </h3>
+                  </Link>
+                  {p.category && <p className="text-[12px] text-[#A1A1AA] mt-0.5 line-clamp-1">{p.category}</p>}
+                </div>
+                <div className="mt-2">
+                  <FollowButton
+                    slug={p.slug}
+                    isFollowing={isFollowed}
+                    onFollow={onFollow}
+                    onUnfollow={onUnfollow}
+                  />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -203,6 +380,47 @@ function FollowButton({
   );
 }
 
+function FloatingActionBar({
+  selectedCount,
+  onFollowSelected,
+  onClearSelection,
+  isPending,
+}: {
+  selectedCount: number;
+  onFollowSelected: () => void;
+  onClearSelection: () => void;
+  isPending?: boolean;
+}) {
+  if (selectedCount === 0) return null;
+
+  return (
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 fade-in duration-200" data-testid="floating-action-bar">
+      <div className="flex items-center gap-3 bg-[#09090B] dark:bg-white text-white dark:text-[#09090B] rounded-2xl px-5 py-3 shadow-2xl shadow-black/20">
+        <span className="text-[14px] font-semibold whitespace-nowrap" data-testid="selected-count">
+          {selectedCount} selected
+        </span>
+        <button
+          onClick={onFollowSelected}
+          disabled={isPending}
+          className="flex items-center gap-1.5 px-4 py-2 bg-[#6366F1] text-white rounded-xl text-[13px] font-bold hover:bg-[#5558E6] transition-colors active:scale-95 disabled:opacity-50"
+          data-testid="button-follow-selected"
+        >
+          {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+          Follow Selected
+        </button>
+        <button
+          onClick={onClearSelection}
+          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 dark:hover:bg-black/10 transition-colors"
+          aria-label="Clear selection"
+          data-testid="button-clear-selection"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function DiscoverPage() {
   const { data: user } = useAuth();
   const { toast } = useToast();
@@ -211,6 +429,40 @@ export default function DiscoverPage() {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [requestDialogOpen, setRequestDialogOpen] = useState(false);
   const [requestPodcastName, setRequestPodcastName] = useState("");
+  const [selectedSlugs, setSelectedSlugs] = useState<Set<string>>(new Set());
+  const [bulkFollowPending, setBulkFollowPending] = useState(false);
+
+  const toggleSelect = useCallback((slug: string) => {
+    setSelectedSlugs((prev) => {
+      const next = new Set(prev);
+      if (next.has(slug)) {
+        next.delete(slug);
+      } else {
+        next.add(slug);
+      }
+      return next;
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    setSelectedSlugs(new Set());
+  }, []);
+
+  const handleSelectAllVisible = useCallback((slugs: string[], deselect?: boolean) => {
+    setSelectedSlugs((prev) => {
+      const next = new Set(prev);
+      if (deselect) {
+        slugs.forEach((s) => next.delete(s));
+      } else {
+        slugs.forEach((s) => next.add(s));
+      }
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    clearSelection();
+  }, [selectedTopic, searchQuery, clearSelection]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -280,10 +532,62 @@ export default function DiscoverPage() {
     unfollowMutation.mutate(slug);
   };
 
+  const bulkFollow = useCallback((slugs: string[], onComplete?: (succeededSlugs: string[]) => void) => {
+    if (!user) {
+      toast({ title: "Sign in required", description: "Log in to follow podcasts", variant: "destructive" });
+      return;
+    }
+    if (bulkFollowPending) return;
+    const unfollowed = slugs.filter((s) => !resolvedFollowedSlugs.has(s));
+    if (unfollowed.length === 0) {
+      toast({ title: "Already following", description: "You're already following all these podcasts" });
+      return;
+    }
+    setBulkFollowPending(true);
+    const results = unfollowed.map((slug) =>
+      apiRequest("POST", "/api/feed/follow", { podcastSlug: slug })
+        .then((r) => r.json())
+        .then(() => ({ slug, ok: true }))
+        .catch(() => ({ slug, ok: false }))
+    );
+    Promise.all(results).then((outcomes) => {
+      const succeededSlugs = outcomes.filter((o) => o.ok).map((o) => o.slug);
+      const failed = outcomes.length - succeededSlugs.length;
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/feed/followed-slugs"] });
+      setBulkFollowPending(false);
+      if (failed === 0) {
+        toast({ title: "Following!", description: `Now following ${succeededSlugs.length} new podcasts` });
+      } else if (succeededSlugs.length > 0) {
+        toast({ title: "Partially followed", description: `Followed ${succeededSlugs.length} podcasts, ${failed} failed. Selection kept for retry.`, variant: "destructive" });
+      } else {
+        toast({ title: "Error", description: "Failed to follow podcasts. Selection kept for retry.", variant: "destructive" });
+      }
+      onComplete?.(succeededSlugs);
+    });
+  }, [user, bulkFollowPending, resolvedFollowedSlugs, toast]);
+
   const handleFollowAll = (slugs: string[]) => {
-    slugs.forEach((slug) => followMutation.mutate(slug));
-    toast({ title: "Following all", description: `Following ${slugs.length} new podcasts` });
+    bulkFollow(slugs, (succeededSlugs) => {
+      if (succeededSlugs.length > 0) {
+        setSelectedSlugs((prev) => {
+          const next = new Set(prev);
+          succeededSlugs.forEach((s) => next.delete(s));
+          return next;
+        });
+      }
+    });
   };
+
+  const handleFollowSelected = useCallback(() => {
+    bulkFollow(Array.from(selectedSlugs), (succeededSlugs) => {
+      setSelectedSlugs((prev) => {
+        const next = new Set(prev);
+        succeededSlugs.forEach((s) => next.delete(s));
+        return next;
+      });
+    });
+  }, [selectedSlugs, bulkFollow]);
 
   const [itunesSearchResults, setItunesSearchResults] = useState<any[]>([]);
   const [isItunesSearching, setIsItunesSearching] = useState(false);
@@ -579,6 +883,12 @@ export default function DiscoverPage() {
                       followedSlugs={resolvedFollowedSlugs}
                       onFollow={handleFollow}
                       onUnfollow={handleUnfollow}
+                      isLoggedIn={!!user}
+                      selectedSlugs={selectedSlugs}
+                      onToggleSelect={toggleSelect}
+                      onFollowAll={handleFollowAll}
+                      onSelectAllVisible={handleSelectAllVisible}
+                      bulkPending={bulkFollowPending}
                     />
                   </div>
                 )}
@@ -590,6 +900,12 @@ export default function DiscoverPage() {
                   followedSlugs={resolvedFollowedSlugs}
                   onFollow={handleFollow}
                   onUnfollow={handleUnfollow}
+                  isLoggedIn={!!user}
+                  selectedSlugs={selectedSlugs}
+                  onToggleSelect={toggleSelect}
+                  onFollowAll={handleFollowAll}
+                  onSelectAllVisible={handleSelectAllVisible}
+                  bulkPending={bulkFollowPending}
                 />
               )}
             </>
@@ -597,6 +913,15 @@ export default function DiscoverPage() {
           <div className="h-[80px] md:h-4" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />
         </div>
       </div>
+
+      {user && selectedSlugs.size > 0 && (
+        <FloatingActionBar
+          selectedCount={selectedSlugs.size}
+          onFollowSelected={handleFollowSelected}
+          onClearSelection={clearSelection}
+          isPending={bulkFollowPending}
+        />
+      )}
     </DashboardLayout>
     <RequestPodcastDialog
       key={requestPodcastName}
