@@ -15809,7 +15809,20 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
 
       const { rows } = await pool.query(
         `SELECT id, book_key, book_title, author, description, amazon_url, slug, has_cover, cover_approved,
-                publisher, publish_year, rating, isbn, topics, categories, created_at, updated_at
+                publisher, publish_year, rating, isbn, topics, categories, created_at, updated_at,
+                subtitle, isbn_10, isbn_13, google_books_id, asin, page_count, language,
+                ol_work_key, ol_subjects, ol_languages, ol_edition_count, ol_ebook_count,
+                ol_cover_id, ol_ratings_average, ol_ratings_count, ol_want_to_read,
+                ol_currently_reading, ol_already_read, ol_first_publish_year, ol_publishers,
+                ol_number_of_pages, ol_first_sentence, ol_subtitle, ol_author_names,
+                ol_id_amazon, ol_id_goodreads, ol_has_fulltext, ol_all_isbns, ol_publish_dates,
+                google_description, google_preview_link, google_info_link,
+                maturity_rating, print_type, published_date,
+                gb_saleability, gb_is_ebook, gb_list_price, gb_price_currency,
+                gb_retail_price, gb_buy_link, gb_viewability, gb_embeddable,
+                gb_public_domain, gb_text_to_speech, gb_epub_available, gb_pdf_available,
+                gb_web_reader_link, gb_image_links, gb_reading_modes,
+                rating_count, canonical_volume_link, content_version, dimensions, printed_page_count
          FROM book_enrichments WHERE id = $1`,
         [numId]
       );
@@ -15913,6 +15926,61 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
           categories: enrichment.categories || [],
           createdAt: enrichment.created_at,
           updatedAt: enrichment.updated_at,
+          subtitle: enrichment.subtitle || null,
+          isbn10: enrichment.isbn_10 || null,
+          isbn13: enrichment.isbn_13 || null,
+          googleBooksId: enrichment.google_books_id || null,
+          asin: enrichment.asin || null,
+          pageCount: enrichment.page_count ?? null,
+          language: enrichment.language ?? null,
+          ratingCount: enrichment.rating_count ?? null,
+          publishedDate: enrichment.published_date ?? null,
+          googleDescription: enrichment.google_description ?? null,
+          googlePreviewLink: enrichment.google_preview_link ?? null,
+          googleInfoLink: enrichment.google_info_link ?? null,
+          maturityRating: enrichment.maturity_rating ?? null,
+          printType: enrichment.print_type ?? null,
+          dimensions: enrichment.dimensions ?? null,
+          printedPageCount: enrichment.printed_page_count ?? null,
+          canonicalVolumeLink: enrichment.canonical_volume_link ?? null,
+          contentVersion: enrichment.content_version ?? null,
+          olWorkKey: enrichment.ol_work_key ?? null,
+          olSubjects: enrichment.ol_subjects ?? null,
+          olLanguages: enrichment.ol_languages ?? null,
+          olEditionCount: enrichment.ol_edition_count ?? null,
+          olEbookCount: enrichment.ol_ebook_count ?? null,
+          olCoverId: enrichment.ol_cover_id ?? null,
+          olRatingsAverage: enrichment.ol_ratings_average ?? null,
+          olRatingsCount: enrichment.ol_ratings_count ?? null,
+          olWantToRead: enrichment.ol_want_to_read ?? null,
+          olCurrentlyReading: enrichment.ol_currently_reading ?? null,
+          olAlreadyRead: enrichment.ol_already_read ?? null,
+          olFirstPublishYear: enrichment.ol_first_publish_year ?? null,
+          olPublishers: enrichment.ol_publishers ?? null,
+          olNumberOfPages: enrichment.ol_number_of_pages ?? null,
+          olFirstSentence: enrichment.ol_first_sentence ?? null,
+          olSubtitle: enrichment.ol_subtitle ?? null,
+          olAuthorNames: enrichment.ol_author_names ?? null,
+          olIdAmazon: enrichment.ol_id_amazon ?? null,
+          olIdGoodreads: enrichment.ol_id_goodreads ?? null,
+          olHasFulltext: enrichment.ol_has_fulltext ?? null,
+          olAllIsbns: enrichment.ol_all_isbns ?? null,
+          olPublishDates: enrichment.ol_publish_dates ?? null,
+          gbSaleability: enrichment.gb_saleability ?? null,
+          gbIsEbook: enrichment.gb_is_ebook ?? null,
+          gbListPrice: enrichment.gb_list_price ?? null,
+          gbPriceCurrency: enrichment.gb_price_currency ?? null,
+          gbRetailPrice: enrichment.gb_retail_price ?? null,
+          gbBuyLink: enrichment.gb_buy_link ?? null,
+          gbViewability: enrichment.gb_viewability ?? null,
+          gbEmbeddable: enrichment.gb_embeddable ?? null,
+          gbPublicDomain: enrichment.gb_public_domain ?? null,
+          gbTextToSpeech: enrichment.gb_text_to_speech ?? null,
+          gbEpubAvailable: enrichment.gb_epub_available ?? null,
+          gbPdfAvailable: enrichment.gb_pdf_available ?? null,
+          gbWebReaderLink: enrichment.gb_web_reader_link ?? null,
+          gbImageLinks: enrichment.gb_image_links ?? null,
+          gbReadingModes: enrichment.gb_reading_modes ?? null,
         },
         episodes,
         podcasts,
@@ -15922,6 +15990,113 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
     } catch (err: any) {
       console.error("[BookFullDetail] Error:", err);
       res.status(500).json({ message: err?.message || "Failed to load book detail" });
+    }
+  });
+
+  app.post("/api/admin/shop/book/:id/update", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const numId = parseInt(req.params.id, 10);
+      if (!numId) return res.status(400).json({ message: "Invalid id" });
+
+      const { rows: existing } = await pool.query(`SELECT id FROM book_enrichments WHERE id = $1`, [numId]);
+      if (existing.length === 0) return res.status(404).json({ message: "Book not found" });
+
+      const allowedFields: Record<string, string> = {
+        title: "book_title",
+        subtitle: "subtitle",
+        author: "author",
+        description: "description",
+        isbn: "isbn",
+        isbn10: "isbn_10",
+        isbn13: "isbn_13",
+        googleBooksId: "google_books_id",
+        asin: "asin",
+        amazonUrl: "amazon_url",
+        publisher: "publisher",
+        publishYear: "publish_year",
+        pageCount: "page_count",
+        rating: "rating",
+        language: "language",
+        slug: "slug",
+        topics: "topics",
+        categories: "categories",
+      };
+
+      const setClauses: string[] = [];
+      const vals: any[] = [];
+      let paramIdx = 1;
+
+      const stringFields = new Set(["title", "subtitle", "author", "description", "isbn", "isbn10", "isbn13", "googleBooksId", "asin", "amazonUrl", "publisher", "language", "slug"]);
+
+      for (const [key, dbCol] of Object.entries(allowedFields)) {
+        if (req.body[key] === undefined) continue;
+        let val = req.body[key];
+
+        if (stringFields.has(key) && val !== null && val !== "" && typeof val !== "string") {
+          return res.status(400).json({ message: `${key} must be a string` });
+        }
+
+        if (key === "isbn10" && val && typeof val === "string" && val.trim()) {
+          const cleaned = val.trim().replace(/[-\s]/g, "");
+          if (!/^[0-9]{9}[0-9Xx]$/.test(cleaned)) {
+            return res.status(400).json({ message: "ISBN-10 must be 10 characters (9 digits + check digit)" });
+          }
+        }
+        if (key === "isbn13" && val && typeof val === "string" && val.trim()) {
+          const cleaned = val.trim().replace(/[-\s]/g, "");
+          if (!/^[0-9]{13}$/.test(cleaned)) {
+            return res.status(400).json({ message: "ISBN-13 must be 13 digits" });
+          }
+        }
+
+        if (key === "publishYear" || key === "pageCount") {
+          if (val !== null && val !== "") {
+            const strVal = String(val).trim();
+            if (!/^-?\d+$/.test(strVal)) return res.status(400).json({ message: `${key} must be a valid integer` });
+            val = parseInt(strVal, 10);
+          } else {
+            val = null;
+          }
+        }
+        if (key === "rating") {
+          if (val !== null && val !== "") {
+            const strVal = String(val).trim();
+            if (!/^-?\d+(\.\d+)?$/.test(strVal)) return res.status(400).json({ message: "rating must be a valid number" });
+            val = parseFloat(strVal);
+          } else {
+            val = null;
+          }
+        }
+        if (key === "topics" || key === "categories") {
+          if (!Array.isArray(val)) {
+            return res.status(400).json({ message: `${key} must be an array` });
+          }
+        }
+        if (typeof val === "string") {
+          val = val.trim() || null;
+        }
+
+        setClauses.push(`${dbCol} = $${paramIdx}`);
+        vals.push(val);
+        paramIdx++;
+      }
+
+      if (setClauses.length === 0) {
+        return res.status(400).json({ message: "No valid fields to update" });
+      }
+
+      vals.push(numId);
+      await pool.query(
+        `UPDATE book_enrichments SET ${setClauses.join(", ")}, updated_at = NOW() WHERE id = $${paramIdx}`,
+        vals
+      );
+
+      shopCache.invalidate();
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("[BookUpdate] Error:", err);
+      res.status(500).json({ message: err?.message || "Failed to update book" });
     }
   });
 

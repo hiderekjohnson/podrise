@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, type ComponentType, type ReactNode } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -71,6 +71,61 @@ interface BookFullDetail {
     categories: string[];
     createdAt: string | null;
     updatedAt: string | null;
+    subtitle: string | null;
+    isbn10: string | null;
+    isbn13: string | null;
+    googleBooksId: string | null;
+    asin: string | null;
+    pageCount: number | null;
+    language: string | null;
+    ratingCount: number | null;
+    publishedDate: string | null;
+    googleDescription: string | null;
+    googlePreviewLink: string | null;
+    googleInfoLink: string | null;
+    maturityRating: string | null;
+    printType: string | null;
+    dimensions: string | null;
+    printedPageCount: number | null;
+    canonicalVolumeLink: string | null;
+    contentVersion: string | null;
+    olWorkKey: string | null;
+    olSubjects: string[] | null;
+    olLanguages: string[] | null;
+    olEditionCount: number | null;
+    olEbookCount: number | null;
+    olCoverId: number | null;
+    olRatingsAverage: number | null;
+    olRatingsCount: number | null;
+    olWantToRead: number | null;
+    olCurrentlyReading: number | null;
+    olAlreadyRead: number | null;
+    olFirstPublishYear: number | null;
+    olPublishers: string[] | null;
+    olNumberOfPages: number | null;
+    olFirstSentence: string | null;
+    olSubtitle: string | null;
+    olAuthorNames: string[] | null;
+    olIdAmazon: string[] | null;
+    olIdGoodreads: string[] | null;
+    olHasFulltext: boolean | null;
+    olAllIsbns: string[] | null;
+    olPublishDates: string[] | null;
+    gbSaleability: string | null;
+    gbIsEbook: boolean | null;
+    gbListPrice: number | null;
+    gbPriceCurrency: string | null;
+    gbRetailPrice: number | null;
+    gbBuyLink: string | null;
+    gbViewability: string | null;
+    gbEmbeddable: boolean | null;
+    gbPublicDomain: boolean | null;
+    gbTextToSpeech: string | null;
+    gbEpubAvailable: boolean | null;
+    gbPdfAvailable: boolean | null;
+    gbWebReaderLink: string | null;
+    gbImageLinks: Record<string, string> | null;
+    gbReadingModes: Record<string, boolean> | null;
   };
   episodes: {
     podcastSlug: string;
@@ -87,6 +142,27 @@ interface BookFullDetail {
   }[];
   totalMentions: number;
   totalPodcasts: number;
+}
+
+interface BookEditForm {
+  title: string;
+  subtitle: string;
+  author: string;
+  description: string;
+  isbn: string;
+  isbn10: string;
+  isbn13: string;
+  googleBooksId: string;
+  asin: string;
+  amazonUrl: string;
+  publisher: string;
+  publishYear: string;
+  pageCount: string;
+  rating: string;
+  language: string;
+  slug: string;
+  topics: string;
+  categories: string;
 }
 
 const REJECTION_REASONS = [
@@ -631,10 +707,91 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
   );
 }
 
+function CollapsibleSection({ title, icon, defaultOpen = false, children }: { title: string; icon: ComponentType<{ className?: string }>; defaultOpen?: boolean; children: ReactNode }) {
+  const [open, setOpen] = useState(defaultOpen);
+  const Icon = icon;
+  return (
+    <div className="border border-black/[0.06] rounded-lg overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-4 py-2.5 bg-black/[0.02] hover:bg-black/[0.04] transition-colors text-left"
+        data-testid={`toggle-section-${title.toLowerCase().replace(/\s+/g, '-')}`}
+      >
+        <span className="flex items-center gap-2 text-sm font-bold text-foreground">
+          <Icon className="w-4 h-4 text-primary" />
+          {title}
+        </span>
+        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && <div className="p-4 space-y-3">{children}</div>}
+    </div>
+  );
+}
+
+function EditField({ label, value, onChange, type = "text", placeholder, testId, rows }: {
+  label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string; testId: string; rows?: number;
+}) {
+  return (
+    <div>
+      <label className="text-xs font-semibold text-muted-foreground mb-1 block">{label}</label>
+      {rows ? (
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          rows={rows}
+          placeholder={placeholder}
+          className="w-full px-3 py-2 bg-white border border-black/[0.08] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+          data-testid={testId}
+        />
+      ) : (
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="w-full h-9 px-3 bg-white border border-black/[0.08] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+          data-testid={testId}
+        />
+      )}
+    </div>
+  );
+}
+
+function ReadOnlyField({ label, value }: { label: string; value: string | number | boolean | null | undefined }) {
+  if (value === null || value === undefined) return null;
+  const displayValue = typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value);
+  return (
+    <div>
+      <label className="text-xs font-semibold text-muted-foreground mb-0.5 block">{label}</label>
+      <p className="text-sm text-foreground/80 break-all">{displayValue}</p>
+    </div>
+  );
+}
+
+function ReadOnlyArrayField({ label, value }: { label: string; value: string[] | null | undefined }) {
+  if (!value || value.length === 0) return null;
+  return (
+    <div>
+      <label className="text-xs font-semibold text-muted-foreground mb-1 block">{label}</label>
+      <div className="flex flex-wrap gap-1">
+        {value.slice(0, 20).map((v, i) => (
+          <span key={i} className="px-2 py-0.5 rounded-md text-xs font-medium bg-black/[0.04] text-foreground/70">{v}</span>
+        ))}
+        {value.length > 20 && <span className="text-xs text-muted-foreground">+{value.length - 20} more</span>}
+      </div>
+    </div>
+  );
+}
+
 function BookDetailPage({ bookId, onBack }: { bookId: number; onBack: () => void }) {
   const { toast } = useToast();
   const [editing, setEditing] = useState(false);
-  const [editForm, setEditForm] = useState({ name: "", description: "", url: "", imageUrl: "" });
+  const [editForm, setEditForm] = useState<BookEditForm>({
+    title: "", subtitle: "", author: "", description: "", isbn: "", isbn10: "", isbn13: "",
+    googleBooksId: "", asin: "", amazonUrl: "", publisher: "", publishYear: "", pageCount: "",
+    rating: "", language: "", slug: "", topics: "", categories: "",
+  });
 
   const { data, isLoading, isError } = useQuery<BookFullDetail>({
     queryKey: ["/api/admin/shop/book/full-detail", bookId],
@@ -650,13 +807,14 @@ function BookDetailPage({ bookId, onBack }: { bookId: number; onBack: () => void
   const podcasts = data?.podcasts || [];
 
   const updateMutation = useMutation({
-    mutationFn: ({ updates }: { updates: any }) =>
+    mutationFn: ({ updates }: { updates: Partial<BookEditForm> & { topics?: string[]; categories?: string[] } }) =>
       apiRequest("POST", `/api/admin/shop/book/${bookId}/update`, updates),
     onSuccess: () => {
       toast({ title: "Updated" });
       setEditing(false);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/book/full-detail", bookId] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/approved"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/queue"] });
     },
   });
 
@@ -705,20 +863,56 @@ function BookDetailPage({ bookId, onBack }: { bookId: number; onBack: () => void
     if (!book) return;
     setEditing(true);
     setEditForm({
-      name: book.title || "",
+      title: book.title || "",
+      subtitle: book.subtitle || "",
+      author: book.author || "",
       description: book.description || "",
-      url: book.amazonUrl || "",
-      imageUrl: book.coverUrl || "",
+      isbn: book.isbn || "",
+      isbn10: book.isbn10 || "",
+      isbn13: book.isbn13 || "",
+      googleBooksId: book.googleBooksId || "",
+      asin: book.asin || "",
+      amazonUrl: book.amazonUrl || "",
+      publisher: book.publisher || "",
+      publishYear: book.publishYear ? String(book.publishYear) : "",
+      pageCount: book.pageCount ? String(book.pageCount) : "",
+      rating: book.rating ? String(book.rating) : "",
+      language: book.language || "",
+      slug: book.slug || "",
+      topics: (book.topics || []).join(", "),
+      categories: (book.categories || []).join(", "),
     });
   };
 
   const saveEdit = () => {
     if (!book) return;
-    const updates: any = {};
-    if (editForm.name !== book.title) updates.name = editForm.name;
+    const updates: Record<string, string | number | string[]> = {};
+
+    if (editForm.title !== (book.title || "")) updates.title = editForm.title;
+    if (editForm.subtitle !== (book.subtitle || "")) updates.subtitle = editForm.subtitle;
+    if (editForm.author !== (book.author || "")) updates.author = editForm.author;
     if (editForm.description !== (book.description || "")) updates.description = editForm.description;
-    if (editForm.url !== (book.amazonUrl || "")) updates.url = editForm.url;
-    if (editForm.imageUrl !== (book.coverUrl || "")) updates.imageUrl = editForm.imageUrl;
+    if (editForm.isbn !== (book.isbn || "")) updates.isbn = editForm.isbn;
+    if (editForm.isbn10 !== (book.isbn10 || "")) updates.isbn10 = editForm.isbn10;
+    if (editForm.isbn13 !== (book.isbn13 || "")) updates.isbn13 = editForm.isbn13;
+    if (editForm.googleBooksId !== (book.googleBooksId || "")) updates.googleBooksId = editForm.googleBooksId;
+    if (editForm.asin !== (book.asin || "")) updates.asin = editForm.asin;
+    if (editForm.amazonUrl !== (book.amazonUrl || "")) updates.amazonUrl = editForm.amazonUrl;
+    if (editForm.publisher !== (book.publisher || "")) updates.publisher = editForm.publisher;
+    if (editForm.publishYear !== (book.publishYear ? String(book.publishYear) : "")) updates.publishYear = editForm.publishYear;
+    if (editForm.pageCount !== (book.pageCount ? String(book.pageCount) : "")) updates.pageCount = editForm.pageCount;
+    if (editForm.rating !== (book.rating ? String(book.rating) : "")) updates.rating = editForm.rating;
+    if (editForm.language !== (book.language || "")) updates.language = editForm.language;
+    if (editForm.slug !== (book.slug || "")) updates.slug = editForm.slug;
+
+    const newTopics = editForm.topics.split(",").map(s => s.trim()).filter(Boolean);
+    const oldTopics = book.topics || [];
+    if (JSON.stringify(newTopics) !== JSON.stringify(oldTopics)) updates.topics = newTopics;
+
+    const newCategories = editForm.categories.split(",").map(s => s.trim()).filter(Boolean);
+    const oldCategories = book.categories || [];
+    if (JSON.stringify(newCategories) !== JSON.stringify(oldCategories)) updates.categories = newCategories;
+
     if (Object.keys(updates).length === 0) {
       setEditing(false);
       return;
@@ -764,15 +958,7 @@ function BookDetailPage({ bookId, onBack }: { bookId: number; onBack: () => void
         <div className="p-6 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
           <div className="space-y-4">
             <div className="w-[260px] h-[360px] bg-gray-50 rounded-xl border border-black/[0.06] overflow-hidden flex items-center justify-center mx-auto">
-              {editing ? (
-                <>
-                  {editForm.imageUrl ? (
-                    <img src={editForm.imageUrl} alt={book.title} className="w-full h-full object-contain p-2" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                  ) : (
-                    <ImageIcon className="w-12 h-12 text-muted-foreground/30" />
-                  )}
-                </>
-              ) : book.coverUrl ? (
+              {book.coverUrl ? (
                 <img src={book.coverUrl} alt={book.title} className="w-full h-full object-contain p-2" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
               ) : (
                 <div className="text-center p-4">
@@ -782,87 +968,58 @@ function BookDetailPage({ bookId, onBack }: { bookId: number; onBack: () => void
               )}
             </div>
 
-            {editing && (
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground mb-1 block">Cover Image URL</label>
-                <input
-                  type="text"
-                  value={editForm.imageUrl}
-                  onChange={(e) => setEditForm((f) => ({ ...f, imageUrl: e.target.value }))}
-                  className="w-full h-9 px-3 bg-white border border-black/[0.08] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  data-testid="input-detail-edit-image"
-                />
+            {!editing && (
+              <div className="space-y-2 text-xs">
+                {book.publisher && (
+                  <div className="flex items-center gap-2 text-foreground/70">
+                    <Building className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <span data-testid="text-book-publisher">{book.publisher}</span>
+                  </div>
+                )}
+                {book.publishYear && (
+                  <div className="flex items-center gap-2 text-foreground/70">
+                    <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <span data-testid="text-book-year">{book.publishYear}</span>
+                  </div>
+                )}
+                {book.rating && (
+                  <div className="flex items-center gap-2 text-foreground/70">
+                    <Star className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    <span data-testid="text-book-rating">{book.rating}{book.ratingCount ? ` (${book.ratingCount} ratings)` : ''}</span>
+                  </div>
+                )}
+                {book.isbn && (
+                  <div className="flex items-center gap-2 text-foreground/70">
+                    <Hash className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <span data-testid="text-book-isbn">ISBN: {book.isbn}</span>
+                  </div>
+                )}
+                {book.pageCount && (
+                  <div className="flex items-center gap-2 text-foreground/70">
+                    <FileText className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <span data-testid="text-book-pages">{book.pageCount} pages</span>
+                  </div>
+                )}
+                {book.language && (
+                  <div className="flex items-center gap-2 text-foreground/70">
+                    <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <span data-testid="text-book-language">Language: {book.language}</span>
+                  </div>
+                )}
+                {book.slug && (
+                  <div className="flex items-center gap-2 text-foreground/70">
+                    <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <span data-testid="text-book-slug" className="truncate">slug: {book.slug}</span>
+                  </div>
+                )}
               </div>
             )}
-
-            <div className="space-y-2 text-xs">
-              {book.publisher && (
-                <div className="flex items-center gap-2 text-foreground/70">
-                  <Building className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                  <span data-testid="text-book-publisher">{book.publisher}</span>
-                </div>
-              )}
-              {book.publishYear && (
-                <div className="flex items-center gap-2 text-foreground/70">
-                  <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                  <span data-testid="text-book-year">{book.publishYear}</span>
-                </div>
-              )}
-              {book.rating && (
-                <div className="flex items-center gap-2 text-foreground/70">
-                  <Star className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                  <span data-testid="text-book-rating">{book.rating}</span>
-                </div>
-              )}
-              {book.isbn && (
-                <div className="flex items-center gap-2 text-foreground/70">
-                  <Hash className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                  <span data-testid="text-book-isbn">ISBN: {book.isbn}</span>
-                </div>
-              )}
-              {book.slug && (
-                <div className="flex items-center gap-2 text-foreground/70">
-                  <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                  <span data-testid="text-book-slug" className="truncate">slug: {book.slug}</span>
-                </div>
-              )}
-            </div>
           </div>
 
           <div className="space-y-4">
             {editing ? (
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground mb-1 block">Title</label>
-                  <input
-                    type="text"
-                    value={editForm.name}
-                    onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
-                    className="w-full h-10 px-3 bg-white border border-black/[0.08] rounded-lg text-base font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    data-testid="input-detail-edit-name"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground mb-1 block">Description</label>
-                  <textarea
-                    value={editForm.description}
-                    onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
-                    rows={4}
-                    className="w-full px-3 py-2 bg-white border border-black/[0.08] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
-                    data-testid="input-detail-edit-description"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground mb-1 block">Amazon URL</label>
-                  <input
-                    type="text"
-                    value={editForm.url}
-                    onChange={(e) => setEditForm((f) => ({ ...f, url: e.target.value }))}
-                    className="w-full h-9 px-3 bg-white border border-black/[0.08] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    data-testid="input-detail-edit-url"
-                  />
-                </div>
-                <div className="flex gap-2">
+              <div className="space-y-4">
+                <div className="flex gap-2 sticky top-0 z-10 bg-white/80 backdrop-blur-sm py-2">
                   <button
                     onClick={saveEdit}
                     disabled={updateMutation.isPending}
@@ -870,7 +1027,7 @@ function BookDetailPage({ bookId, onBack }: { bookId: number; onBack: () => void
                     data-testid="button-save-detail-edit"
                   >
                     {updateMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                    Save
+                    Save Changes
                   </button>
                   <button
                     onClick={() => setEditing(false)}
@@ -880,6 +1037,40 @@ function BookDetailPage({ bookId, onBack }: { bookId: number; onBack: () => void
                     Cancel
                   </button>
                 </div>
+
+                <CollapsibleSection title="Basic Info" icon={BookOpen} defaultOpen={true}>
+                  <EditField label="Title" value={editForm.title} onChange={(v) => setEditForm(f => ({ ...f, title: v }))} testId="input-edit-title" />
+                  <EditField label="Subtitle" value={editForm.subtitle} onChange={(v) => setEditForm(f => ({ ...f, subtitle: v }))} testId="input-edit-subtitle" />
+                  <EditField label="Author" value={editForm.author} onChange={(v) => setEditForm(f => ({ ...f, author: v }))} testId="input-edit-author" />
+                  <EditField label="Description" value={editForm.description} onChange={(v) => setEditForm(f => ({ ...f, description: v }))} testId="input-edit-description" rows={4} />
+                  <EditField label="Slug" value={editForm.slug} onChange={(v) => setEditForm(f => ({ ...f, slug: v }))} testId="input-edit-slug" placeholder="url-friendly-slug" />
+                  <EditField label="Topics (comma-separated)" value={editForm.topics} onChange={(v) => setEditForm(f => ({ ...f, topics: v }))} testId="input-edit-topics" placeholder="topic1, topic2" />
+                  <EditField label="Categories (comma-separated)" value={editForm.categories} onChange={(v) => setEditForm(f => ({ ...f, categories: v }))} testId="input-edit-categories" placeholder="cat1, cat2" />
+                </CollapsibleSection>
+
+                <CollapsibleSection title="Identifiers" icon={Hash}>
+                  <EditField label="ISBN" value={editForm.isbn} onChange={(v) => setEditForm(f => ({ ...f, isbn: v }))} testId="input-edit-isbn" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <EditField label="ISBN-10" value={editForm.isbn10} onChange={(v) => setEditForm(f => ({ ...f, isbn10: v }))} testId="input-edit-isbn10" />
+                    <EditField label="ISBN-13" value={editForm.isbn13} onChange={(v) => setEditForm(f => ({ ...f, isbn13: v }))} testId="input-edit-isbn13" />
+                  </div>
+                  <EditField label="Google Books ID" value={editForm.googleBooksId} onChange={(v) => setEditForm(f => ({ ...f, googleBooksId: v }))} testId="input-edit-google-books-id" />
+                  <EditField label="ASIN" value={editForm.asin} onChange={(v) => setEditForm(f => ({ ...f, asin: v }))} testId="input-edit-asin" />
+                </CollapsibleSection>
+
+                <CollapsibleSection title="Publishing Details" icon={Building}>
+                  <EditField label="Publisher" value={editForm.publisher} onChange={(v) => setEditForm(f => ({ ...f, publisher: v }))} testId="input-edit-publisher" />
+                  <div className="grid grid-cols-3 gap-3">
+                    <EditField label="Publish Year" value={editForm.publishYear} onChange={(v) => setEditForm(f => ({ ...f, publishYear: v }))} testId="input-edit-publish-year" type="number" />
+                    <EditField label="Page Count" value={editForm.pageCount} onChange={(v) => setEditForm(f => ({ ...f, pageCount: v }))} testId="input-edit-page-count" type="number" />
+                    <EditField label="Rating" value={editForm.rating} onChange={(v) => setEditForm(f => ({ ...f, rating: v }))} testId="input-edit-rating" type="number" />
+                  </div>
+                  <EditField label="Language" value={editForm.language} onChange={(v) => setEditForm(f => ({ ...f, language: v }))} testId="input-edit-language" placeholder="e.g. en" />
+                </CollapsibleSection>
+
+                <CollapsibleSection title="Links & URLs" icon={ExternalLink}>
+                  <EditField label="Amazon URL" value={editForm.amazonUrl} onChange={(v) => setEditForm(f => ({ ...f, amazonUrl: v }))} testId="input-edit-amazon-url" />
+                </CollapsibleSection>
               </div>
             ) : (
               <>
@@ -931,7 +1122,113 @@ function BookDetailPage({ bookId, onBack }: { bookId: number; onBack: () => void
                     </div>
                   </div>
                 )}
+
+                {book.categories && book.categories.length > 0 && (
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1 mb-2">
+                      <Bookmark className="w-3 h-3" /> Categories
+                    </label>
+                    <div className="flex flex-wrap gap-1.5" data-testid="list-book-categories">
+                      {book.categories.map((cat, i) => (
+                        <span key={i} className="px-2 py-0.5 rounded-md text-xs font-medium bg-primary/5 text-primary/80">{cat}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {(book.subtitle || book.isbn10 || book.isbn13 || book.googleBooksId || book.asin || book.googleDescription) && (
+                  <div className="pt-3 border-t border-black/[0.06] space-y-3">
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Additional Details</label>
+                    {book.subtitle && <ReadOnlyField label="Subtitle" value={book.subtitle} />}
+                    {book.isbn10 && <ReadOnlyField label="ISBN-10" value={book.isbn10} />}
+                    {book.isbn13 && <ReadOnlyField label="ISBN-13" value={book.isbn13} />}
+                    {book.googleBooksId && <ReadOnlyField label="Google Books ID" value={book.googleBooksId} />}
+                    {book.asin && <ReadOnlyField label="ASIN" value={book.asin} />}
+                    {book.googleDescription && (
+                      <div>
+                        <label className="text-xs font-semibold text-muted-foreground mb-0.5 block">Google Description</label>
+                        <p className="text-sm text-foreground/80 line-clamp-3">{book.googleDescription}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
               </>
+            )}
+
+            {(book.olWorkKey || book.olRatingsAverage || book.olEditionCount || book.olSubjects || book.olRatingsCount || book.olFirstPublishYear || book.olNumberOfPages || book.olFirstSentence || book.olSubtitle || book.olAuthorNames || book.olPublishers) && (
+              <CollapsibleSection title="Open Library Reference Data" icon={BookOpen}>
+                <div className="grid grid-cols-2 gap-3" data-testid="section-open-library">
+                  <ReadOnlyField label="Work Key" value={book.olWorkKey} />
+                  <ReadOnlyField label="Ratings Average" value={book.olRatingsAverage} />
+                  <ReadOnlyField label="Ratings Count" value={book.olRatingsCount} />
+                  <ReadOnlyField label="Want to Read" value={book.olWantToRead} />
+                  <ReadOnlyField label="Currently Reading" value={book.olCurrentlyReading} />
+                  <ReadOnlyField label="Already Read" value={book.olAlreadyRead} />
+                  <ReadOnlyField label="Edition Count" value={book.olEditionCount} />
+                  <ReadOnlyField label="Ebook Count" value={book.olEbookCount} />
+                  <ReadOnlyField label="First Publish Year" value={book.olFirstPublishYear} />
+                  <ReadOnlyField label="Number of Pages" value={book.olNumberOfPages} />
+                  <ReadOnlyField label="Cover ID" value={book.olCoverId} />
+                  <ReadOnlyField label="Has Fulltext" value={book.olHasFulltext} />
+                </div>
+                {book.olFirstSentence && <ReadOnlyField label="First Sentence" value={book.olFirstSentence} />}
+                {book.olSubtitle && <ReadOnlyField label="Subtitle (OL)" value={book.olSubtitle} />}
+                <ReadOnlyArrayField label="Subjects" value={book.olSubjects} />
+                <ReadOnlyArrayField label="Languages" value={book.olLanguages} />
+                <ReadOnlyArrayField label="Publishers" value={book.olPublishers} />
+                <ReadOnlyArrayField label="Author Names" value={book.olAuthorNames} />
+                <ReadOnlyArrayField label="Amazon IDs" value={book.olIdAmazon} />
+                <ReadOnlyArrayField label="Goodreads IDs" value={book.olIdGoodreads} />
+                <ReadOnlyArrayField label="All ISBNs" value={book.olAllIsbns} />
+                <ReadOnlyArrayField label="Publish Dates" value={book.olPublishDates} />
+              </CollapsibleSection>
+            )}
+
+            {(book.gbSaleability || book.gbBuyLink || book.gbViewability || book.googlePreviewLink || book.gbIsEbook !== null || book.gbListPrice || book.gbRetailPrice || book.maturityRating || book.printType || book.dimensions || book.gbWebReaderLink || book.googleInfoLink) && (
+              <CollapsibleSection title="Google Books Reference Data" icon={Search}>
+                <div className="grid grid-cols-2 gap-3" data-testid="section-google-books">
+                  <ReadOnlyField label="Saleability" value={book.gbSaleability} />
+                  <ReadOnlyField label="Is Ebook" value={book.gbIsEbook} />
+                  <ReadOnlyField label="List Price" value={book.gbListPrice ? `${book.gbListPrice} ${book.gbPriceCurrency || ''}` : null} />
+                  <ReadOnlyField label="Retail Price" value={book.gbRetailPrice} />
+                  <ReadOnlyField label="Viewability" value={book.gbViewability} />
+                  <ReadOnlyField label="Embeddable" value={book.gbEmbeddable} />
+                  <ReadOnlyField label="Public Domain" value={book.gbPublicDomain} />
+                  <ReadOnlyField label="Text to Speech" value={book.gbTextToSpeech} />
+                  <ReadOnlyField label="EPUB Available" value={book.gbEpubAvailable} />
+                  <ReadOnlyField label="PDF Available" value={book.gbPdfAvailable} />
+                  <ReadOnlyField label="Maturity Rating" value={book.maturityRating} />
+                  <ReadOnlyField label="Print Type" value={book.printType} />
+                  <ReadOnlyField label="Dimensions" value={book.dimensions} />
+                  <ReadOnlyField label="Printed Page Count" value={book.printedPageCount} />
+                  <ReadOnlyField label="Content Version" value={book.contentVersion} />
+                </div>
+                {book.gbBuyLink && (
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground mb-0.5 block">Buy Link</label>
+                    <a href={book.gbBuyLink} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline break-all">{book.gbBuyLink}</a>
+                  </div>
+                )}
+                {book.googlePreviewLink && (
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground mb-0.5 block">Preview Link</label>
+                    <a href={book.googlePreviewLink} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline break-all">{book.googlePreviewLink}</a>
+                  </div>
+                )}
+                {book.gbWebReaderLink && (
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground mb-0.5 block">Web Reader</label>
+                    <a href={book.gbWebReaderLink} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline break-all">{book.gbWebReaderLink}</a>
+                  </div>
+                )}
+                {book.canonicalVolumeLink && (
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground mb-0.5 block">Canonical Link</label>
+                    <a href={book.canonicalVolumeLink} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline break-all">{book.canonicalVolumeLink}</a>
+                  </div>
+                )}
+              </CollapsibleSection>
             )}
 
             <div className="pt-3 border-t border-black/[0.06]">
