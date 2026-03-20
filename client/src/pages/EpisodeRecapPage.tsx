@@ -199,6 +199,39 @@ function AuthGatePanel({ onClose }: { onClose: () => void; onSuccess?: () => voi
   );
 }
 
+const SAMPLE_QUESTIONS = [
+  "What was the most surprising thing discussed in this episode?",
+  "What were the key takeaways from this conversation?",
+  "Were there any disagreements between the hosts or guests?",
+  "What advice was given that I could apply today?",
+  "What topics were only briefly mentioned but deserve more exploration?",
+  "What assumptions were challenged in this episode?",
+  "Were there any predictions made about the future?",
+  "What was the most controversial opinion shared?",
+  "How did the guest's background shape their perspective?",
+  "What questions went unanswered or unresolved?",
+  "What was the emotional tone of this conversation?",
+  "Were any books, articles, or resources recommended?",
+  "What was the strongest argument made in this episode?",
+  "What would a skeptic say about the main claims?",
+  "How does this episode connect to current events or trends?",
+  "What was the most memorable quote or moment?",
+  "What did the hosts seem most passionate about?",
+  "Were there any implicit biases in the discussion?",
+  "What would be a good follow-up episode to this one?",
+  "What's the one thing I should remember from this episode?",
+];
+
+function getRandomSampleQuestions(): string[] {
+  const count = Math.random() < 0.5 ? 3 : 4;
+  const shuffled = [...SAMPLE_QUESTIONS];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.slice(0, count);
+}
+
 function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName, isLoggedIn }: {
   podcastSlug: string;
   episodeSlug: string;
@@ -212,6 +245,7 @@ function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName,
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentEntity, setCurrentEntity] = useState<{ name: string; type: string } | null>(null);
+  const [sampleQuestions, setSampleQuestions] = useState<string[]>(() => getRandomSampleQuestions());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -240,6 +274,7 @@ function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName,
       setCurrentEntity(newEntity);
     } else if (!entityName) {
       setCurrentEntity(null);
+      setSampleQuestions(getRandomSampleQuestions());
     }
     setIsOpen(true);
     if (initialQuestion) {
@@ -318,7 +353,7 @@ function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName,
             <Sparkles className="w-3.5 h-3.5 text-primary" />
           </div>
           <div className="min-w-0">
-            <p className="text-[16px] font-semibold text-foreground truncate">Ask about this episode</p>
+            <p className="text-[16px] font-semibold text-foreground truncate">Ask AI about this episode</p>
             {currentEntity && (
               <div className="flex items-center gap-1.5">
                 <p className="text-[16px] text-primary truncate">Focused on: {currentEntity.name}</p>
@@ -335,17 +370,35 @@ function EpisodeChatPanel({ podcastSlug, episodeSlug, episodeTitle, podcastName,
       <div className="flex-1 max-h-[360px] overflow-y-auto px-4 py-3 space-y-3">
         {messages.length === 0 && (
           <div className="space-y-2">
-            <p className="text-[16px] text-muted-foreground">{currentEntity ? `Ask anything about ${currentEntity.name}:` : "What would you like to know?"}</p>
-            {entitySuggestions.map((q, i) => (
-              <button
-                key={i}
-                onClick={() => sendMessage(q)}
-                className="block w-full text-left text-[16px] px-3 py-2.5 rounded-xl border border-black/[0.04] dark:border-white/[0.06] hover:bg-primary/[0.04] hover:border-primary/20 text-foreground transition-all"
-                data-testid={`suggested-question-${i}`}
-              >
-                {q}
-              </button>
-            ))}
+            {currentEntity ? (
+              <>
+                <p className="text-[16px] text-muted-foreground">{`Ask anything about ${currentEntity.name}:`}</p>
+                {entitySuggestions.map((q, i) => (
+                  <button
+                    key={i}
+                    onClick={() => sendMessage(q)}
+                    className="block w-full text-left text-[16px] px-3 py-2.5 rounded-xl border border-black/[0.04] dark:border-white/[0.06] hover:bg-primary/[0.04] hover:border-primary/20 text-foreground transition-all"
+                    data-testid={`suggested-question-${i}`}
+                  >
+                    {q}
+                  </button>
+                ))}
+              </>
+            ) : (
+              <>
+                <p className="text-[14px] text-muted-foreground leading-relaxed">Go beyond the recap. Explore what stood out, what was implied, and what's worth thinking more about.</p>
+                {sampleQuestions.map((q, i) => (
+                  <button
+                    key={i}
+                    onClick={() => sendMessage(q)}
+                    className="block w-full text-left text-[16px] px-3 py-2.5 rounded-xl border border-black/[0.04] dark:border-white/[0.06] hover:bg-primary/[0.04] hover:border-primary/20 text-foreground transition-all"
+                    data-testid={`sample-question-${i}`}
+                  >
+                    {q}
+                  </button>
+                ))}
+              </>
+            )}
           </div>
         )}
         {messages.map((msg, i) => (
