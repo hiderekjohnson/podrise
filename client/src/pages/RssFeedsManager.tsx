@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Copy, Check, Rss, ExternalLink, X, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, Plus, Trash2, Copy, Check, Rss, ExternalLink, X, ChevronDown, ChevronUp, Code, Eye } from "lucide-react";
 
 interface RssFeed {
   id: number;
@@ -103,6 +103,125 @@ const AVAILABLE_PODCASTS: { slug: string; name: string }[] = [
   { slug: "conversationswithtyler", name: "Conversations with Tyler" },
   { slug: "ologies", name: "Ologies with Alie Ward" },
 ].sort((a, b) => a.name.localeCompare(b.name));
+
+interface RssPreviewData {
+  title: string;
+  description: string;
+  contentHtml: string;
+  link: string;
+  pubDate: string;
+  creator: string;
+  category: string;
+  artworkUrl: string | null;
+  itemXml: string;
+}
+
+function RssExamplePreview() {
+  const [viewMode, setViewMode] = useState<"preview" | "xml">("preview");
+
+  const { data: preview, isLoading, error } = useQuery<RssPreviewData>({
+    queryKey: ["/api/admin/rss-preview"],
+  });
+
+  return (
+    <div className="glass-panel rounded-2xl p-6" data-testid="rss-example-preview">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-display font-bold text-sm text-muted-foreground uppercase tracking-wider">Example RSS Item</h3>
+        <div className="flex items-center gap-1 bg-black/[0.04] rounded-lg p-0.5">
+          <button
+            onClick={() => setViewMode("preview")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${viewMode === "preview" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            data-testid="button-preview-mode"
+          >
+            <Eye className="w-3.5 h-3.5" />
+            Preview
+          </button>
+          <button
+            onClick={() => setViewMode("xml")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${viewMode === "xml" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            data-testid="button-xml-mode"
+          >
+            <Code className="w-3.5 h-3.5" />
+            Raw XML
+          </button>
+        </div>
+      </div>
+
+      {isLoading && (
+        <div className="flex items-center justify-center py-8" data-testid="loading-rss-preview">
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+          <span className="ml-2 text-sm text-muted-foreground">Loading example...</span>
+        </div>
+      )}
+
+      {error && (
+        <div className="text-sm text-red-500 py-4" data-testid="error-rss-preview">
+          Failed to load RSS preview. No recaps may be available yet.
+        </div>
+      )}
+
+      {preview && viewMode === "preview" && (
+        <div className="space-y-4" data-testid="rss-preview-content">
+          <div className="flex gap-4 items-start">
+            {preview.artworkUrl && (
+              <img src={preview.artworkUrl} alt="Podcast artwork" className="w-16 h-16 rounded-lg object-cover shrink-0" data-testid="img-artwork" />
+            )}
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-semibold text-orange-600 uppercase tracking-wider mb-1" data-testid="text-field-title">title</div>
+              <p className="text-sm font-semibold text-foreground" data-testid="text-title-value">{preview.title}</p>
+            </div>
+          </div>
+
+          <div>
+            <div className="text-xs font-semibold text-orange-600 uppercase tracking-wider mb-1" data-testid="text-field-description">description</div>
+            <p className="text-sm text-foreground" data-testid="text-description-value">{preview.description}</p>
+          </div>
+
+          <div className="border-t border-black/[0.06] pt-4">
+            <div className="text-xs font-semibold text-orange-600 uppercase tracking-wider mb-2" data-testid="text-field-content">content:encoded</div>
+            <div className="text-sm text-foreground prose prose-sm max-w-none [&_h2]:text-base [&_h2]:font-bold [&_h2]:mt-3 [&_h2]:mb-1 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1 [&_p]:my-1 [&_ul]:my-1 [&_li]:my-0.5 [&_blockquote]:border-l-2 [&_blockquote]:border-orange-300 [&_blockquote]:pl-3 [&_blockquote]:italic [&_blockquote]:my-2 [&_a]:text-orange-600 [&_a]:underline" dangerouslySetInnerHTML={{ __html: preview.contentHtml }} data-testid="text-content-value" />
+          </div>
+
+          <div className="border-t border-black/[0.06] pt-4">
+            <div className="text-xs font-semibold text-orange-600 uppercase tracking-wider mb-2">Metadata</div>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+              <div>
+                <span className="font-semibold text-foreground">pubDate:</span>{" "}
+                <span className="text-muted-foreground" data-testid="text-pubdate-value">{preview.pubDate}</span>
+              </div>
+              <div>
+                <span className="font-semibold text-foreground">dc:creator:</span>{" "}
+                <span className="text-muted-foreground" data-testid="text-creator-value">{preview.creator}</span>
+              </div>
+              <div>
+                <span className="font-semibold text-foreground">category:</span>{" "}
+                <span className="text-muted-foreground" data-testid="text-category-value">{preview.category}</span>
+              </div>
+              <div>
+                <span className="font-semibold text-foreground">link:</span>{" "}
+                <a href={preview.link} target="_blank" rel="noopener noreferrer" className="text-orange-600 underline text-xs" data-testid="link-recap">{preview.link}</a>
+              </div>
+              {preview.artworkUrl && (
+                <div className="col-span-2">
+                  <span className="font-semibold text-foreground">enclosure:</span>{" "}
+                  <span className="text-muted-foreground text-xs break-all" data-testid="text-enclosure-value">{preview.artworkUrl}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {preview && viewMode === "xml" && (
+        <div data-testid="rss-xml-content">
+          <pre className="bg-black/[0.04] border border-black/[0.08] rounded-xl p-4 text-xs font-mono overflow-x-auto whitespace-pre-wrap break-all text-foreground max-h-[500px] overflow-y-auto">
+            {preview.itemXml}
+          </pre>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function RssFeedsManager() {
   const { toast } = useToast();
@@ -520,22 +639,7 @@ export default function RssFeedsManager() {
         </div>
       </div>
 
-      <div className="glass-panel rounded-2xl p-6">
-        <h3 className="font-display font-bold text-sm mb-2 text-muted-foreground uppercase tracking-wider">What's in each RSS item</h3>
-        <p className="text-sm text-muted-foreground mb-3">
-          Each item in the feed contains everything your bot needs to create a Twitter post:
-        </p>
-        <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-          <div><span className="font-semibold text-foreground">title</span> <span className="text-muted-foreground">- Podcast Name + Episode Title</span></div>
-          <div><span className="font-semibold text-foreground">description</span> <span className="text-muted-foreground">- Short TL;DL summary (tweetable)</span></div>
-          <div><span className="font-semibold text-foreground">content:encoded</span> <span className="text-muted-foreground">- Full recap with insights, quotes</span></div>
-          <div><span className="font-semibold text-foreground">link</span> <span className="text-muted-foreground">- Direct URL to recap on PodRise</span></div>
-          <div><span className="font-semibold text-foreground">dc:creator</span> <span className="text-muted-foreground">- Podcast name</span></div>
-          <div><span className="font-semibold text-foreground">category</span> <span className="text-muted-foreground">- Podcast name</span></div>
-          <div><span className="font-semibold text-foreground">pubDate</span> <span className="text-muted-foreground">- Episode publish date</span></div>
-          <div><span className="font-semibold text-foreground">enclosure</span> <span className="text-muted-foreground">- Podcast artwork image URL</span></div>
-        </div>
-      </div>
+      <RssExamplePreview />
     </div>
   );
 }

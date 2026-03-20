@@ -13112,6 +13112,68 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/admin/rss-preview", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const recaps = await storage.getRecentRecapsForRss(null, 1);
+      if (recaps.length === 0) {
+        return res.status(404).json({ message: "No recaps available for preview" });
+      }
+      const recap = recaps[0];
+      const DOMAIN = "https://podrise.com";
+
+      const fullXml = buildRssXml(
+        [recap],
+        "PodRise - All Podcast Recaps",
+        "AI-generated recaps of the latest episodes from top podcasts, delivered daily.",
+        `${DOMAIN}/rss/all`
+      );
+
+      const itemMatch = fullXml.match(/<item>[\s\S]*?<\/item>/);
+      const itemXml = itemMatch ? itemMatch[0] : "";
+
+      const decodeXmlEntities = (str: string): string => {
+        return str.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'");
+      };
+
+      const extractTag = (xml: string, tag: string, decode = false): string => {
+        const m = xml.match(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`));
+        const val = m ? m[1] : "";
+        return decode ? decodeXmlEntities(val) : val;
+      };
+
+      const title = extractTag(itemXml, "title", true);
+      const link = extractTag(itemXml, "link");
+      const pubDate = extractTag(itemXml, "pubDate");
+      const creator = extractTag(itemXml, "dc:creator", true);
+      const category = extractTag(itemXml, "category", true);
+      const description = extractTag(itemXml, "description", true);
+
+      const contentMatch = itemXml.match(/<content:encoded><!\[CDATA\[([\s\S]*?)\]\]><\/content:encoded>/);
+      const contentHtml = contentMatch ? contentMatch[1] : "";
+
+      const enclosureMatch = itemXml.match(/<enclosure\s+url="([^"]*?)"/);
+      const artworkUrl = enclosureMatch ? enclosureMatch[1] : null;
+
+      res.json({
+        title,
+        description,
+        contentHtml,
+        link,
+        pubDate,
+        creator,
+        category,
+        artworkUrl,
+        itemXml,
+      });
+    } catch (err) {
+      console.error("RSS preview error:", err);
+      res.status(500).json({ message: "Failed to generate RSS preview" });
+    }
+  });
+
   app.get("/api/auth/impersonation-status", (req, res) => {
     if (req.session.isAdmin && req.session.impersonatingUserId) {
       res.json({ impersonating: true, userId: req.session.impersonatingUserId });
