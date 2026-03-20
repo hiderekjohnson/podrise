@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { hiResArtwork } from "@/lib/utils";
 import { BlurredInsightGate } from "@/components/BlurredInsightGate";
 import { SignUpCTAModal } from "@/components/SignUpCTAModal";
+import { RecapAudioPlayer } from "@/components/RecapAudioPlayer";
 
 export function relativeTime(dateStr: string | null): string {
   if (!dateStr) return "";
@@ -72,6 +73,11 @@ export function EpisodeContentSection({ podcastSlug, episodeSlug, episodeTitle, 
         <h3 className="text-[25px] sm:text-[26px] font-normal text-[#09090B] dark:text-white leading-[1.22] tracking-[-0.015em]" style={{ fontFamily: "var(--font-serif)" }} data-testid={`${testIdPrefix}-tldl-${episodeSlug}`}>
           {tldl}
         </h3>
+      )}
+      {isLoggedIn && (
+        <div className="mt-3">
+          <RecapAudioPlayer podcastSlug={podcastSlug} episodeSlug={episodeSlug} compact />
+        </div>
       )}
     </div>
   );
