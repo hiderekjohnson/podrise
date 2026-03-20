@@ -5,8 +5,6 @@ import { motion } from "framer-motion";
 const PendingEmails = lazy(() => import("./PendingEmails"));
 const RssFeedsManager = lazy(() => import("./RssFeedsManager"));
 const HostsManager = lazy(() => import("./HostsManager"));
-const BackfillTracker = lazy(() => import("./BackfillTracker"));
-const EpisodePagesTracker = lazy(() => import("./EpisodePagesTracker"));
 const AnalyticsAcquisition = lazy(() => import("./AnalyticsAcquisition"));
 const AdminShopManagement = lazy(() => import("./AdminShopManagement"));
 const AnalyticsAffiliates = lazy(() => import("./AnalyticsAffiliates"));
@@ -75,271 +73,6 @@ function formatDate(dateStr: string | null): string {
   });
 }
 
-function TabloidHeadlineBackfillPanel() {
-  const { toast } = useToast();
-  const [isRunning, setIsRunning] = useState(false);
-  const [progress, setProgress] = useState<any>(null);
-  const [polling, setPolling] = useState(false);
-
-  const startBackfill = async () => {
-    if (!confirm("This will generate tabloid headlines for all episodes missing them. It runs in the background using AI. Continue?")) return;
-    try {
-      setIsRunning(true);
-      const res = await fetch("/api/admin/backfill-tabloid-headlines", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      if (res.status === 409) {
-        toast({ title: "Already Running", description: "Tabloid headline backfill is already in progress." });
-        setPolling(true);
-        pollProgress();
-        return;
-      }
-      if (!res.ok) throw new Error("Failed to start");
-      toast({ title: "Backfill Started", description: "Generating tabloid headlines for all episodes. Check progress below." });
-      setPolling(true);
-    } catch (err: any) {
-      toast({ title: "Error", description: err?.message || "Failed to start", variant: "destructive" });
-      setIsRunning(false);
-    }
-  };
-
-  const pollProgress = async () => {
-    try {
-      const res = await fetch("/api/admin/tabloid-backfill-progress", { credentials: "include" });
-      if (res.ok) {
-        const data = await res.json();
-        setProgress(data);
-        if (data.status === "running") {
-          setPolling(true);
-          setIsRunning(true);
-        } else {
-          setPolling(false);
-          setIsRunning(false);
-        }
-      }
-    } catch {}
-  };
-
-  useEffect(() => {
-    pollProgress();
-  }, []);
-
-  useEffect(() => {
-    if (!polling) return;
-    const interval = setInterval(pollProgress, 3000);
-    return () => clearInterval(interval);
-  }, [polling]);
-
-  return (
-    <div className="glass-panel rounded-2xl p-5" data-testid="action-backfill-tabloid-headlines">
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-            <FileText className="w-4 h-4 text-primary" />
-            Backfill Tabloid Headlines
-          </h3>
-          <p className="text-xs text-muted-foreground mt-1">Generate tabloid-style headlines and sub-headlines for all episodes missing them.</p>
-        </div>
-        <button
-          data-testid="button-backfill-tabloid-headlines"
-          onClick={startBackfill}
-          disabled={isRunning}
-          className="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-500 text-white hover:bg-indigo-600 transition-colors whitespace-nowrap disabled:opacity-50"
-        >
-          {isRunning ? "Running..." : "Start Backfill"}
-        </button>
-      </div>
-
-      {progress && progress.status !== "idle" && (
-        <div className="mt-3 space-y-2">
-          <div className="flex items-center gap-2">
-            <span className={`inline-block w-2 h-2 rounded-full ${progress.status === "running" ? "bg-indigo-500 animate-pulse" : progress.status === "completed" ? "bg-blue-500" : "bg-red-500"}`} />
-            <span className="text-xs font-semibold text-foreground capitalize">{progress.status}</span>
-          </div>
-
-          {progress.total > 0 && (
-            <div className="w-full bg-muted rounded-full h-2">
-              <div
-                className="bg-indigo-500 h-2 rounded-full transition-all duration-500"
-                style={{ width: `${Math.round((progress.processed / progress.total) * 100)}%` }}
-              />
-            </div>
-          )}
-
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="bg-indigo-50 dark:bg-indigo-950/30 rounded-xl p-2">
-              <p className="text-lg font-bold text-indigo-600" data-testid="text-tabloid-generated">{progress.generated}</p>
-              <p className="text-xs text-muted-foreground">Generated</p>
-            </div>
-            <div className="bg-gray-50 dark:bg-gray-900/30 rounded-xl p-2">
-              <p className="text-lg font-bold text-muted-foreground" data-testid="text-tabloid-processed">{progress.processed}/{progress.total}</p>
-              <p className="text-xs text-muted-foreground">Processed</p>
-            </div>
-            <div className="bg-red-50 dark:bg-red-950/30 rounded-xl p-2">
-              <p className="text-lg font-bold text-red-500" data-testid="text-tabloid-errors">{progress.errors}</p>
-              <p className="text-xs text-muted-foreground">Errors</p>
-            </div>
-          </div>
-
-          {!polling && progress.status !== "idle" && (
-            <button
-              onClick={() => { setPolling(true); pollProgress(); }}
-              className="text-xs text-primary hover:underline"
-              data-testid="button-refresh-tabloid-status"
-            >
-              Refresh Status
-            </button>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function BatchExpansionPanel() {
-  const { toast } = useToast();
-  const [isRunning, setIsRunning] = useState(false);
-  const [progress, setProgress] = useState<any>(null);
-  const [polling, setPolling] = useState(false);
-
-  const startExpansion = async () => {
-    if (!confirm("This will expand all podcasts to 50 episodes each. This process fetches transcripts from Taddy and generates AI recaps - it may take a while. Continue?")) return;
-    try {
-      setIsRunning(true);
-      const res = await fetch("/api/admin/batch-expand", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ target: 50 }),
-      });
-      if (res.status === 409) {
-        toast({ title: "Already Running", description: "Batch expansion is already in progress." });
-        setPolling(true);
-        pollProgress();
-        return;
-      }
-      if (!res.ok) throw new Error("Failed to start");
-      toast({ title: "Batch Expansion Started", description: "Expanding all podcasts to 50 episodes. Check progress below." });
-      setPolling(true);
-    } catch (err: any) {
-      toast({ title: "Error", description: err?.message || "Failed to start", variant: "destructive" });
-      setIsRunning(false);
-    }
-  };
-
-  const pollProgress = async () => {
-    try {
-      const res = await fetch("/api/admin/batch-expand/progress", { credentials: "include" });
-      if (res.ok) {
-        const data = await res.json();
-        setProgress(data);
-        if (data.status === "running") {
-          setPolling(true);
-          setIsRunning(true);
-        } else {
-          setPolling(false);
-          setIsRunning(false);
-        }
-      }
-    } catch {}
-  };
-
-  useEffect(() => {
-    pollProgress();
-  }, []);
-
-  useEffect(() => {
-    if (!polling) return;
-    const interval = setInterval(pollProgress, 3000);
-    return () => clearInterval(interval);
-  }, [polling]);
-
-  return (
-    <div className="glass-panel rounded-2xl p-5" data-testid="action-batch-expand">
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-            <Headphones className="w-4 h-4 text-primary" />
-            Batch Episode Expansion
-          </h3>
-          <p className="text-xs text-muted-foreground mt-1">Expand all podcasts to 50 episodes each via Taddy transcripts + AI recaps.</p>
-        </div>
-        <button
-          data-testid="button-batch-expand"
-          onClick={startExpansion}
-          disabled={isRunning}
-          className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 text-white hover:bg-emerald-600 transition-colors whitespace-nowrap disabled:opacity-50"
-        >
-          {isRunning ? "Running..." : "Start Expansion"}
-        </button>
-      </div>
-
-      {progress && progress.status !== "idle" && (
-        <div className="mt-3 space-y-2">
-          <div className="flex items-center gap-2">
-            <span className={`inline-block w-2 h-2 rounded-full ${progress.status === "running" ? "bg-emerald-500 animate-pulse" : progress.status === "completed" ? "bg-blue-500" : "bg-red-500"}`} />
-            <span className="text-xs font-semibold text-foreground capitalize">{progress.status}</span>
-            {progress.currentPodcast && <span className="text-xs text-muted-foreground">- {progress.currentPodcast}</span>}
-          </div>
-
-          {progress.podcastsTotal > 0 && (
-            <div className="w-full bg-muted rounded-full h-2">
-              <div
-                className="bg-emerald-500 h-2 rounded-full transition-all duration-500"
-                style={{ width: `${Math.round((progress.podcastsProcessed / progress.podcastsTotal) * 100)}%` }}
-              />
-            </div>
-          )}
-
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-xl p-2">
-              <p className="text-lg font-bold text-emerald-600">{progress.episodesCreated}</p>
-              <p className="text-xs text-muted-foreground">Created</p>
-            </div>
-            <div className="bg-gray-50 dark:bg-gray-900/30 rounded-xl p-2">
-              <p className="text-lg font-bold text-muted-foreground">{progress.episodesSkipped}</p>
-              <p className="text-xs text-muted-foreground">Skipped</p>
-            </div>
-            <div className="bg-red-50 dark:bg-red-950/30 rounded-xl p-2">
-              <p className="text-lg font-bold text-red-500">{progress.episodesFailed}</p>
-              <p className="text-xs text-muted-foreground">Failed</p>
-            </div>
-          </div>
-
-          <p className="text-xs text-muted-foreground">
-            Podcasts: {progress.podcastsProcessed}/{progress.podcastsTotal}
-            {progress.startedAt && <> · Started {new Date(progress.startedAt).toLocaleTimeString()}</>}
-            {progress.completedAt && <> · Finished {new Date(progress.completedAt).toLocaleTimeString()}</>}
-          </p>
-
-          {progress.errors.length > 0 && (
-            <details className="text-xs">
-              <summary className="text-red-500 cursor-pointer font-medium">
-                {progress.errors.length} error(s)
-              </summary>
-              <div className="mt-1 max-h-32 overflow-y-auto space-y-1">
-                {progress.errors.map((e: string, i: number) => (
-                  <p key={i} className="text-red-400 text-xs break-all">{e}</p>
-                ))}
-              </div>
-            </details>
-          )}
-
-          {!polling && progress.status !== "idle" && (
-            <button
-              onClick={() => { setPolling(true); pollProgress(); }}
-              className="text-xs text-primary hover:underline"
-            >
-              Refresh Status
-            </button>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function useAdminPath() {
   const [location, wouterNavigate] = useLocation();
@@ -365,16 +98,14 @@ export default function Admin() {
 
   type TabType = "users" | "analytics" | "pending" | "directory" | "shop" | "advertisers" | "admin-users" | "categories" | "advanced" | "errors" | "referrals" | "support-kb" | "cms" | "landing-pages" | "mturk";
   type AnalyticsSubTabType = "acquisition" | "affiliates" | "growth" | "email";
-  type AdvancedSubTabType = "backfill" | "rss" | "hosts" | "api-costs" | "feature-flags";
-  type BackfillSubTabType = "transcripts" | "pages" | "tools";
+  type AdvancedSubTabType = "rss" | "hosts" | "api-costs" | "feature-flags";
 
   const allTabs: TabType[] = ["users", "analytics", "pending", "directory", "shop", "advertisers", "admin-users", "categories", "advanced", "errors", "referrals", "support-kb", "cms", "landing-pages", "mturk"];
   const analyticsSubTabs: AnalyticsSubTabType[] = ["acquisition", "affiliates", "growth", "email"];
-  const advancedSubTabs: AdvancedSubTabType[] = ["backfill", "rss", "hosts", "api-costs", "feature-flags"];
-  const backfillSubTabs: BackfillSubTabType[] = ["transcripts", "pages", "tools"];
+  const advancedSubTabs: AdvancedSubTabType[] = ["rss", "hosts", "api-costs", "feature-flags"];
 
-  const deriveTabFromPath = useCallback((path: string): { tab: TabType; analyticsSub: AnalyticsSubTabType; advancedSub: AdvancedSubTabType; backfillSub: BackfillSubTabType } => {
-    const result = { tab: "advanced" as TabType, analyticsSub: "acquisition" as AnalyticsSubTabType, advancedSub: "backfill" as AdvancedSubTabType, backfillSub: "transcripts" as BackfillSubTabType };
+  const deriveTabFromPath = useCallback((path: string): { tab: TabType; analyticsSub: AnalyticsSubTabType; advancedSub: AdvancedSubTabType } => {
+    const result = { tab: "advanced" as TabType, analyticsSub: "acquisition" as AnalyticsSubTabType, advancedSub: "rss" as AdvancedSubTabType };
     const segments = path.replace(/^\/admin\/?/, "").split("/").filter(Boolean);
     if (segments.length === 0) { return result; }
     const firstSeg = segments[0] as TabType;
@@ -390,9 +121,6 @@ export default function Admin() {
     }
     if (firstSeg === "advanced" && segments[1] && advancedSubTabs.includes(segments[1] as AdvancedSubTabType)) {
       result.advancedSub = segments[1] as AdvancedSubTabType;
-      if (segments[1] === "backfill" && segments[2] && backfillSubTabs.includes(segments[2] as BackfillSubTabType)) {
-        result.backfillSub = segments[2] as BackfillSubTabType;
-      }
     }
     return result;
   }, []);
@@ -401,14 +129,12 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState<TabType>(initialState.tab);
   const [analyticsSubTab, setAnalyticsSubTab] = useState<AnalyticsSubTabType>(initialState.analyticsSub);
   const [advancedSubTab, setAdvancedSubTab] = useState<AdvancedSubTabType>(initialState.advancedSub);
-  const [backfillSubTab, setBackfillSubTab] = useState<BackfillSubTabType>(initialState.backfillSub);
 
   useEffect(() => {
     const derived = deriveTabFromPath(adminPath);
     setActiveTab(derived.tab);
     setAnalyticsSubTab(derived.analyticsSub);
     setAdvancedSubTab(derived.advancedSub);
-    setBackfillSubTab(derived.backfillSub);
   }, [adminPath, deriveTabFromPath]);
 
   const switchTab = useCallback((tab: TabType) => {
@@ -417,7 +143,7 @@ export default function Admin() {
     if (tab === "analytics") {
       adminNavigate(`/admin/analytics/acquisition`);
     } else if (tab === "advanced") {
-      adminNavigate(`/admin/advanced/backfill/transcripts`);
+      adminNavigate(`/admin/advanced/rss`);
     } else {
       adminNavigate(`/admin/${tab}`);
     }
@@ -430,16 +156,7 @@ export default function Admin() {
 
   const switchAdvancedSubTab = useCallback((sub: AdvancedSubTabType) => {
     setAdvancedSubTab(sub);
-    if (sub === "backfill") {
-      adminNavigate(`/admin/advanced/backfill/${backfillSubTab}`);
-    } else {
-      adminNavigate(`/admin/advanced/${sub}`);
-    }
-  }, [adminNavigate, backfillSubTab]);
-
-  const switchBackfillSubTab = useCallback((sub: BackfillSubTabType) => {
-    setBackfillSubTab(sub);
-    adminNavigate(`/admin/advanced/backfill/${sub}`);
+    adminNavigate(`/admin/advanced/${sub}`);
   }, [adminNavigate]);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
@@ -1173,18 +890,6 @@ export default function Admin() {
               <div>
                 <div className="flex items-center gap-1 mb-5 bg-black/[0.03] rounded-xl p-1" data-testid="advanced-sub-tabs">
                   <button
-                    data-testid="advanced-subtab-backfill"
-                    onClick={() => switchAdvancedSubTab("backfill")}
-                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                      advancedSubTab === "backfill"
-                        ? "bg-white text-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    <Database className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
-                    Backfill
-                  </button>
-                  <button
                     data-testid="advanced-subtab-rss"
                     onClick={() => switchAdvancedSubTab("rss")}
                     className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
@@ -1233,237 +938,6 @@ export default function Admin() {
                     Feature Flags
                   </button>
                 </div>
-
-                {advancedSubTab === "backfill" && (
-                  <div>
-                    <div className="flex items-center gap-1 mb-5 bg-black/[0.03] rounded-xl p-1" data-testid="backfill-sub-tabs">
-                      <button
-                        data-testid="subtab-transcripts"
-                        onClick={() => switchBackfillSubTab("transcripts")}
-                        className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                          backfillSubTab === "transcripts"
-                            ? "bg-white text-foreground shadow-sm"
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        <Database className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
-                        Episode Transcripts
-                      </button>
-                      <button
-                        data-testid="subtab-pages"
-                        onClick={() => switchBackfillSubTab("pages")}
-                        className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                          backfillSubTab === "pages"
-                            ? "bg-white text-foreground shadow-sm"
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        <FileText className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
-                        Episode Pages
-                      </button>
-                      <button
-                        data-testid="subtab-tools"
-                        onClick={() => switchBackfillSubTab("tools")}
-                        className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                          backfillSubTab === "tools"
-                            ? "bg-white text-foreground shadow-sm"
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        <Settings className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
-                        Tools
-                      </button>
-                    </div>
-                    <Suspense fallback={
-                      <div className="flex items-center justify-center py-20">
-                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                      </div>
-                    }>
-                      {backfillSubTab === "transcripts" && <BackfillTracker />}
-                      {backfillSubTab === "pages" && <EpisodePagesTracker />}
-                      {backfillSubTab === "tools" && (
-                    <div className="space-y-4" data-testid="backfill-tools">
-                      <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-landing-recaps">
-                        <div>
-                          <h3 className="text-sm font-bold text-foreground">Landing Page Example Recaps</h3>
-                          <p className="text-xs text-muted-foreground mt-1">Generate AI recaps for all ~50 podcast landing pages using their latest episodes.</p>
-                        </div>
-                        <button
-                          data-testid="button-generate-landing-recaps"
-                          onClick={async () => {
-                            if (!confirm("This will generate example recaps for all 50 landing pages. It may take several minutes. Continue?")) return;
-                            try {
-                              const res = await apiRequest("POST", "/api/admin/generate-landing-recaps");
-                              const reader = res.body?.getReader();
-                              if (reader) {
-                                const decoder = new TextDecoder();
-                                let successCount = 0;
-                                while (true) {
-                                  const { done, value } = await reader.read();
-                                  if (done) break;
-                                  const lines = decoder.decode(value).split("\n").filter(Boolean);
-                                  for (const line of lines) {
-                                    try {
-                                      const data = JSON.parse(line);
-                                      if (data.status === "success") successCount++;
-                                      if (data.done) {
-                                        toast({ title: "Landing Recaps Generated", description: `${data.success}/${data.total} recaps created successfully.` });
-                                      }
-                                    } catch {}
-                                  }
-                                }
-                              }
-                            } catch (err: any) {
-                              toast({ title: "Error", description: err?.message || "Failed to generate landing recaps", variant: "destructive" });
-                            }
-                          }}
-                          className="px-4 py-2 rounded-xl text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors whitespace-nowrap"
-                        >
-                          Generate All
-                        </button>
-                      </div>
-
-                      <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-enrich-metadata">
-                        <div>
-                          <h3 className="text-sm font-bold text-foreground">Enrich Podcast Metadata</h3>
-                          <p className="text-xs text-muted-foreground mt-1">Auto-generate About, Known For, Host Bios, and other metadata for podcasts missing it.</p>
-                        </div>
-                        <button
-                          data-testid="button-enrich-metadata"
-                          onClick={async () => {
-                            if (!confirm("This will use AI to generate about info, host bios, and known-for for all podcasts missing this metadata. Continue?")) return;
-                            try {
-                              await apiRequest("POST", "/api/admin/enrich-podcast-metadata");
-                              toast({ title: "Enrichment Started", description: "Podcast metadata enrichment is running in the background." });
-                            } catch (err: any) {
-                              toast({ title: "Error", description: err?.message || "Failed to start enrichment", variant: "destructive" });
-                            }
-                          }}
-                          className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-white hover:bg-amber-600 transition-colors whitespace-nowrap"
-                        >
-                          Enrich All
-                        </button>
-                      </div>
-
-                      <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-backfill-topics">
-                        <div>
-                          <h3 className="text-sm font-bold text-foreground">Backfill Key Topics & Questions</h3>
-                          <p className="text-xs text-muted-foreground mt-1">Generate key topics and top questions for all recaps that don't have them yet.</p>
-                        </div>
-                        <button
-                          data-testid="button-backfill-topics"
-                          onClick={async () => {
-                            if (!confirm("This will backfill key topics and top questions for all existing recaps. This may take a while. Continue?")) return;
-                            try {
-                              await apiRequest("POST", "/api/admin/backfill-topics-questions");
-                              toast({ title: "Backfill Started", description: "Key topics and questions backfill is running in the background." });
-                            } catch (err: any) {
-                              toast({ title: "Error", description: err?.message || "Failed to start backfill", variant: "destructive" });
-                            }
-                          }}
-                          className="px-4 py-2 rounded-xl text-xs font-bold bg-violet-500 text-white hover:bg-violet-600 transition-colors whitespace-nowrap"
-                        >
-                          Start Backfill
-                        </button>
-                      </div>
-
-                      <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-backfill-show-notes">
-                        <div>
-                          <h3 className="text-sm font-bold text-foreground">Backfill Show Notes</h3>
-                          <p className="text-xs text-muted-foreground mt-1">Fetch and store show notes from Taddy for all episodes that don't have them yet.</p>
-                        </div>
-                        <button
-                          data-testid="button-backfill-show-notes"
-                          onClick={async () => {
-                            if (!confirm("This will fetch show notes from Taddy for all existing recaps. This may take a while due to API rate limits. Continue?")) return;
-                            try {
-                              await apiRequest("POST", "/api/admin/backfill-show-notes");
-                              toast({ title: "Backfill Started", description: "Show notes backfill is running in the background. Check server logs for progress." });
-                            } catch (err: any) {
-                              toast({ title: "Error", description: err?.message || "Failed to start backfill", variant: "destructive" });
-                            }
-                          }}
-                          className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 text-white hover:bg-emerald-600 transition-colors whitespace-nowrap"
-                        >
-                          Start Backfill
-                        </button>
-                      </div>
-
-                      <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-backfill-books">
-                        <div>
-                          <h3 className="text-sm font-bold text-foreground">Backfill Books from Transcripts</h3>
-                          <p className="text-xs text-muted-foreground mt-1">Run dedicated AI book extraction on episodes that currently have no books. Processes 10 at a time.</p>
-                        </div>
-                        <button
-                          data-testid="button-backfill-books"
-                          onClick={async () => {
-                            if (!confirm("This will run AI book extraction on up to 10 episodes without books. Each episode costs ~1 API call. Continue?")) return;
-                            try {
-                              const res = await apiRequest("POST", "/api/admin/backfill-books", { limit: 10 });
-                              const data = await res.json();
-                              toast({ title: "Book Backfill Complete", description: `Processed ${data.processed} episodes, found ${data.booksFound} books total.` });
-                            } catch (err: any) {
-                              toast({ title: "Error", description: err?.message || "Failed to run book backfill", variant: "destructive" });
-                            }
-                          }}
-                          className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-white hover:bg-amber-600 transition-colors whitespace-nowrap"
-                        >
-                          Extract Books (10)
-                        </button>
-                      </div>
-
-                      <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-delete-dupe-books">
-                        <div>
-                          <h3 className="text-sm font-bold text-foreground">Clean Duplicate Books</h3>
-                          <p className="text-xs text-muted-foreground mt-1">Remove duplicate book entries (Atomic Habits, Snowball, Founders, etc.)</p>
-                        </div>
-                        <button
-                          data-testid="button-delete-dupe-books"
-                          onClick={async () => {
-                            try {
-                              const res = await apiRequest("POST", "/api/admin/delete-duplicate-books");
-                              const data = await res.json();
-                              toast({ title: "Duplicates Removed", description: `Deleted ${data.count} duplicate book entries.` });
-                            } catch (err: any) {
-                              toast({ title: "Error", description: err?.message || "Failed to delete duplicates", variant: "destructive" });
-                            }
-                          }}
-                          className="px-4 py-2 rounded-xl text-xs font-bold bg-red-500 text-white hover:bg-red-600 transition-colors whitespace-nowrap"
-                        >
-                          Clean Dupes
-                        </button>
-                      </div>
-
-                      <div className="glass-panel rounded-2xl p-5 flex items-center justify-between" data-testid="action-backfill-quotes">
-                        <div>
-                          <h3 className="text-sm font-bold text-foreground">Backfill Episode Quotes</h3>
-                          <p className="text-xs text-muted-foreground mt-1">Generate shareable quotes for all episodes that don't have them yet. Runs in background.</p>
-                        </div>
-                        <button
-                          data-testid="button-backfill-quotes"
-                          onClick={async () => {
-                            if (!confirm("This will generate quotes for all episodes missing them (~3,990 episodes). It runs in the background. Continue?")) return;
-                            try {
-                              await apiRequest("POST", "/api/admin/updates/trigger-quote-backfill");
-                              toast({ title: "Quote Backfill Started", description: "Generating quotes for all episodes. Check progress below." });
-                            } catch (err: any) {
-                              toast({ title: "Error", description: err?.message || "Failed to start quote backfill", variant: "destructive" });
-                            }
-                          }}
-                          className="px-4 py-2 rounded-xl text-xs font-bold bg-violet-500 text-white hover:bg-violet-600 transition-colors whitespace-nowrap"
-                        >
-                          Start Backfill
-                        </button>
-                      </div>
-
-                      <TabloidHeadlineBackfillPanel />
-
-                      <BatchExpansionPanel />
-                    </div>
-                  )}
-                    </Suspense>
-                  </div>
-                )}
 
                 {advancedSubTab === "rss" && (
                   <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}>

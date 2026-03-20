@@ -9,7 +9,7 @@ import {
   Podcast, FileText, Users, Building2, ShoppingBag,
   Save, RefreshCw, Plus, Trash2, GripVertical, ExternalLink,
   Image, Clock, Calendar, Hash, Eye, EyeOff, AlertCircle,
-  Globe, Star, Zap, CheckCircle, XCircle, Play, Copy, Check, Sparkles,
+  Globe, Star, CheckCircle, XCircle, Copy, Check, Sparkles,
   CircleDot, Link, BookOpen, Tag, Newspaper, X, Shield, ShieldOff
 } from "lucide-react";
 
@@ -322,201 +322,6 @@ function StatusSelect({ value, onChange }: { value: string; onChange: (v: string
   );
 }
 
-function PodcastEnrichButton() {
-  const { toast } = useToast();
-  const [enrichStatus, setEnrichStatus] = useState<any>(null);
-  const [polling, setPolling] = useState(false);
-
-  const startEnrich = useMutation({
-    mutationFn: async () => {
-      const res = await fetch("/api/admin/cms/podcast-enrich", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) });
-      if (res.status === 409) { setPolling(true); return; }
-      if (!res.ok) throw new Error("Failed to start");
-    },
-    onSuccess: () => {
-      toast({ title: "Enrichment started" });
-      setPolling(true);
-    },
-    onError: (err: Error) => toast({ title: "Error", description: err.message, variant: "destructive" }),
-  });
-
-  useQuery({
-    queryKey: ["/api/admin/cms/podcast-enrich/status"],
-    queryFn: async () => {
-      const res = await fetch("/api/admin/cms/podcast-enrich/status", { credentials: "include" });
-      if (!res.ok) return null;
-      const data = await res.json();
-      setEnrichStatus(data);
-      if (!data.running && polling) {
-        setPolling(false);
-        queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/podcasts"] });
-      }
-      return data;
-    },
-    refetchInterval: polling ? 3000 : false,
-    enabled: polling,
-  });
-
-  const pct = enrichStatus && enrichStatus.total > 0 ? Math.round((enrichStatus.done / enrichStatus.total) * 100) : 0;
-  const isComplete = enrichStatus && !enrichStatus.running && enrichStatus.done > 0 && enrichStatus.done === enrichStatus.total;
-
-  return (
-    <div className="mt-2 space-y-2" data-testid="enrich-panel">
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => startEnrich.mutate()}
-          disabled={startEnrich.isPending || polling}
-          className="flex items-center gap-1.5 px-3 py-2 bg-primary text-white rounded-xl text-xs font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors"
-          data-testid="button-enrich-podcasts"
-        >
-          {polling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-          {polling ? "Enriching..." : "Enrich All Metadata"}
-        </button>
-        {enrichStatus && enrichStatus.total > 0 && (
-          <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-semibold ${
-            isComplete ? "bg-green-100 text-green-700" : polling ? "bg-blue-100 text-blue-700" : "bg-muted text-muted-foreground"
-          }`}>
-            {isComplete ? "✓ Complete" : polling ? `Running ${pct}%` : `Last run: ${pct}%`}
-          </span>
-        )}
-      </div>
-      {enrichStatus && enrichStatus.total > 0 && (
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${isComplete ? "bg-green-500" : "bg-primary"}`}
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-            <span className="text-xs text-muted-foreground whitespace-nowrap w-20 text-right">
-              {enrichStatus.done}/{enrichStatus.total}
-            </span>
-          </div>
-          <div className="flex gap-3 text-xs text-muted-foreground">
-            <span>{enrichStatus.updated} updated</span>
-            <span>{enrichStatus.skipped} skipped</span>
-            {enrichStatus.errors > 0 && <span className="text-red-500">{enrichStatus.errors} errors</span>}
-          </div>
-          {enrichStatus.log && enrichStatus.log.length > 0 && (
-            <details className="mt-1">
-              <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
-                View log ({enrichStatus.log.length} entries)
-              </summary>
-              <div className="mt-1 max-h-40 overflow-y-auto bg-muted/50 rounded-lg p-2 text-xs font-mono space-y-0.5">
-                {enrichStatus.log.slice(-20).map((line: string, i: number) => (
-                  <div key={i} className={line.startsWith("✓") ? "text-green-600" : line.startsWith("✗") ? "text-red-500" : "text-muted-foreground"}>
-                    {line}
-                  </div>
-                ))}
-              </div>
-            </details>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ItunesFixButton() {
-  const { toast } = useToast();
-  const [fixStatus, setFixStatus] = useState<any>(null);
-  const [polling, setPolling] = useState(false);
-
-  const startFix = useMutation({
-    mutationFn: async () => {
-      const res = await fetch("/api/admin/cms/podcast-fix-itunes", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) });
-      if (res.status === 409) {
-        setPolling(true);
-        toast({ title: "iTunes fix already running", description: "Monitoring progress..." });
-        return;
-      }
-      if (!res.ok) throw new Error("Failed to start");
-      toast({ title: "iTunes fix started" });
-      setPolling(true);
-    },
-    onError: (err: Error) => toast({ title: "Error", description: err.message, variant: "destructive" }),
-  });
-
-  useQuery({
-    queryKey: ["/api/admin/cms/podcast-fix-itunes/status"],
-    queryFn: async () => {
-      const res = await fetch("/api/admin/cms/podcast-fix-itunes/status", { credentials: "include" });
-      if (!res.ok) return null;
-      const data = await res.json();
-      setFixStatus(data);
-      if (data.running && !polling) {
-        setPolling(true);
-      }
-      if (!data.running && polling) {
-        setPolling(false);
-        queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/podcasts"] });
-      }
-      return data;
-    },
-    refetchInterval: polling ? 3000 : 30000,
-  });
-
-  const pct = fixStatus && fixStatus.total > 0 ? Math.round((fixStatus.done / fixStatus.total) * 100) : 0;
-  const isComplete = fixStatus && !fixStatus.running && fixStatus.done > 0 && fixStatus.done === fixStatus.total;
-
-  return (
-    <div className="mt-2 space-y-2" data-testid="itunes-fix-panel">
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => startFix.mutate()}
-          disabled={startFix.isPending || polling}
-          className="flex items-center gap-1.5 px-3 py-2 bg-orange-600 text-white rounded-xl text-xs font-semibold hover:bg-orange-500 disabled:opacity-50 transition-colors"
-          data-testid="button-fix-itunes"
-        >
-          {polling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-          {polling ? "Fixing..." : "Fix Names & Artwork (iTunes)"}
-        </button>
-        {fixStatus && fixStatus.total > 0 && (
-          <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-semibold ${
-            isComplete ? "bg-green-100 text-green-700" : polling ? "bg-blue-100 text-blue-700" : "bg-muted text-muted-foreground"
-          }`}>
-            {isComplete ? "✓ Complete" : polling ? `Running ${pct}%` : `Last run: ${pct}%`}
-          </span>
-        )}
-      </div>
-      {fixStatus && fixStatus.total > 0 && (
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${isComplete ? "bg-green-500" : "bg-orange-500"}`}
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-            <span className="text-xs text-muted-foreground whitespace-nowrap w-20 text-right">
-              {fixStatus.done}/{fixStatus.total}
-            </span>
-          </div>
-          <div className="flex gap-3 text-xs text-muted-foreground">
-            <span>{fixStatus.updated} updated</span>
-            <span>{fixStatus.skipped} skipped</span>
-            {fixStatus.errors > 0 && <span className="text-red-500">{fixStatus.errors} errors</span>}
-          </div>
-          {fixStatus.log && fixStatus.log.length > 0 && (
-            <details className="mt-1">
-              <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
-                View log ({fixStatus.log.length} entries)
-              </summary>
-              <div className="mt-1 max-h-40 overflow-y-auto bg-muted/50 rounded-lg p-2 text-xs font-mono space-y-0.5">
-                {fixStatus.log.slice(-20).map((line: string, i: number) => (
-                  <div key={i} className={line.startsWith("✓") ? "text-green-600" : line.startsWith("✗") ? "text-red-500" : "text-muted-foreground"}>
-                    {line}
-                  </div>
-                ))}
-              </div>
-            </details>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
 
 interface ITunesResult {
   itunesId: string;
@@ -938,8 +743,6 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
               <Plus className="w-3.5 h-3.5" />
               Import Podcasts
             </button>
-            <PodcastEnrichButton />
-            <ItunesFixButton />
           </div>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -2927,118 +2730,6 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
   );
 }
 
-function EntityBackfillBanner() {
-  const { toast } = useToast();
-  const [polling, setPolling] = useState(false);
-  const [progress, setProgress] = useState<any>(null);
-
-  const { data: status } = useQuery<{ total_episodes: number; with_entities: number; without_entities: number; backfillable: number }>({
-    queryKey: ["/api/admin/cms/entity-backfill-status"],
-  });
-
-  useQuery({
-    queryKey: ["/api/admin/cms/entity-backfill-progress"],
-    queryFn: async () => {
-      const res = await fetch("/api/admin/cms/entity-backfill-progress", { credentials: "include" });
-      if (!res.ok) return null;
-      const data = await res.json();
-      setProgress(data);
-      if (!data.running && polling) {
-        setPolling(false);
-        queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/entity-backfill-status"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/people"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/companies"] });
-      }
-      return data;
-    },
-    refetchInterval: polling ? 3000 : false,
-    enabled: polling,
-  });
-
-  const backfillMutation = useMutation({
-    mutationFn: async () => {
-      const res = await fetch("/api/admin/cms/entity-backfill", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) });
-      if (res.status === 409) { setPolling(true); return; }
-      if (!res.ok) throw new Error("Failed to start");
-    },
-    onSuccess: () => {
-      toast({ title: "Entity backfill started" });
-      setPolling(true);
-    },
-    onError: (err: Error) => toast({ title: "Backfill failed", description: err.message, variant: "destructive" }),
-  });
-
-  if (!status || (status.without_entities === 0 && !polling && !progress)) return null;
-
-  const overallPct = Math.round((status.with_entities / status.total_episodes) * 100);
-  const runPct = progress && progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
-  const isComplete = progress && !progress.running && progress.done > 0 && progress.done === progress.total;
-
-  return (
-    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 space-y-3" data-testid="entity-backfill-banner">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Zap className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
-          <span className="text-sm text-amber-800 dark:text-amber-300">
-            Entity mentions: {status.with_entities}/{status.total_episodes} episodes ({overallPct}%) — {status.backfillable} can be backfilled
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => backfillMutation.mutate()}
-            disabled={backfillMutation.isPending || polling}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-semibold hover:bg-amber-700 disabled:opacity-50 flex-shrink-0"
-            data-testid="button-run-backfill"
-          >
-            {polling ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
-            {polling ? "Running..." : "Run Backfill"}
-          </button>
-          {progress && progress.total > 0 && (
-            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold ${
-              isComplete ? "bg-green-100 text-green-700" : polling ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"
-            }`}>
-              {isComplete ? "✓ Complete" : polling ? `${runPct}%` : `Last: ${runPct}%`}
-            </span>
-          )}
-        </div>
-      </div>
-      {progress && progress.total > 0 && (polling || isComplete) && (
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-2 bg-amber-200 dark:bg-amber-800 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${isComplete ? "bg-green-500" : "bg-amber-600"}`}
-                style={{ width: `${runPct}%` }}
-              />
-            </div>
-            <span className="text-xs text-amber-700 dark:text-amber-400 whitespace-nowrap w-24 text-right">
-              {progress.done}/{progress.total}
-            </span>
-          </div>
-          <div className="flex gap-3 text-xs text-amber-700 dark:text-amber-400">
-            <span>{progress.processed} processed</span>
-            <span>{progress.totalEntities} entities found</span>
-            {progress.errors > 0 && <span className="text-red-500">{progress.errors} errors</span>}
-          </div>
-          {progress.log && progress.log.length > 0 && (
-            <details className="mt-1">
-              <summary className="text-xs text-amber-600 dark:text-amber-400 cursor-pointer hover:text-amber-800">
-                View log ({progress.log.length} entries)
-              </summary>
-              <div className="mt-1 max-h-40 overflow-y-auto bg-amber-100/50 dark:bg-amber-900/30 rounded-lg p-2 text-xs font-mono space-y-0.5">
-                {progress.log.slice(-20).map((line: string, i: number) => (
-                  <div key={i} className={line.startsWith("✓") ? "text-green-600" : line.startsWith("✗") ? "text-red-500" : "text-amber-700"}>
-                    {line}
-                  </div>
-                ))}
-              </div>
-            </details>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
 
 interface EntityPerson {
   id: number; slug: string; name: string; bio: string | null; photoUrl: string | null;
@@ -3292,15 +2983,6 @@ function PeopleTab() {
     onSuccess: () => toast({ title: "People enrichment started in background" }),
     onError: (err: Error) => toast({ title: "Failed", description: err.message, variant: "destructive" }),
   });
-  const backfillPhotosMut = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/admin/cms/people/backfill-photos"),
-    onSuccess: async (res: Response) => {
-      const data = await res.json();
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/people"] });
-      toast({ title: "Photos backfilled", description: `Updated ${data.updated} of ${data.total} people` });
-    },
-    onError: (err: Error) => toast({ title: "Failed", description: err.message, variant: "destructive" }),
-  });
 
   if (selectedSlug) {
     return <PersonDetailPanel slug={selectedSlug} onClose={() => setSelectedSlug(null)} />;
@@ -3308,21 +2990,11 @@ function PeopleTab() {
 
   return (
     <div className="space-y-4" data-testid="cms-people-tab">
-      <EntityBackfillBanner />
       <div className="flex items-center gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input type="text" placeholder="Search people..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-9 pr-3 py-2 border border-border rounded-xl text-sm" data-testid="input-search-people" />
         </div>
-        <button
-          onClick={() => backfillPhotosMut.mutate()}
-          disabled={backfillPhotosMut.isPending}
-          className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-xl text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors disabled:opacity-50 whitespace-nowrap"
-          data-testid="button-backfill-photos"
-        >
-          {backfillPhotosMut.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Image className="w-3.5 h-3.5" />}
-          Backfill Photos
-        </button>
         <button
           onClick={() => enrichAllMut.mutate()}
           disabled={enrichAllMut.isPending}
@@ -3343,7 +3015,7 @@ function PeopleTab() {
           <button onClick={() => refetch()} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 inline-flex items-center gap-2" data-testid="button-retry-people"><RefreshCw className="w-4 h-4" /> Retry</button>
         </div>
       ) : !people?.length ? (
-        <div className="text-center py-12 text-muted-foreground text-sm">No people found. Run entity backfill to populate.</div>
+        <div className="text-center py-12 text-muted-foreground text-sm">No people found.</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {people.map((person) => (
@@ -3594,7 +3266,6 @@ function CompaniesTab() {
 
   return (
     <div className="space-y-4" data-testid="cms-companies-tab">
-      <EntityBackfillBanner />
       <div className="flex items-center gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -3620,7 +3291,7 @@ function CompaniesTab() {
           <button onClick={() => refetch()} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 inline-flex items-center gap-2" data-testid="button-retry-companies"><RefreshCw className="w-4 h-4" /> Retry</button>
         </div>
       ) : !companies?.length ? (
-        <div className="text-center py-12 text-muted-foreground text-sm">No companies found. Run entity backfill to populate.</div>
+        <div className="text-center py-12 text-muted-foreground text-sm">No companies found.</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {companies.map((company) => (
