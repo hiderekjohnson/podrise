@@ -142,7 +142,8 @@ function AllPodcastsGrid({
   const [visibleCount, setVisibleCount] = useState(20);
   const visible = podcasts.slice(0, visibleCount);
   const visibleSlugs = visible.map((p) => p.slug);
-  const allVisibleSelected = visibleSlugs.length > 0 && visibleSlugs.every((s) => selectedSlugs.has(s));
+  const allSlugs = podcasts.map((p) => p.slug);
+  const allSelected = allSlugs.length > 0 && allSlugs.every((s) => selectedSlugs.has(s));
 
   return (
     <div className="px-4 md:px-8 pt-2 pb-4" data-testid="all-podcasts-grid">
@@ -154,12 +155,12 @@ function AllPodcastsGrid({
               <SortDropdown value={sortBy} onChange={onSortChange} />
             )}
             <button
-              onClick={() => onSelectAllVisible(visibleSlugs, allVisibleSelected)}
+              onClick={() => onSelectAllVisible(allSlugs, allSelected)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all active:scale-95 bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#52525B] dark:text-[#A1A1AA] hover:bg-[#E4E4E7] dark:hover:bg-[#27272A]"
               data-testid="select-all-visible-podcasts"
             >
               <CheckSquare className="w-3.5 h-3.5" />
-              {allVisibleSelected ? "Deselect All" : "Select All"}
+              {allSelected ? "Deselect All" : "Select All"}
             </button>
           </div>
         )}
