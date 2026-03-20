@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useRoute, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -127,16 +127,31 @@ function parsePodcastName(raw: string): string {
   return raw;
 }
 
-function CollapsibleSection({ title, icon: Icon, defaultOpen = true, children, badge }: {
+const TAB_SECTIONS = [
+  { key: "identity", label: "Identity & Personal", icon: User },
+  { key: "account", label: "Account Status", icon: Shield },
+  { key: "acquisition", label: "Acquisition", icon: Globe },
+  { key: "podcasts", label: "Podcasts", icon: Podcast },
+  { key: "preferences", label: "Preferences", icon: Tag },
+  { key: "email-settings", label: "Email Settings", icon: Clock },
+  { key: "email-history", label: "Email History", icon: Send },
+  { key: "email-clicks", label: "Email Clicks", icon: MousePointerClick },
+  { key: "referrals", label: "Referrals", icon: UsersIcon },
+  { key: "bookmarks", label: "Bookmarks", icon: Bookmark },
+  { key: "stripe", label: "Stripe", icon: CreditCard },
+] as const;
+
+function CollapsibleSection({ title, icon: Icon, defaultOpen = true, children, badge, sectionRef }: {
   title: string;
   icon: React.ComponentType<{ className?: string }>;
   defaultOpen?: boolean;
   children: React.ReactNode;
   badge?: string | number;
+  sectionRef?: React.Ref<HTMLDivElement>;
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="glass-panel rounded-2xl overflow-hidden" data-testid={`section-${title.toLowerCase().replace(/\s+/g, "-")}`}>
+    <div ref={sectionRef} className="glass-panel rounded-2xl overflow-hidden scroll-mt-20" data-testid={`section-${title.toLowerCase().replace(/\s+/g, "-")}`}>
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-5 py-4 hover:bg-black/[0.02] transition-colors"
@@ -174,6 +189,38 @@ export default function AdminUserProfile() {
   const [editing, setEditing] = useState(false);
   const [editFields, setEditFields] = useState<Record<string, any>>({});
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>(TAB_SECTIONS[0].key);
+  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const tabBarRef = useRef<HTMLDivElement>(null);
+  const activeTabRef = useRef<HTMLButtonElement>(null);
+  const isScrollingToSection = useRef(false);
+
+  const scrollToSection = useCallback((key: string) => {
+    const el = sectionRefs.current[key];
+    if (el) {
+      isScrollingToSection.current = true;
+      setActiveTab(key);
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      setTimeout(() => { isScrollingToSection.current = false; }, 800);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTabRef.current && tabBarRef.current) {
+      const tabBar = tabBarRef.current;
+      const tab = activeTabRef.current;
+      const tabLeft = tab.offsetLeft;
+      const tabWidth = tab.offsetWidth;
+      const barWidth = tabBar.offsetWidth;
+      const scrollLeft = tabBar.scrollLeft;
+
+      if (tabLeft < scrollLeft) {
+        tabBar.scrollTo({ left: tabLeft - 16, behavior: "smooth" });
+      } else if (tabLeft + tabWidth > scrollLeft + barWidth) {
+        tabBar.scrollTo({ left: tabLeft + tabWidth - barWidth + 16, behavior: "smooth" });
+      }
+    }
+  }, [activeTab]);
 
   const { data: adminAuth, isLoading: authLoading } = useQuery<{ isAdmin: boolean } | null>({
     queryKey: ["/api/admin/me"],
@@ -195,6 +242,50 @@ export default function AdminUserProfile() {
       return res.json();
     },
   });
+
+  useEffect(() => {
+    const observers: IntersectionObserver[] = [];
+    const visibleSections = new Map<string, number>();
+
+    TAB_SECTIONS.forEach(({ key }) => {
+      const el = sectionRefs.current[key];
+      if (!el) return;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              visibleSections.set(key, entry.intersectionRatio);
+            } else {
+              visibleSections.delete(key);
+            }
+          });
+
+          if (!isScrollingToSection.current && visibleSections.size > 0) {
+            let topKey: string = key;
+            let topY = Infinity;
+            visibleSections.forEach((_, k) => {
+              const sEl = sectionRefs.current[k];
+              if (sEl) {
+                const rect = sEl.getBoundingClientRect();
+                if (rect.top < topY && rect.top >= -rect.height / 2) {
+                  topY = rect.top;
+                  topKey = k;
+                }
+              }
+            });
+            setActiveTab(topKey);
+          }
+        },
+        { threshold: [0, 0.25, 0.5], rootMargin: "-80px 0px 0px 0px" }
+      );
+
+      observer.observe(el);
+      observers.push(observer);
+    });
+
+    return () => observers.forEach((o) => o.disconnect());
+  }, [data]);
 
   const updateMutation = useMutation({
     mutationFn: (fields: Record<string, any>) => apiRequest("PATCH", `/api/admin/users/${userId}/profile`, fields),
@@ -430,8 +521,33 @@ export default function AdminUserProfile() {
           </div>
         </div>
 
+        <div
+          ref={tabBarRef}
+          className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-black/[0.08] mb-6 -mx-4 px-4 overflow-x-auto hide-scrollbar"
+          data-testid="tab-navigation"
+        >
+          <div className="flex gap-1 min-w-max py-2">
+            {TAB_SECTIONS.map(({ key, label, icon: TabIcon }) => (
+              <button
+                key={key}
+                ref={activeTab === key ? activeTabRef : undefined}
+                onClick={() => scrollToSection(key)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                  activeTab === key
+                    ? "bg-primary text-white"
+                    : "text-muted-foreground hover:bg-black/[0.04] hover:text-foreground"
+                }`}
+                data-testid={`tab-${key}`}
+              >
+                <TabIcon className="w-3.5 h-3.5" />
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="space-y-4">
-          <CollapsibleSection title="Identity & Personal" icon={User}>
+          <CollapsibleSection title="Identity & Personal" icon={User} sectionRef={(el) => { sectionRefs.current["identity"] = el; }}>
             <div className="pt-3">
               {editing ? (
                 <div className="space-y-3">
@@ -498,7 +614,7 @@ export default function AdminUserProfile() {
             </div>
           </CollapsibleSection>
 
-          <CollapsibleSection title="Account Status" icon={Shield}>
+          <CollapsibleSection title="Account Status" icon={Shield} sectionRef={(el) => { sectionRefs.current["account"] = el; }}>
             <div className="pt-3">
               {editing ? (
                 <div className="space-y-3">
@@ -564,7 +680,7 @@ export default function AdminUserProfile() {
             </div>
           </CollapsibleSection>
 
-          <CollapsibleSection title="Acquisition" icon={Globe} defaultOpen={false}>
+          <CollapsibleSection title="Acquisition" icon={Globe} defaultOpen={false} sectionRef={(el) => { sectionRefs.current["acquisition"] = el; }}>
             <div className="pt-3">
               <InfoRow label="Signup Source" value={user.signupSource} testId="info-signupSource" />
               <InfoRow label="Source Detail" value={user.signupSourceDetail} testId="info-signupSourceDetail" />
@@ -579,7 +695,7 @@ export default function AdminUserProfile() {
             </div>
           </CollapsibleSection>
 
-          <CollapsibleSection title="Podcasts Following" icon={Podcast} badge={user.podcasts.length}>
+          <CollapsibleSection title="Podcasts Following" icon={Podcast} badge={user.podcasts.length} sectionRef={(el) => { sectionRefs.current["podcasts"] = el; }}>
             <div className="pt-3">
               {user.podcasts.length === 0 ? (
                 <p className="text-sm text-muted-foreground italic">No podcasts</p>
@@ -611,7 +727,7 @@ export default function AdminUserProfile() {
             </div>
           </CollapsibleSection>
 
-          <CollapsibleSection title="Content Preferences" icon={Tag} defaultOpen={false}>
+          <CollapsibleSection title="Content Preferences" icon={Tag} defaultOpen={false} sectionRef={(el) => { sectionRefs.current["preferences"] = el; }}>
             <div className="pt-3">
               <InfoRow label="Industries" value={user.industries.length > 0 ? user.industries.join(", ") : null} testId="info-industries" />
               <InfoRow label="Interests" value={user.interests.length > 0 ? user.interests.join(", ") : null} testId="info-interests" />
@@ -624,7 +740,7 @@ export default function AdminUserProfile() {
             </div>
           </CollapsibleSection>
 
-          <CollapsibleSection title="Email Settings" icon={Clock}>
+          <CollapsibleSection title="Email Settings" icon={Clock} sectionRef={(el) => { sectionRefs.current["email-settings"] = el; }}>
             <div className="pt-3">
               {editing ? (
                 <div className="space-y-3">
@@ -670,7 +786,7 @@ export default function AdminUserProfile() {
             </div>
           </CollapsibleSection>
 
-          <CollapsibleSection title="Email History" icon={Send} badge={emailStats.totalSent}>
+          <CollapsibleSection title="Email History" icon={Send} badge={emailStats.totalSent} sectionRef={(el) => { sectionRefs.current["email-history"] = el; }}>
             <div className="pt-3">
               {recentEmails.length === 0 ? (
                 <p className="text-sm text-muted-foreground italic">No emails sent yet</p>
@@ -718,7 +834,7 @@ export default function AdminUserProfile() {
             </div>
           </CollapsibleSection>
 
-          <CollapsibleSection title="Email Clicks" icon={MousePointerClick} badge={emailClicks.length} defaultOpen={false}>
+          <CollapsibleSection title="Email Clicks" icon={MousePointerClick} badge={emailClicks.length} defaultOpen={false} sectionRef={(el) => { sectionRefs.current["email-clicks"] = el; }}>
             <div className="pt-3">
               {emailClicks.length === 0 ? (
                 <p className="text-sm text-muted-foreground italic">No clicks recorded</p>
@@ -738,7 +854,7 @@ export default function AdminUserProfile() {
             </div>
           </CollapsibleSection>
 
-          <CollapsibleSection title="Referral Info" icon={UsersIcon} badge={referralsMade.length}>
+          <CollapsibleSection title="Referral Info" icon={UsersIcon} badge={referralsMade.length} sectionRef={(el) => { sectionRefs.current["referrals"] = el; }}>
             <div className="pt-3">
               <InfoRow label="Referral Code" value={user.referralCode} testId="info-referralCode" />
               <InfoRow
@@ -769,7 +885,7 @@ export default function AdminUserProfile() {
             </div>
           </CollapsibleSection>
 
-          <CollapsibleSection title="Bookmarks" icon={Bookmark} badge={bookmarks.length} defaultOpen={false}>
+          <CollapsibleSection title="Bookmarks" icon={Bookmark} badge={bookmarks.length} defaultOpen={false} sectionRef={(el) => { sectionRefs.current["bookmarks"] = el; }}>
             <div className="pt-3">
               {bookmarks.length === 0 ? (
                 <p className="text-sm text-muted-foreground italic">No bookmarks</p>
@@ -789,7 +905,7 @@ export default function AdminUserProfile() {
             </div>
           </CollapsibleSection>
 
-          <CollapsibleSection title="Stripe" icon={CreditCard} defaultOpen={false}>
+          <CollapsibleSection title="Stripe" icon={CreditCard} defaultOpen={false} sectionRef={(el) => { sectionRefs.current["stripe"] = el; }}>
             <div className="pt-3">
               <InfoRow label="Customer ID" value={user.stripeCustomerId} testId="info-stripeCustomerId" />
               <InfoRow label="Subscription ID" value={user.stripeSubscriptionId} testId="info-stripeSubscriptionId" />
