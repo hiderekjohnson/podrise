@@ -13287,9 +13287,6 @@ Rules:
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
     }
-    if (req.session.impersonatingUserId) {
-      return res.status(400).json({ message: "Already impersonating a user. Stop impersonating first." });
-    }
     const parsed = z.object({ userId: z.number() }).safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({ message: "userId is required" });
@@ -13298,10 +13295,18 @@ Rules:
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    if (req.session.impersonatingUserId) {
+      req.session.userId = req.session.originalUserId;
+      delete req.session.impersonatingUserId;
+      delete req.session.originalUserId;
+    }
     req.session.originalUserId = req.session.userId;
     req.session.impersonatingUserId = parsed.data.userId;
     req.session.userId = parsed.data.userId;
-    req.session.save(() => {
+    req.session.save((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Failed to save session while impersonating user" });
+      }
       res.json({ message: "Now impersonating user", user });
     });
   });
@@ -13316,7 +13321,10 @@ Rules:
     req.session.userId = req.session.originalUserId;
     delete req.session.impersonatingUserId;
     delete req.session.originalUserId;
-    req.session.save(() => {
+    req.session.save((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Failed to save session while stopping impersonation" });
+      }
       res.json({ message: "Stopped impersonating" });
     });
   });

@@ -432,10 +432,28 @@ export default function Admin() {
     enabled: isAdmin,
   });
 
+  const { data: impersonationStatus } = useQuery<{ impersonating: boolean; userId?: number }>({
+    queryKey: ["/api/auth/impersonation-status"],
+    enabled: isAdmin,
+  });
+
+  const stopImpersonatingMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/stop-impersonating"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/impersonation-status"] });
+      toast({ title: "Impersonation ended", description: "You are now viewing as yourself." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to stop impersonating.", variant: "destructive" });
+    },
+  });
+
   const impersonateMutation = useMutation({
     mutationFn: (userId: number) => apiRequest("POST", "/api/admin/impersonate", { userId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/impersonation-status"] });
       navigate("/dashboard");
     },
     onError: () => {
@@ -542,6 +560,20 @@ export default function Admin() {
               <span className="font-bold">Dev Environment</span> — Changes made here won't appear on the live site. Approve/reject products and manage data on the <a href="https://podrise.com/admin" target="_blank" rel="noopener noreferrer" className="underline font-bold hover:text-amber-300">production admin</a> instead.
             </p>
           </div>
+        </div>
+      )}
+      {impersonationStatus?.impersonating && (
+        <div className="w-full bg-amber-500 text-white px-6 py-2.5 flex items-center justify-center gap-3" data-testid="banner-admin-impersonating">
+          <Shield className="w-4 h-4" />
+          <span className="text-sm font-semibold">You are currently impersonating user ID {impersonationStatus.userId}</span>
+          <button
+            data-testid="button-admin-stop-impersonating"
+            onClick={() => stopImpersonatingMutation.mutate()}
+            disabled={stopImpersonatingMutation.isPending}
+            className="ml-2 px-3 py-1 bg-white/20 hover:bg-white/30 rounded-md text-sm font-bold transition-colors"
+          >
+            {stopImpersonatingMutation.isPending ? "Stopping..." : "Stop Impersonating"}
+          </button>
         </div>
       )}
       <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
