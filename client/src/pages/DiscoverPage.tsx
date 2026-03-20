@@ -125,7 +125,6 @@ function AllPodcastsGrid({
   isLoggedIn,
   selectedSlugs,
   onToggleSelect,
-  onSelectAllVisible,
   sortBy,
   onSortChange,
 }: {
@@ -136,33 +135,19 @@ function AllPodcastsGrid({
   isLoggedIn: boolean;
   selectedSlugs: Set<string>;
   onToggleSelect: (slug: string) => void;
-  onSelectAllVisible: (slugs: string[], deselect?: boolean) => void;
   sortBy?: SortOption;
   onSortChange?: (value: SortOption) => void;
 }) {
   const [visibleCount, setVisibleCount] = useState(20);
   const visible = podcasts.slice(0, visibleCount);
-  const visibleSlugs = visible.map((p) => p.slug);
-  const allSlugs = podcasts.map((p) => p.slug);
-  const allSelected = allSlugs.length > 0 && allSlugs.every((s) => selectedSlugs.has(s));
 
   return (
     <div className="px-4 md:px-8 pt-2 pb-4" data-testid="all-podcasts-grid">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-[16px] md:text-[18px] font-bold text-[#09090B] dark:text-white">All Podcasts</h2>
-        {isLoggedIn && (
+        {isLoggedIn && sortBy && onSortChange && (
           <div className="flex items-center gap-2">
-            {sortBy && onSortChange && (
-              <SortDropdown value={sortBy} onChange={onSortChange} />
-            )}
-            <button
-              onClick={() => onSelectAllVisible(allSlugs, allSelected)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all active:scale-95 bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#52525B] dark:text-[#A1A1AA] hover:bg-[#E4E4E7] dark:hover:bg-[#27272A]"
-              data-testid="select-all-visible-podcasts"
-            >
-              <CheckSquare className="w-3.5 h-3.5" />
-              {allSelected ? "Deselect All" : "Select All"}
-            </button>
+            <SortDropdown value={sortBy} onChange={onSortChange} />
           </div>
         )}
       </div>
@@ -936,7 +921,6 @@ export default function DiscoverPage() {
                   isLoggedIn={!!user}
                   selectedSlugs={selectedSlugs}
                   onToggleSelect={toggleSelect}
-                  onSelectAllVisible={handleSelectAllVisible}
                   sortBy={user ? sortBy : undefined}
                   onSortChange={user ? setSortBy : undefined}
                 />
