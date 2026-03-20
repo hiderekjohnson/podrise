@@ -13,53 +13,50 @@ interface AcquisitionData {
   bySource: { source: string; count: number }[];
   byPodcast: { detail: string; source: string; count: number }[];
   overTime: { period: string; source: string; count: number }[];
-  recentSignups: { id: number; email: string; signup_source: string | null; signup_source_detail: string | null; podcast_name: string | null; device_type: string | null; created_at: string | null; utm_source: string | null; utm_medium: string | null; utm_campaign: string | null }[];
+  recentSignups: { id: number; email: string; signup_source: string | null; signup_source_detail: string | null; podcast_name: string | null; device_type: string | null; created_at: string | null; utm_source: string | null; utm_medium: string | null; utm_campaign: string | null; channel: string | null }[];
   utmBreakdown: { utmSource: string; utmMedium: string; utmCampaign: string; count: number }[];
 }
 
-const SOURCE_LABELS: Record<string, string> = {
-  homepage: "Homepage",
-  podcast_page: "Podcast Page",
-  episode_page: "Episode Page",
-  industry_page: "Industry Page",
-  role_page: "Role Page",
-  interest_page: "Interest Page",
-  get_started: "Get Started",
-  register_page: "Register Page",
-  login_page: "Login Page",
-  leaderboard: "Leaderboard",
-  unknown: "Unknown",
+const CHANNEL_LABELS: Record<string, string> = {
+  "Organic Search": "Organic Search",
+  "Paid Search": "Paid Search",
+  "Direct": "Direct",
+  "Referral": "Referral",
+  "Organic Social": "Organic Social",
+  "Paid Social": "Paid Social",
+  "Email": "Email",
+  "Display": "Display",
+  "Affiliate": "Affiliate",
+  "Unassigned": "Unassigned",
 };
 
-const SOURCE_CHART_COLORS: Record<string, string> = {
-  homepage: "#3b82f6",
-  podcast_page: "#a855f7",
-  episode_page: "#8b5cf6",
-  industry_page: "#10b981",
-  role_page: "#f59e0b",
-  interest_page: "#ec4899",
-  get_started: "#22c55e",
-  register_page: "#6366f1",
-  login_page: "#06b6d4",
-  leaderboard: "#f97316",
-  unknown: "#9ca3af",
+const CHANNEL_CHART_COLORS: Record<string, string> = {
+  "Organic Search": "#22c55e",
+  "Paid Search": "#3b82f6",
+  "Direct": "#6366f1",
+  "Referral": "#a855f7",
+  "Organic Social": "#ec4899",
+  "Paid Social": "#f59e0b",
+  "Email": "#06b6d4",
+  "Display": "#f97316",
+  "Affiliate": "#10b981",
+  "Unassigned": "#9ca3af",
 };
 
-const SOURCE_COLORS: Record<string, string> = {
-  homepage: "bg-blue-500",
-  podcast_page: "bg-purple-500",
-  episode_page: "bg-violet-500",
-  industry_page: "bg-emerald-500",
-  role_page: "bg-amber-500",
-  interest_page: "bg-pink-500",
-  get_started: "bg-green-500",
-  register_page: "bg-indigo-500",
-  login_page: "bg-cyan-500",
-  leaderboard: "bg-orange-500",
-  unknown: "bg-gray-400",
+const CHANNEL_COLORS: Record<string, string> = {
+  "Organic Search": "bg-green-500",
+  "Paid Search": "bg-blue-500",
+  "Direct": "bg-indigo-500",
+  "Referral": "bg-purple-500",
+  "Organic Social": "bg-pink-500",
+  "Paid Social": "bg-amber-500",
+  "Email": "bg-cyan-500",
+  "Display": "bg-orange-500",
+  "Affiliate": "bg-emerald-500",
+  "Unassigned": "bg-gray-400",
 };
 
-const ALL_SOURCES = Object.keys(SOURCE_LABELS);
+const ALL_CHANNELS = Object.keys(CHANNEL_LABELS);
 
 function formatLabel(period: string) {
   return new Date(period).toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -116,7 +113,7 @@ export default function AnalyticsAcquisition() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [granularity, setGranularity] = useState("daily");
-  const [sourceFilter, setSourceFilter] = useState("all");
+  const [channelFilter, setChannelFilter] = useState("all");
   const [podcastFilter, setPodcastFilter] = useState("all");
 
   const params = new URLSearchParams();
@@ -136,16 +133,14 @@ export default function AnalyticsAcquisition() {
   const filteredData = useMemo(() => {
     if (!data) return data;
     let result = data;
-    if (sourceFilter !== "all") {
+    if (channelFilter !== "all") {
       result = {
         ...result,
-        bySource: result.bySource.filter(s => s.source === sourceFilter),
-        byPodcast: sourceFilter === "podcast_page" || sourceFilter === "episode_page"
-          ? result.byPodcast.filter(p => p.source === sourceFilter)
-          : [],
-        overTime: result.overTime.filter(t => t.source === sourceFilter),
-        recentSignups: result.recentSignups.filter(s => (s.signup_source || "unknown") === sourceFilter),
-        totalSignups: result.bySource.filter(s => s.source === sourceFilter).reduce((sum, s) => sum + s.count, 0),
+        bySource: result.bySource.filter(s => s.source === channelFilter),
+        byPodcast: result.byPodcast.filter(p => p.source === channelFilter),
+        overTime: result.overTime.filter(t => t.source === channelFilter),
+        recentSignups: result.recentSignups.filter(s => (s.channel || "Direct") === channelFilter),
+        totalSignups: result.bySource.filter(s => s.source === channelFilter).reduce((sum, s) => sum + s.count, 0),
       };
     }
     if (podcastFilter !== "all") {
@@ -157,7 +152,7 @@ export default function AnalyticsAcquisition() {
       };
     }
     return result;
-  }, [data, sourceFilter, podcastFilter]);
+  }, [data, channelFilter, podcastFilter]);
 
   const availablePodcasts = useMemo(() => {
     if (!data) return [];
@@ -184,10 +179,10 @@ export default function AnalyticsAcquisition() {
     return Array.from(new Set(filteredData.overTime.map(i => i.source)));
   }, [filteredData]);
 
-  const sourceBarData = useMemo(() => {
+  const channelBarData = useMemo(() => {
     if (!filteredData) return [];
     return filteredData.bySource.map(s => ({
-      name: SOURCE_LABELS[s.source] || s.source,
+      name: CHANNEL_LABELS[s.source] || s.source,
       count: s.count,
       source: s.source,
     }));
@@ -209,26 +204,25 @@ export default function AnalyticsAcquisition() {
     );
   }
 
-  const topSource = filteredData.bySource[0];
-  const availableSources = data.bySource.map(s => s.source);
+  const topChannel = filteredData.bySource[0];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h2 className="text-lg font-display font-bold text-foreground" data-testid="heading-acquisition">Where Users Come From</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">Which pages and sources drive signups</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Which channels drive signups</p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           <select
-            value={sourceFilter}
-            onChange={e => { setSourceFilter(e.target.value); setPodcastFilter("all"); }}
+            value={channelFilter}
+            onChange={e => { setChannelFilter(e.target.value); setPodcastFilter("all"); }}
             className="h-8 px-2 text-xs font-semibold rounded-lg border border-black/[0.08] dark:border-white/[0.1] bg-white dark:bg-zinc-900 text-foreground"
-            data-testid="filter-source-type"
+            data-testid="filter-channel-type"
           >
-            <option value="all">All Sources</option>
-            {ALL_SOURCES.filter(s => availableSources.includes(s)).map(s => (
-              <option key={s} value={s}>{SOURCE_LABELS[s]}</option>
+            <option value="all">All Channels</option>
+            {ALL_CHANNELS.map(s => (
+              <option key={s} value={s}>{CHANNEL_LABELS[s]}</option>
             ))}
           </select>
           {availablePodcasts.length > 0 && (
@@ -266,24 +260,24 @@ export default function AnalyticsAcquisition() {
             <div className="w-9 h-9 rounded-xl bg-green-500/10 flex items-center justify-center">
               <TrendingUp className="w-4.5 h-4.5 text-green-500" />
             </div>
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Active Sources</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Active Channels</span>
           </div>
           <p className="text-3xl font-bold text-foreground">{filteredData.bySource.length}</p>
         </div>
-        <div className="glass-panel rounded-2xl p-5" data-testid="stat-top-source">
+        <div className="glass-panel rounded-2xl p-5" data-testid="stat-top-channel">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center">
               <MapPin className="w-4.5 h-4.5 text-purple-500" />
             </div>
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Top Source</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Top Channel</span>
           </div>
-          <p className="text-lg font-bold text-foreground truncate">{SOURCE_LABELS[topSource?.source || ""] || topSource?.source || "N/A"}</p>
-          <p className="text-xs text-muted-foreground">{topSource?.count || 0} signups</p>
+          <p className="text-lg font-bold text-foreground truncate">{CHANNEL_LABELS[topChannel?.source || ""] || topChannel?.source || "N/A"}</p>
+          <p className="text-xs text-muted-foreground">{topChannel?.count || 0} signups</p>
         </div>
       </div>
 
       <div className="glass-panel rounded-2xl p-6" data-testid="chart-acquisition-trend">
-        <h3 className="text-sm font-bold text-foreground mb-4">Signups by Source Over Time</h3>
+        <h3 className="text-sm font-bold text-foreground mb-4">Signups by Channel Over Time</h3>
         {stackedChartData.length === 0 ? (
           <p className="text-sm text-muted-foreground italic">No data yet</p>
         ) : (
@@ -292,8 +286,8 @@ export default function AnalyticsAcquisition() {
               <defs>
                 {activeSources.map(src => (
                   <linearGradient key={src} id={`grad-${src}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={SOURCE_CHART_COLORS[src] || "#9ca3af"} stopOpacity={0.3} />
-                    <stop offset="95%" stopColor={SOURCE_CHART_COLORS[src] || "#9ca3af"} stopOpacity={0.02} />
+                    <stop offset="5%" stopColor={CHANNEL_CHART_COLORS[src] || "#9ca3af"} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={CHANNEL_CHART_COLORS[src] || "#9ca3af"} stopOpacity={0.02} />
                   </linearGradient>
                 ))}
               </defs>
@@ -307,9 +301,9 @@ export default function AnalyticsAcquisition() {
                   key={src}
                   type="monotone"
                   dataKey={src}
-                  name={SOURCE_LABELS[src] || src}
+                  name={CHANNEL_LABELS[src] || src}
                   stackId="1"
-                  stroke={SOURCE_CHART_COLORS[src] || "#9ca3af"}
+                  stroke={CHANNEL_CHART_COLORS[src] || "#9ca3af"}
                   strokeWidth={1.5}
                   fill={`url(#grad-${src})`}
                 />
@@ -320,13 +314,13 @@ export default function AnalyticsAcquisition() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass-panel rounded-2xl p-6" data-testid="chart-source-breakdown">
-          <h3 className="text-sm font-bold text-foreground mb-4">Source Ranking</h3>
-          {sourceBarData.length === 0 ? (
+        <div className="glass-panel rounded-2xl p-6" data-testid="chart-channel-breakdown">
+          <h3 className="text-sm font-bold text-foreground mb-4">Channel Ranking</h3>
+          {channelBarData.length === 0 ? (
             <p className="text-sm text-muted-foreground italic">No data yet</p>
           ) : (
-            <ResponsiveContainer width="100%" height={Math.max(sourceBarData.length * 36, 120)}>
-              <BarChart data={sourceBarData} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
+            <ResponsiveContainer width="100%" height={Math.max(channelBarData.length * 36, 120)}>
+              <BarChart data={channelBarData} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.06} horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 11 }} stroke="currentColor" opacity={0.4} tickLine={false} allowDecimals={false} />
                 <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} stroke="currentColor" opacity={0.4} tickLine={false} axisLine={false} width={100} />
@@ -339,13 +333,13 @@ export default function AnalyticsAcquisition() {
         </div>
 
         <div className="glass-panel rounded-2xl p-6" data-testid="chart-podcast-drilldown">
-          <h3 className="text-sm font-bold text-foreground mb-4">Top Podcast Sources</h3>
+          <h3 className="text-sm font-bold text-foreground mb-4">Top Podcast Channels</h3>
           {filteredData.byPodcast.length === 0 ? (
             <p className="text-sm text-muted-foreground italic">No podcast-driven signups yet</p>
           ) : (
             <div className="space-y-2">
               {filteredData.byPodcast.slice(0, 15).map((item, i) => (
-                <div key={i} className="flex items-center justify-between py-1" data-testid={`podcast-source-${i}`}>
+                <div key={i} className="flex items-center justify-between py-1" data-testid={`podcast-channel-${i}`}>
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     <span className="text-xs font-bold text-muted-foreground w-5 shrink-0">{i + 1}</span>
                     <span className="text-sm font-medium text-foreground truncate">{item.detail}</span>
@@ -398,7 +392,7 @@ export default function AnalyticsAcquisition() {
               <thead>
                 <tr className="border-b border-black/[0.06] dark:border-white/[0.08]">
                   <th className="text-left py-2 pr-4 text-xs font-semibold text-muted-foreground uppercase">Email</th>
-                  <th className="text-left py-2 pr-4 text-xs font-semibold text-muted-foreground uppercase">Source</th>
+                  <th className="text-left py-2 pr-4 text-xs font-semibold text-muted-foreground uppercase">Channel</th>
                   <th className="text-left py-2 pr-4 text-xs font-semibold text-muted-foreground uppercase">UTM</th>
                   <th className="text-left py-2 pr-4 text-xs font-semibold text-muted-foreground uppercase">Device</th>
                   <th className="text-left py-2 text-xs font-semibold text-muted-foreground uppercase">When</th>
@@ -406,17 +400,18 @@ export default function AnalyticsAcquisition() {
               </thead>
               <tbody>
                 {filteredData.recentSignups.slice(0, 20).map((user, i) => {
+                  const channelName = user.channel || "Direct";
                   const source = user.signup_source || "unknown";
                   const resolvedName = resolveDetailName(source, user.signup_source_detail, user.podcast_name);
                   const pageUrl = getSourcePageUrl(source, user.signup_source_detail);
-                  const sourceLabel = SOURCE_LABELS[source] || source;
+                  const channelLabel = CHANNEL_LABELS[channelName] || channelName;
                   return (
                     <tr key={i} className="border-b border-black/[0.03] dark:border-white/[0.04]" data-testid={`signup-row-${i}`}>
                       <td className="py-2 pr-4 font-medium text-foreground truncate max-w-[180px]" data-testid={`signup-email-${i}`}>{user.email}</td>
-                      <td className="py-2 pr-4" data-testid={`signup-source-${i}`}>
+                      <td className="py-2 pr-4" data-testid={`signup-channel-${i}`}>
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className={`shrink-0 inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold text-white ${SOURCE_COLORS[source] || "bg-gray-400"}`}>
-                            {sourceLabel}
+                          <span className={`shrink-0 inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold text-white ${CHANNEL_COLORS[channelName] || "bg-gray-400"}`}>
+                            {channelLabel}
                           </span>
                           {resolvedName && (
                             <>
@@ -430,7 +425,7 @@ export default function AnalyticsAcquisition() {
                               target="_blank"
                               rel="noopener noreferrer"
                               className="shrink-0 text-muted-foreground hover:text-primary transition-colors"
-                              title={`Open ${sourceLabel.toLowerCase()}`}
+                              title={`Open ${channelLabel.toLowerCase()}`}
                               data-testid={`signup-link-${i}`}
                             >
                               <ExternalLink className="w-3.5 h-3.5" />

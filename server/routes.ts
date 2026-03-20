@@ -91,6 +91,83 @@ function parsePodcastName(raw: string): string {
 }
 
 
+const SOCIAL_PLATFORMS = [
+  "facebook", "twitter", "instagram", "linkedin", "pinterest", "tiktok",
+  "snapchat", "reddit", "youtube", "whatsapp", "telegram", "x.com",
+  "fb", "ig", "t.co", "lnkd.in", "threads", "mastodon", "bluesky",
+];
+
+const SEARCH_ENGINES = [
+  "google", "bing", "yahoo", "duckduckgo", "baidu", "yandex", "ecosia", "ask",
+];
+
+function classifyChannel(utmSource: string | null, utmMedium: string | null, utmCampaign: string | null, signupSource?: string | null, referrerDomain?: string | null): string {
+  const src = (utmSource || "").toLowerCase().trim();
+  const med = (utmMedium || "").toLowerCase().trim();
+  const camp = (utmCampaign || "").toLowerCase().trim();
+  const refDomain = (referrerDomain || "").toLowerCase().trim();
+  const page = (signupSource || "").toLowerCase().trim();
+
+  if (med === "email" || med === "e-mail" || med === "e_mail" || src === "email" || src === "e-mail") {
+    return "Email";
+  }
+
+  if (med === "affiliate" || src === "affiliate") {
+    return "Affiliate";
+  }
+
+  if (med === "display" || med === "cpm" || med === "banner" || med === "interstitial") {
+    return "Display";
+  }
+
+  const isPaid = /cpc|ppc|paidsearch|paid_search|paid-search|cpv|cpa|cpp|paid/.test(med) || /^(.*shop|shopping)$/i.test(camp);
+  const isSocialSource = SOCIAL_PLATFORMS.some(p => src.includes(p));
+  const isSocialMedium = /social|social-network|social-media|social_network|social_media/.test(med);
+  const isSocialReferrer = SOCIAL_PLATFORMS.some(p => refDomain.includes(p));
+
+  if (isPaid && (isSocialSource || isSocialMedium || isSocialReferrer)) {
+    return "Paid Social";
+  }
+
+  if (isSocialSource || isSocialMedium || isSocialReferrer) {
+    return "Organic Social";
+  }
+
+  if (isPaid || med === "cpc" || med === "ppc") {
+    return "Paid Search";
+  }
+
+  const isSearchSource = SEARCH_ENGINES.some(p => src.includes(p));
+  const isSearchReferrer = SEARCH_ENGINES.some(p => refDomain.includes(p));
+  if (isSearchSource || isSearchReferrer || med === "organic") {
+    return "Organic Search";
+  }
+
+  if (med === "referral") {
+    return "Referral";
+  }
+
+  if (src && src !== "direct" && src !== "(direct)" && med !== "none" && med !== "" && med !== "(not set)") {
+    return "Referral";
+  }
+
+  if (refDomain && refDomain !== "" && !refDomain.includes("podrise") && !refDomain.includes("localhost") && !refDomain.includes("replit")) {
+    return "Referral";
+  }
+
+  if (page === "landing_page" && src && src !== "direct") {
+    return "Referral";
+  }
+
+  if (!src || src === "direct" || src === "(direct)") {
+    if (!med || med === "none" || med === "(none)" || med === "(not set)") {
+      return "Direct";
+    }
+  }
+
+  return "Unassigned";
+}
+
 function extractSignupMetadata(req: any, signupSource?: string, signupSourceDetail?: string) {
   const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.socket?.remoteAddress || null;
   const ua = req.headers["user-agent"] || null;
@@ -101,9 +178,11 @@ function extractSignupMetadata(req: any, signupSource?: string, signupSourceDeta
     else deviceType = "desktop";
   }
   let rawSource = signupSource || req.headers["referer"] || null;
+  let referrerDomain: string | null = null;
   if (rawSource) {
     try {
       const parsed = new URL(rawSource);
+      referrerDomain = parsed.hostname;
       rawSource = parsed.pathname;
     } catch {
       const qIdx = rawSource.indexOf("?");
@@ -148,7 +227,9 @@ function extractSignupMetadata(req: any, signupSource?: string, signupSourceDeta
   const utmContent = req.body?.utmContent || req.session?.utmContent || null;
   const utmTerm = req.body?.utmTerm || req.session?.utmTerm || null;
 
-  return { ipAddress: ip, userAgent: ua, deviceType, signupSource: source, signupSourceDetail: detail, utmSource, utmMedium, utmCampaign, utmContent, utmTerm };
+  const channel = classifyChannel(utmSource, utmMedium, utmCampaign, source, referrerDomain);
+
+  return { ipAddress: ip, userAgent: ua, deviceType, signupSource: source, signupSourceDetail: detail, utmSource, utmMedium, utmCampaign, utmContent, utmTerm, channel };
 }
 
 async function sendNewUserNotification(user: any, req: any, signupSource?: string) {
@@ -503,7 +584,22 @@ export async function registerRoutes(
       ALTER TABLE users ADD COLUMN IF NOT EXISTS utm_campaign TEXT;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS utm_content TEXT;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS utm_term TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS channel TEXT;
     `);
+
+    const { rows: allUsers } = await migrationPool.query(`SELECT id, utm_source, utm_medium, utm_campaign, signup_source, channel FROM users`);
+    const needsUpdate = allUsers.filter(u => {
+      const expected = classifyChannel(u.utm_source, u.utm_medium, u.utm_campaign, u.signup_source);
+      return u.channel !== expected;
+    });
+    if (needsUpdate.length > 0) {
+      console.log(`[Migration] Backfilling/updating channel for ${needsUpdate.length} users...`);
+      for (const u of needsUpdate) {
+        const ch = classifyChannel(u.utm_source, u.utm_medium, u.utm_campaign, u.signup_source);
+        await migrationPool.query(`UPDATE users SET channel = $1 WHERE id = $2`, [ch, u.id]);
+      }
+      console.log(`[Migration] Channel backfill complete.`);
+    }
     await migrationPool.query(`
       CREATE TABLE IF NOT EXISTS extracted_products (
         id SERIAL PRIMARY KEY,
@@ -1322,8 +1418,8 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
       const meta = extractSignupMetadata(req, req.body.signupSource, req.body.signupSourceDetail);
       pool.query(
-        `UPDATE users SET signup_source = $1, signup_source_detail = $2, ip_address = $3, user_agent = $4, device_type = $5, utm_source = $6, utm_medium = $7, utm_campaign = $8, utm_content = $9, utm_term = $10 WHERE id = $11`,
-        [meta.signupSource, meta.signupSourceDetail, meta.ipAddress, meta.userAgent, meta.deviceType, meta.utmSource, meta.utmMedium, meta.utmCampaign, meta.utmContent, meta.utmTerm, user.id]
+        `UPDATE users SET signup_source = $1, signup_source_detail = $2, ip_address = $3, user_agent = $4, device_type = $5, utm_source = $6, utm_medium = $7, utm_campaign = $8, utm_content = $9, utm_term = $10, channel = $11 WHERE id = $12`,
+        [meta.signupSource, meta.signupSourceDetail, meta.ipAddress, meta.userAgent, meta.deviceType, meta.utmSource, meta.utmMedium, meta.utmCampaign, meta.utmContent, meta.utmTerm, meta.channel, user.id]
       ).catch(e => console.error("[SignupMeta] Failed:", e));
 
       if (meta.signupSource === "landing_page" && meta.signupSourceDetail) {
@@ -1667,7 +1763,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
         `SELECT COUNT(*)::int AS count FROM referrals WHERE created_at >= NOW() - INTERVAL '7 days'`
       );
       const { rows: signupSources } = await pool.query(
-        `SELECT u.signup_source AS source, COUNT(*)::int AS count FROM referrals r JOIN users u ON r.referred_user_id = u.id WHERE r.status = 'verified' GROUP BY u.signup_source ORDER BY count DESC LIMIT 10`
+        `SELECT COALESCE(u.channel, 'Direct') AS source, COUNT(*)::int AS count FROM referrals r JOIN users u ON r.referred_user_id = u.id WHERE r.status = 'verified' GROUP BY COALESCE(u.channel, 'Direct') ORDER BY count DESC LIMIT 10`
       );
 
       const total = totalReferrals[0].count;
@@ -1813,8 +1909,8 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
 
           const qsMeta = extractSignupMetadata(req, `quick-subscribe-${input.type}`, input.slug);
           pool.query(
-            `UPDATE users SET signup_source = $1, signup_source_detail = $2, ip_address = $3, user_agent = $4, device_type = $5, utm_source = $6, utm_medium = $7, utm_campaign = $8, utm_content = $9, utm_term = $10 WHERE id = $11`,
-            [qsMeta.signupSource, qsMeta.signupSourceDetail, qsMeta.ipAddress, qsMeta.userAgent, qsMeta.deviceType, qsMeta.utmSource, qsMeta.utmMedium, qsMeta.utmCampaign, qsMeta.utmContent, qsMeta.utmTerm, user.id]
+            `UPDATE users SET signup_source = $1, signup_source_detail = $2, ip_address = $3, user_agent = $4, device_type = $5, utm_source = $6, utm_medium = $7, utm_campaign = $8, utm_content = $9, utm_term = $10, channel = $11 WHERE id = $12`,
+            [qsMeta.signupSource, qsMeta.signupSourceDetail, qsMeta.ipAddress, qsMeta.userAgent, qsMeta.deviceType, qsMeta.utmSource, qsMeta.utmMedium, qsMeta.utmCampaign, qsMeta.utmContent, qsMeta.utmTerm, qsMeta.channel, user.id]
           ).catch(e => console.error("[SignupMeta] Failed:", e));
 
           sendVerificationEmail(user).catch((err) =>
@@ -2108,8 +2204,8 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
         });
         const meta = extractSignupMetadata(req, "google_oauth");
         await pool.query(
-          `UPDATE users SET google_id = $1, email_verified = true, signup_source = $2, signup_source_detail = $3, ip_address = $4, user_agent = $5, device_type = $6, utm_source = $7, utm_medium = $8, utm_campaign = $9, utm_content = $10, utm_term = $11 WHERE id = $12`,
-          [googleUser.id, meta.signupSource, meta.signupSourceDetail, meta.ipAddress, meta.userAgent, meta.deviceType, meta.utmSource, meta.utmMedium, meta.utmCampaign, meta.utmContent, meta.utmTerm, user.id]
+          `UPDATE users SET google_id = $1, email_verified = true, signup_source = $2, signup_source_detail = $3, ip_address = $4, user_agent = $5, device_type = $6, utm_source = $7, utm_medium = $8, utm_campaign = $9, utm_content = $10, utm_term = $11, channel = $12 WHERE id = $13`,
+          [googleUser.id, meta.signupSource, meta.signupSourceDetail, meta.ipAddress, meta.userAgent, meta.deviceType, meta.utmSource, meta.utmMedium, meta.utmCampaign, meta.utmContent, meta.utmTerm, meta.channel, user.id]
         );
 
         sendNewUserNotification(user, req, "google_oauth").catch((err) =>
@@ -2573,25 +2669,25 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       const trunc = truncMap[granularity] || "day";
 
       const bySourceResult = await pool.query(
-        `SELECT COALESCE(signup_source, 'unknown') as source, COUNT(*) as count FROM users WHERE email_verified = true${dateFilter} GROUP BY source ORDER BY count DESC`,
+        `SELECT COALESCE(channel, 'Direct') as source, COUNT(*) as count FROM users WHERE email_verified = true${dateFilter} GROUP BY source ORDER BY count DESC`,
         params
       );
 
       const params2 = [...params];
       const byPodcastResult = await pool.query(
-        `SELECT COALESCE(signup_source_detail, 'unknown') as detail, COALESCE(signup_source, 'unknown') as source, COUNT(*) as count FROM users WHERE email_verified = true AND signup_source IN ('podcast_page', 'episode_page')${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)} GROUP BY detail, source ORDER BY count DESC LIMIT 20`,
+        `SELECT COALESCE(signup_source_detail, 'unknown') as detail, COALESCE(channel, 'Direct') as source, COUNT(*) as count FROM users WHERE email_verified = true AND signup_source IN ('podcast_page', 'episode_page')${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)} GROUP BY detail, source ORDER BY count DESC LIMIT 20`,
         params2
       );
 
       const params3 = [...params];
       const overTimeResult = await pool.query(
-        `SELECT date_trunc('${trunc}', created_at) as period, COALESCE(signup_source, 'unknown') as source, COUNT(*) as count FROM users WHERE email_verified = true AND created_at IS NOT NULL${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)} GROUP BY period, source ORDER BY period ASC`,
+        `SELECT date_trunc('${trunc}', created_at) as period, COALESCE(channel, 'Direct') as source, COUNT(*) as count FROM users WHERE email_verified = true AND created_at IS NOT NULL${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`)} GROUP BY period, source ORDER BY period ASC`,
         params3
       );
 
       const params4 = [...params];
       const recentSignupsResult = await pool.query(
-        `SELECT u.id, u.email, u.signup_source, u.signup_source_detail, u.device_type, u.created_at, u.utm_source, u.utm_medium, u.utm_campaign, pd.name as podcast_name FROM users u LEFT JOIN podcast_directory pd ON u.signup_source IN ('podcast_page', 'episode_page') AND pd.slug = u.signup_source_detail WHERE u.email_verified = true${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`).replace(/created_at/g, 'u.created_at')} ORDER BY u.created_at DESC LIMIT 50`,
+        `SELECT u.id, u.email, u.signup_source, u.signup_source_detail, u.device_type, u.created_at, u.utm_source, u.utm_medium, u.utm_campaign, u.channel, pd.name as podcast_name FROM users u LEFT JOIN podcast_directory pd ON u.signup_source IN ('podcast_page', 'episode_page') AND pd.slug = u.signup_source_detail WHERE u.email_verified = true${dateFilter.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n)}`).replace(/created_at/g, 'u.created_at')} ORDER BY u.created_at DESC LIMIT 50`,
         params4
       );
 
@@ -7939,18 +8035,31 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     res.json([...sources, ...utmSources].sort());
   });
 
+  app.get("/api/admin/users/channels", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const result = await pool.query(`SELECT DISTINCT COALESCE(channel, 'Direct') as channel FROM users ORDER BY channel`);
+    const channels = result.rows.map((r: any) => r.channel);
+    res.json(channels);
+  });
+
   app.get("/api/admin/users", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
     }
     const sortBy = req.query.sortBy as string | undefined;
     const source = req.query.source as string | undefined;
+    const channelFilter = req.query.channel as string | undefined;
 
     const conditions: string[] = [];
     const params: any[] = [];
     let paramIndex = 1;
 
-    if (source) {
+    if (channelFilter) {
+      conditions.push(`COALESCE(channel, 'Direct') = $${paramIndex++}`);
+      params.push(channelFilter);
+    } else if (source) {
       if (source.startsWith("utm:")) {
         conditions.push(`utm_source = $${paramIndex++}`);
         params.push(source.slice(4));
@@ -7979,6 +8088,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       emailVerified: r.email_verified,
       onboardingCompleted: r.onboarding_completed,
       signupSource: r.signup_source,
+      channel: r.channel || "Direct",
     }));
 
     res.json({ users: mapped, totalCount });

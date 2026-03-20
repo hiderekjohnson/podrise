@@ -288,7 +288,7 @@ export default function AdminReferrals() {
 
               {referralStats.topChannels.length > 0 && (
                 <div className="rounded-xl border p-4 bg-white dark:bg-[#111114]" data-testid="stat-channels">
-                  <h3 className="text-sm font-bold text-foreground mb-3">Top Signup Channels</h3>
+                  <h3 className="text-sm font-bold text-foreground mb-3">Top Referral Channels</h3>
                   <div className="space-y-2">
                     {referralStats.topChannels.map((ch, i) => (
                       <div key={i} className="flex items-center justify-between">

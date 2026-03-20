@@ -19,6 +19,7 @@ export const users = pgTable("users", {
   emailVerified: boolean("email_verified").notNull().default(false),
   signupSource: text("signup_source"),
   signupSourceDetail: text("signup_source_detail"),
+  channel: text("channel"),
   utmSource: text("utm_source"),
   utmMedium: text("utm_medium"),
   utmCampaign: text("utm_campaign"),

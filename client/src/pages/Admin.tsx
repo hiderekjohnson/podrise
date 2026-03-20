@@ -39,6 +39,7 @@ interface AdminUser {
   emailVerified?: boolean;
   onboardingCompleted?: boolean;
   signupSource?: string | null;
+  channel?: string | null;
 }
 
 type UserStatusFilter = "all" | "active" | "pending-verification" | "pending-onboarding";
@@ -496,14 +497,14 @@ export default function Admin() {
 
   const [userSortBy, setUserSortBy] = useState<"signedUp" | "lastLogin">("signedUp");
   const [userStatusFilter, setUserStatusFilter] = useState<UserStatusFilter>("all");
-  const [sourceFilter, setSourceFilter] = useState<string>("");
+  const [channelFilter, setChannelFilter] = useState<string>("");
 
   const { data: usersData, isLoading: usersLoading } = useQuery<{ users: AdminUser[]; totalCount: number }>({
-    queryKey: ["/api/admin/users", userSortBy, sourceFilter],
+    queryKey: ["/api/admin/users", userSortBy, channelFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (userSortBy === "lastLogin") params.set("sortBy", "lastLogin");
-      if (sourceFilter) params.set("source", sourceFilter);
+      if (channelFilter) params.set("channel", channelFilter);
       const qs = params.toString();
       const res = await fetch(`/api/admin/users${qs ? `?${qs}` : ""}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch users");
@@ -515,15 +516,6 @@ export default function Admin() {
   const users = usersData?.users;
   const totalUserCount = usersData?.totalCount ?? 0;
 
-  const { data: signupSources } = useQuery<string[]>({
-    queryKey: ["/api/admin/users/sources"],
-    queryFn: async () => {
-      const res = await fetch("/api/admin/users/sources", { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch sources");
-      return res.json();
-    },
-    enabled: isAdmin,
-  });
 
   const { data: impersonationStatus } = useQuery<{ impersonating: boolean; userId?: number }>({
     queryKey: ["/api/auth/impersonation-status"],
@@ -963,15 +955,22 @@ export default function Admin() {
                     />
                   </div>
                   <select
-                    data-testid="filter-source"
-                    value={sourceFilter}
-                    onChange={(e) => setSourceFilter(e.target.value)}
+                    data-testid="filter-channel"
+                    value={channelFilter}
+                    onChange={(e) => setChannelFilter(e.target.value)}
                     className="h-10 px-3 bg-black/[0.03] border border-black/[0.06] rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
                   >
-                    <option value="">All Sources</option>
-                    {(signupSources || []).map((s) => (
-                      <option key={s} value={s}>{s.startsWith("utm:") ? `UTM: ${s.slice(4)}` : s}</option>
-                    ))}
+                    <option value="">All Channels</option>
+                    <option value="Organic Search">Organic Search</option>
+                    <option value="Paid Search">Paid Search</option>
+                    <option value="Direct">Direct</option>
+                    <option value="Referral">Referral</option>
+                    <option value="Organic Social">Organic Social</option>
+                    <option value="Paid Social">Paid Social</option>
+                    <option value="Email">Email</option>
+                    <option value="Display">Display</option>
+                    <option value="Affiliate">Affiliate</option>
+                    <option value="Unassigned">Unassigned</option>
                   </select>
                   <select
                     data-testid="select-user-status-filter"
@@ -1032,7 +1031,7 @@ export default function Admin() {
                           {filteredUsers.length === 0 ? (
                             <tr>
                               <td colSpan={5} className="px-5 py-12 text-center text-sm text-muted-foreground">
-                                {(searchTerm || sourceFilter || userStatusFilter !== "all") ? "No users match your filters." : "No users yet."}
+                                {(searchTerm || channelFilter || userStatusFilter !== "all") ? "No users match your filters." : "No users yet."}
                               </td>
                             </tr>
                           ) : (
@@ -1057,7 +1056,7 @@ export default function Admin() {
                                           {user.emailVerified ? "Active" : "Pending"}
                                         </span>
                                       </div>
-                                      <p className="text-xs text-muted-foreground">ID: {user.id}{user.signupSource ? ` · ${user.signupSource}` : ""}</p>
+                                      <p className="text-xs text-muted-foreground">ID: {user.id}{user.channel ? ` · ${user.channel}` : ""}{user.signupSource ? ` · ${user.signupSource}` : ""}</p>
                                     </div>
                                   </div>
                                 </td>
