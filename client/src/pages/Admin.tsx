@@ -116,6 +116,9 @@ export default function Admin() {
     if (allTabs.includes(firstSeg)) {
       result.tab = firstSeg;
     }
+    if (firstSeg === "shop" && segments[1] === "book" && segments[2]) {
+      result.tab = "shop";
+    }
     if (firstSeg === "analytics" && segments[1] && analyticsSubTabs.includes(segments[1] as AnalyticsSubTabType)) {
       result.analyticsSub = segments[1] as AnalyticsSubTabType;
     }
@@ -965,7 +968,10 @@ export default function Admin() {
             )}
             {activeTab === "shop" && (
               <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
-                <AdminShopManagement />
+                <AdminShopManagement bookId={(() => {
+                  const match = adminPath.match(/\/admin\/shop\/book\/(\d+)/);
+                  return match ? parseInt(match[1], 10) : undefined;
+                })()} />
               </Suspense>
             )}
             {activeTab === "advertisers" && (

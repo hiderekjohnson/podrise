@@ -3,10 +3,11 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Loader2, Search, ShoppingBag, CheckCircle2, XCircle, ChevronLeft, ChevronRight,
-  ImageIcon, Upload, ExternalLink, Pencil, X, Package, Tag, Mic, FileText,
+  Loader2, Search, BookOpen, CheckCircle2, XCircle, ChevronLeft, ChevronRight,
+  ImageIcon, Upload, ExternalLink, Pencil, X,
   SkipForward, Eye, Save, RefreshCw, AlertCircle, Clock, Trash2, ArrowLeft,
-  ArrowLeftCircle, Filter, SortAsc, ChevronDown, BookOpen
+  ArrowLeftCircle, SortAsc, ChevronDown, Star, Hash, Building, Calendar,
+  Tag, Mic, FileText, Headphones
 } from "lucide-react";
 
 interface ShopItem {
@@ -48,13 +49,41 @@ interface ApprovedResponse {
   limit: number;
 }
 
-const CATEGORIES = [
-  { value: "", label: "All Types" },
-  { value: "physical_product", label: "Physical Product" },
-  { value: "service_or_tool", label: "Service / Tool" },
-  { value: "experience", label: "Experience" },
-  { value: "book", label: "Book" },
-];
+interface BookFullDetail {
+  book: {
+    id: number;
+    title: string;
+    author: string | null;
+    description: string | null;
+    amazonUrl: string | null;
+    slug: string | null;
+    coverUrl: string | null;
+    status: string;
+    publisher: string | null;
+    publishYear: number | null;
+    rating: number | null;
+    isbn: string | null;
+    topics: string[];
+    categories: string[];
+    createdAt: string | null;
+    updatedAt: string | null;
+  };
+  episodes: {
+    podcastSlug: string;
+    podcastName: string;
+    episodeSlug: string;
+    episodeTitle: string;
+    context: string;
+    publishedAt: string | null;
+  }[];
+  podcasts: {
+    slug: string;
+    name: string;
+    episodeCount: number;
+  }[];
+  totalMentions: number;
+  totalPodcasts: number;
+}
 
 const REJECTION_REASONS = [
   { value: "paid_advertisement", label: "Paid Advertisement" },
@@ -67,39 +96,7 @@ const REJECTION_REASONS = [
 const SORT_OPTIONS = [
   { value: "alphabetical", label: "Alphabetical" },
   { value: "recent", label: "Recently Added" },
-  { value: "popular", label: "Most Popular" },
 ];
-
-function getCategoryLabel(cat: string | null): string {
-  if (!cat) return "Product";
-  switch (cat) {
-    case "physical_product": return "Physical Product";
-    case "service_or_tool": return "Service / Tool";
-    case "experience": return "Experience";
-    case "book": return "Book";
-    default: return cat;
-  }
-}
-
-function getCategoryColor(cat: string | null): string {
-  switch (cat) {
-    case "physical_product": return "bg-blue-100 text-blue-700";
-    case "service_or_tool": return "bg-purple-100 text-purple-700";
-    case "experience": return "bg-amber-100 text-amber-700";
-    case "book": return "bg-emerald-100 text-emerald-700";
-    default: return "bg-gray-100 text-gray-600";
-  }
-}
-
-function highlightText(text: string, term: string): JSX.Element[] {
-  if (!term) return [<span key="0">{text}</span>];
-  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const parts = text.split(new RegExp(`(${escaped})`, 'gi'));
-  const lowerTerm = term.toLowerCase();
-  return parts.map((part, i) =>
-    part.toLowerCase() === lowerTerm ? <mark key={i} className="bg-yellow-200 px-0.5 rounded">{part}</mark> : <span key={i}>{part}</span>
-  );
-}
 
 function RejectionModal({ onReject, onCancel, isPending }: {
   onReject: (reason: string) => void;
@@ -114,8 +111,8 @@ function RejectionModal({ onReject, onCancel, isPending }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" data-testid="modal-rejection">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 mx-4">
-        <h3 className="text-lg font-bold text-foreground">Reject Product</h3>
-        <p className="text-sm text-muted-foreground">Select a reason for rejecting this product.</p>
+        <h3 className="text-lg font-bold text-foreground">Reject Book</h3>
+        <p className="text-sm text-muted-foreground">Select a reason for rejecting this book.</p>
         <div className="space-y-2">
           {REJECTION_REASONS.map((r) => (
             <label
@@ -170,155 +167,21 @@ function RejectionModal({ onReject, onCancel, isPending }: {
   );
 }
 
-function TranscriptContextPanel({ item }: { item: ShopItem }) {
-  const [expanded, setExpanded] = useState(true);
-
-  const hasEpisodeInfo = item.episode_slug && item.podcast_slug;
-
-  const { data: transcriptData, isLoading: transcriptLoading, isError: transcriptError } = useQuery<{
-    transcript: string | null;
-    found: boolean;
-  }>({
-    queryKey: ["/api/admin/shop/transcript-excerpt", item.episode_slug, item.podcast_slug, item.name],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        episode_slug: item.episode_slug || "",
-        podcast_slug: item.podcast_slug || "",
-        product_name: item.name || "",
-      });
-      const res = await fetch(`/api/admin/shop/transcript-excerpt?${params}`, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch transcript");
-      return res.json();
-    },
-    enabled: !!hasEpisodeInfo,
-    staleTime: 5 * 60 * 1000,
-    retry: 1,
-  });
-
-  const hasRawTranscript = transcriptData?.transcript;
-  const hasFallbackContext = item.context || item.context_summary;
-
-  if (!hasRawTranscript && !hasFallbackContext && !transcriptLoading) return null;
-
-  const fallbackText = item.context || item.context_summary || "";
-  const fallbackWords = fallbackText.split(/\s+/);
-  const fallbackDisplay = fallbackWords.slice(0, 600).join(" ") + (fallbackWords.length > 600 ? "..." : "");
-
-  const episodeUrl = hasEpisodeInfo
-    ? `/${item.podcast_slug}/${item.episode_slug}`
-    : null;
-
-  return (
-    <div className="border border-black/[0.08] rounded-xl overflow-hidden" data-testid="panel-transcript-context">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between px-4 py-3 bg-black/[0.02] hover:bg-black/[0.04] transition-all"
-        data-testid="button-toggle-transcript"
-      >
-        <span className="flex items-center gap-2 text-xs font-bold text-foreground">
-          <Mic className="w-3.5 h-3.5 text-primary" />
-          Transcript Context
-        </span>
-        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expanded ? "rotate-180" : ""}`} />
-      </button>
-      {expanded && (
-        <div className="p-4 space-y-3">
-          {(item.episode_title || episodeUrl) && (
-            <div className="flex items-center gap-2 text-xs">
-              {episodeUrl ? (
-                <a
-                  href={episodeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-primary hover:text-primary/80 font-semibold transition-colors"
-                  data-testid="link-episode"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  {item.episode_title || "View Episode"}
-                </a>
-              ) : (
-                <span className="text-muted-foreground">{item.episode_title}</span>
-              )}
-              {item.podcast_slug && (
-                <span className="px-2 py-0.5 rounded bg-primary/5 text-primary font-semibold">
-                  {item.podcast_slug}
-                </span>
-              )}
-            </div>
-          )}
-
-          {transcriptLoading && hasEpisodeInfo && (
-            <div className="text-xs text-muted-foreground italic py-2" data-testid="text-transcript-loading">
-              Loading raw transcript...
-            </div>
-          )}
-
-          {transcriptError && hasEpisodeInfo && !transcriptLoading && (
-            <div className="text-xs text-red-500/70 italic py-2" data-testid="text-transcript-error">
-              Failed to load raw transcript.
-            </div>
-          )}
-
-          {hasRawTranscript && (
-            <div>
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-primary/70" data-testid="label-raw-transcript">Raw Transcript</span>
-                {transcriptData?.found && (
-                  <span className="text-[10px] text-emerald-600 font-medium">• mention found</span>
-                )}
-              </div>
-              <div className="text-sm text-foreground/80 leading-relaxed max-h-[300px] overflow-y-auto bg-black/[0.02] rounded-lg p-3" data-testid="text-raw-transcript">
-                {highlightText(transcriptData!.transcript!, item.name)}
-              </div>
-            </div>
-          )}
-
-          {hasFallbackContext && (
-            <div>
-              {hasRawTranscript && (
-                <div className="flex items-center gap-2 mb-1.5 mt-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground" data-testid="label-ai-summary">AI Summary</span>
-                </div>
-              )}
-              {!hasRawTranscript && !transcriptLoading && (
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground" data-testid="label-ai-summary">AI Summary</span>
-                </div>
-              )}
-              <div className="text-sm text-foreground/80 leading-relaxed max-h-[300px] overflow-y-auto bg-black/[0.02] rounded-lg p-3" data-testid="text-ai-summary">
-                {highlightText(fallbackDisplay, item.name)}
-              </div>
-            </div>
-          )}
-
-          {!hasRawTranscript && !hasFallbackContext && !transcriptLoading && (
-            <div className="text-xs text-muted-foreground italic py-2" data-testid="text-no-transcript">
-              No transcript or context available for this item.
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ApprovalQueue() {
+function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
   const { toast } = useToast();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [categoryFilter, setCategoryFilter] = useState("");
   const [imageSearch, setImageSearch] = useState<{ loading: boolean; images: string[]; selectedIdx: number | null }>({ loading: false, images: [], selectedIdx: null });
   const [showImageBrowser, setShowImageBrowser] = useState(false);
   const [customImageUrl, setCustomImageUrl] = useState("");
   const [showRejectModal, setShowRejectModal] = useState(false);
-  const [editFields, setEditFields] = useState<{ name: string; description: string; url: string; category: string } | null>(null);
+  const [editFields, setEditFields] = useState<{ name: string; description: string; url: string } | null>(null);
   const [queueSort, setQueueSort] = useState("recent");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data, isLoading, refetch } = useQuery<QueueResponse>({
-    queryKey: ["/api/admin/shop/queue", 1, categoryFilter, queueSort],
+    queryKey: ["/api/admin/shop/queue", 1, queueSort],
     queryFn: async () => {
       const params = new URLSearchParams({ limit: "50" });
-      if (categoryFilter) params.set("category", categoryFilter);
       if (queueSort) params.set("sort", queueSort);
       const res = await fetch(`/api/admin/shop/queue?${params}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to load");
@@ -342,7 +205,6 @@ function ApprovalQueue() {
         name: current.name || "",
         description: current.description || "",
         url: current.url || "",
-        category: current.category || "physical_product",
       });
     }
   }, [current?.id]);
@@ -358,7 +220,7 @@ function ApprovalQueue() {
       return apiRequest("POST", `/api/admin/shop/${item.source_type}/${item.id}/approve`);
     },
     onSuccess: () => {
-      toast({ title: "Approved", description: "Product moved to approved." });
+      toast({ title: "Approved", description: "Book moved to approved." });
       resetImageState();
       setCurrentIndex((i) => {
         const newLen = (data?.items?.length || 1) - 1;
@@ -373,7 +235,7 @@ function ApprovalQueue() {
     mutationFn: ({ item, reason }: { item: ShopItem; reason: string }) =>
       apiRequest("POST", `/api/admin/shop/${item.source_type}/${item.id}/reject`, { reason }),
     onSuccess: () => {
-      toast({ title: "Rejected", description: "Product has been rejected." });
+      toast({ title: "Rejected", description: "Book has been rejected." });
       setShowRejectModal(false);
       resetImageState();
       setCurrentIndex((i) => {
@@ -456,7 +318,7 @@ function ApprovalQueue() {
         <div>
           <h3 className="text-base font-bold text-foreground">Approval Queue</h3>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Review and approve products before they go live on the shop.
+            Review and approve books before they go live on the shop.
           </p>
         </div>
         {stats && (
@@ -474,26 +336,7 @@ function ApprovalQueue() {
         )}
       </div>
 
-      <div className="flex items-center justify-between flex-wrap gap-3" data-testid="queue-category-filter">
-        <div className="flex items-center gap-2">
-          <Filter className="w-3.5 h-3.5 text-muted-foreground" />
-          <div className="flex items-center gap-1 flex-wrap">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat.value}
-                onClick={() => { setCategoryFilter(cat.value); setCurrentIndex(0); resetImageState(); }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  categoryFilter === cat.value
-                    ? "bg-primary text-white"
-                    : "bg-black/[0.04] text-muted-foreground hover:text-foreground hover:bg-black/[0.07]"
-                }`}
-                data-testid={`filter-category-${cat.value || "all"}`}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-        </div>
+      <div className="flex items-center justify-end" data-testid="queue-sort-controls">
         <div className="relative">
           <select
             value={queueSort}
@@ -512,23 +355,23 @@ function ApprovalQueue() {
         <div className="glass-panel rounded-2xl p-12 text-center">
           <CheckCircle2 className="w-10 h-10 text-green-400 mx-auto mb-3" />
           <p className="text-base font-bold text-foreground">All caught up!</p>
-          <p className="text-sm text-muted-foreground mt-1">No pending products to review{categoryFilter ? " in this category" : ""}.</p>
+          <p className="text-sm text-muted-foreground mt-1">No pending books to review.</p>
         </div>
       ) : current ? (
         <div className="glass-panel rounded-2xl overflow-hidden flex flex-col" style={{ height: "calc(100vh - 320px)", minHeight: "500px" }} data-testid={`queue-item-${current.id}`}>
           <div className="flex items-center justify-between px-5 py-3 bg-black/[0.02] border-b border-black/[0.06] shrink-0">
             <div className="flex items-center gap-3 text-sm">
               <span className="font-bold text-foreground">{currentIndex + 1} of {items.length}</span>
-              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${getCategoryColor(current.category)}`}>
-                {getCategoryLabel(current.category)}
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-700">
+                Book
               </span>
-              {current.source_type === "book" && (
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-emerald-50 text-emerald-600 border border-emerald-200">Book</span>
-              )}
             </div>
             <div className="flex items-center gap-1">
               <button onClick={goPrev} disabled={currentIndex === 0} className="p-1.5 rounded-lg hover:bg-black/[0.05] disabled:opacity-30 transition-all" data-testid="button-queue-prev">
                 <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button onClick={() => onViewBook(current.id)} className="p-1.5 rounded-lg hover:bg-black/[0.05] transition-all text-primary" data-testid="button-queue-view-detail" title="View full detail">
+                <Eye className="w-4 h-4" />
               </button>
               <button onClick={goNext} disabled={currentIndex >= items.length - 1} className="p-1.5 rounded-lg hover:bg-black/[0.05] disabled:opacity-30 transition-all" data-testid="button-queue-next">
                 <ChevronRight className="w-4 h-4" />
@@ -539,7 +382,7 @@ function ApprovalQueue() {
           <div className="flex-1 overflow-y-auto p-5">
             <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
               <div className="space-y-3">
-                <p className="text-[10px] text-muted-foreground text-center font-semibold uppercase tracking-wide">Shop Preview</p>
+                <p className="text-[10px] text-muted-foreground text-center font-semibold uppercase tracking-wide">Cover Preview</p>
                 <div className="w-[200px] aspect-[3/4] bg-gray-50 rounded-xl border border-black/[0.06] overflow-hidden flex items-center justify-center mx-auto p-3">
                   {(imageSearch.selectedIdx !== null && imageSearch.images[imageSearch.selectedIdx]) ? (
                     <img
@@ -557,7 +400,7 @@ function ApprovalQueue() {
                   ) : (
                     <div className="text-center p-4">
                       <ImageIcon className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
-                      <p className="text-xs text-muted-foreground">No image</p>
+                      <p className="text-xs text-muted-foreground">No cover</p>
                     </div>
                   )}
                 </div>
@@ -570,7 +413,7 @@ function ApprovalQueue() {
                     data-testid="button-find-images"
                   >
                     {imageSearch.loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
-                    Find More Images
+                    Find Cover Images
                   </button>
                   <button
                     onClick={() => fileInputRef.current?.click()}
@@ -594,7 +437,6 @@ function ApprovalQueue() {
                     }}
                   />
                 </div>
-                <p className="text-[10px] text-muted-foreground text-center">Recommended: 400×400px, max 2MB</p>
 
                 {showImageBrowser && (
                   <div className="border border-black/[0.08] rounded-xl p-3 space-y-2 max-h-[300px] overflow-y-auto">
@@ -609,7 +451,7 @@ function ApprovalQueue() {
                         <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
                       </div>
                     ) : imageSearch.images.length === 0 ? (
-                      <p className="text-xs text-muted-foreground py-4 text-center">No images found from the product URL.</p>
+                      <p className="text-xs text-muted-foreground py-4 text-center">No images found.</p>
                     ) : (
                       <div className="grid grid-cols-3 gap-1.5">
                         {imageSearch.images.slice(0, 15).map((imgUrl, idx) => (
@@ -660,7 +502,7 @@ function ApprovalQueue() {
                 {editFields && (
                   <div className="space-y-3">
                     <div>
-                      <label className="text-xs font-semibold text-muted-foreground mb-1 block">Name</label>
+                      <label className="text-xs font-semibold text-muted-foreground mb-1 block">Title</label>
                       <input
                         type="text"
                         value={editFields.name}
@@ -685,7 +527,7 @@ function ApprovalQueue() {
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-muted-foreground mb-1 block">URL</label>
+                      <label className="text-xs font-semibold text-muted-foreground mb-1 block">Amazon URL</label>
                       <div className="flex gap-2">
                         <input
                           type="text"
@@ -707,31 +549,8 @@ function ApprovalQueue() {
                         )}
                       </div>
                     </div>
-                    <div>
-                      <label className="text-xs font-semibold text-muted-foreground mb-1 block">Category</label>
-                      <select
-                        value={editFields.category}
-                        onChange={(e) => setEditFields((f) => f ? { ...f, category: e.target.value } : f)}
-                        className="h-9 px-3 bg-white border border-black/[0.08] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                        data-testid="select-queue-edit-category"
-                      >
-                        {CATEGORIES.filter(c => c.value).map((cat) => (
-                          <option key={cat.value} value={cat.value}>{cat.label}</option>
-                        ))}
-                      </select>
-                    </div>
                   </div>
                 )}
-
-                {current.mention_type && (
-                  <div className="flex flex-wrap gap-2 text-xs">
-                    <span className="flex items-center gap-1 px-2 py-1 rounded-lg bg-black/[0.04] text-foreground/70">
-                      <Tag className="w-3 h-3" /> {current.mention_type.replace(/_/g, " ")}
-                    </span>
-                  </div>
-                )}
-
-                <TranscriptContextPanel item={current} />
               </div>
             </div>
           </div>
@@ -745,7 +564,6 @@ function ApprovalQueue() {
                   if (editFields.name !== current.name) updates.name = editFields.name;
                   if (editFields.description !== (current.description || "")) updates.description = editFields.description;
                   if (editFields.url !== (current.url || "")) updates.url = editFields.url;
-                  if (editFields.category !== (current.category || "")) updates.category = editFields.category;
                 }
                 approveMutation.mutate({ item: current, imageUrl: selectedImg, updates });
               }}
@@ -789,68 +607,94 @@ function ApprovalQueue() {
   );
 }
 
-function ProductDetailPage({ item: initialItem, onBack }: { item: ShopItem; onBack: () => void }) {
+function BookDetailPage({ bookId, onBack }: { bookId: number; onBack: () => void }) {
   const { toast } = useToast();
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: "", description: "", url: "", imageUrl: "" });
 
-  const { data: detailData } = useQuery<{ item: ShopItem }>({
-    queryKey: ["/api/admin/shop/detail", initialItem.source_type, initialItem.id],
+  const { data, isLoading, isError } = useQuery<BookFullDetail>({
+    queryKey: ["/api/admin/shop/book/full-detail", bookId],
     queryFn: async () => {
-      const res = await fetch(`/api/admin/shop/${initialItem.source_type}/${initialItem.id}/detail`, { credentials: "include" });
+      const res = await fetch(`/api/admin/shop/book/${bookId}/full-detail`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to load");
       return res.json();
     },
   });
 
-  const item = detailData?.item || initialItem;
+  const book = data?.book;
+  const episodes = data?.episodes || [];
+  const podcasts = data?.podcasts || [];
 
   const updateMutation = useMutation({
     mutationFn: ({ updates }: { updates: any }) =>
-      apiRequest("POST", `/api/admin/shop/${item.source_type}/${item.id}/update`, updates),
+      apiRequest("POST", `/api/admin/shop/book/${bookId}/update`, updates),
     onSuccess: () => {
       toast({ title: "Updated" });
       setEditing(false);
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/detail", item.source_type, item.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/book/full-detail", bookId] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/approved"] });
+    },
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: () => apiRequest("POST", `/api/admin/shop/book/${bookId}/approve`),
+    onSuccess: () => {
+      toast({ title: "Approved", description: "Book has been approved." });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/book/full-detail", bookId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/approved"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/queue"] });
+    },
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: ({ reason }: { reason: string }) =>
+      apiRequest("POST", `/api/admin/shop/book/${bookId}/reject`, { reason }),
+    onSuccess: () => {
+      toast({ title: "Rejected", description: "Book has been rejected." });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/book/full-detail", bookId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/approved"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/queue"] });
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => apiRequest("DELETE", `/api/admin/shop/${item.source_type}/${item.id}`),
+    mutationFn: () => apiRequest("DELETE", `/api/admin/shop/book/${bookId}`),
     onSuccess: () => {
-      toast({ title: "Deleted", description: "Product has been permanently deleted." });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/approved"] });
-      onBack();
-    },
-  });
-
-  const moveToQueueMutation = useMutation({
-    mutationFn: () => apiRequest("POST", `/api/admin/shop/${item.source_type}/${item.id}/move-to-queue`),
-    onSuccess: () => {
-      toast({ title: "Moved to queue", description: "Product moved back to approval queue." });
+      toast({ title: "Deleted", description: "Book has been permanently deleted." });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/approved"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/queue"] });
       onBack();
     },
   });
 
+  const moveToQueueMutation = useMutation({
+    mutationFn: () => apiRequest("POST", `/api/admin/shop/book/${bookId}/move-to-queue`),
+    onSuccess: () => {
+      toast({ title: "Moved to queue", description: "Book moved back to approval queue." });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/approved"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/queue"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/book/full-detail", bookId] });
+    },
+  });
+
   const startEdit = () => {
+    if (!book) return;
     setEditing(true);
     setEditForm({
-      name: item.name || "",
-      description: item.description || "",
-      url: item.url || "",
-      imageUrl: item.image_url || "",
+      name: book.title || "",
+      description: book.description || "",
+      url: book.amazonUrl || "",
+      imageUrl: book.coverUrl || "",
     });
   };
 
   const saveEdit = () => {
+    if (!book) return;
     const updates: any = {};
-    if (editForm.name !== item.name) updates.name = editForm.name;
-    if (editForm.description !== (item.description || "")) updates.description = editForm.description;
-    if (editForm.url !== (item.url || "")) updates.url = editForm.url;
-    if (editForm.imageUrl !== (item.image_url || "")) updates.imageUrl = editForm.imageUrl;
+    if (editForm.name !== book.title) updates.name = editForm.name;
+    if (editForm.description !== (book.description || "")) updates.description = editForm.description;
+    if (editForm.url !== (book.amazonUrl || "")) updates.url = editForm.url;
+    if (editForm.imageUrl !== (book.coverUrl || "")) updates.imageUrl = editForm.imageUrl;
     if (Object.keys(updates).length === 0) {
       setEditing(false);
       return;
@@ -858,43 +702,65 @@ function ProductDetailPage({ item: initialItem, onBack }: { item: ShopItem; onBa
     updateMutation.mutate({ updates });
   };
 
-  const episodeUrl = item.episode_slug && item.podcast_slug
-    ? `/${item.podcast_slug}/${item.episode_slug}`
-    : null;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (isError || !book) {
+    return (
+      <div className="space-y-4">
+        <button onClick={onBack} className="flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors" data-testid="button-back-to-list">
+          <ArrowLeft className="w-4 h-4" /> Back to Books
+        </button>
+        <div className="glass-panel rounded-2xl p-8 text-center">
+          <p className="text-sm text-muted-foreground">Book not found.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const statusColor = book.status === "approved" ? "bg-green-100 text-green-700" : book.status === "rejected" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700";
 
   return (
-    <div className="space-y-5" data-testid="section-product-detail">
+    <div className="space-y-5" data-testid="section-book-detail">
       <button
         onClick={onBack}
         className="flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors"
-        data-testid="button-back-to-approved"
+        data-testid="button-back-to-list"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Approved Products
+        Back to Books
       </button>
 
       <div className="glass-panel rounded-2xl overflow-hidden">
-        <div className="p-6 grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8">
+        <div className="p-6 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
           <div className="space-y-4">
-            <div className="w-[300px] h-[300px] bg-gray-50 rounded-xl border border-black/[0.06] overflow-hidden flex items-center justify-center mx-auto">
+            <div className="w-[260px] h-[360px] bg-gray-50 rounded-xl border border-black/[0.06] overflow-hidden flex items-center justify-center mx-auto">
               {editing ? (
                 <>
                   {editForm.imageUrl ? (
-                    <img src={editForm.imageUrl} alt={item.name} className="w-full h-full object-contain p-2" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                    <img src={editForm.imageUrl} alt={book.title} className="w-full h-full object-contain p-2" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                   ) : (
                     <ImageIcon className="w-12 h-12 text-muted-foreground/30" />
                   )}
                 </>
-              ) : item.image_url ? (
-                <img src={item.image_url} alt={item.name} className="w-full h-full object-contain p-2" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+              ) : book.coverUrl ? (
+                <img src={book.coverUrl} alt={book.title} className="w-full h-full object-contain p-2" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
               ) : (
-                <ImageIcon className="w-12 h-12 text-muted-foreground/30" />
+                <div className="text-center p-4">
+                  <BookOpen className="w-12 h-12 text-muted-foreground/30 mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground">No cover image</p>
+                </div>
               )}
             </div>
 
             {editing && (
               <div>
-                <label className="text-xs font-semibold text-muted-foreground mb-1 block">Image URL</label>
+                <label className="text-xs font-semibold text-muted-foreground mb-1 block">Cover Image URL</label>
                 <input
                   type="text"
                   value={editForm.imageUrl}
@@ -904,13 +770,46 @@ function ProductDetailPage({ item: initialItem, onBack }: { item: ShopItem; onBa
                 />
               </div>
             )}
+
+            <div className="space-y-2 text-xs">
+              {book.publisher && (
+                <div className="flex items-center gap-2 text-foreground/70">
+                  <Building className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                  <span data-testid="text-book-publisher">{book.publisher}</span>
+                </div>
+              )}
+              {book.publishYear && (
+                <div className="flex items-center gap-2 text-foreground/70">
+                  <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                  <span data-testid="text-book-year">{book.publishYear}</span>
+                </div>
+              )}
+              {book.rating && (
+                <div className="flex items-center gap-2 text-foreground/70">
+                  <Star className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <span data-testid="text-book-rating">{book.rating}</span>
+                </div>
+              )}
+              {book.isbn && (
+                <div className="flex items-center gap-2 text-foreground/70">
+                  <Hash className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                  <span data-testid="text-book-isbn">ISBN: {book.isbn}</span>
+                </div>
+              )}
+              {book.slug && (
+                <div className="flex items-center gap-2 text-foreground/70">
+                  <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                  <span data-testid="text-book-slug" className="truncate">slug: {book.slug}</span>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="space-y-4">
             {editing ? (
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-semibold text-muted-foreground mb-1 block">Name</label>
+                  <label className="text-xs font-semibold text-muted-foreground mb-1 block">Title</label>
                   <input
                     type="text"
                     value={editForm.name}
@@ -930,7 +829,7 @@ function ProductDetailPage({ item: initialItem, onBack }: { item: ShopItem; onBa
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-muted-foreground mb-1 block">URL</label>
+                  <label className="text-xs font-semibold text-muted-foreground mb-1 block">Amazon URL</label>
                   <input
                     type="text"
                     value={editForm.url}
@@ -962,82 +861,126 @@ function ProductDetailPage({ item: initialItem, onBack }: { item: ShopItem; onBa
               <>
                 <div>
                   <div className="flex items-center gap-3">
-                    <h2 className="text-xl font-bold text-foreground" data-testid="text-detail-product-name">{item.name}</h2>
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${getCategoryColor(item.category)}`}>
-                      {getCategoryLabel(item.category)}
+                    <h2 className="text-xl font-bold text-foreground" data-testid="text-detail-book-title">{book.title}</h2>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${statusColor}`}>
+                      {book.status}
                     </span>
                   </div>
-                  {item.company && (
-                    <p className="text-sm text-muted-foreground mt-1">by {item.company}</p>
+                  {book.author && (
+                    <p className="text-sm text-muted-foreground mt-1" data-testid="text-detail-book-author">by {book.author}</p>
                   )}
                 </div>
 
-                {item.description && (
+                {book.description && (
                   <div>
                     <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1 mb-1">
                       <FileText className="w-3 h-3" /> Description
                     </label>
-                    <p className="text-sm text-foreground leading-relaxed">{item.description}</p>
+                    <p className="text-sm text-foreground leading-relaxed" data-testid="text-detail-book-description">{book.description}</p>
                   </div>
                 )}
 
-                {item.url && (
+                {book.amazonUrl && (
                   <a
-                    href={item.url.match(/^https?:\/\//) ? item.url : `https://${item.url}`}
+                    href={book.amazonUrl.match(/^https?:\/\//) ? book.amazonUrl : `https://${book.amazonUrl}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 font-semibold transition-colors"
-                    data-testid="link-detail-product-url"
+                    data-testid="link-detail-book-amazon"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
-                    {item.url.length > 60 ? item.url.substring(0, 60) + "..." : item.url}
+                    View on Amazon
                   </a>
+                )}
+
+                {book.topics && book.topics.length > 0 && (
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1 mb-2">
+                      <Tag className="w-3 h-3" /> Topics
+                    </label>
+                    <div className="flex flex-wrap gap-1.5" data-testid="list-book-topics">
+                      {book.topics.map((topic, i) => (
+                        <span key={i} className="px-2 py-0.5 rounded-md text-xs font-medium bg-primary/5 text-primary/80">
+                          {topic}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </>
             )}
 
-            {(item.episode_title || episodeUrl) && (
-              <div className="pt-2 border-t border-black/[0.06]">
-                <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1 mb-2">
-                  <Mic className="w-3 h-3" /> Source Episode
-                </label>
-                <div className="flex flex-wrap items-center gap-2 text-xs">
-                  {episodeUrl ? (
+            <div className="pt-3 border-t border-black/[0.06]">
+              <div className="flex items-center gap-3 mb-3">
+                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <Headphones className="w-4 h-4 text-primary" />
+                  Podcast Mentions
+                </h3>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary/10 text-primary" data-testid="text-mention-count">
+                  {data?.totalMentions || 0} episodes across {data?.totalPodcasts || 0} podcasts
+                </span>
+              </div>
+
+              {podcasts.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3" data-testid="list-podcast-mentions">
+                  {podcasts.map((p) => (
                     <a
-                      href={episodeUrl}
+                      key={p.slug}
+                      href={`/${p.slug}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/5 text-primary font-semibold hover:bg-primary/10 transition-colors"
-                      data-testid="link-detail-episode"
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/[0.04] text-xs font-semibold text-foreground/80 hover:bg-black/[0.07] transition-all"
+                      data-testid={`link-podcast-${p.slug}`}
                     >
-                      <ExternalLink className="w-3 h-3" />
-                      {item.episode_title || "View Episode"}
+                      <Mic className="w-3 h-3 text-primary" />
+                      {p.name}
+                      <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-bold">{p.episodeCount}</span>
                     </a>
-                  ) : (
-                    <span className="px-3 py-1.5 rounded-lg bg-black/[0.04] text-foreground/70">{item.episode_title}</span>
-                  )}
-                  {item.podcast_slug && (
-                    <span className="px-2 py-1 rounded bg-primary/5 text-primary font-semibold">{item.podcast_slug}</span>
-                  )}
+                  ))}
                 </div>
-              </div>
-            )}
+              )}
 
-            {(item.approved_by || item.approved_at) && (
-              <div className="pt-2 border-t border-black/[0.06]">
-                <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1 mb-1">
-                  <CheckCircle2 className="w-3 h-3" /> Approval Info
-                </label>
-                <p className="text-sm text-foreground" data-testid="text-approval-info">
-                  {item.approved_by && <span>Approved by <strong>{item.approved_by}</strong></span>}
-                  {item.approved_at && <span> on {new Date(item.approved_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>}
-                </p>
-              </div>
-            )}
-
-            {item.context && (
-              <TranscriptContextPanel item={item} />
-            )}
+              {episodes.length > 0 ? (
+                <div className="space-y-2 max-h-[400px] overflow-y-auto" data-testid="list-episode-mentions">
+                  {episodes.map((ep, idx) => (
+                    <div key={`${ep.podcastSlug}-${ep.episodeSlug}`} className="border border-black/[0.06] rounded-lg p-3 hover:bg-black/[0.01] transition-all" data-testid={`episode-mention-${idx}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <a
+                            href={`/${ep.podcastSlug}/${ep.episodeSlug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm font-semibold text-foreground hover:text-primary transition-colors line-clamp-1"
+                            data-testid={`link-episode-${idx}`}
+                          >
+                            {ep.episodeTitle}
+                          </a>
+                          <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
+                            <span className="font-medium text-primary/70">{ep.podcastName}</span>
+                            {ep.publishedAt && (
+                              <span>{new Date(ep.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                            )}
+                          </div>
+                        </div>
+                        <a
+                          href={`/${ep.podcastSlug}/${ep.episodeSlug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1.5 rounded-lg hover:bg-black/[0.05] shrink-0 transition-all"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
+                        </a>
+                      </div>
+                      {ep.context && (
+                        <p className="text-xs text-foreground/60 mt-1.5 line-clamp-2">{ep.context}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground italic py-2" data-testid="text-no-mentions">No podcast mentions found for this book.</p>
+              )}
+            </div>
 
             {!editing && (
               <div className="flex items-center gap-3 pt-4 border-t border-black/[0.06]">
@@ -1049,24 +992,48 @@ function ProductDetailPage({ item: initialItem, onBack }: { item: ShopItem; onBa
                   <Pencil className="w-4 h-4" />
                   Edit
                 </button>
-                <button
-                  onClick={() => moveToQueueMutation.mutate()}
-                  disabled={moveToQueueMutation.isPending}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 disabled:opacity-50 transition-all"
-                  data-testid="button-move-to-queue"
-                >
-                  {moveToQueueMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowLeftCircle className="w-4 h-4" />}
-                  Move to Queue
-                </button>
+                {book.status === "pending" && (
+                  <button
+                    onClick={() => approveMutation.mutate()}
+                    disabled={approveMutation.isPending}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-all"
+                    data-testid="button-approve-book"
+                  >
+                    {approveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                    Approve
+                  </button>
+                )}
+                {book.status === "pending" && (
+                  <button
+                    onClick={() => rejectMutation.mutate({ reason: "not_relevant" })}
+                    disabled={rejectMutation.isPending}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 transition-all"
+                    data-testid="button-reject-book"
+                  >
+                    {rejectMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                    Reject
+                  </button>
+                )}
+                {book.status === "approved" && (
+                  <button
+                    onClick={() => moveToQueueMutation.mutate()}
+                    disabled={moveToQueueMutation.isPending}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 disabled:opacity-50 transition-all"
+                    data-testid="button-move-to-queue"
+                  >
+                    {moveToQueueMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowLeftCircle className="w-4 h-4" />}
+                    Move to Queue
+                  </button>
+                )}
                 <button
                   onClick={() => {
-                    if (confirm("Are you sure you want to permanently delete this product?")) {
+                    if (confirm("Are you sure you want to permanently delete this book?")) {
                       deleteMutation.mutate();
                     }
                   }}
                   disabled={deleteMutation.isPending}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-red-50 text-red-600 hover:bg-red-100 disabled:opacity-50 transition-all"
-                  data-testid="button-delete-product"
+                  data-testid="button-delete-book"
                 >
                   {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                   Delete
@@ -1080,13 +1047,10 @@ function ProductDetailPage({ item: initialItem, onBack }: { item: ShopItem; onBa
   );
 }
 
-function ApprovedProducts() {
-  const { toast } = useToast();
+function ApprovedBooks({ onViewBook }: { onViewBook: (id: number) => void }) {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
   const [sortBy, setSortBy] = useState("alphabetical");
-  const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const handleSearch = (val: string) => {
@@ -1096,11 +1060,10 @@ function ApprovedProducts() {
   };
 
   const { data, isLoading } = useQuery<ApprovedResponse>({
-    queryKey: ["/api/admin/shop/approved", debouncedSearch, categoryFilter, sortBy],
+    queryKey: ["/api/admin/shop/approved", debouncedSearch, sortBy],
     queryFn: async () => {
       const params = new URLSearchParams({ limit: "50" });
       if (debouncedSearch) params.set("search", debouncedSearch);
-      if (categoryFilter) params.set("category", categoryFilter);
       if (sortBy) params.set("sort", sortBy);
       const res = await fetch(`/api/admin/shop/approved?${params}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to load");
@@ -1109,15 +1072,6 @@ function ApprovedProducts() {
   });
 
   const items = data?.items || [];
-
-  if (selectedItem) {
-    return (
-      <ProductDetailPage
-        item={selectedItem}
-        onBack={() => setSelectedItem(null)}
-      />
-    );
-  }
 
   if (isLoading) {
     return (
@@ -1128,12 +1082,12 @@ function ApprovedProducts() {
   }
 
   return (
-    <div className="space-y-4" data-testid="section-approved-products">
+    <div className="space-y-4" data-testid="section-approved-books">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h3 className="text-base font-bold text-foreground">Approved Products</h3>
+          <h3 className="text-base font-bold text-foreground">Approved Books</h3>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {data?.total || 0} products live on the shop.
+            {data?.total || 0} books live on the shop.
           </p>
         </div>
       </div>
@@ -1145,63 +1099,48 @@ function ApprovedProducts() {
             type="text"
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Search products..."
+            placeholder="Search books..."
             className="w-full h-10 pl-10 pr-4 bg-white border border-black/[0.08] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
             data-testid="input-search-approved"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="h-10 pl-8 pr-4 bg-white border border-black/[0.08] rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer"
-              data-testid="select-approved-category"
-            >
-              {CATEGORIES.map((cat) => (
-                <option key={cat.value} value={cat.value}>{cat.label}</option>
-              ))}
-            </select>
-            <Filter className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-          </div>
-          <div className="relative">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="h-10 pl-8 pr-4 bg-white border border-black/[0.08] rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer"
-              data-testid="select-approved-sort"
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-            <SortAsc className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-          </div>
+        <div className="relative">
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="h-10 pl-8 pr-4 bg-white border border-black/[0.08] rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer"
+            data-testid="select-approved-sort"
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+          <SortAsc className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
         </div>
       </div>
 
       {items.length === 0 ? (
         <div className="glass-panel rounded-2xl p-8 text-center">
-          <Package className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
+          <BookOpen className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">
-            {search || categoryFilter ? "No products match your filters." : "No approved products yet."}
+            {search ? "No books match your search." : "No approved books yet."}
           </p>
         </div>
       ) : (
         <div className="space-y-2">
           {items.map((item) => (
             <div
-              key={`${item.source_type}-${item.id}`}
+              key={`book-${item.id}`}
               className="glass-panel rounded-xl p-4 hover:shadow-sm transition-all cursor-pointer"
-              onClick={() => setSelectedItem(item)}
-              data-testid={`approved-item-${item.source_type}-${item.id}`}
+              onClick={() => onViewBook(item.id)}
+              data-testid={`approved-item-book-${item.id}`}
             >
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-lg bg-gray-50 border border-black/[0.06] overflow-hidden shrink-0 flex items-center justify-center">
                   {item.image_url ? (
                     <img src={item.image_url} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                   ) : (
-                    <ImageIcon className="w-5 h-5 text-muted-foreground/30" />
+                    <BookOpen className="w-5 h-5 text-muted-foreground/30" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -1209,23 +1148,18 @@ function ApprovedProducts() {
                     <p className="text-sm font-semibold text-foreground truncate" data-testid={`text-approved-name-${item.id}`}>
                       {item.name}
                     </p>
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide shrink-0 ${getCategoryColor(item.category)}`}>
-                      {getCategoryLabel(item.category)}
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide shrink-0 bg-emerald-100 text-emerald-700">
+                      Book
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
                     {item.company && <span>{item.company}</span>}
-                    {item.url && (
-                      <span className="text-primary truncate max-w-[200px]">
-                        {item.url.replace(/^https?:\/\/(www\.)?/, "").substring(0, 40)}
-                      </span>
-                    )}
                   </div>
                 </div>
                 <button
-                  onClick={(e) => { e.stopPropagation(); setSelectedItem(item); }}
+                  onClick={(e) => { e.stopPropagation(); onViewBook(item.id); }}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-primary bg-primary/5 hover:bg-primary/10 transition-all shrink-0"
-                  data-testid={`button-view-product-${item.source_type}-${item.id}`}
+                  data-testid={`button-view-book-${item.id}`}
                 >
                   <Eye className="w-3.5 h-3.5" />
                   View
@@ -1239,14 +1173,58 @@ function ApprovedProducts() {
   );
 }
 
-export default function AdminShopManagement() {
+export default function AdminShopManagement({ bookId: initialBookId }: { bookId?: number }) {
   const [subTab, setSubTab] = useState<"queue" | "approved">("queue");
+  const [selectedBookId, setSelectedBookId] = useState<number | null>(initialBookId || null);
+
+  useEffect(() => {
+    if (initialBookId) {
+      setSelectedBookId(initialBookId);
+    } else {
+      setSelectedBookId(null);
+    }
+  }, [initialBookId]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const match = window.location.pathname.match(/\/admin\/shop\/book\/(\d+)/);
+      setSelectedBookId(match ? parseInt(match[1], 10) : null);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const handleViewBook = (id: number) => {
+    setSelectedBookId(id);
+    if (typeof window !== 'undefined') {
+      window.history.pushState(null, '', `/admin/shop/book/${id}`);
+    }
+  };
+
+  const handleBackToList = () => {
+    setSelectedBookId(null);
+    if (typeof window !== 'undefined') {
+      window.history.pushState(null, '', '/admin/shop');
+    }
+  };
+
+  if (selectedBookId) {
+    return (
+      <div className="space-y-5" data-testid="section-shop-management">
+        <div className="flex items-center gap-2 mb-1">
+          <BookOpen className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-bold text-foreground">Book Management</h2>
+        </div>
+        <BookDetailPage bookId={selectedBookId} onBack={handleBackToList} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5" data-testid="section-shop-management">
       <div className="flex items-center gap-2 mb-1">
-        <ShoppingBag className="w-5 h-5 text-primary" />
-        <h2 className="text-lg font-bold text-foreground">Shop Management</h2>
+        <BookOpen className="w-5 h-5 text-primary" />
+        <h2 className="text-lg font-bold text-foreground">Book Management</h2>
       </div>
 
       <div className="flex items-center gap-1 bg-black/[0.03] rounded-xl p-1" data-testid="shop-sub-tabs">
@@ -1276,8 +1254,8 @@ export default function AdminShopManagement() {
         </button>
       </div>
 
-      {subTab === "queue" && <ApprovalQueue />}
-      {subTab === "approved" && <ApprovedProducts />}
+      {subTab === "queue" && <ApprovalQueue onViewBook={handleViewBook} />}
+      {subTab === "approved" && <ApprovedBooks onViewBook={handleViewBook} />}
     </div>
   );
 }

@@ -14196,70 +14196,37 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
       const page = Math.max(1, parseInt(req.query.page as string) || 1);
       const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20));
       const offset = (page - 1) * limit;
-      const categoryFilter = (req.query.category as string || "").trim();
       const sortBy = (req.query.sort as string || "recent").trim();
 
-      let productWhere = "status = 'pending'";
-      const productVals: any[] = [limit, offset];
-      if (categoryFilter) {
-        if (categoryFilter === "book") {
-          productWhere += " AND 1=0";
-        } else {
-          productVals.push(categoryFilter);
-          productWhere += ` AND category = $${productVals.length}`;
-        }
-      }
-
-      const productOrderBy = sortBy === "alphabetical" ? "name ASC" : "extracted_at DESC NULLS LAST";
       const bookOrderBy = sortBy === "alphabetical" ? "book_title ASC" : "created_at DESC NULLS LAST";
 
-      const { rows: productRows } = await pool.query(
-        `SELECT id, 'product' as source_type, name, company, description, purchase_url as url,
-                image_url, context, context_summary, mention_type, category, episode_title, episode_slug, podcast_slug,
-                status, image_status, extracted_at as created_at
-         FROM extracted_products WHERE ${productWhere}
-         ORDER BY ${productOrderBy}
+      const { rows: bookRows } = await pool.query(
+        `SELECT id, 'book' as source_type, book_title as name, author as company, description,
+                amazon_url as url, CASE WHEN has_cover THEN '/books/' || slug || '.jpg' ELSE NULL END as image_url,
+                NULL as context, NULL as context_summary, 'book_mention' as mention_type,
+                'book' as category, NULL as episode_title, NULL as episode_slug, NULL as podcast_slug,
+                CASE WHEN cover_approved IS NULL THEN 'pending' WHEN cover_approved = true THEN 'approved' ELSE 'rejected' END as status,
+                'pending' as image_status, created_at
+         FROM book_enrichments WHERE cover_approved IS NULL
+         ORDER BY ${bookOrderBy}
          LIMIT $1 OFFSET $2`,
-        productVals
+        [limit, offset]
       );
-
-      let bookRows: any[] = [];
-      if (!categoryFilter || categoryFilter === "book") {
-        const { rows } = await pool.query(
-          `SELECT id, 'book' as source_type, book_title as name, author as company, description,
-                  amazon_url as url, CASE WHEN has_cover THEN '/books/' || slug || '.jpg' ELSE NULL END as image_url,
-                  NULL as context, NULL as context_summary, 'book_mention' as mention_type,
-                  'book' as category, NULL as episode_title, NULL as episode_slug, NULL as podcast_slug,
-                  CASE WHEN cover_approved IS NULL THEN 'pending' WHEN cover_approved = true THEN 'approved' ELSE 'rejected' END as status,
-                  'pending' as image_status, created_at
-           FROM book_enrichments WHERE cover_approved IS NULL
-           ORDER BY ${bookOrderBy}
-           LIMIT $1 OFFSET $2`,
-          [limit, offset]
-        );
-        bookRows = rows;
-      }
-
-      const items = [...productRows, ...bookRows].sort((a, b) =>
-        new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
-      ).slice(0, limit);
 
       const { rows: statsRows } = await pool.query(
         `SELECT
-          (SELECT COUNT(*)::int FROM extracted_products WHERE status = 'pending') as products_pending,
-          (SELECT COUNT(*)::int FROM extracted_products WHERE status = 'approved') as products_approved,
-          (SELECT COUNT(*)::int FROM extracted_products WHERE status = 'rejected') as products_rejected,
           (SELECT COUNT(*)::int FROM book_enrichments WHERE cover_approved IS NULL) as books_pending,
-          (SELECT COUNT(*)::int FROM book_enrichments WHERE cover_approved = true) as books_approved`
+          (SELECT COUNT(*)::int FROM book_enrichments WHERE cover_approved = true) as books_approved,
+          (SELECT COUNT(*)::int FROM book_enrichments WHERE cover_approved = false) as books_rejected`
       );
       const s = statsRows[0];
       const stats = {
-        pending: s.products_pending + s.books_pending,
-        approved: s.products_approved + s.books_approved,
-        rejected: s.products_rejected,
+        pending: s.books_pending,
+        approved: s.books_approved,
+        rejected: s.books_rejected,
       };
 
-      res.json({ items, stats, page, limit });
+      res.json({ items: bookRows, stats, page, limit });
     } catch (err: any) {
       console.error("[ShopQueue] Error:", err);
       res.status(500).json({ message: err?.message || "Failed to load queue" });
@@ -14353,124 +14320,52 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
       const page = Math.max(1, parseInt(req.query.page as string) || 1);
       const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20));
       const offset = (page - 1) * limit;
-      const categoryFilter = (req.query.category as string || "").trim();
       const sortBy = (req.query.sort as string || "alphabetical").trim();
 
-      let productWhere = "status = 'approved'";
       let bookWhere = "cover_approved = true";
-      const productVals: any[] = [];
       const bookVals: any[] = [];
       let paramIdx = 1;
 
       if (search) {
-        productVals.push(`%${search}%`);
-        productWhere += ` AND (LOWER(name) LIKE $${paramIdx} OR LOWER(company) LIKE $${paramIdx} OR LOWER(description) LIKE $${paramIdx})`;
         bookVals.push(`%${search}%`);
         bookWhere += ` AND (LOWER(book_title) LIKE $${paramIdx} OR LOWER(author) LIKE $${paramIdx} OR LOWER(description) LIKE $${paramIdx})`;
         paramIdx++;
       }
 
-      if (categoryFilter) {
-        if (categoryFilter === "book") {
-          productWhere += " AND 1=0";
-        } else {
-          productVals.push(categoryFilter);
-          productWhere += ` AND category = $${productVals.length}`;
-          bookWhere += " AND 1=0";
-        }
-      }
-
-      let productOrderBy = "name ASC";
       let bookOrderBy = "book_title ASC";
       if (sortBy === "recent") {
-        productOrderBy = "extracted_at DESC NULLS LAST";
         bookOrderBy = "created_at DESC NULLS LAST";
       }
 
-      productVals.push(limit, offset);
       bookVals.push(limit, offset);
-      const pLimitIdx = productVals.length - 1;
-      const pOffsetIdx = productVals.length;
       const bLimitIdx = bookVals.length - 1;
       const bOffsetIdx = bookVals.length;
 
-      const { rows: productRows } = await pool.query(
-        `SELECT id, 'product' as source_type, name, company, description, purchase_url as url,
-                image_url, context, context_summary, mention_type, category, episode_title, podcast_slug,
-                status, image_status, approved_by, approved_at, extracted_at as created_at
-         FROM extracted_products WHERE ${productWhere}
-         ORDER BY ${productOrderBy}
-         LIMIT $${pLimitIdx} OFFSET $${pOffsetIdx}`,
-        productVals
+      const { rows: bookRows } = await pool.query(
+        `SELECT id, 'book' as source_type, book_title as name, author as company, description,
+                amazon_url as url, CASE WHEN has_cover THEN '/books/' || slug || '.jpg' ELSE NULL END as image_url,
+                NULL as context, NULL as context_summary, 'book_mention' as mention_type,
+                'book' as category, NULL as episode_title, NULL as podcast_slug,
+                'approved' as status, 'approved' as image_status, NULL as approved_by, NULL as approved_at, created_at
+         FROM book_enrichments WHERE ${bookWhere}
+         ORDER BY ${bookOrderBy}
+         LIMIT $${bLimitIdx} OFFSET $${bOffsetIdx}`,
+        bookVals
       );
 
-      let bookRows: any[] = [];
-      if (!categoryFilter || categoryFilter === "book") {
-        const { rows } = await pool.query(
-          `SELECT id, 'book' as source_type, book_title as name, author as company, description,
-                  amazon_url as url, CASE WHEN has_cover THEN '/books/' || slug || '.jpg' ELSE NULL END as image_url,
-                  NULL as context, NULL as context_summary, 'book_mention' as mention_type,
-                  'book' as category, NULL as episode_title, NULL as podcast_slug,
-                  'approved' as status, 'approved' as image_status, NULL as approved_by, NULL as approved_at, created_at
-           FROM book_enrichments WHERE ${bookWhere}
-           ORDER BY ${bookOrderBy}
-           LIMIT $${bLimitIdx} OFFSET $${bOffsetIdx}`,
-          bookVals
-        );
-        bookRows = rows;
-      }
-
-      let items = [...productRows, ...bookRows];
-
-      if (sortBy === "popular") {
-        const productIds = items.filter(i => i.source_type === "product").map(i => i.id);
-        let clickCounts: Record<number, number> = {};
-        if (productIds.length > 0) {
-          const { rows: clickRows } = await pool.query(
-            `SELECT product_id, COUNT(*)::int as cnt FROM affiliate_clicks WHERE product_id = ANY($1) AND product_type = 'product' GROUP BY product_id`,
-            [productIds]
-          );
-          for (const r of clickRows) clickCounts[r.product_id] = r.cnt;
-        }
-        items.sort((a, b) => (clickCounts[b.id] || 0) - (clickCounts[a.id] || 0));
-      } else if (sortBy === "recent") {
-        items.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
-      } else {
-        items.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-      }
-
-      const countProductVals = search ? [`%${search}%`] : [];
       const countBookVals = search ? [`%${search}%`] : [];
-      let countProductWhere = "status = 'approved'";
       let countBookWhere = "cover_approved = true";
       if (search) {
-        countProductWhere += ` AND (LOWER(name) LIKE $1 OR LOWER(company) LIKE $1 OR LOWER(description) LIKE $1)`;
         countBookWhere += ` AND (LOWER(book_title) LIKE $1 OR LOWER(author) LIKE $1 OR LOWER(description) LIKE $1)`;
       }
-      if (categoryFilter) {
-        if (categoryFilter === "book") {
-          countProductWhere += " AND 1=0";
-        } else {
-          countProductVals.push(categoryFilter);
-          countProductWhere += ` AND category = $${countProductVals.length}`;
-          countBookWhere += " AND 1=0";
-        }
-      }
 
-      const { rows: pcRows } = await pool.query(
-        `SELECT COUNT(*)::int as cnt FROM extracted_products WHERE ${countProductWhere}`,
-        countProductVals
+      const { rows: bcRows } = await pool.query(
+        `SELECT COUNT(*)::int as cnt FROM book_enrichments WHERE ${countBookWhere}`,
+        countBookVals
       );
-      let totalCount = pcRows[0]?.cnt || 0;
-      if (!categoryFilter || categoryFilter === "book") {
-        const { rows: bcRows } = await pool.query(
-          `SELECT COUNT(*)::int as cnt FROM book_enrichments WHERE ${countBookWhere}`,
-          countBookVals
-        );
-        totalCount += bcRows[0]?.cnt || 0;
-      }
+      const totalCount = bcRows[0]?.cnt || 0;
 
-      res.json({ items, total: totalCount, page, limit });
+      res.json({ items: bookRows, total: totalCount, page, limit });
     } catch (err: any) {
       console.error("[ShopApproved] Error:", err);
       res.status(500).json({ message: err?.message || "Failed to load approved items" });
@@ -14530,6 +14425,130 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
       res.json({ message: "Product rejected" });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to reject" });
+    }
+  });
+
+  app.get("/api/admin/shop/book/:id/full-detail", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    try {
+      const numId = parseInt(req.params.id, 10);
+      if (!numId) return res.status(400).json({ message: "Invalid id" });
+
+      const { rows } = await pool.query(
+        `SELECT id, book_key, book_title, author, description, amazon_url, slug, has_cover, cover_approved,
+                publisher, publish_year, rating, isbn, topics, categories, created_at, updated_at
+         FROM book_enrichments WHERE id = $1`,
+        [numId]
+      );
+      if (rows.length === 0) return res.status(404).json({ message: "Book not found" });
+      const enrichment = rows[0];
+      const bookKey = enrichment.book_key;
+
+      const status = enrichment.cover_approved === true ? "approved" : enrichment.cover_approved === false ? "rejected" : "pending";
+
+      const { rows: bookAliasRows } = await pool.query(
+        `SELECT alias_key FROM book_aliases WHERE canonical_key = $1`,
+        [bookKey]
+      );
+      const bookKeyVariants = new Set([bookKey, ...bookAliasRows.map((a: any) => a.alias_key)]);
+
+      const allKeyVariants = Array.from(bookKeyVariants);
+      const ilikeClauses = allKeyVariants.map((_, i) => `lpr.resources::text ILIKE $${i + 1}`).join(" OR ");
+      const ilikeParams = allKeyVariants.map(k => `%${k.replace(/[%_]/g, '\\$&')}%`);
+
+      const { rows: recapRows } = await pool.query(
+        `SELECT lpr.slug, lpr.episode_slug, lpr.episode_title, lpr.resources,
+                lpr.publish_date, lpr.hosts, lpr.guests,
+                pd.name as podcast_name
+         FROM landing_page_recaps lpr
+         JOIN podcast_directory pd ON pd.slug = lpr.slug
+         WHERE lpr.resources IS NOT NULL AND lpr.resources::text != '[]'
+           AND (${ilikeClauses})`,
+        ilikeParams
+      );
+
+      const episodes: {
+        podcastSlug: string;
+        podcastName: string;
+        episodeSlug: string;
+        episodeTitle: string;
+        context: string;
+        publishedAt: string | null;
+      }[] = [];
+      const podcastSet = new Map<string, string>();
+
+      for (const row of recapRows) {
+        let resources: any[];
+        try {
+          const parsed = typeof row.resources === 'string' ? JSON.parse(row.resources) : row.resources;
+          if (!Array.isArray(parsed)) continue;
+          resources = parsed;
+        } catch { continue; }
+
+        let foundInEpisode = false;
+        let bookContext = "";
+
+        for (const r of resources) {
+          if (!r || r.type !== 'book' || !r.name) continue;
+          const rKey = r.name.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+          if (bookKeyVariants.has(rKey)) {
+            foundInEpisode = true;
+            bookContext = r.context || "";
+            break;
+          }
+        }
+
+        if (foundInEpisode) {
+          episodes.push({
+            podcastSlug: row.slug,
+            podcastName: row.podcast_name,
+            episodeSlug: row.episode_slug,
+            episodeTitle: row.episode_title,
+            context: bookContext,
+            publishedAt: row.publish_date,
+          });
+          podcastSet.set(row.slug, row.podcast_name);
+        }
+      }
+
+      episodes.sort((a, b) => {
+        if (a.publishedAt && b.publishedAt) return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+        return 0;
+      });
+
+      const podcasts = Array.from(podcastSet.entries()).map(([slug, name]) => ({
+        slug,
+        name,
+        episodeCount: episodes.filter(e => e.podcastSlug === slug).length,
+      }));
+
+      res.json({
+        book: {
+          id: enrichment.id,
+          title: enrichment.book_title,
+          author: enrichment.author,
+          description: enrichment.description,
+          amazonUrl: enrichment.amazon_url,
+          slug: enrichment.slug,
+          coverUrl: enrichment.has_cover ? `/books/${enrichment.slug}.jpg` : null,
+          status,
+          publisher: enrichment.publisher,
+          publishYear: enrichment.publish_year,
+          rating: enrichment.rating,
+          isbn: enrichment.isbn,
+          topics: enrichment.topics || [],
+          categories: enrichment.categories || [],
+          createdAt: enrichment.created_at,
+          updatedAt: enrichment.updated_at,
+        },
+        episodes,
+        podcasts,
+        totalMentions: episodes.length,
+        totalPodcasts: podcastSet.size,
+      });
+    } catch (err: any) {
+      console.error("[BookFullDetail] Error:", err);
+      res.status(500).json({ message: err?.message || "Failed to load book detail" });
     }
   });
 
