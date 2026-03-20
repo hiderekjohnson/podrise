@@ -2888,7 +2888,8 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       const signupsResult = await pool.query(`
         SELECT signup_source_detail as slug,
                COUNT(*) as total_signups,
-               SUM(CASE WHEN email_verified = true THEN 1 ELSE 0 END) as verified_users
+               SUM(CASE WHEN email_verified = true THEN 1 ELSE 0 END) as verified_users,
+               SUM(CASE WHEN onboarding_completed = true THEN 1 ELSE 0 END) as onboarded_users
         FROM users
         WHERE signup_source = 'landing_page'
         GROUP BY signup_source_detail
@@ -2928,6 +2929,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
         signupsBySlug[row.slug] = {
           totalSignups: parseInt(row.total_signups),
           verifiedUsers: parseInt(row.verified_users),
+          onboardedUsers: parseInt(row.onboarded_users),
         };
       }
 
@@ -7975,6 +7977,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         lastLoginAt: r.last_login_at,
         plan: r.plan,
         emailVerified: r.email_verified,
+        onboardingCompleted: r.onboarding_completed,
         signupSource: r.signup_source,
       })));
     }

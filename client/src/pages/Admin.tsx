@@ -36,6 +36,20 @@ interface AdminUser {
   deliveryTimezone: string;
   createdAt: string | null;
   lastLoginAt: string | null;
+  emailVerified?: boolean;
+  onboardingCompleted?: boolean;
+}
+
+type UserStatusFilter = "all" | "active" | "pending-verification" | "pending-onboarding";
+
+function getUserStatus(user: AdminUser): { label: string; color: string } {
+  if (!user.emailVerified) {
+    return { label: "Pending Verification", color: "bg-yellow-100 text-yellow-700" };
+  }
+  if (!user.onboardingCompleted) {
+    return { label: "Pending Onboarding", color: "bg-blue-100 text-blue-700" };
+  }
+  return { label: "Active", color: "bg-green-100 text-green-700" };
 }
 
 
@@ -420,6 +434,7 @@ export default function Admin() {
   });
 
   const [userSortBy, setUserSortBy] = useState<"signedUp" | "lastLogin">("signedUp");
+  const [userStatusFilter, setUserStatusFilter] = useState<UserStatusFilter>("all");
 
   const { data: users, isLoading: usersLoading } = useQuery<AdminUser[]>({
     queryKey: ["/api/admin/users", userSortBy],
@@ -543,10 +558,17 @@ export default function Admin() {
     );
   }
 
-  const filteredUsers = (users || []).filter((u) =>
-    u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.podcasts.some((p) => parsePodcastName(p).toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredUsers = (users || []).filter((u) => {
+    const matchesSearch = u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.podcasts.some((p) => parsePodcastName(p).toLowerCase().includes(searchTerm.toLowerCase()));
+    if (!matchesSearch) return false;
+    if (userStatusFilter === "all") return true;
+    const status = getUserStatus(u);
+    if (userStatusFilter === "active") return status.label === "Active";
+    if (userStatusFilter === "pending-verification") return status.label === "Pending Verification";
+    if (userStatusFilter === "pending-onboarding") return status.label === "Pending Onboarding";
+    return true;
+  });
 
   const isDev = import.meta.env.DEV;
 
@@ -850,16 +872,29 @@ export default function Admin() {
                 </button>
               </div>
               {activeTab === "users" && (
-                <div className="relative w-full sm:w-72">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input
-                    data-testid="input-admin-search"
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder={activeTab === "users" ? "Search users or podcasts..." : "Search by email or podcast..."}
-                    className="w-full h-10 pl-10 pr-4 bg-black/[0.03] border border-black/[0.06] rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium placeholder:text-muted-foreground/50"
-                  />
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <div className="relative w-full sm:w-72">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <input
+                      data-testid="input-admin-search"
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Search users or podcasts..."
+                      className="w-full h-10 pl-10 pr-4 bg-black/[0.03] border border-black/[0.06] rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium placeholder:text-muted-foreground/50"
+                    />
+                  </div>
+                  <select
+                    data-testid="select-user-status-filter"
+                    value={userStatusFilter}
+                    onChange={(e) => setUserStatusFilter(e.target.value as UserStatusFilter)}
+                    className="h-10 px-3 bg-black/[0.03] border border-black/[0.06] rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all font-medium"
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="pending-verification">Pending Verification</option>
+                    <option value="pending-onboarding">Pending Onboarding</option>
+                  </select>
                 </div>
               )}
             </div>
@@ -877,6 +912,7 @@ export default function Admin() {
                         <thead>
                           <tr className="border-b border-black/[0.06] bg-black/[0.02]">
                             <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">User</th>
+                            <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">Status</th>
                             <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3">
                               <button
                                 data-testid="sort-signed-up"
@@ -903,7 +939,7 @@ export default function Admin() {
                         <tbody className="divide-y divide-black/[0.04]">
                           {filteredUsers.length === 0 ? (
                             <tr>
-                              <td colSpan={4} className="px-5 py-12 text-center text-sm text-muted-foreground">
+                              <td colSpan={5} className="px-5 py-12 text-center text-sm text-muted-foreground">
                                 {searchTerm ? "No users match your search." : "No users yet."}
                               </td>
                             </tr>
@@ -920,6 +956,19 @@ export default function Admin() {
                                       <p className="text-xs text-muted-foreground">ID: {user.id}</p>
                                     </div>
                                   </div>
+                                </td>
+                                <td className="px-5 py-4">
+                                  {(() => {
+                                    const status = getUserStatus(user);
+                                    return (
+                                      <span
+                                        data-testid={`badge-user-status-${user.id}`}
+                                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${status.color}`}
+                                      >
+                                        {status.label}
+                                      </span>
+                                    );
+                                  })()}
                                 </td>
                                 <td className="px-5 py-4">
                                   <div className="flex items-center gap-1.5 text-sm text-foreground">

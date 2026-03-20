@@ -8,7 +8,7 @@ import type { ConversionEvent } from "@shared/schema";
 
 interface LandingPageAnalytics {
   visitsBySlug: Record<string, { totalVisits: number; uniqueVisits: number }>;
-  signupsBySlug: Record<string, { totalSignups: number; verifiedUsers: number }>;
+  signupsBySlug: Record<string, { totalSignups: number; verifiedUsers: number; onboardedUsers: number }>;
   utmBySlug: Record<string, { utmSource: string; utmMedium: string; utmCampaign: string; visits: number }[]>;
   timeSeriesBySlug: Record<string, { date: string; visits: number }[]>;
 }
@@ -537,16 +537,19 @@ export default function AdminLandingPages() {
                 <th className="text-right px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Unique Visits</th>
                 <th className="text-right px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Signups</th>
                 <th className="text-right px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Verified</th>
+                <th className="text-right px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Onboarded</th>
                 <th className="text-right px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Conv. Rate</th>
                 <th className="text-right px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Verif. Rate</th>
+                <th className="text-right px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Onb. Rate</th>
                 <th className="text-center px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">Details</th>
               </tr>
             </thead>
               {LANDING_PAGES.map((page) => {
                 const visits = analytics?.visitsBySlug[page.slug] || { totalVisits: 0, uniqueVisits: 0 };
-                const signups = analytics?.signupsBySlug[page.slug] || { totalSignups: 0, verifiedUsers: 0 };
+                const signups = analytics?.signupsBySlug[page.slug] || { totalSignups: 0, verifiedUsers: 0, onboardedUsers: 0 };
                 const convRate = visits.totalVisits > 0 ? ((signups.totalSignups / visits.totalVisits) * 100).toFixed(1) : "0.0";
                 const verifRate = signups.totalSignups > 0 ? ((signups.verifiedUsers / signups.totalSignups) * 100).toFixed(1) : "0.0";
+                const onbRate = signups.totalSignups > 0 ? ((signups.onboardedUsers / signups.totalSignups) * 100).toFixed(1) : "0.0";
                 const fullUrl = `${baseUrl}/lp/${page.slug}`;
                 const isExpanded = expandedSlug === page.slug;
                 const utmData = analytics?.utmBySlug[page.slug] || [];
@@ -594,11 +597,17 @@ export default function AdminLandingPages() {
                       <td className="text-right px-4 py-3 text-sm tabular-nums text-muted-foreground" data-testid={`stat-verified-${page.slug}`}>
                         {signups.verifiedUsers.toLocaleString()}
                       </td>
+                      <td className="text-right px-4 py-3 text-sm tabular-nums text-muted-foreground" data-testid={`stat-onboarded-${page.slug}`}>
+                        {signups.onboardedUsers.toLocaleString()}
+                      </td>
                       <td className="text-right px-4 py-3 text-sm font-semibold tabular-nums" data-testid={`stat-conv-rate-${page.slug}`}>
                         {convRate}%
                       </td>
                       <td className="text-right px-4 py-3 text-sm tabular-nums text-muted-foreground" data-testid={`stat-verif-rate-${page.slug}`}>
                         {verifRate}%
+                      </td>
+                      <td className="text-right px-4 py-3 text-sm tabular-nums text-muted-foreground" data-testid={`stat-onb-rate-${page.slug}`}>
+                        {onbRate}%
                       </td>
                       <td className="text-center px-4 py-3">
                         <button

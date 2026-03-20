@@ -541,6 +541,19 @@ export default function AdminUserProfile() {
                 </div>
               ) : (
                 <>
+                  <InfoRow
+                    label="Account Status"
+                    value={(() => {
+                      if (!user.emailVerified) {
+                        return <span data-testid="badge-profile-status" className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">Pending Verification</span>;
+                      }
+                      if (!user.onboardingCompleted) {
+                        return <span data-testid="badge-profile-status" className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">Pending Onboarding</span>;
+                      }
+                      return <span data-testid="badge-profile-status" className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">Active</span>;
+                    })()}
+                    testId="info-status"
+                  />
                   <InfoRow label="Plan" value={<span className={`px-2 py-0.5 rounded-full text-xs font-medium ${user.plan === "pro" ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-600"}`}>{user.plan}</span>} testId="info-plan" />
                   <InfoRow label="Email Verified" value={user.emailVerified ? "Yes" : "No"} testId="info-emailVerified" />
                   <InfoRow label="Onboarding" value={user.onboardingCompleted ? "Completed" : "Not completed"} testId="info-onboarding" />
