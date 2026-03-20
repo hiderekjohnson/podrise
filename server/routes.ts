@@ -2977,7 +2977,8 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
                   lpr.tabloid_sub_headline, lpr.duration
            FROM landing_page_recaps lpr
            INNER JOIN unnest($1::text[], $2::text[]) AS bm(p_slug, e_slug)
-             ON lpr.slug = bm.p_slug AND lpr.episode_slug = bm.e_slug`,
+             ON lpr.slug = bm.p_slug AND lpr.episode_slug = bm.e_slug
+           WHERE lpr.published = true`,
           [podcastSlugs, episodeSlugs]
         ),
         pool.query(
@@ -3081,52 +3082,54 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
         }
       }
 
-      const enriched = bookmarksList.map(bm => {
-        const recap = recapMap.get(`${bm.podcastSlug}::${bm.episodeSlug}`);
-        const key = `${bm.podcastSlug}::${bm.episodeSlug}`;
-        const pd = podcastDirMap.get(bm.podcastSlug);
+      const enriched = bookmarksList
+        .filter(bm => recapMap.has(`${bm.podcastSlug}::${bm.episodeSlug}`))
+        .map(bm => {
+          const recap = recapMap.get(`${bm.podcastSlug}::${bm.episodeSlug}`)!;
+          const key = `${bm.podcastSlug}::${bm.episodeSlug}`;
+          const pd = podcastDirMap.get(bm.podcastSlug);
 
-        const guests = safeParseJsonArray(recap?.guests);
-        const resources = safeParseJsonArray(recap?.resources);
-        const sponsors = safeParseJsonArray(recap?.sponsors).filter((s: any) => s.name);
+          const guests = safeParseJsonArray(recap.guests);
+          const resources = safeParseJsonArray(recap.resources);
+          const sponsors = safeParseJsonArray(recap.sponsors).filter((s: any) => s.name);
 
-        const mentionData = mentionsMap.get(key);
+          const mentionData = mentionsMap.get(key);
 
-        return {
-          id: bm.id,
-          podcastSlug: bm.podcastSlug,
-          episodeSlug: bm.episodeSlug,
-          createdAt: bm.createdAt,
-          podcastName: recap?.podcast_name || bm.podcastSlug.replace(/-/g, " "),
-          episodeTitle: recap?.episode_title || bm.episodeSlug.replace(/-/g, " "),
-          publishDate: recap?.publish_date || null,
-          artworkUrl: recap?.artwork_url || null,
-          tldl: recap?.tldl || null,
-          keyInsights: recap?.key_insights || null,
-          whatHappened: recap?.what_happened || null,
-          quote: recap?.quote || null,
-          quoteAttribution: recap?.quote_attribution || null,
-          duration: recap?.duration || null,
-          tabloidSubHeadline: recap?.tabloid_sub_headline || null,
-          hosts: recap?.hosts || null,
-          keyTopics: recap?.key_topics || null,
-          guests,
-          resources,
-          sponsors,
-          matchedPeopleSlugs: mentionData?.peopleSlugs || [],
-          matchedCompanySlugs: mentionData?.companySlugs || [],
-          entityContexts: mentionData?.entityContexts || {},
-          episodeQuotes: quotesMap.get(key) || [],
-          spotifyEpisodeUrl: recap?.spotify_episode_url || null,
-          spotifyUrl: pd?.spotify_url || null,
-          youtubeUrl: recap?.youtube_url || pd?.youtube_url || null,
-          mentions: {
-            people: mentionData?.people || [],
-            companies: mentionData?.companies || [],
-            products: productsMap.get(key) || [],
-          },
-        };
-      });
+          return {
+            id: bm.id,
+            podcastSlug: bm.podcastSlug,
+            episodeSlug: bm.episodeSlug,
+            createdAt: bm.createdAt,
+            podcastName: recap.podcast_name,
+            episodeTitle: recap.episode_title,
+            publishDate: recap.publish_date || null,
+            artworkUrl: recap.artwork_url || null,
+            tldl: recap.tldl || null,
+            keyInsights: recap.key_insights || null,
+            whatHappened: recap.what_happened || null,
+            quote: recap.quote || null,
+            quoteAttribution: recap.quote_attribution || null,
+            duration: recap.duration || null,
+            tabloidSubHeadline: recap.tabloid_sub_headline || null,
+            hosts: recap.hosts || null,
+            keyTopics: recap.key_topics || null,
+            guests,
+            resources,
+            sponsors,
+            matchedPeopleSlugs: mentionData?.peopleSlugs || [],
+            matchedCompanySlugs: mentionData?.companySlugs || [],
+            entityContexts: mentionData?.entityContexts || {},
+            episodeQuotes: quotesMap.get(key) || [],
+            spotifyEpisodeUrl: recap.spotify_episode_url || null,
+            spotifyUrl: pd?.spotify_url || null,
+            youtubeUrl: recap.youtube_url || pd?.youtube_url || null,
+            mentions: {
+              people: mentionData?.people || [],
+              companies: mentionData?.companies || [],
+              products: productsMap.get(key) || [],
+            },
+          };
+        });
 
       res.json(enriched);
     } catch (err) {
