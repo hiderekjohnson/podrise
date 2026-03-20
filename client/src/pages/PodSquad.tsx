@@ -189,226 +189,213 @@ export default function PodSquad() {
   }
 
   return (
-    <DashboardLayout hideRightSidebar>
+    <DashboardLayout>
       <div className="min-h-screen bg-[#F9F9FB] dark:bg-[#09090B] pb-24 md:pb-8" data-testid="pod-squad-page">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Hero + Share Card */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Compact Hero Banner */}
-              <div
-                className="relative overflow-hidden rounded-2xl"
-                style={{ background: "linear-gradient(145deg, #6366F1, #8B5CF6)" }}
-                data-testid="hero-banner"
-              >
-                <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-                  <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-white/[0.06]" />
-                  <div className="absolute bottom-8 -left-12 w-36 h-36 rounded-full bg-white/[0.04]" />
+        <div className="px-4 md:px-6 py-6 md:py-8 space-y-6">
+          {/* Hero Banner */}
+          <div
+            className="relative overflow-hidden rounded-2xl"
+            style={{ background: "linear-gradient(145deg, #6366F1, #8B5CF6)" }}
+            data-testid="hero-banner"
+          >
+            <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+              <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-white/[0.06]" />
+              <div className="absolute bottom-8 -left-12 w-36 h-36 rounded-full bg-white/[0.04]" />
+            </div>
+            <div className="relative z-10 p-6 md:p-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.15] text-white/90 text-[12px] font-semibold mb-3" data-testid="badge-pod-squad">
+                <Trophy className="w-3.5 h-3.5" />
+                THE POD SQUAD
+              </div>
+              <h1 className="text-[1.5rem] md:text-[1.75rem] font-bold text-white leading-[1.15] tracking-[-0.02em] mb-2" data-testid="heading-hero">
+                Refer friends. Get gear.
+              </h1>
+              <p className="text-[14px] md:text-[15px] text-white/75 mb-5 leading-relaxed max-w-md">
+                Share PodRise with friends. As they sign up, you'll unlock exclusive rewards.
+              </p>
+              {!statsLoading && (
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.2] backdrop-blur-sm" data-testid="stat-pill-referrals">
+                  <Users className="w-4 h-4 text-white/80" />
+                  <span className="text-[14px] font-bold text-white" data-testid="text-referral-count">{stats?.count ?? 0}</span>
+                  <span className="text-[13px] text-white/70">referral{(stats?.count ?? 0) !== 1 ? "s" : ""}</span>
                 </div>
-                <div className="relative z-10 p-6 md:p-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                    {/* Left: Title + Stat */}
-                    <div>
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.15] text-white/90 text-[12px] font-semibold mb-3" data-testid="badge-pod-squad">
-                        <Trophy className="w-3.5 h-3.5" />
-                        THE POD SQUAD
-                      </div>
-                      <h1 className="text-[1.5rem] md:text-[1.75rem] font-bold text-white leading-[1.15] tracking-[-0.02em] mb-2" data-testid="heading-hero">
-                        Refer friends.<br />Get gear.
-                      </h1>
-                      <p className="text-[14px] md:text-[15px] text-white/75 mb-5 leading-relaxed">
-                        Share PodRise with friends. As they sign up, you'll unlock exclusive rewards.
-                      </p>
-                      {!statsLoading && (
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.2] backdrop-blur-sm" data-testid="stat-pill-referrals">
-                          <Users className="w-4 h-4 text-white/80" />
-                          <span className="text-[14px] font-bold text-white" data-testid="text-referral-count">{stats?.count ?? 0}</span>
-                          <span className="text-[13px] text-white/70">referral{(stats?.count ?? 0) !== 1 ? "s" : ""}</span>
+              )}
+            </div>
+          </div>
+
+          {/* Reward Tiers */}
+          {!statsLoading && stats?.tiers && stats.tiers.length > 0 && (
+            <div className="rounded-2xl bg-white dark:bg-[#111114] border border-[#ECECEE] dark:border-[#1C1C22] p-5 md:p-6" data-testid="tier-list">
+              <h2 className="text-[15px] font-bold text-foreground mb-3 flex items-center gap-2">
+                <Star className="w-4 h-4 text-[#F59E0B]" />
+                Reward Tiers
+              </h2>
+              <div className="space-y-2">
+                {stats.tiers.map((tier, i) => {
+                  const isUnlocked = stats.count >= tier.threshold;
+                  const isNext = stats.nextTier?.id === tier.id;
+                  const emoji = TIER_EMOJIS[i % TIER_EMOJIS.length];
+
+                  return (
+                    <div
+                      key={tier.id}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                        isNext
+                          ? "bg-[#EEF2FF] dark:bg-[#6366F1]/10 ring-1 ring-[#6366F1]/30"
+                          : isUnlocked
+                          ? "bg-[#F0FDF4] dark:bg-green-900/10"
+                          : "bg-[#F9F9FB] dark:bg-[#09090B]"
+                      }`}
+                      data-testid={`tier-card-${tier.id}`}
+                    >
+                      <span className="text-[18px] flex-shrink-0">{emoji}</span>
+                      <span className={`text-[13px] font-semibold flex-1 min-w-0 truncate ${
+                        isUnlocked || isNext ? "text-foreground" : "text-[#A1A1AA]"
+                      }`}>
+                        {tier.rewardName}
+                      </span>
+                      <span className={`text-[12px] font-bold flex-shrink-0 ${
+                        isUnlocked ? "text-green-600 dark:text-green-400" : isNext ? "text-[#6366F1]" : "text-[#A1A1AA]"
+                      }`}>
+                        {tier.threshold} refs
+                      </span>
+                      {isNext && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#6366F1] text-white uppercase tracking-wide flex-shrink-0" data-testid={`tier-up-next-${tier.id}`}>
+                          Up next
+                        </span>
+                      )}
+                      {isUnlocked && (
+                        <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                          <Check className="w-3 h-3 text-white" />
                         </div>
                       )}
                     </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
-                    {/* Right: Reward Tiers List */}
-                    {!statsLoading && stats?.tiers && stats.tiers.length > 0 && (
-                      <div className="space-y-2" data-testid="tier-list">
-                        {stats.tiers.map((tier, i) => {
-                          const isUnlocked = stats.count >= tier.threshold;
-                          const isNext = stats.nextTier?.id === tier.id;
-                          const emoji = TIER_EMOJIS[i % TIER_EMOJIS.length];
+          {/* Share Card */}
+          <div className="rounded-2xl bg-white dark:bg-[#111114] border border-[#ECECEE] dark:border-[#1C1C22] p-5 md:p-6" data-testid="share-section">
+            <div
+              className="flex items-center gap-2 px-4 py-3 rounded-xl bg-[#F9F9FB] dark:bg-[#09090B] border border-[#ECECEE] dark:border-[#27272A] cursor-pointer group hover:border-[#6366F1]/40 transition-colors mb-6"
+              onClick={handleCopyLink}
+              data-testid="input-referral-link"
+            >
+              <span className="flex-1 text-[13px] font-mono text-[#52525B] dark:text-[#A1A1AA] truncate">
+                {stats?.referralLink || "Loading..."}
+              </span>
+              <span
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[12px] font-semibold transition-all ${
+                  copied
+                    ? "bg-green-500 text-white"
+                    : "bg-[#6366F1] text-white group-hover:bg-[#4F46E5]"
+                }`}
+                data-testid="button-copy-link"
+              >
+                {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                {copied ? "Copied!" : "Copy"}
+              </span>
+            </div>
 
-                          return (
-                            <div
-                              key={tier.id}
-                              className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all ${
-                                isNext
-                                  ? "bg-white/[0.2] ring-1 ring-white/30"
-                                  : isUnlocked
-                                  ? "bg-white/[0.12]"
-                                  : "bg-white/[0.06]"
-                              }`}
-                              data-testid={`tier-card-${tier.id}`}
-                            >
-                              <span className="text-[18px] flex-shrink-0">{emoji}</span>
-                              <span className={`text-[13px] font-semibold flex-1 min-w-0 truncate ${
-                                isUnlocked || isNext ? "text-white" : "text-white/50"
-                              }`}>
-                                {tier.rewardName}
-                              </span>
-                              <span className={`text-[12px] font-bold flex-shrink-0 ${
-                                isUnlocked ? "text-white" : isNext ? "text-white/80" : "text-white/40"
-                              }`}>
-                                {tier.threshold} refs
-                              </span>
-                              {isNext && (
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-400 text-yellow-900 uppercase tracking-wide flex-shrink-0" data-testid={`tier-up-next-${tier.id}`}>
-                                  Up next
-                                </span>
-                              )}
-                              {isUnlocked && (
-                                <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                                  <Check className="w-3 h-3 text-white" />
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </div>
+            <div className="grid grid-cols-4 gap-3 mb-5" data-testid="share-channels">
+              {SHARE_CHANNELS.map((channel) => {
+                const href = channel.getHref(stats?.referralLink || "", shareText);
+                const isExternal = href.startsWith("http");
+                const IconComp = channel.iconComponent;
+                return (
+                  <a
+                    key={channel.key}
+                    href={href}
+                    target={isExternal ? "_blank" : undefined}
+                    rel={isExternal ? "noopener noreferrer" : undefined}
+                    className="flex flex-col items-center gap-1.5 group/icon"
+                    data-testid={`share-${channel.key}`}
+                  >
+                    <div className={`w-10 h-10 rounded-xl ${channel.bg} flex items-center justify-center transition-transform group-hover/icon:scale-110`}>
+                      {channel.icon ? (
+                        <span className="text-[18px]">{channel.icon}</span>
+                      ) : IconComp ? (
+                        <IconComp className={`w-4.5 h-4.5 ${channel.iconClass || "text-white"}`} style={{ width: 18, height: 18 }} />
+                      ) : null}
+                    </div>
+                    <span className="text-[11px] font-medium text-[#71717A] dark:text-[#A1A1AA]">{channel.label}</span>
+                  </a>
+                );
+              })}
+            </div>
+
+            <p className="text-[11px] text-[#A1A1AA] dark:text-[#52525B]">
+              By participating in the Referral Program, you agree to abide by these{" "}
+              <Link href="/terms" className="underline hover:text-[#6366F1] transition-colors" data-testid="link-referral-terms">Referral Program Terms and Conditions</Link>.
+            </p>
+          </div>
+
+          {/* Leaderboard */}
+          <div data-testid="leaderboard-section">
+            <div className="rounded-2xl bg-white dark:bg-[#111114] border border-[#ECECEE] dark:border-[#1C1C22] overflow-hidden">
+              <div className="px-5 py-4 border-b border-[#F4F4F5] dark:border-[#1C1C22]">
+                <h2 className="text-[16px] font-bold text-foreground flex items-center gap-2" data-testid="heading-leaderboard">
+                  <Trophy className="w-4 h-4 text-[#F59E0B]" />
+                  Leaderboard
+                </h2>
               </div>
 
-              {/* Share Card */}
-              <div className="rounded-2xl bg-white dark:bg-[#111114] border border-[#ECECEE] dark:border-[#1C1C22] p-5 md:p-6" data-testid="share-section">
-                {/* Click-to-copy referral link */}
-                <div
-                  className="flex items-center gap-2 px-4 py-3 rounded-xl bg-[#F9F9FB] dark:bg-[#09090B] border border-[#ECECEE] dark:border-[#27272A] cursor-pointer group hover:border-[#6366F1]/40 transition-colors mb-6"
-                  onClick={handleCopyLink}
-                  data-testid="input-referral-link"
-                >
-                  <span className="flex-1 text-[13px] font-mono text-[#52525B] dark:text-[#A1A1AA] truncate">
-                    {stats?.referralLink || "Loading..."}
-                  </span>
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[12px] font-semibold transition-all ${
-                      copied
-                        ? "bg-green-500 text-white"
-                        : "bg-[#6366F1] text-white group-hover:bg-[#4F46E5]"
-                    }`}
-                    data-testid="button-copy-link"
-                  >
-                    {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                    {copied ? "Copied!" : "Copy"}
-                  </span>
+              {(!leaderboard || leaderboard.length === 0) ? (
+                <div className="px-5 py-10 text-center text-[#A1A1AA]">
+                  <Users className="w-10 h-10 mx-auto mb-3 opacity-40" />
+                  <p className="text-[15px] font-semibold text-foreground mb-1" data-testid="text-leaderboard-empty">No referrals yet</p>
+                  <p className="text-[13px]">Be the first to share and climb the board!</p>
                 </div>
+              ) : (
+                <div className="divide-y divide-[#F4F4F5] dark:divide-[#1C1C22]">
+                  {leaderboard.map((entry, i) => {
+                    const isCurrentUser = entry.userId === (user as any)?.id;
+                    const rankStyle =
+                      i === 0
+                        ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 ring-1 ring-yellow-300 dark:ring-yellow-700"
+                        : i === 1
+                        ? "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300 ring-1 ring-gray-300 dark:ring-gray-600"
+                        : i === 2
+                        ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 ring-1 ring-orange-300 dark:ring-orange-700"
+                        : "bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#71717A]";
+                    const avatarColor = AVATAR_COLORS[i % AVATAR_COLORS.length];
 
-                {/* Share channel icons */}
-                <div className="grid grid-cols-4 sm:grid-cols-8 gap-3 mb-5" data-testid="share-channels">
-                  {SHARE_CHANNELS.map((channel) => {
-                    const href = channel.getHref(stats?.referralLink || "", shareText);
-                    const isExternal = href.startsWith("http");
-                    const IconComp = channel.iconComponent;
                     return (
-                      <a
-                        key={channel.key}
-                        href={href}
-                        target={isExternal ? "_blank" : undefined}
-                        rel={isExternal ? "noopener noreferrer" : undefined}
-                        className="flex flex-col items-center gap-1.5 group/icon"
-                        data-testid={`share-${channel.key}`}
+                      <div
+                        key={entry.userId}
+                        className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                          isCurrentUser ? "bg-[#6366F1]/[0.06] dark:bg-[#6366F1]/[0.1]" : ""
+                        }`}
+                        data-testid={`leaderboard-entry-${entry.userId}`}
                       >
-                        <div className={`w-10 h-10 rounded-xl ${channel.bg} flex items-center justify-center transition-transform group-hover/icon:scale-110`}>
-                          {channel.icon ? (
-                            <span className="text-[18px]">{channel.icon}</span>
-                          ) : IconComp ? (
-                            <IconComp className={`w-4.5 h-4.5 ${channel.iconClass || "text-white"}`} style={{ width: 18, height: 18 }} />
-                          ) : null}
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 ${rankStyle}`}>
+                          {i + 1}
                         </div>
-                        <span className="text-[11px] font-medium text-[#71717A] dark:text-[#A1A1AA]">{channel.label}</span>
-                      </a>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold flex-shrink-0 ${avatarColor}`}>
+                          {getInitials(entry.displayName)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`text-[13px] font-semibold truncate ${isCurrentUser ? "text-[#6366F1]" : "text-foreground"}`}>
+                              {entry.displayName}
+                            </span>
+                            {isCurrentUser && (
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#6366F1] text-white flex-shrink-0" data-testid={`badge-you-${entry.userId}`}>
+                                You
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <span className="text-[13px] font-bold text-[#6366F1] flex-shrink-0" data-testid={`leaderboard-count-${entry.userId}`}>
+                          {entry.count}
+                        </span>
+                      </div>
                     );
                   })}
                 </div>
-
-                {/* Terms footer */}
-                <p className="text-[11px] text-[#A1A1AA] dark:text-[#52525B]">
-                  By participating in the Referral Program, you agree to abide by these{" "}
-                  <Link href="/terms" className="underline hover:text-[#6366F1] transition-colors" data-testid="link-referral-terms">Referral Program Terms and Conditions</Link>.
-                </p>
-              </div>
-            </div>
-
-            {/* Right Column - Leaderboard */}
-            <div className="lg:col-span-1">
-              <div className="lg:sticky lg:top-4" data-testid="leaderboard-section">
-                <div className="rounded-2xl bg-white dark:bg-[#111114] border border-[#ECECEE] dark:border-[#1C1C22] overflow-hidden">
-                  <div className="px-5 py-4 border-b border-[#F4F4F5] dark:border-[#1C1C22]">
-                    <h2 className="text-[16px] font-bold text-foreground flex items-center gap-2" data-testid="heading-leaderboard">
-                      <Trophy className="w-4 h-4 text-[#F59E0B]" />
-                      Leaderboard
-                    </h2>
-                  </div>
-
-                  {(!leaderboard || leaderboard.length === 0) ? (
-                    <div className="px-5 py-10 text-center text-[#A1A1AA]">
-                      <Users className="w-10 h-10 mx-auto mb-3 opacity-40" />
-                      <p className="text-[15px] font-semibold text-foreground mb-1" data-testid="text-leaderboard-empty">No referrals yet</p>
-                      <p className="text-[13px]">Be the first to share and climb the board!</p>
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-[#F4F4F5] dark:divide-[#1C1C22]">
-                      {leaderboard.map((entry, i) => {
-                        const isCurrentUser = entry.userId === (user as any)?.id;
-                        const rankStyle =
-                          i === 0
-                            ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 ring-1 ring-yellow-300 dark:ring-yellow-700"
-                            : i === 1
-                            ? "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300 ring-1 ring-gray-300 dark:ring-gray-600"
-                            : i === 2
-                            ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 ring-1 ring-orange-300 dark:ring-orange-700"
-                            : "bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#71717A]";
-                        const avatarColor = AVATAR_COLORS[i % AVATAR_COLORS.length];
-
-                        return (
-                          <div
-                            key={entry.userId}
-                            className={`flex items-center gap-3 px-4 py-3 transition-colors ${
-                              isCurrentUser ? "bg-[#6366F1]/[0.06] dark:bg-[#6366F1]/[0.1]" : ""
-                            }`}
-                            data-testid={`leaderboard-entry-${entry.userId}`}
-                          >
-                            {/* Rank */}
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 ${rankStyle}`}>
-                              {i + 1}
-                            </div>
-                            {/* Avatar */}
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold flex-shrink-0 ${avatarColor}`}>
-                              {getInitials(entry.displayName)}
-                            </div>
-                            {/* Name */}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5">
-                                <span className={`text-[13px] font-semibold truncate ${isCurrentUser ? "text-[#6366F1]" : "text-foreground"}`}>
-                                  {entry.displayName}
-                                </span>
-                                {isCurrentUser && (
-                                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#6366F1] text-white flex-shrink-0" data-testid={`badge-you-${entry.userId}`}>
-                                    You
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            {/* Count */}
-                            <span className="text-[13px] font-bold text-[#6366F1] flex-shrink-0" data-testid={`leaderboard-count-${entry.userId}`}>
-                              {entry.count}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
