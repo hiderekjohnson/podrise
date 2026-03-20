@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
 import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, FileText, Inbox, Rss, Key, Database, Settings, ShoppingBag, MousePointerClick, DollarSign, Megaphone, Wrench, List, AlertTriangle, Gift, BookOpen, ToggleLeft, Plus, X, ArrowUpDown } from "lucide-react";
 import { motion } from "framer-motion";
@@ -96,46 +96,104 @@ export default function Admin() {
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
-  type TabType = "users" | "analytics" | "pending" | "directory" | "shop" | "advertisers" | "admin-users" | "categories" | "advanced" | "errors" | "referrals" | "support-kb" | "cms" | "landing-pages" | "mturk";
+  type TabType = "cms" | "users" | "advertisers" | "landing-pages" | "product-features" | "internal-tools" | "advanced" | "admin-users";
+  type ProductFeaturesSubTabType = "shop" | "categories" | "referrals" | "support-kb";
+  type InternalToolsSubTabType = "mturk" | "pending" | "analytics" | "errors";
   type AnalyticsSubTabType = "acquisition" | "affiliates" | "growth" | "email";
   type AdvancedSubTabType = "rss" | "hosts" | "api-costs" | "feature-flags";
 
-  const allTabs: TabType[] = ["users", "analytics", "pending", "directory", "shop", "advertisers", "admin-users", "categories", "advanced", "errors", "referrals", "support-kb", "cms", "landing-pages", "mturk"];
+  const productFeaturesSubTabs: ProductFeaturesSubTabType[] = ["shop", "categories", "referrals", "support-kb"];
+  const internalToolsSubTabs: InternalToolsSubTabType[] = ["mturk", "pending", "analytics", "errors"];
   const analyticsSubTabs: AnalyticsSubTabType[] = ["acquisition", "affiliates", "growth", "email"];
   const advancedSubTabs: AdvancedSubTabType[] = ["rss", "hosts", "api-costs", "feature-flags"];
 
-  const deriveTabFromPath = useCallback((path: string): { tab: TabType; analyticsSub: AnalyticsSubTabType; advancedSub: AdvancedSubTabType } => {
-    const result = { tab: "advanced" as TabType, analyticsSub: "acquisition" as AnalyticsSubTabType, advancedSub: "rss" as AdvancedSubTabType };
+  const deriveTabFromPath = useCallback((path: string): { tab: TabType; productFeaturesSub: ProductFeaturesSubTabType; internalToolsSub: InternalToolsSubTabType; analyticsSub: AnalyticsSubTabType; advancedSub: AdvancedSubTabType } => {
+    const result = {
+      tab: "cms" as TabType,
+      productFeaturesSub: "shop" as ProductFeaturesSubTabType,
+      internalToolsSub: "mturk" as InternalToolsSubTabType,
+      analyticsSub: "acquisition" as AnalyticsSubTabType,
+      advancedSub: "rss" as AdvancedSubTabType,
+    };
     const segments = path.replace(/^\/admin\/?/, "").split("/").filter(Boolean);
-    if (segments.length === 0) { return result; }
-    const firstSeg = segments[0] as TabType;
-    if (firstSeg === "cms") {
-      result.tab = "cms";
+    if (segments.length === 0) return result;
+    const first = segments[0];
+
+    if (first === "cms") { result.tab = "cms"; return result; }
+    if (first === "users") { result.tab = "users"; return result; }
+    if (first === "advertisers") { result.tab = "advertisers"; return result; }
+    if (first === "landing-pages") { result.tab = "landing-pages"; return result; }
+    if (first === "admin-users") { result.tab = "admin-users"; return result; }
+
+    if (first === "product-features") {
+      result.tab = "product-features";
+      if (segments[1] && productFeaturesSubTabs.includes(segments[1] as ProductFeaturesSubTabType)) {
+        result.productFeaturesSub = segments[1] as ProductFeaturesSubTabType;
+      }
+      if (first === "product-features" && segments[1] === "shop" && segments[2] === "book" && segments[3]) {
+        result.productFeaturesSub = "shop";
+      }
       return result;
     }
-    if (allTabs.includes(firstSeg)) {
-      result.tab = firstSeg;
+    if ((["shop", "categories", "referrals", "support-kb"] as string[]).includes(first)) {
+      result.tab = "product-features";
+      result.productFeaturesSub = first as ProductFeaturesSubTabType;
+      if (first === "shop" && segments[1] === "book" && segments[2]) {
+        result.productFeaturesSub = "shop";
+      }
+      return result;
     }
-    if (firstSeg === "shop" && segments[1] === "book" && segments[2]) {
-      result.tab = "shop";
+
+    if (first === "internal-tools") {
+      result.tab = "internal-tools";
+      const sub = segments[1];
+      if (sub === "analytics") {
+        result.internalToolsSub = "analytics";
+        if (segments[2] && analyticsSubTabs.includes(segments[2] as AnalyticsSubTabType)) {
+          result.analyticsSub = segments[2] as AnalyticsSubTabType;
+        }
+      } else if (sub && (["mturk", "pending", "errors"] as string[]).includes(sub)) {
+        result.internalToolsSub = sub as InternalToolsSubTabType;
+      }
+      return result;
     }
-    if (firstSeg === "analytics" && segments[1] && analyticsSubTabs.includes(segments[1] as AnalyticsSubTabType)) {
-      result.analyticsSub = segments[1] as AnalyticsSubTabType;
+    if ((["mturk", "pending", "errors"] as string[]).includes(first)) {
+      result.tab = "internal-tools";
+      result.internalToolsSub = first as InternalToolsSubTabType;
+      return result;
     }
-    if (firstSeg === "advanced" && segments[1] && advancedSubTabs.includes(segments[1] as AdvancedSubTabType)) {
-      result.advancedSub = segments[1] as AdvancedSubTabType;
+    if (first === "analytics") {
+      result.tab = "internal-tools";
+      result.internalToolsSub = "analytics";
+      if (segments[1] && analyticsSubTabs.includes(segments[1] as AnalyticsSubTabType)) {
+        result.analyticsSub = segments[1] as AnalyticsSubTabType;
+      }
+      return result;
     }
+
+    if (first === "advanced") {
+      result.tab = "advanced";
+      if (segments[1] && advancedSubTabs.includes(segments[1] as AdvancedSubTabType)) {
+        result.advancedSub = segments[1] as AdvancedSubTabType;
+      }
+      return result;
+    }
+
     return result;
   }, []);
 
   const initialState = deriveTabFromPath(adminPath);
   const [activeTab, setActiveTab] = useState<TabType>(initialState.tab);
+  const [productFeaturesSubTab, setProductFeaturesSubTab] = useState<ProductFeaturesSubTabType>(initialState.productFeaturesSub);
+  const [internalToolsSubTab, setInternalToolsSubTab] = useState<InternalToolsSubTabType>(initialState.internalToolsSub);
   const [analyticsSubTab, setAnalyticsSubTab] = useState<AnalyticsSubTabType>(initialState.analyticsSub);
   const [advancedSubTab, setAdvancedSubTab] = useState<AdvancedSubTabType>(initialState.advancedSub);
 
   useEffect(() => {
     const derived = deriveTabFromPath(adminPath);
     setActiveTab(derived.tab);
+    setProductFeaturesSubTab(derived.productFeaturesSub);
+    setInternalToolsSubTab(derived.internalToolsSub);
     setAnalyticsSubTab(derived.analyticsSub);
     setAdvancedSubTab(derived.advancedSub);
   }, [adminPath, deriveTabFromPath]);
@@ -143,8 +201,10 @@ export default function Admin() {
   const switchTab = useCallback((tab: TabType) => {
     setActiveTab(tab);
     setSearchTerm("");
-    if (tab === "analytics") {
-      adminNavigate(`/admin/analytics/acquisition`);
+    if (tab === "product-features") {
+      adminNavigate(`/admin/product-features/shop`);
+    } else if (tab === "internal-tools") {
+      adminNavigate(`/admin/internal-tools/mturk`);
     } else if (tab === "advanced") {
       adminNavigate(`/admin/advanced/rss`);
     } else {
@@ -152,9 +212,23 @@ export default function Admin() {
     }
   }, [adminNavigate]);
 
+  const switchProductFeaturesSubTab = useCallback((sub: ProductFeaturesSubTabType) => {
+    setProductFeaturesSubTab(sub);
+    adminNavigate(`/admin/product-features/${sub}`);
+  }, [adminNavigate]);
+
+  const switchInternalToolsSubTab = useCallback((sub: InternalToolsSubTabType) => {
+    setInternalToolsSubTab(sub);
+    if (sub === "analytics") {
+      adminNavigate(`/admin/internal-tools/analytics/acquisition`);
+    } else {
+      adminNavigate(`/admin/internal-tools/${sub}`);
+    }
+  }, [adminNavigate]);
+
   const switchAnalyticsSubTab = useCallback((sub: AnalyticsSubTabType) => {
     setAnalyticsSubTab(sub);
-    adminNavigate(`/admin/analytics/${sub}`);
+    adminNavigate(`/admin/internal-tools/analytics/${sub}`);
   }, [adminNavigate]);
 
   const switchAdvancedSubTab = useCallback((sub: AdvancedSubTabType) => {
@@ -196,9 +270,23 @@ export default function Admin() {
   });
 
   const [showChangePw, setShowChangePw] = useState(false);
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+  const settingsMenuRef = useRef<HTMLDivElement>(null);
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (settingsMenuRef.current && !settingsMenuRef.current.contains(event.target as Node)) {
+        setShowSettingsMenu(false);
+      }
+    }
+    if (showSettingsMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showSettingsMenu]);
 
   const changePwMutation = useMutation({
     mutationFn: (data: { currentPassword: string; newPassword: string }) =>
@@ -396,14 +484,40 @@ export default function Admin() {
           <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-bold rounded-md uppercase tracking-wide">Admin</span>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            data-testid="button-change-password"
-            onClick={() => setShowChangePw(!showChangePw)}
-            className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Key className="w-4 h-4" />
-            Change Password
-          </button>
+          <div className="relative" ref={settingsMenuRef}>
+            <button
+              data-testid="button-settings"
+              onClick={() => setShowSettingsMenu(!showSettingsMenu)}
+              className={`flex items-center gap-2 text-sm font-medium transition-colors ${
+                showSettingsMenu || activeTab === "admin-users"
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Settings className="w-4 h-4" />
+              Settings
+            </button>
+            {showSettingsMenu && (
+              <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-black/[0.08] rounded-xl shadow-lg py-1.5 z-50" data-testid="settings-dropdown">
+                <button
+                  data-testid="button-change-password"
+                  onClick={() => { setShowChangePw(!showChangePw); setShowSettingsMenu(false); }}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-foreground hover:bg-black/[0.04] transition-colors"
+                >
+                  <Key className="w-4 h-4 text-muted-foreground" />
+                  Change Password
+                </button>
+                <button
+                  data-testid="button-settings-admins"
+                  onClick={() => { setActiveTab("admin-users"); adminNavigate("/admin/admin-users"); setShowSettingsMenu(false); }}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-foreground hover:bg-black/[0.04] transition-colors"
+                >
+                  <Shield className="w-4 h-4 text-muted-foreground" />
+                  Admins
+                </button>
+              </div>
+            )}
+          </div>
           <button
             data-testid="button-admin-logout"
             onClick={() => logoutMutation.mutate()}
@@ -502,18 +616,6 @@ export default function Admin() {
                   CMS
                 </button>
                 <button
-                  data-testid="tab-pending"
-                  onClick={() => switchTab("pending")}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
-                    activeTab === "pending"
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
-                  }`}
-                >
-                  <Inbox className="w-4 h-4" />
-                  Email Log
-                </button>
-                <button
                   data-testid="tab-users"
                   onClick={() => switchTab("users")}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
@@ -529,42 +631,6 @@ export default function Admin() {
                   </span>
                 </button>
                 <button
-                  data-testid="tab-analytics"
-                  onClick={() => switchTab("analytics")}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
-                    activeTab === "analytics"
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
-                  }`}
-                >
-                  <BarChart3 className="w-4 h-4" />
-                  Analytics
-                </button>
-                <button
-                  data-testid="tab-shop"
-                  onClick={() => switchTab("shop")}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
-                    activeTab === "shop"
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
-                  }`}
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                  Shop
-                </button>
-                <button
-                  data-testid="tab-categories"
-                  onClick={() => switchTab("categories")}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
-                    activeTab === "categories"
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
-                  }`}
-                >
-                  <List className="w-4 h-4" />
-                  Categories
-                </button>
-                <button
                   data-testid="tab-advertisers"
                   onClick={() => switchTab("advertisers")}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
@@ -577,54 +643,6 @@ export default function Admin() {
                   Advertisers
                 </button>
                 <button
-                  data-testid="tab-admin-users"
-                  onClick={() => switchTab("admin-users")}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
-                    activeTab === "admin-users"
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
-                  }`}
-                >
-                  <Shield className="w-4 h-4" />
-                  Admins
-                </button>
-                <button
-                  data-testid="tab-referrals"
-                  onClick={() => switchTab("referrals")}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
-                    activeTab === "referrals"
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
-                  }`}
-                >
-                  <Gift className="w-4 h-4" />
-                  Referrals
-                </button>
-                <button
-                  data-testid="tab-errors"
-                  onClick={() => switchTab("errors")}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
-                    activeTab === "errors"
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
-                  }`}
-                >
-                  <AlertTriangle className="w-4 h-4" />
-                  Errors
-                </button>
-                <button
-                  data-testid="tab-support-kb"
-                  onClick={() => switchTab("support-kb")}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
-                    activeTab === "support-kb"
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
-                  }`}
-                >
-                  <BookOpen className="w-4 h-4" />
-                  Support KB
-                </button>
-                <button
                   data-testid="tab-landing-pages"
                   onClick={() => switchTab("landing-pages")}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
@@ -634,19 +652,31 @@ export default function Admin() {
                   }`}
                 >
                   <MousePointerClick className="w-4 h-4" />
-                  Landing Pages
+                  Advertising
                 </button>
                 <button
-                  data-testid="tab-mturk"
-                  onClick={() => switchTab("mturk")}
+                  data-testid="tab-product-features"
+                  onClick={() => switchTab("product-features")}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
-                    activeTab === "mturk"
+                    activeTab === "product-features"
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
                   }`}
                 >
-                  <Headphones className="w-4 h-4" />
-                  Mech. Turk
+                  <ShoppingBag className="w-4 h-4" />
+                  Product Features
+                </button>
+                <button
+                  data-testid="tab-internal-tools"
+                  onClick={() => switchTab("internal-tools")}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0 whitespace-nowrap ${
+                    activeTab === "internal-tools"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
+                  }`}
+                >
+                  <Wrench className="w-4 h-4" />
+                  Internal Tools
                 </button>
                 <button
                   data-testid="tab-advanced"
@@ -657,7 +687,7 @@ export default function Admin() {
                       : "text-muted-foreground hover:text-foreground hover:bg-black/[0.03]"
                   }`}
                 >
-                  <Wrench className="w-4 h-4" />
+                  <Database className="w-4 h-4" />
                   Advanced
                 </button>
               </div>
@@ -831,21 +861,49 @@ export default function Admin() {
               </>
             )}
 
-            {activeTab === "analytics" && (
-              <div className="space-y-6">
-                <div className="flex items-center gap-1 bg-black/[0.03] dark:bg-white/[0.06] rounded-xl p-1" data-testid="analytics-sub-tabs">
+            {activeTab === "cms" && (
+              <Suspense fallback={
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </div>
+              }>
+                <AdminCMS />
+              </Suspense>
+            )}
+
+            {activeTab === "advertisers" && (
+              <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
+                <AdvertisersAdmin />
+              </Suspense>
+            )}
+
+            {activeTab === "landing-pages" && (
+              <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
+                <AdminLandingPages />
+              </Suspense>
+            )}
+
+            {activeTab === "admin-users" && (
+              <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
+                <AdminUsersManager />
+              </Suspense>
+            )}
+
+            {activeTab === "product-features" && (
+              <div className="space-y-5">
+                <div className="flex items-center gap-1 bg-black/[0.03] dark:bg-white/[0.06] rounded-xl p-1" data-testid="product-features-sub-tabs">
                   {([
-                    { key: "acquisition" as const, label: "User Acquisition", icon: Users },
-                    { key: "affiliates" as const, label: "Affiliates", icon: MousePointerClick },
-                    { key: "growth" as const, label: "User Growth", icon: TrendingUp },
-                    { key: "email" as const, label: "Email", icon: Mail },
+                    { key: "shop" as const, label: "Shop", icon: ShoppingBag },
+                    { key: "categories" as const, label: "Categories", icon: List },
+                    { key: "referrals" as const, label: "Referrals", icon: Gift },
+                    { key: "support-kb" as const, label: "Support KB", icon: BookOpen },
                   ]).map(({ key, label, icon: Icon }) => (
                     <button
                       key={key}
-                      data-testid={`analytics-tab-${key}`}
-                      onClick={() => switchAnalyticsSubTab(key)}
+                      data-testid={`product-features-subtab-${key}`}
+                      onClick={() => switchProductFeaturesSubTab(key)}
                       className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                        analyticsSubTab === key
+                        productFeaturesSubTab === key
                           ? "bg-white dark:bg-zinc-800 text-foreground shadow-sm"
                           : "text-muted-foreground hover:text-foreground"
                       }`}
@@ -856,37 +914,105 @@ export default function Admin() {
                   ))}
                 </div>
 
-                <Suspense fallback={
-                  <div className="flex items-center justify-center py-20">
-                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                  </div>
-                }>
-                  {analyticsSubTab === "acquisition" && <AnalyticsAcquisition />}
-                  {analyticsSubTab === "affiliates" && <AnalyticsAffiliates />}
-                  {analyticsSubTab === "growth" && <AnalyticsGrowth />}
-                  {analyticsSubTab === "email" && <AnalyticsEmail />}
-                </Suspense>
+                {productFeaturesSubTab === "shop" && (
+                  <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
+                    <AdminShopManagement bookId={(() => {
+                      const match = adminPath.match(/\/(?:admin\/)?(?:product-features\/)?shop\/book\/(\d+)/);
+                      return match ? parseInt(match[1], 10) : undefined;
+                    })()} />
+                  </Suspense>
+                )}
+                {productFeaturesSubTab === "categories" && (
+                  <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
+                    <AdminCategoriesManager />
+                  </Suspense>
+                )}
+                {productFeaturesSubTab === "referrals" && (
+                  <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
+                    <AdminReferrals />
+                  </Suspense>
+                )}
+                {productFeaturesSubTab === "support-kb" && (
+                  <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
+                    <AdminSupportKB />
+                  </Suspense>
+                )}
               </div>
             )}
 
-            {activeTab === "pending" && (
-              <Suspense fallback={
-                <div className="flex items-center justify-center py-20">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            {activeTab === "internal-tools" && (
+              <div className="space-y-5">
+                <div className="flex items-center gap-1 bg-black/[0.03] dark:bg-white/[0.06] rounded-xl p-1" data-testid="internal-tools-sub-tabs">
+                  {([
+                    { key: "mturk" as const, label: "Mech Turk", icon: Headphones },
+                    { key: "pending" as const, label: "Email Log", icon: Inbox },
+                    { key: "analytics" as const, label: "Analytics", icon: BarChart3 },
+                    { key: "errors" as const, label: "Errors", icon: AlertTriangle },
+                  ]).map(({ key, label, icon: Icon }) => (
+                    <button
+                      key={key}
+                      data-testid={`internal-tools-subtab-${key}`}
+                      onClick={() => switchInternalToolsSubTab(key)}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                        internalToolsSubTab === key
+                          ? "bg-white dark:bg-zinc-800 text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      {label}
+                    </button>
+                  ))}
                 </div>
-              }>
-                <PendingEmails />
-              </Suspense>
-            )}
 
-            {activeTab === "cms" && (
-              <Suspense fallback={
-                <div className="flex items-center justify-center py-20">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                </div>
-              }>
-                <AdminCMS />
-              </Suspense>
+                {internalToolsSubTab === "mturk" && (
+                  <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
+                    <AdminMTurk />
+                  </Suspense>
+                )}
+                {internalToolsSubTab === "pending" && (
+                  <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}>
+                    <PendingEmails />
+                  </Suspense>
+                )}
+                {internalToolsSubTab === "analytics" && (
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-1 bg-black/[0.03] dark:bg-white/[0.06] rounded-xl p-1" data-testid="analytics-sub-tabs">
+                      {([
+                        { key: "acquisition" as const, label: "User Acquisition", icon: Users },
+                        { key: "affiliates" as const, label: "Affiliates", icon: MousePointerClick },
+                        { key: "growth" as const, label: "User Growth", icon: TrendingUp },
+                        { key: "email" as const, label: "Email", icon: Mail },
+                      ]).map(({ key, label, icon: Icon }) => (
+                        <button
+                          key={key}
+                          data-testid={`analytics-tab-${key}`}
+                          onClick={() => switchAnalyticsSubTab(key)}
+                          className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                            analyticsSubTab === key
+                              ? "bg-white dark:bg-zinc-800 text-foreground shadow-sm"
+                              : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          <Icon className="w-3.5 h-3.5" />
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                    <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}>
+                      {analyticsSubTab === "acquisition" && <AnalyticsAcquisition />}
+                      {analyticsSubTab === "affiliates" && <AnalyticsAffiliates />}
+                      {analyticsSubTab === "growth" && <AnalyticsGrowth />}
+                      {analyticsSubTab === "email" && <AnalyticsEmail />}
+                    </Suspense>
+                  </div>
+                )}
+                {internalToolsSubTab === "errors" && (
+                  <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
+                    <AdminErrorLogs />
+                  </Suspense>
+                )}
+              </div>
             )}
 
             {activeTab === "advanced" && (
@@ -965,54 +1091,6 @@ export default function Admin() {
                   </Suspense>
                 )}
               </div>
-            )}
-            {activeTab === "shop" && (
-              <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
-                <AdminShopManagement bookId={(() => {
-                  const match = adminPath.match(/\/admin\/shop\/book\/(\d+)/);
-                  return match ? parseInt(match[1], 10) : undefined;
-                })()} />
-              </Suspense>
-            )}
-            {activeTab === "advertisers" && (
-              <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
-                <AdvertisersAdmin />
-              </Suspense>
-            )}
-            {activeTab === "admin-users" && (
-              <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
-                <AdminUsersManager />
-              </Suspense>
-            )}
-            {activeTab === "categories" && (
-              <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
-                <AdminCategoriesManager />
-              </Suspense>
-            )}
-            {activeTab === "errors" && (
-              <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
-                <AdminErrorLogs />
-              </Suspense>
-            )}
-            {activeTab === "referrals" && (
-              <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
-                <AdminReferrals />
-              </Suspense>
-            )}
-            {activeTab === "support-kb" && (
-              <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
-                <AdminSupportKB />
-              </Suspense>
-            )}
-            {activeTab === "landing-pages" && (
-              <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
-                <AdminLandingPages />
-              </Suspense>
-            )}
-            {activeTab === "mturk" && (
-              <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
-                <AdminMTurk />
-              </Suspense>
             )}
           </motion.div>
         </section>
