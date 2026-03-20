@@ -89,9 +89,6 @@ export default function SettingsPage() {
               <p className="text-[18px] md:text-[20px] font-bold text-[#09090B] dark:text-white truncate">
                 {user?.displayName || user?.email || ""}
               </p>
-              <p className="text-[13px] md:text-[14px] text-[#A1A1AA] mt-0.5 flex items-center gap-1.5">
-                Free plan
-              </p>
             </div>
           </div>
         </div>
