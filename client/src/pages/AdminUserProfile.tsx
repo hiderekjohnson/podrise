@@ -97,8 +97,14 @@ interface ReferredByUser {
   displayName: string | null;
 }
 
+interface AdminInfo {
+  isAdmin: boolean;
+  role: string | null;
+}
+
 interface ProfileData {
   user: UserProfile;
+  adminInfo: AdminInfo;
   emailStats: EmailStats;
   recentEmails: RecentEmail[];
   emailClicks: EmailClickEntry[];
@@ -300,6 +306,17 @@ export default function AdminUserProfile() {
     },
   });
 
+  const adminToggleMutation = useMutation({
+    mutationFn: (grant: boolean) => apiRequest("POST", `/api/admin/users/${userId}/admin-toggle`, { grant }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users", userId, "profile"] });
+      toast({ title: "Updated", description: "Admin status updated successfully." });
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err?.message || "Failed to update admin status.", variant: "destructive" });
+    },
+  });
+
   const impersonateMutation = useMutation({
     mutationFn: (id: number) => apiRequest("POST", "/api/admin/impersonate", { userId: id }),
     onSuccess: () => {
@@ -356,7 +373,7 @@ export default function AdminUserProfile() {
     );
   }
 
-  const { user, emailStats, recentEmails, emailClicks, bookmarks, referralsMade, referredByUser } = data;
+  const { user, adminInfo, emailStats, recentEmails, emailClicks, bookmarks, referralsMade, referredByUser } = data;
 
   const startEditing = () => {
     setEditing(true);
@@ -675,6 +692,29 @@ export default function AdminUserProfile() {
                   <InfoRow label="Onboarding" value={user.onboardingCompleted ? "Completed" : "Not completed"} testId="info-onboarding" />
                   <InfoRow label="Last Login" value={formatDateTime(user.lastLoginAt)} testId="info-lastLogin" />
                   <InfoRow label="Signed Up" value={formatDateTime(user.createdAt)} testId="info-signedUp" />
+                  <div className="flex items-center justify-between py-2 border-t border-black/[0.04] mt-2">
+                    <div className="flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Admin Access</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {adminInfo?.isAdmin && (
+                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700" data-testid="badge-admin-role">{adminInfo.role}</span>
+                      )}
+                      {user.email?.endsWith("@podrise.com") ? (
+                        <button
+                          data-testid="button-admin-toggle"
+                          onClick={() => adminToggleMutation.mutate(!adminInfo?.isAdmin)}
+                          disabled={adminToggleMutation.isPending}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${adminInfo?.isAdmin ? "bg-purple-500" : "bg-gray-300"} ${adminToggleMutation.isPending ? "opacity-50" : ""}`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${adminInfo?.isAdmin ? "translate-x-6" : "translate-x-1"}`} />
+                        </button>
+                      ) : (
+                        <span className="text-xs text-muted-foreground" data-testid="text-admin-restricted">@podrise.com only</span>
+                      )}
+                    </div>
+                  </div>
                 </>
               )}
             </div>

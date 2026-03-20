@@ -773,6 +773,9 @@ export async function registerRoutes(
       INSERT INTO admin_users (email, name, role)
       VALUES ('derek@podrise.com', 'Derek', 'owner')
       ON CONFLICT (email) DO UPDATE SET role = 'owner';
+      INSERT INTO admin_users (email, name, role)
+      VALUES ('jessica@podrise.com', 'Jessica', 'admin')
+      ON CONFLICT (email) DO NOTHING;
     `);
 
     console.log("[startup] Schema migration check complete");
@@ -12482,8 +12485,17 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         }
       }
 
+      const adminCheckResult = await pool.query(
+        `SELECT id, role FROM admin_users WHERE email = $1 LIMIT 1`,
+        [user.email]
+      );
+      const adminInfo = adminCheckResult.rows.length > 0
+        ? { isAdmin: true, role: adminCheckResult.rows[0].role }
+        : { isAdmin: false, role: null };
+
       res.json({
         user,
+        adminInfo,
         emailStats: {
           totalSent: parseInt(emailStats.total_sent || "0"),
           totalOpened: parseInt(emailStats.total_opened || "0"),
@@ -12499,6 +12511,44 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     } catch (err) {
       console.error("Failed to fetch user profile:", err);
       res.status(500).json({ message: "Failed to fetch user profile" });
+    }
+  });
+
+  app.post("/api/admin/users/:id/admin-toggle", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const userId = parseInt(req.params.id, 10);
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+    try {
+      const userResult = await pool.query(`SELECT email, display_name FROM users WHERE id = $1`, [userId]);
+      if (userResult.rows.length === 0) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      const email = userResult.rows[0].email?.toLowerCase();
+      const displayName = userResult.rows[0].display_name || email?.split("@")[0] || "";
+      if (!email || !email.endsWith("@podrise.com")) {
+        return res.status(400).json({ message: "Only @podrise.com emails can be granted admin access" });
+      }
+      const { grant } = req.body;
+      if (grant) {
+        await pool.query(
+          `INSERT INTO admin_users (email, name, role) VALUES ($1, $2, 'admin') ON CONFLICT (email) DO NOTHING`,
+          [email, displayName]
+        );
+        res.json({ isAdmin: true, role: "admin" });
+      } else {
+        if (email === "derek@podrise.com") {
+          return res.status(400).json({ message: "Cannot revoke owner admin access" });
+        }
+        await pool.query(`DELETE FROM admin_users WHERE email = $1`, [email]);
+        res.json({ isAdmin: false, role: null });
+      }
+    } catch (err: any) {
+      console.error("Failed to toggle admin status:", err);
+      res.status(500).json({ message: "Failed to toggle admin status" });
     }
   });
 
