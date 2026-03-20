@@ -94,17 +94,10 @@ const changelog: ChangelogEntry[] = [
   },
   {
     title: "Redesigned episode recaps for faster scanning",
-    description: "Episode recap pages got a major facelift. Content is now organized into clean, numbered cards — TLDL, Key Insights, Episode Breakdown, Key Topics, Top Questions, and Ask AI — so you can scan quickly for the bits you care about or deep-dive into the full breakdown. It's the same information, just much easier to navigate.",
+    description: "Episode recap pages got a major facelift. Content is now organized into clean, numbered cards — Key Insights, What Happened, Guests, Quotes, and Ask AI — so you can scan quickly for the bits you care about or deep-dive into the full breakdown. It's the same information, just much easier to navigate.",
     link: { url: "/podcasts/joerogan", label: "See the new recap layout" },
     emoji: "🎨",
     date: "Feb 5, 2026",
-  },
-  {
-    title: "Key Topics and Top Questions in every recap",
-    description: "Each episode recap now highlights the main topics discussed and the most thought-provoking questions raised during the conversation. It's a quick way to decide whether an episode is worth your time — if the topics align with what you're curious about, you know the full listen will be worth it.",
-    link: { url: "/podcasts/hubaborherman", label: "See topics and questions in a recap" },
-    emoji: "💡",
-    date: "Feb 3, 2026",
   },
   {
     title: "Listen to the full episode from any recap",
