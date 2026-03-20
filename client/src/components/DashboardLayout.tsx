@@ -15,7 +15,7 @@ const ALL_NAV_ITEMS = [
   { key: "feed", path: "/dashboard", label: "Home", Icon: Home },
   { key: "discover", path: "/discover", label: "Discover", Icon: Compass },
   { key: "shop", path: "/shop", label: "Pod Shop", Icon: ShoppingBag },
-  { key: "bookmarks", path: "/bookmarks", label: "Saved Episodes", Icon: Bookmark },
+  { key: "bookmarks", path: "/bookmarks", label: "Library", Icon: Bookmark },
   { key: "pod-squad", path: "/pod-squad", label: "Pod Squad", Icon: Award },
 ];
 

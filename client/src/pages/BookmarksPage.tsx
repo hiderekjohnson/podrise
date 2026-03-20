@@ -99,7 +99,7 @@ export default function BookmarksPage() {
   });
 
   const tabs: { key: TabType; label: string; count: number }[] = [
-    { key: "episodes", label: "Saved Episodes", count: bookmarksList.length },
+    { key: "episodes", label: "Library", count: bookmarksList.length },
     { key: "books", label: "Saved Books", count: bookBookmarksList.length },
   ];
 
