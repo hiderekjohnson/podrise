@@ -121,17 +121,19 @@ function ListenSection({ item }: { item: AccordionItemData }) {
         </a>
       )}
       {hasYoutubeEmbed && (
-        <iframe
-          src={`https://www.youtube.com/embed/${youtubeId}`}
-          width="100%"
-          height="200"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          loading="lazy"
-          className="rounded-xl"
-          data-testid={`listen-youtube-embed-${item.id}`}
-        />
+        <div className="w-full aspect-video">
+          <iframe
+            src={`https://www.youtube.com/embed/${youtubeId}`}
+            width="100%"
+            height="100%"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            loading="lazy"
+            className="rounded-xl w-full h-full"
+            data-testid={`listen-youtube-embed-${item.id}`}
+          />
+        </div>
       )}
       {!hasYoutubeEmbed && hasYoutubeLink && (
         <a
