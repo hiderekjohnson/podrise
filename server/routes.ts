@@ -10167,7 +10167,17 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         }
       }
 
-      let query = `SELECT pd.*, (SELECT COUNT(*) FROM landing_page_recaps lpr WHERE lpr.slug = pd.slug) as episode_count FROM podcast_directory pd WHERE 1=1`;
+      let query = `SELECT pd.*, (SELECT COUNT(*) FROM landing_page_recaps lpr WHERE lpr.slug = pd.slug) as episode_count,
+        COALESCE((
+          SELECT CASE
+            WHEN COUNT(*) <= 1 THEN 0
+            WHEN (MAX(et.date_published) - MIN(et.date_published)) < 86400 THEN 0
+            ELSE ROUND((COUNT(*)::numeric / ((MAX(et.date_published) - MIN(et.date_published))::numeric / 86400)) * 7, 1)
+          END
+          FROM episode_transcripts et
+          WHERE et.podcast_id = pd.itunes_id::text AND et.date_published IS NOT NULL
+        ), 0) as avg_episodes_per_week
+        FROM podcast_directory pd WHERE 1=1`;
       const params: any[] = [];
       if (search) {
         params.push(`%${search}%`);
@@ -10177,7 +10187,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         params.push(status);
         query += ` AND pd.status = $${params.length}`;
       }
-      const sortCol = sort === "name" ? "pd.name" : sort === "episodes" ? "episode_count" : sort === "followers" ? "pd.name" : "pd.name";
+      const sortCol = sort === "name" ? "pd.name" : sort === "episodes" ? "episode_count" : sort === "avg_per_week" ? "avg_episodes_per_week" : sort === "followers" ? "pd.name" : "pd.name";
       const sortOrder = order === "desc" ? "DESC" : "ASC";
       query += ` ORDER BY ${sortCol} ${sortOrder}`;
       const { rows } = await pool.query(query, params);
