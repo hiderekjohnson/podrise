@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useAuth, useUpdateUser, useLogout } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -7,9 +7,11 @@ import { TimePicker } from "@/components/TimePicker";
 import { useTheme } from "@/components/ThemeProvider";
 import {
   Mail, Clock, Globe, Palmtree, LogOut,
-  ChevronRight, Sun, Moon, User, MapPin, Languages, Calendar
+  ChevronRight, Sun, Moon, User, MapPin, Languages, Calendar, Unlink, CheckCircle2, Loader2
 } from "lucide-react";
-import { queryClient } from "@/lib/queryClient";
+import { SiSpotify } from "react-icons/si";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { PodRiseIcon } from "@/components/PodRiseHeader";
 
@@ -31,7 +33,13 @@ export default function SettingsPage() {
   const [locationVal, setLocationVal] = useState("");
   const [language, setLanguage] = useState("");
   const [initialized, setInitialized] = useState(false);
-  const [activeTab, setActiveTab] = useState<"account" | "display" | "email">("account");
+  const [activeTab, setActiveTab] = useState<"account" | "display" | "email" | "spotify">(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("spotify_connected") === "true" || params.get("spotify_error")) {
+      return "spotify";
+    }
+    return "account";
+  });
 
   if (user && !initialized) {
     setEmail(user.email || "");
@@ -95,18 +103,19 @@ export default function SettingsPage() {
 
         <div className="max-w-5xl mx-auto px-4 md:px-8">
           <div className="flex items-center gap-1 border-b border-[#F0F0F2] dark:border-[#1C1C22] overflow-x-auto scrollbar-hide" data-testid="settings-tabs">
-            {(["account", "display", "email"] as const).map((tab) => (
+            {(["account", "display", "email", "spotify"] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-3 text-[14px] font-medium border-b-2 -mb-px whitespace-nowrap transition-colors ${
+                className={`px-4 py-3 text-[14px] font-medium border-b-2 -mb-px whitespace-nowrap transition-colors flex items-center gap-1.5 ${
                   activeTab === tab
                     ? "text-[#6366F1] border-[#6366F1] font-semibold"
                     : "text-[#A1A1AA] border-transparent hover:text-[#52525B]"
                 }`}
                 data-testid={`settings-tab-${tab}`}
               >
-                {tab === "account" ? "Account" : tab === "display" ? "Display" : "Email Delivery"}
+                {tab === "spotify" && <SiSpotify className="w-3.5 h-3.5" />}
+                {tab === "account" ? "Account" : tab === "display" ? "Display" : tab === "email" ? "Email Delivery" : "Spotify"}
               </button>
             ))}
           </div>
@@ -384,8 +393,139 @@ export default function SettingsPage() {
               </div>
             </section>
           )}
+
+          {activeTab === "spotify" && (
+            <SpotifySettingsTab />
+          )}
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+function SpotifySettingsTab() {
+  const { toast } = useToast();
+
+  const { data: statusData, isLoading: statusLoading } = useQuery<{ connected: boolean }>({
+    queryKey: ["/api/spotify/status"],
+  });
+
+  const disconnectMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("POST", "/api/spotify/disconnect");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/spotify/status"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/spotify/shows"] });
+      toast({ title: "Disconnected", description: "Spotify account disconnected" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to disconnect Spotify", variant: "destructive" });
+    },
+  });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("spotify_connected") === "true") {
+      toast({ title: "Spotify connected", description: "Your Spotify account is now linked" });
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+    if (params.get("spotify_error")) {
+      const err = params.get("spotify_error");
+      const messages: Record<string, string> = {
+        denied: "Spotify access was denied",
+        invalid: "Invalid authentication request",
+        token_failed: "Failed to connect to Spotify",
+        unknown: "Something went wrong connecting to Spotify",
+      };
+      toast({ title: "Spotify error", description: messages[err || ""] || messages.unknown, variant: "destructive" });
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
+
+  const handleConnectSpotify = useCallback(() => {
+    window.location.href = "/api/auth/spotify?return_to=/settings";
+  }, []);
+
+  if (statusLoading) {
+    return (
+      <section>
+        <h2 className="text-[12px] font-bold text-[#A1A1AA] uppercase tracking-wider mb-2 px-1">Spotify</h2>
+        <div className="rounded-2xl bg-white dark:bg-[#111114] border border-[#ECECEE] dark:border-[#1C1C22] overflow-hidden">
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-6 h-6 animate-spin text-[#1DB954]" data-testid="spotify-settings-loading" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const isConnected = statusData?.connected;
+
+  return (
+    <section>
+      <h2 className="text-[12px] font-bold text-[#A1A1AA] uppercase tracking-wider mb-2 px-1">Spotify</h2>
+      <div className="rounded-2xl bg-white dark:bg-[#111114] border border-[#ECECEE] dark:border-[#1C1C22] overflow-hidden">
+        <div className="px-5 py-5">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-full bg-[#1DB954]/15 flex items-center justify-center flex-shrink-0">
+              <SiSpotify className="w-5 h-5 text-[#1DB954]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[16px] font-bold text-[#09090B] dark:text-white" data-testid="text-spotify-settings-title">Spotify Integration</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                {isConnected ? (
+                  <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#1DB954]" data-testid="spotify-status-connected">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Connected
+                  </span>
+                ) : (
+                  <span className="text-[12px] font-semibold text-[#A1A1AA]" data-testid="spotify-status-disconnected">
+                    Not connected
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {isConnected ? (
+            <div className="space-y-4">
+              <div className="bg-[#1DB954]/5 dark:bg-[#1DB954]/10 border border-[#1DB954]/15 rounded-xl px-4 py-3">
+                <p className="text-[14px] text-[#09090B] dark:text-white leading-relaxed" data-testid="text-spotify-connected-info">
+                  Your Spotify account is connected. You can import podcasts you follow on Spotify from the My Podcasts page.
+                </p>
+              </div>
+              <button
+                onClick={() => disconnectMutation.mutate()}
+                disabled={disconnectMutation.isPending}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[14px] font-semibold border border-[#E4E4E7] dark:border-[#3F3F46] text-[#71717A] hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400 dark:hover:border-red-800 transition-all disabled:opacity-50"
+                data-testid="button-spotify-settings-disconnect"
+              >
+                {disconnectMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Unlink className="w-4 h-4" />
+                )}
+                Disconnect Spotify
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-[14px] text-[#52525B] dark:text-[#A1A1AA] leading-relaxed" data-testid="text-spotify-value-prop">
+                Connect your Spotify account to discover podcasts you already listen to on Spotify, right here in PodRise. We'll help you find and follow your favorites.
+              </p>
+              <button
+                onClick={handleConnectSpotify}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[14px] font-bold bg-[#1DB954] text-white hover:bg-[#1aa34a] transition-colors active:scale-95"
+                data-testid="button-spotify-settings-connect"
+              >
+                <SiSpotify className="w-4 h-4" />
+                Connect Spotify
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
   );
 }
