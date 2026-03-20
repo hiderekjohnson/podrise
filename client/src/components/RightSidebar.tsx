@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
-import { Search, X, Loader2, Mic } from "lucide-react";
+import { Search, X, Loader2, Mic, Headphones, ArrowRight } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { hiResArtwork } from "@/lib/utils";
+import { useRelatedPodcasts } from "@/contexts/RelatedPodcastsContext";
 
 
 interface ReferralStats {
@@ -347,6 +348,44 @@ function ShopSection() {
   );
 }
 
+function RelatedPodcastsSection() {
+  const { podcasts } = useRelatedPodcasts();
+
+  if (podcasts.length === 0) return null;
+
+  return (
+    <div data-testid="section-related-podcasts" className="mb-4">
+      <div className="flex items-center gap-2.5 mb-3">
+        <Headphones className="w-4 h-4 text-primary" />
+        <h3 className="text-[14px] font-display font-bold text-foreground">Related Podcasts</h3>
+      </div>
+      <div className="flex flex-col gap-2">
+        {podcasts.map((rp) => (
+          <Link
+            key={rp.slug}
+            href={`/podcasts/${rp.slug}`}
+            className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-3 flex items-center gap-3 hover:border-primary/[0.15] hover:shadow-md hover:shadow-black/[0.04] transition-all group"
+            data-testid={`related-podcast-${rp.slug}`}
+          >
+            {rp.artworkUrl ? (
+              <img src={rp.artworkUrl} alt={rp.name} className="w-10 h-10 rounded-lg object-cover shadow-sm shadow-black/[0.06] shrink-0 ring-1 ring-black/[0.04]" />
+            ) : (
+              <div className="w-10 h-10 rounded-lg bg-primary/[0.06] flex items-center justify-center shrink-0">
+                <Headphones className="w-4 h-4 text-primary/30" />
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="text-[13px] font-bold text-foreground truncate group-hover:text-primary transition-colors">{rp.name}</p>
+              <p className="text-[11px] text-[#52525B] mt-0.5 uppercase tracking-wider font-semibold">{rp.category}</p>
+            </div>
+            <ArrowRight className="shrink-0 w-3.5 h-3.5 text-muted-foreground/20 group-hover:text-primary transition-colors" />
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function RightSidebar() {
   return (
     <aside
@@ -356,6 +395,7 @@ export function RightSidebar() {
       <SidebarSearch />
       <div className="flex-1 overflow-y-auto px-4 py-[14px] hide-scrollbar">
         <PodSquadCard />
+        <RelatedPodcastsSection />
         <ShopSection />
         <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-[#A1A1AA] px-1 pt-4">
           <Link href="/terms" className="hover:underline" data-testid="link-terms">Terms</Link>

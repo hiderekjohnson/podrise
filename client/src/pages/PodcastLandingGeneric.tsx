@@ -17,6 +17,7 @@ import type { PodcastLandingConfig } from "@/data/podcastLandingData";
 import { EpisodeCard } from "@/components/EpisodeCard";
 import { RecapCard } from "@/components/RecapCard";
 import { useSetConversion } from "@/contexts/PageConversionContext";
+import { useSetRelatedPodcasts } from "@/contexts/RelatedPodcastsContext";
 
 
 function extractAsin(url: string): string | null {
@@ -753,19 +754,25 @@ export default function PodcastLandingGeneric() {
     .filter((p): p is PodcastLandingConfig => !!p)
     .slice(0, 3);
 
-  const relatedPodcastsSidebar = user && relatedPodcasts.length > 0 ? (
-    <div data-testid="section-related-podcasts" className="lg:sticky lg:top-6">
+  useSetRelatedPodcasts(
+    user && relatedPodcasts.length > 0
+      ? relatedPodcasts.map(rp => ({ slug: rp.slug, name: rp.name, category: rp.category, artworkUrl: rp.artworkUrl }))
+      : []
+  );
+
+  const relatedPodcastsMobile = user && relatedPodcasts.length > 0 ? (
+    <div data-testid="section-related-podcasts-mobile" className="xl:hidden mt-8">
       <div className="flex items-center gap-2.5 mb-4">
         <Headphones className="w-5 h-5 text-primary" />
         <h3 className="text-[17px] font-display font-bold text-foreground">Related Podcasts</h3>
       </div>
       <div className="flex flex-col gap-3">
         {relatedPodcasts.map((rp) => (
-          <a
+          <Link
             key={rp.slug}
             href={`/podcasts/${rp.slug}`}
             className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-4 flex items-center gap-4 hover:border-primary/[0.15] hover:shadow-md hover:shadow-black/[0.04] transition-all group"
-            data-testid={`related-podcast-${rp.slug}`}
+            data-testid={`related-podcast-mobile-${rp.slug}`}
           >
             {rp.artworkUrl ? (
               <img src={rp.artworkUrl} alt={rp.name} className="w-14 h-14 rounded-xl object-cover shadow-sm shadow-black/[0.06] shrink-0 ring-1 ring-black/[0.04]" />
@@ -779,7 +786,7 @@ export default function PodcastLandingGeneric() {
               <p className="text-[16px] text-[#52525B] mt-0.5 uppercase tracking-wider font-semibold">{rp.category}</p>
             </div>
             <ArrowRight className="shrink-0 w-4 h-4 text-muted-foreground/20 group-hover:text-primary transition-colors" />
-          </a>
+          </Link>
         ))}
       </div>
     </div>
@@ -957,13 +964,9 @@ export default function PodcastLandingGeneric() {
               {config.name}
             </h1>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
-            <div>{contentSections}</div>
-            {relatedPodcastsSidebar && (
-              <aside className="order-last" data-testid="sidebar-related-podcasts">
-                {relatedPodcastsSidebar}
-              </aside>
-            )}
+          <div>
+            {contentSections}
+            {relatedPodcastsMobile}
           </div>
         </div>
       </div>

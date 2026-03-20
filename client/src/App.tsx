@@ -9,6 +9,7 @@ import NotFound from "./pages/not-found";
 import { ExitIntentPopup } from "@/components/ExitIntentPopup";
 import { captureUtmParams } from "@/lib/utmCapture";
 import { PageConversionProvider } from "@/contexts/PageConversionContext";
+import { RelatedPodcastsProvider } from "@/contexts/RelatedPodcastsContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthAwareLayout } from "@/components/AuthAwareLayout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -156,11 +157,13 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <PageConversionProvider>
-            <TooltipProvider>
-              <Router />
-              <ExitIntentPopup />
-              <Toaster />
-            </TooltipProvider>
+            <RelatedPodcastsProvider>
+              <TooltipProvider>
+                <Router />
+                <ExitIntentPopup />
+                <Toaster />
+              </TooltipProvider>
+            </RelatedPodcastsProvider>
           </PageConversionProvider>
         </ThemeProvider>
       </QueryClientProvider>
