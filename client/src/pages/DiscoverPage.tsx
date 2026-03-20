@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Loader2, X, Brain, Rocket, BarChart3, Coins, Heart, BookOpen, Zap, Globe, Mic, ArrowLeft, Check, CheckSquare } from "lucide-react";
+import { Search, Loader2, X, Brain, Rocket, BarChart3, Coins, Heart, BookOpen, Zap, Globe, Mic, ArrowLeft, Check, CheckSquare, ArrowUpDown, ChevronDown } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Link } from "wouter";
 import { RequestPodcastDialog } from "@/components/RequestPodcastDialog";
@@ -26,6 +26,65 @@ const DISCOVER_TOPICS = [
   { slug: "psychology", name: "Psychology", icon: BookOpen, color: "#A855F7" },
   { slug: "health-longevity", name: "Health", icon: Heart, color: "#EF4444" },
 ] as const;
+
+type SortOption = "popular" | "episodes" | "newest" | "rated" | "alpha";
+
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: "popular", label: "Most Popular" },
+  { value: "episodes", label: "Most Episodes" },
+  { value: "newest", label: "Newest" },
+  { value: "rated", label: "Highest Rated" },
+  { value: "alpha", label: "A → Z" },
+];
+
+function SortDropdown({
+  value,
+  onChange,
+}: {
+  value: SortOption;
+  onChange: (value: SortOption) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = SORT_OPTIONS.find((o) => o.value === value) || SORT_OPTIONS[0];
+
+  return (
+    <div className="relative" data-testid="sort-dropdown">
+      <button
+        onClick={() => setOpen((prev) => !prev)}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all active:scale-95 bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#52525B] dark:text-[#A1A1AA] hover:bg-[#E4E4E7] dark:hover:bg-[#27272A]"
+        data-testid="sort-dropdown-trigger"
+      >
+        <ArrowUpDown className="w-3.5 h-3.5" />
+        {selected.label}
+        <ChevronDown className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-full mt-1 z-50 bg-white dark:bg-[#1C1C22] border border-[#E4E4E7] dark:border-[#27272A] rounded-xl shadow-lg py-1 min-w-[160px]" data-testid="sort-dropdown-menu">
+            {SORT_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => {
+                  onChange(option.value);
+                  setOpen(false);
+                }}
+                className={`w-full text-left px-3 py-2 text-[13px] font-medium transition-colors ${
+                  option.value === value
+                    ? "text-[#6366F1] bg-[#6366F1]/[0.06]"
+                    : "text-[#52525B] dark:text-[#A1A1AA] hover:bg-[#F4F4F5] dark:hover:bg-[#27272A]"
+                }`}
+                data-testid={`sort-option-${option.value}`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 function SelectCheckbox({
   selected,
@@ -66,6 +125,8 @@ function AllPodcastsGrid({
   selectedSlugs,
   onToggleSelect,
   onSelectAllVisible,
+  sortBy,
+  onSortChange,
 }: {
   podcasts: DirectoryPodcast[];
   followedSlugs: Set<string>;
@@ -75,6 +136,8 @@ function AllPodcastsGrid({
   selectedSlugs: Set<string>;
   onToggleSelect: (slug: string) => void;
   onSelectAllVisible: (slugs: string[], deselect?: boolean) => void;
+  sortBy?: SortOption;
+  onSortChange?: (value: SortOption) => void;
 }) {
   const [visibleCount, setVisibleCount] = useState(20);
   const visible = podcasts.slice(0, visibleCount);
@@ -87,6 +150,9 @@ function AllPodcastsGrid({
         <h2 className="text-[16px] md:text-[18px] font-bold text-[#09090B] dark:text-white">All Podcasts</h2>
         {isLoggedIn && (
           <div className="flex items-center gap-2">
+            {sortBy && onSortChange && (
+              <SortDropdown value={sortBy} onChange={onSortChange} />
+            )}
             <button
               onClick={() => onSelectAllVisible(visibleSlugs, allVisibleSelected)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all active:scale-95 bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#52525B] dark:text-[#A1A1AA] hover:bg-[#E4E4E7] dark:hover:bg-[#27272A]"
@@ -172,6 +238,8 @@ function TopicPodcastsGrid({
   selectedSlugs,
   onToggleSelect,
   onSelectAllVisible,
+  sortBy,
+  onSortChange,
 }: {
   topicSlug: string;
   followedSlugs: Set<string>;
@@ -181,9 +249,17 @@ function TopicPodcastsGrid({
   selectedSlugs: Set<string>;
   onToggleSelect: (slug: string) => void;
   onSelectAllVisible: (slugs: string[], deselect?: boolean) => void;
+  sortBy?: SortOption;
+  onSortChange?: (value: SortOption) => void;
 }) {
+  const sortParam = sortBy || "popular";
   const { data: podcasts, isLoading, isError } = useQuery<DirectoryPodcast[]>({
-    queryKey: ["/api/podcasts/directory/by-topic", topicSlug],
+    queryKey: ["/api/podcasts/directory/by-topic", topicSlug, { sort: sortParam }],
+    queryFn: async () => {
+      const res = await fetch(`/api/podcasts/directory/by-topic/${topicSlug}?sort=${sortParam}`);
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
     select: (data: any[]) => data.map((p: any) => ({
       slug: p.slug,
       name: p.name,
@@ -224,6 +300,9 @@ function TopicPodcastsGrid({
         const allSelected = allSlugs.length > 0 && allSlugs.every((s) => selectedSlugs.has(s));
         return (
           <div className="flex justify-end gap-2 mb-2">
+            {sortBy && onSortChange && (
+              <SortDropdown value={sortBy} onChange={onSortChange} />
+            )}
             <button
               onClick={() => onSelectAllVisible(allSlugs, allSelected)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all active:scale-95 bg-[#F4F4F5] dark:bg-[#1C1C22] text-[#52525B] dark:text-[#A1A1AA] hover:bg-[#E4E4E7] dark:hover:bg-[#27272A]"
@@ -376,6 +455,7 @@ export default function DiscoverPage() {
   const [requestPodcastName, setRequestPodcastName] = useState("");
   const [selectedSlugs, setSelectedSlugs] = useState<Set<string>>(new Set());
   const [bulkFollowPending, setBulkFollowPending] = useState(false);
+  const [sortBy, setSortBy] = useState<SortOption>("popular");
 
   const toggleSelect = useCallback((slug: string) => {
     setSelectedSlugs((prev) => {
@@ -418,7 +498,12 @@ export default function DiscoverPage() {
   }, []);
 
   const { data: directoryData } = useQuery<DirectoryPodcast[]>({
-    queryKey: ["/api/podcasts/directory"],
+    queryKey: ["/api/podcasts/directory", { sort: sortBy }],
+    queryFn: async () => {
+      const res = await fetch(`/api/podcasts/directory?sort=${sortBy}`);
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
     select: (data: any[]) => data.map((p: any) => ({
       slug: p.slug,
       name: p.name,
@@ -820,6 +905,8 @@ export default function DiscoverPage() {
                       selectedSlugs={selectedSlugs}
                       onToggleSelect={toggleSelect}
                       onSelectAllVisible={handleSelectAllVisible}
+                      sortBy={user ? sortBy : undefined}
+                      onSortChange={user ? setSortBy : undefined}
                     />
                   </div>
                 )}
@@ -835,6 +922,8 @@ export default function DiscoverPage() {
                   selectedSlugs={selectedSlugs}
                   onToggleSelect={toggleSelect}
                   onSelectAllVisible={handleSelectAllVisible}
+                  sortBy={user ? sortBy : undefined}
+                  onSortChange={user ? setSortBy : undefined}
                 />
               )}
             </>

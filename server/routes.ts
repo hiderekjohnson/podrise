@@ -3174,37 +3174,58 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     }
   });
 
-  app.get("/api/podcasts/directory", async (_req, res) => {
+  app.get("/api/podcasts/directory", async (req, res) => {
     try {
-      const cached = directoryCache.podcastsDirectory.get();
-      if (cached) return res.json(cached);
+      const sort = (req.query.sort as string) || "popular";
+      const validSorts = ["popular", "episodes", "newest", "rated", "alpha"];
+      const sortValue = validSorts.includes(sort) ? sort : "popular";
+
+      const orderByMap: Record<string, string> = {
+        popular: "COALESCE(followers, 0) DESC, name ASC",
+        episodes: "COALESCE(total_episodes, 0) DESC, name ASC",
+        newest: "COALESCE(year_started, 0) DESC, name ASC",
+        rated: "COALESCE(apple_rating::numeric, 0) DESC, COALESCE(apple_rating_count, 0) DESC, name ASC",
+        alpha: "name ASC",
+      };
+      const orderBy = orderByMap[sortValue];
+
+      if (sortValue === "popular") {
+        const cached = directoryCache.podcastsDirectory.get();
+        if (cached) return res.json(cached);
+      }
+
       const result = await pool.query(
-        `SELECT slug, name, artwork_url, category FROM podcast_directory WHERE slug IS NOT NULL ORDER BY COALESCE(followers, 0) DESC, name ASC`
+        `SELECT slug, name, artwork_url, category FROM podcast_directory WHERE slug IS NOT NULL ORDER BY ${orderBy}`
       );
       const rows = result.rows;
-      const categoryBuckets: Record<string, any[]> = {};
-      for (const row of rows) {
-        const cat = ((row.category || "Other").split(",")[0].trim() || "Other").toLowerCase();
-        if (!categoryBuckets[cat]) categoryBuckets[cat] = [];
-        categoryBuckets[cat].push(row);
-      }
-      const bucketKeys = Object.keys(categoryBuckets);
-      const interleaved: any[] = [];
-      const indices: Record<string, number> = {};
-      for (const k of bucketKeys) indices[k] = 0;
-      let added = true;
-      while (added) {
-        added = false;
-        for (const k of bucketKeys) {
-          if (indices[k] < categoryBuckets[k].length) {
-            interleaved.push(categoryBuckets[k][indices[k]]);
-            indices[k]++;
-            added = true;
+
+      if (sortValue === "popular") {
+        const categoryBuckets: Record<string, any[]> = {};
+        for (const row of rows) {
+          const cat = ((row.category || "Other").split(",")[0].trim() || "Other").toLowerCase();
+          if (!categoryBuckets[cat]) categoryBuckets[cat] = [];
+          categoryBuckets[cat].push(row);
+        }
+        const bucketKeys = Object.keys(categoryBuckets);
+        const interleaved: any[] = [];
+        const indices: Record<string, number> = {};
+        for (const k of bucketKeys) indices[k] = 0;
+        let added = true;
+        while (added) {
+          added = false;
+          for (const k of bucketKeys) {
+            if (indices[k] < categoryBuckets[k].length) {
+              interleaved.push(categoryBuckets[k][indices[k]]);
+              indices[k]++;
+              added = true;
+            }
           }
         }
+        directoryCache.podcastsDirectory.set(interleaved);
+        return res.json(interleaved);
       }
-      directoryCache.podcastsDirectory.set(interleaved);
-      res.json(interleaved);
+
+      res.json(rows);
     } catch (err) {
       console.error("[Directory] Error:", err);
       res.status(500).json({ message: "Internal server error" });
@@ -3214,9 +3235,15 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
   app.get("/api/podcasts/directory/by-topic/:slug", async (req, res) => {
     try {
       const { slug } = req.params;
+      const sort = (req.query.sort as string) || "popular";
+      const validSorts = ["popular", "episodes", "newest", "rated", "alpha"];
+      const sortValue = validSorts.includes(sort) ? sort : "popular";
+
       const cacheKey = `topic_podcasts_${slug}`;
-      const cached = (directoryCache as any)[cacheKey]?.get?.();
-      if (cached) return res.json(cached);
+      if (sortValue === "popular") {
+        const cached = (directoryCache as any)[cacheKey]?.get?.();
+        if (cached) return res.json(cached);
+      }
 
       const topicCategoryMap: Record<string, string[]> = {
         "ai": ["Technology", "Tech", "AI", "Artificial Intelligence", "Science"],
@@ -3234,20 +3261,31 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
         return res.json([]);
       }
 
+      const orderByMap: Record<string, string> = {
+        popular: "followers DESC NULLS LAST, name ASC",
+        episodes: "COALESCE(total_episodes, 0) DESC, name ASC",
+        newest: "COALESCE(year_started, 0) DESC, name ASC",
+        rated: "COALESCE(apple_rating::numeric, 0) DESC, COALESCE(apple_rating_count, 0) DESC, name ASC",
+        alpha: "name ASC",
+      };
+      const orderBy = orderByMap[sortValue];
+
       const ilikeConds = categories.map((_, i) => `category ILIKE $${i + 1}`).join(" OR ");
       const result = await pool.query(
         `SELECT slug, name, artwork_url, category, description
          FROM podcast_directory
          WHERE slug IS NOT NULL AND (${ilikeConds})
-         ORDER BY followers DESC NULLS LAST, name ASC
+         ORDER BY ${orderBy}
          LIMIT 40`,
         categories.map(c => `%${c}%`)
       );
 
-      if (!(directoryCache as any)[cacheKey]) {
-        (directoryCache as any)[cacheKey] = new DataCache<any[]>(cacheKey, 60 * 60 * 1000);
+      if (sortValue === "popular") {
+        if (!(directoryCache as any)[cacheKey]) {
+          (directoryCache as any)[cacheKey] = new DataCache<any[]>(cacheKey, 60 * 60 * 1000);
+        }
+        (directoryCache as any)[cacheKey].set(result.rows);
       }
-      (directoryCache as any)[cacheKey].set(result.rows);
       res.json(result.rows);
     } catch (err) {
       console.error("[TopicPodcasts] Error:", err);
