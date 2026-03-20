@@ -445,6 +445,8 @@ export default function FeedPage() {
     },
     getNextPageParam: (lastPage: any) => lastPage.nextCursor,
     initialPageParam: null as number | null,
+    staleTime: 0,
+    refetchOnMount: true,
   });
 
   useEffect(() => {
@@ -484,9 +486,12 @@ export default function FeedPage() {
       return { previousFeed };
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/feed"] });
+      if (activeTab !== "foryou" || !variables.follow) {
+        queryClient.invalidateQueries({ queryKey: ["/api/feed"] });
+      }
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       queryClient.invalidateQueries({ queryKey: ["/api/sidebar-suggestions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/feed/followed-slugs"] });
       if (variables.adId && variables.follow) {
         trackAdEvent(variables.adId, "follow");
       }
