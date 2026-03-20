@@ -2,7 +2,88 @@ const TADDY_API_URL = "https://api.taddy.org";
 
 const podcastCache = new Map<string, { result: TaddySearchResult | null; expiry: number }>();
 const episodeCache = new Map<string, { result: TaddyEpisode[]; expiry: number }>();
-const CACHE_TTL_MS = 10 * 60 * 1000;
+const CACHE_TTL_MS = 30 * 60 * 1000;
+
+const MONTHLY_BUDGET_LIMIT = 450000;
+const BUDGET_WARNING_THRESHOLD = 400000;
+let inMemoryCallCount = 0;
+let inMemoryMonthKey = "";
+let rateLimitedUntil = 0;
+let lastBudgetSyncAt = 0;
+const BUDGET_SYNC_INTERVAL_MS = 5 * 60 * 1000;
+
+function getCurrentMonthKey(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
+async function syncBudgetFromDb(): Promise<void> {
+  try {
+    const { pool } = await import("./db");
+    const monthKey = getCurrentMonthKey();
+    const { rows } = await pool.query(
+      `SELECT call_count FROM taddy_api_usage WHERE month_key = $1 LIMIT 1`,
+      [monthKey]
+    );
+    if (rows.length > 0) {
+      inMemoryCallCount = rows[0].call_count;
+    } else {
+      inMemoryCallCount = 0;
+    }
+    inMemoryMonthKey = monthKey;
+    lastBudgetSyncAt = Date.now();
+  } catch (err) {
+    console.warn("[TaddyBudget] Failed to sync from DB:", err);
+  }
+}
+
+async function incrementBudgetCounter(): Promise<void> {
+  const monthKey = getCurrentMonthKey();
+  if (monthKey !== inMemoryMonthKey) {
+    inMemoryCallCount = 0;
+    inMemoryMonthKey = monthKey;
+  }
+  inMemoryCallCount++;
+
+  try {
+    const { pool } = await import("./db");
+    await pool.query(
+      `INSERT INTO taddy_api_usage (month_key, call_count, updated_at)
+       VALUES ($1, 1, NOW())
+       ON CONFLICT (month_key) DO UPDATE SET call_count = taddy_api_usage.call_count + 1, updated_at = NOW()`,
+      [monthKey]
+    );
+  } catch {
+  }
+}
+
+export function isTaddyBudgetExhausted(): boolean {
+  if (Date.now() < rateLimitedUntil) return true;
+  const monthKey = getCurrentMonthKey();
+  if (monthKey !== inMemoryMonthKey) return false;
+  return inMemoryCallCount >= MONTHLY_BUDGET_LIMIT;
+}
+
+export function isTaddyBudgetWarning(): boolean {
+  const monthKey = getCurrentMonthKey();
+  if (monthKey !== inMemoryMonthKey) return false;
+  return inMemoryCallCount >= BUDGET_WARNING_THRESHOLD;
+}
+
+export function getTaddyBudgetStatus(): { monthKey: string; callCount: number; limit: number; exhausted: boolean; rateLimitedUntil: number } {
+  return {
+    monthKey: getCurrentMonthKey(),
+    callCount: inMemoryCallCount,
+    limit: MONTHLY_BUDGET_LIMIT,
+    exhausted: isTaddyBudgetExhausted(),
+    rateLimitedUntil,
+  };
+}
+
+export function markTaddyRateLimited(durationMs: number = 60000): void {
+  rateLimitedUntil = Date.now() + durationMs;
+  console.warn(`[TaddyBudget] Rate limited, backing off for ${durationMs / 1000}s`);
+}
 
 interface TaddyEpisode {
   uuid: string;
@@ -370,7 +451,7 @@ export async function deleteWebhook(webhookId: string): Promise<any> {
   return data?.data?.deleteWebhookForUser;
 }
 
-async function taddyRequest(query: string): Promise<any> {
+async function taddyRequest(query: string, skipBudgetCheck: boolean = false): Promise<any> {
   const userId = process.env.TADDY_USER_ID;
   const apiKey = process.env.TADDY_API_KEY;
 
@@ -378,6 +459,17 @@ async function taddyRequest(query: string): Promise<any> {
     console.warn("Taddy API credentials not configured");
     return null;
   }
+
+  if (Date.now() - lastBudgetSyncAt > BUDGET_SYNC_INTERVAL_MS || lastBudgetSyncAt === 0) {
+    await syncBudgetFromDb();
+  }
+
+  if (!skipBudgetCheck && isTaddyBudgetExhausted()) {
+    console.warn("[TaddyBudget] Budget exhausted, skipping API call");
+    return null;
+  }
+
+  await incrementBudgetCounter();
 
   const response = await fetch(TADDY_API_URL, {
     method: "POST",
@@ -389,10 +481,34 @@ async function taddyRequest(query: string): Promise<any> {
     body: JSON.stringify({ query }),
   });
 
-  if (!response.ok) {
-    console.error("Taddy API error:", response.status, await response.text());
+  if (response.status === 429) {
+    markTaddyRateLimited(120000);
+    console.error("[Taddy] Rate limited (429)");
     return null;
   }
 
-  return response.json();
+  if (!response.ok) {
+    const text = await response.text();
+    if (text.includes("API_RATE_LIMIT_EXCEEDED")) {
+      markTaddyRateLimited(300000);
+      console.error("[Taddy] API rate limit exceeded");
+      return null;
+    }
+    console.error("Taddy API error:", response.status, text);
+    return null;
+  }
+
+  const data = await response.json();
+
+  if (data?.errors?.some((e: any) => e?.message?.includes("API_RATE_LIMIT_EXCEEDED"))) {
+    markTaddyRateLimited(300000);
+    console.error("[Taddy] API rate limit exceeded (in response)");
+    return null;
+  }
+
+  if (isTaddyBudgetWarning()) {
+    console.warn(`[TaddyBudget] Warning: ${inMemoryCallCount}/${MONTHLY_BUDGET_LIMIT} calls used this month`);
+  }
+
+  return data;
 }

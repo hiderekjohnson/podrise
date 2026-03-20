@@ -229,6 +229,34 @@ export const episodeTranscripts = pgTable("episode_transcripts", {
 
 export type EpisodeTranscript = typeof episodeTranscripts.$inferSelect;
 
+export const pendingTranscriptQueue = pgTable("pending_transcript_queue", {
+  id: serial("id").primaryKey(),
+  podcastId: text("podcast_id").notNull(),
+  podcastName: text("podcast_name").notNull(),
+  episodeGuid: text("episode_guid").notNull(),
+  episodeTitle: text("episode_title").notNull(),
+  taddyUuid: text("taddy_uuid"),
+  priority: integer("priority").notNull().default(50),
+  status: text("status").notNull().default("pending"),
+  attempts: integer("attempts").notNull().default(0),
+  lastAttemptAt: timestamp("last_attempt_at"),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type PendingTranscriptQueueItem = typeof pendingTranscriptQueue.$inferSelect;
+export type InsertPendingTranscriptQueueItem = typeof pendingTranscriptQueue.$inferInsert;
+
+export const taddyApiUsage = pgTable("taddy_api_usage", {
+  id: serial("id").primaryKey(),
+  monthKey: text("month_key").notNull().unique(),
+  callCount: integer("call_count").notNull().default(0),
+  lastResetAt: timestamp("last_reset_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type TaddyApiUsage = typeof taddyApiUsage.$inferSelect;
+
 export const emailLogs = pgTable("email_logs", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),

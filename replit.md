@@ -51,8 +51,8 @@ PodRise is a full-stack web application designed to provide personalized daily p
 ## External Dependencies
 - **Stripe**: Payment processing and subscription management.
 - **OpenAI**: AI models for content generation and chat.
-- **Taddy GraphQL API**: Podcast transcription and show notes extraction.
-- **iTunes Search API**: Podcast search functionality.
+- **Taddy GraphQL API**: Podcast transcription and show notes extraction. Budget-managed with monthly call tracking (450K/month limit), automatic rate-limit detection and backoff, and a pending transcript queue for retries. Episode discovery uses iTunes (free) instead of Taddy to reduce API usage by ~50%.
+- **iTunes Search API**: Podcast search functionality and primary episode discovery (replaces Taddy for episode listing).
 - **Resend**: Email delivery service.
 - **`connect-pg-simple`**: PostgreSQL store for Express sessions.
 - **`framer-motion`**: Frontend animation library.

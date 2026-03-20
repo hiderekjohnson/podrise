@@ -3,7 +3,7 @@ import { pool } from "./db";
 import { getUncachableResendClient } from "./resendClient";
 import { markdownToEmailHtml, recapHasContent, type EpisodeMetaForEmail } from "./emailTemplate";
 import { generateRecap, generateRecapFromTranscript, type ParsedEpisode } from "./recapGenerator";
-import { searchPodcastByItunesId, getRecentEpisodesWithTranscripts, getEpisodeTranscript, getEpisodeTranscriptSegments, getEpisodesByItunesId, searchEpisodeByName } from "./taddyClient";
+import { searchPodcastByItunesId, getRecentEpisodesWithTranscripts, getEpisodeTranscript, getEpisodeTranscriptSegments, getEpisodesByItunesId, searchEpisodeByName, isTaddyBudgetExhausted, isTaddyBudgetWarning, getTaddyBudgetStatus, markTaddyRateLimited } from "./taddyClient";
 import { parseRawTaddySegments, parseTranscriptToSegments } from "./transcriptParser";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 import { SQL_NORMALIZE_TITLE } from "./utils/normalizeTitle";
@@ -837,7 +837,7 @@ export async function refreshLandingPageRecaps(force: boolean = false, dateRange
           }
         }
 
-        if (!transcriptText) {
+        if (!transcriptText && !isTaddyBudgetExhausted()) {
           try {
             const taddyPodcast = await searchPodcastByItunesId(podcast.itunesId, podcast.name, podcast.taddyUuid);
             if (taddyPodcast?.uuid) {
@@ -872,6 +872,17 @@ export async function refreshLandingPageRecaps(force: boolean = false, dateRange
           } catch (taddyErr) {
             console.warn(`[LandingRecaps] Taddy lookup failed for ${podcast.name}:`, taddyErr);
           }
+        }
+
+        if (!transcriptText && isTaddyBudgetExhausted()) {
+          await storage.queueTranscriptFetch({
+            podcastId: podcast.itunesId,
+            podcastName: podcast.name,
+            episodeGuid,
+            episodeTitle: epTitle,
+            taddyUuid: podcast.taddyUuid || undefined,
+            priority: 30,
+          });
         }
 
         if (!transcriptText) {
@@ -1233,86 +1244,205 @@ export async function refreshNewTranscripts() {
     }
 
     const allDir = await storage.getPodcastDirectory();
-    const landingPodcasts = allDir.filter((p: any) => p.hasLandingPage && p.taddyUuid && p.itunesId);
+    const landingPodcasts = allDir.filter((p: any) => p.hasLandingPage && p.itunesId);
 
     const client = await dbPool.connect();
     let existingGuids: Set<string>;
+    let existingTitles: Map<string, Set<string>>;
+    let recentlyRefreshedPodcasts: Set<string>;
+    let podcastEpisodeCounts: Map<string, number>;
+    let podcastFollowerCounts: Map<string, number>;
     try {
-      const { rows } = await client.query("SELECT episode_guid FROM episode_transcripts");
+      const { rows } = await client.query("SELECT episode_guid, podcast_id FROM episode_transcripts");
       existingGuids = new Set(rows.map((r: any) => r.episode_guid));
+      existingTitles = new Map();
+      for (const r of rows) {
+        if (!existingTitles.has(r.podcast_id)) existingTitles.set(r.podcast_id, new Set());
+      }
+
+      const { rows: titleRows } = await client.query("SELECT podcast_id, lower(trim(episode_title)) as title FROM episode_transcripts");
+      for (const r of titleRows) {
+        if (!existingTitles.has(r.podcast_id)) existingTitles.set(r.podcast_id, new Set());
+        existingTitles.get(r.podcast_id)!.add(r.title);
+      }
+
+      const { rows: recentRows } = await client.query(
+        "SELECT DISTINCT podcast_id FROM episode_transcripts WHERE fetched_at > NOW() - INTERVAL '12 hours'"
+      );
+      recentlyRefreshedPodcasts = new Set(recentRows.map((r: any) => r.podcast_id));
+
+      const { rows: countRows } = await client.query(
+        "SELECT podcast_id, COUNT(*) as cnt FROM episode_transcripts GROUP BY podcast_id"
+      );
+      podcastEpisodeCounts = new Map(countRows.map((r: any) => [r.podcast_id, parseInt(r.cnt)]));
+
+      const { rows: followerRows } = await client.query(
+        "SELECT podcasts FROM users WHERE podcasts IS NOT NULL"
+      );
+      podcastFollowerCounts = new Map();
+      for (const row of followerRows) {
+        const podcasts = row.podcasts || [];
+        for (const p of podcasts) {
+          podcastFollowerCounts.set(p, (podcastFollowerCounts.get(p) || 0) + 1);
+        }
+      }
     } finally {
       client.release();
     }
 
-    console.log(`[DailyTranscripts] Checking ${landingPodcasts.length} podcasts for new episodes (${existingGuids.size} transcripts already stored)`);
+    const prioritizedPodcasts = landingPodcasts.map((p: any) => {
+      const episodeCount = podcastEpisodeCounts.get(p.itunesId) || 0;
+      const followers = podcastFollowerCounts.get(p.itunesId) || podcastFollowerCounts.get(p.name) || 0;
+      const recentlyRefreshed = recentlyRefreshedPodcasts.has(p.itunesId);
+      let priority = 50;
+      if (followers > 0) priority = 10;
+      else if (episodeCount === 0) priority = 20;
+      if (recentlyRefreshed) priority += 100;
+      return { ...p, priority, episodeCount, followers, recentlyRefreshed };
+    }).sort((a: any, b: any) => a.priority - b.priority);
+
+    const budgetStatus = getTaddyBudgetStatus();
+    console.log(`[DailyTranscripts] Checking ${prioritizedPodcasts.length} podcasts | ${existingGuids.size} transcripts stored | Taddy budget: ${budgetStatus.callCount}/${budgetStatus.limit}`);
 
     let totalDownloaded = 0;
+    let totalQueued = 0;
     let totalChecked = 0;
+    let totalSkippedRecent = 0;
     const BATCH_SIZE = 20;
 
-    for (const podcast of landingPodcasts) {
+    for (const podcast of prioritizedPodcasts) {
       totalChecked++;
+
+      if (podcast.recentlyRefreshed && podcast.episodeCount > 0) {
+        totalSkippedRecent++;
+        continue;
+      }
+
       try {
-        const seriesRes = await fetch("https://api.taddy.org", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
-          body: JSON.stringify({ query: `{ getPodcastSeries(uuid: "${podcast.taddyUuid}") { uuid episodes(sortOrder: LATEST, limitPerPage: 10) { uuid name description datePublished duration audioUrl imageUrl seasonNumber episodeNumber episodeType subtitle } } }` }),
-          signal: AbortSignal.timeout(20000),
-        });
-        if (seriesRes.status === 429) {
-          console.log("[DailyTranscripts] Rate limited, pausing 30s...");
-          await new Promise(r => setTimeout(r, 30000));
-          continue;
-        }
-        const seriesData = await seriesRes.json();
-        const episodes = seriesData?.data?.getPodcastSeries?.episodes;
-        if (!episodes || !Array.isArray(episodes) || episodes.length === 0) {
-          await new Promise(r => setTimeout(r, 300));
+        const lookupUrl = `https://itunes.apple.com/lookup?id=${podcast.itunesId}&media=podcast&entity=podcastEpisode&limit=10&sort=recent`;
+        const lookupRes = await fetch(lookupUrl, { signal: AbortSignal.timeout(15000) });
+        const lookupJson = await lookupRes.json();
+        const episodes = (lookupJson.results || []).filter((r: any) => r.wrapperType === "podcastEpisode");
+
+        if (episodes.length === 0) {
+          await new Promise(r => setTimeout(r, 200));
           continue;
         }
 
         let downloaded = 0;
+        const podcastTitles = existingTitles.get(podcast.itunesId) || new Set();
+
         for (const ep of episodes) {
-          if (existingGuids.has(ep.uuid)) continue;
+          const epTitle = ep.trackName || "Untitled";
+          const epGuid = ep.episodeGuid || `${podcast.itunesId}_${ep.trackId || epTitle}`;
+          const normalizedTitle = epTitle.toLowerCase().trim();
+
+          if (existingGuids.has(epGuid) || podcastTitles.has(normalizedTitle)) {
+            continue;
+          }
+
+          if (isTaddyBudgetExhausted()) {
+            await storage.queueTranscriptFetch({
+              podcastId: podcast.itunesId,
+              podcastName: podcast.name,
+              episodeGuid: epGuid,
+              episodeTitle: epTitle,
+              taddyUuid: podcast.taddyUuid || undefined,
+              priority: podcast.priority,
+            });
+            totalQueued++;
+            continue;
+          }
+
+          if (!podcast.taddyUuid) {
+            try {
+              const taddyPodcast = await searchPodcastByItunesId(podcast.itunesId, podcast.name);
+              if (taddyPodcast?.uuid) {
+                podcast.taddyUuid = taddyPodcast.uuid;
+                storage.updatePodcastTaddyUuid(podcast.itunesId, taddyPodcast.uuid).catch(() => {});
+              }
+            } catch {}
+          }
+
+          if (!podcast.taddyUuid) {
+            await storage.queueTranscriptFetch({
+              podcastId: podcast.itunesId,
+              podcastName: podcast.name,
+              episodeGuid: epGuid,
+              episodeTitle: epTitle,
+              priority: podcast.priority,
+            });
+            totalQueued++;
+            continue;
+          }
 
           try {
-            const tRes = await fetch("https://api.taddy.org", {
-              method: "POST",
-              headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
-              body: JSON.stringify({ query: `{ getEpisodeTranscript(uuid: "${ep.uuid}") { text speaker } }` }),
-              signal: AbortSignal.timeout(30000),
+            const taddyEpisodes = await getRecentEpisodesWithTranscripts(podcast.taddyUuid, 15);
+            const titleNorm = epTitle.toLowerCase().trim().replace(/[^a-z0-9]/g, "");
+            const taddyMatch = taddyEpisodes.find((te: any) => {
+              if (!te.name) return false;
+              const tNorm = te.name.toLowerCase().trim().replace(/[^a-z0-9]/g, "");
+              return tNorm === titleNorm || tNorm.includes(titleNorm) || titleNorm.includes(tNorm);
             });
-            if (tRes.status === 429) {
-              console.log("[DailyTranscripts] Rate limited on transcript, pausing 30s...");
-              await new Promise(r => setTimeout(r, 30000));
-              continue;
-            }
-            const tData = await tRes.json();
-            const segments = tData?.data?.getEpisodeTranscript;
-            if (segments && Array.isArray(segments) && segments.length > 0) {
-              const text = segments.map((s: any) => (s.speaker ? `[${s.speaker}] ` : "") + s.text).join("\n");
-              if (text.length > 100) {
-                await storage.saveTranscript({
+
+            if (taddyMatch?.uuid) {
+              const segments = await getEpisodeTranscriptSegments(taddyMatch.uuid);
+              if (segments && segments.length > 0) {
+                const text = segments.map((s: any) => (s.speaker ? `[${s.speaker}] ` : "") + s.text).join("\n");
+                if (text.length > 100) {
+                  const datePublished = taddyMatch.datePublished || (ep.releaseDate ? Math.floor(new Date(ep.releaseDate).getTime() / 1000) : undefined);
+                  await storage.saveTranscript({
+                    podcastId: podcast.itunesId,
+                    episodeGuid: epGuid,
+                    episodeTitle: epTitle,
+                    transcript: text,
+                    description: ep.description || ep.shortDescription || undefined,
+                    datePublished,
+                    duration: ep.trackTimeMillis ? Math.round(ep.trackTimeMillis / 1000) : undefined,
+                    audioUrl: ep.episodeUrl || undefined,
+                    imageUrl: ep.artworkUrl600 || ep.artworkUrl160 || undefined,
+                  });
+                  existingGuids.add(epGuid);
+                  podcastTitles.add(normalizedTitle);
+                  downloaded++;
+                  totalDownloaded++;
+                }
+              } else {
+                await storage.queueTranscriptFetch({
                   podcastId: podcast.itunesId,
-                  episodeGuid: ep.uuid,
-                  episodeTitle: ep.name || "Untitled",
-                  transcript: text,
-                  description: ep.description || undefined,
-                  subtitle: ep.subtitle || undefined,
-                  datePublished: ep.datePublished || undefined,
-                  duration: ep.duration || undefined,
-                  audioUrl: ep.audioUrl || undefined,
-                  imageUrl: ep.imageUrl || undefined,
-                  seasonNumber: ep.seasonNumber || undefined,
-                  episodeNumber: ep.episodeNumber || undefined,
-                  episodeType: ep.episodeType || undefined,
+                  podcastName: podcast.name,
+                  episodeGuid: epGuid,
+                  episodeTitle: epTitle,
+                  taddyUuid: podcast.taddyUuid || undefined,
+                  priority: podcast.priority,
                 });
-                existingGuids.add(ep.uuid);
-                downloaded++;
-                totalDownloaded++;
+                totalQueued++;
               }
+            } else {
+              await storage.queueTranscriptFetch({
+                podcastId: podcast.itunesId,
+                podcastName: podcast.name,
+                episodeGuid: epGuid,
+                episodeTitle: epTitle,
+                taddyUuid: podcast.taddyUuid || undefined,
+                priority: podcast.priority,
+              });
+              totalQueued++;
             }
-          } catch {}
+          } catch (err: any) {
+            if (err?.message?.includes("rate") || err?.message?.includes("429")) {
+              markTaddyRateLimited(120000);
+            }
+            await storage.queueTranscriptFetch({
+              podcastId: podcast.itunesId,
+              podcastName: podcast.name,
+              episodeGuid: epGuid,
+              episodeTitle: epTitle,
+              taddyUuid: podcast.taddyUuid || undefined,
+              priority: podcast.priority,
+            });
+            totalQueued++;
+          }
           await new Promise(r => setTimeout(r, 400));
         }
 
@@ -1324,18 +1454,107 @@ export async function refreshNewTranscripts() {
           console.warn(`[DailyTranscripts] Error for ${podcast.name}:`, err?.message?.slice(0, 100));
         }
       }
-      await new Promise(r => setTimeout(r, 400));
+      await new Promise(r => setTimeout(r, 300));
 
-      if (totalChecked % BATCH_SIZE === 0 && totalChecked < landingPodcasts.length) {
-        await new Promise(r => setTimeout(r, 5000));
+      if (totalChecked % BATCH_SIZE === 0 && totalChecked < prioritizedPodcasts.length) {
+        await new Promise(r => setTimeout(r, 3000));
       }
     }
 
-    console.log(`[DailyTranscripts] Complete: ${totalDownloaded} new transcripts across ${landingPodcasts.length} podcasts`);
+    console.log(`[DailyTranscripts] Complete: ${totalDownloaded} downloaded, ${totalQueued} queued, ${totalSkippedRecent} skipped (recent) across ${prioritizedPodcasts.length} podcasts`);
+
+    await processTranscriptQueue();
   } catch (err) {
     console.error("[DailyTranscripts] Fatal error:", err);
   } finally {
     dailyTranscriptRefreshRunning = false;
+  }
+}
+
+export async function processTranscriptQueue() {
+  if (isTaddyBudgetExhausted()) {
+    console.log("[TranscriptQueue] Taddy budget exhausted, skipping queue processing");
+    return;
+  }
+
+  try {
+    const queueItems = await storage.getPendingTranscriptQueue(30);
+    if (queueItems.length === 0) return;
+
+    console.log(`[TranscriptQueue] Processing ${queueItems.length} queued transcript fetches`);
+    let processed = 0;
+    let failed = 0;
+
+    for (const item of queueItems) {
+      if (isTaddyBudgetExhausted()) {
+        console.log("[TranscriptQueue] Budget exhausted mid-queue, stopping");
+        break;
+      }
+
+      if (item.attempts >= 5) {
+        await storage.updateTranscriptQueueStatus(item.id, "failed", "Max attempts reached");
+        failed++;
+        continue;
+      }
+
+      try {
+        const existing = await storage.getTranscriptByEpisodeGuid(item.episodeGuid);
+        if (existing) {
+          await storage.updateTranscriptQueueStatus(item.id, "completed");
+          processed++;
+          continue;
+        }
+
+        let taddyUuid = item.taddyUuid;
+        if (!taddyUuid) {
+          const taddyPodcast = await searchPodcastByItunesId(item.podcastId, item.podcastName);
+          if (taddyPodcast?.uuid) {
+            taddyUuid = taddyPodcast.uuid;
+          }
+        }
+
+        if (!taddyUuid) {
+          await storage.updateTranscriptQueueStatus(item.id, "pending", "No Taddy UUID found");
+          continue;
+        }
+
+        const episodes = await getRecentEpisodesWithTranscripts(taddyUuid, 15);
+        const titleNorm = item.episodeTitle.toLowerCase().trim().replace(/[^a-z0-9]/g, "");
+        const match = episodes.find((e: any) => {
+          if (!e.name) return false;
+          const n = e.name.toLowerCase().trim().replace(/[^a-z0-9]/g, "");
+          return n === titleNorm || n.includes(titleNorm) || titleNorm.includes(n);
+        });
+
+        if (match?.uuid) {
+          const segments = await getEpisodeTranscriptSegments(match.uuid);
+          if (segments && segments.length > 0) {
+            const text = segments.map((s: any) => (s.speaker ? `[${s.speaker}] ` : "") + s.text).join("\n");
+            if (text.length > 100) {
+              await storage.saveTranscript({
+                podcastId: item.podcastId,
+                episodeGuid: item.episodeGuid,
+                episodeTitle: item.episodeTitle,
+                transcript: text,
+              });
+              await storage.updateTranscriptQueueStatus(item.id, "completed");
+              processed++;
+              continue;
+            }
+          }
+        }
+
+        await storage.updateTranscriptQueueStatus(item.id, "pending", "Transcript not yet available");
+      } catch (err: any) {
+        await storage.updateTranscriptQueueStatus(item.id, "pending", err?.message?.slice(0, 200) || "Unknown error");
+        failed++;
+      }
+      await new Promise(r => setTimeout(r, 500));
+    }
+
+    console.log(`[TranscriptQueue] Done: ${processed} completed, ${failed} failed`);
+  } catch (err) {
+    console.error("[TranscriptQueue] Error:", err);
   }
 }
 

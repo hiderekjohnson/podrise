@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, advertisers, bookmarks, bookBookmarks, deviceTokens, refreshTokens, errorLogs, referrals, referralTiers, supportArticles, feedAds, feedAdSettings, featureFlags, userFeatureOverrides, adEvents, siteSettings, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type BookBookmark, type InsertBookBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog, type Referral, type ReferralTier, type InsertReferralTier, type SupportArticle, type InsertSupportArticle, type FeedAd, type InsertFeedAd, type FeedAdSetting, type FeatureFlag, type InsertFeatureFlag, type UserFeatureOverride, type AdEvent, type InsertAdEvent, type SiteSetting } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, advertisers, bookmarks, bookBookmarks, deviceTokens, refreshTokens, errorLogs, referrals, referralTiers, supportArticles, feedAds, feedAdSettings, featureFlags, userFeatureOverrides, adEvents, siteSettings, pendingTranscriptQueue, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type BookBookmark, type InsertBookBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog, type Referral, type ReferralTier, type InsertReferralTier, type SupportArticle, type InsertSupportArticle, type FeedAd, type InsertFeedAd, type FeedAdSetting, type FeatureFlag, type InsertFeatureFlag, type UserFeatureOverride, type AdEvent, type InsertAdEvent, type SiteSetting, type PendingTranscriptQueueItem } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull, asc, inArray } from "drizzle-orm";
 import { normalizeTitle } from "./utils/normalizeTitle";
 
@@ -127,6 +127,10 @@ export interface IStorage {
   getAdEventsByAdId(adId: number, startDate?: Date, endDate?: Date): Promise<AdEvent[]>;
   getSiteSetting(key: string): Promise<any | undefined>;
   setSiteSetting(key: string, value: any): Promise<SiteSetting>;
+  queueTranscriptFetch(data: { podcastId: string; podcastName: string; episodeGuid: string; episodeTitle: string; taddyUuid?: string; priority?: number }): Promise<PendingTranscriptQueueItem>;
+  getPendingTranscriptQueue(limit?: number): Promise<PendingTranscriptQueueItem[]>;
+  updateTranscriptQueueStatus(id: number, status: string, errorMessage?: string): Promise<void>;
+  getTranscriptQueueDepth(): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1224,6 +1228,72 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return result;
+  }
+
+  async queueTranscriptFetch(data: { podcastId: string; podcastName: string; episodeGuid: string; episodeTitle: string; taddyUuid?: string; priority?: number }): Promise<PendingTranscriptQueueItem> {
+    const existing = await db
+      .select()
+      .from(pendingTranscriptQueue)
+      .where(and(
+        eq(pendingTranscriptQueue.podcastId, data.podcastId),
+        eq(pendingTranscriptQueue.episodeGuid, data.episodeGuid),
+      ))
+      .limit(1);
+    if (existing.length > 0) {
+      if (existing[0].status === "failed") {
+        const [revived] = await db
+          .update(pendingTranscriptQueue)
+          .set({ status: "pending", attempts: 0, errorMessage: null })
+          .where(eq(pendingTranscriptQueue.id, existing[0].id))
+          .returning();
+        return revived;
+      }
+      return existing[0];
+    }
+
+    const [item] = await db
+      .insert(pendingTranscriptQueue)
+      .values({
+        podcastId: data.podcastId,
+        podcastName: data.podcastName,
+        episodeGuid: data.episodeGuid,
+        episodeTitle: data.episodeTitle,
+        taddyUuid: data.taddyUuid || null,
+        priority: data.priority || 50,
+        status: "pending",
+        attempts: 0,
+      })
+      .returning();
+    return item;
+  }
+
+  async getPendingTranscriptQueue(limit: number = 50): Promise<PendingTranscriptQueueItem[]> {
+    return db
+      .select()
+      .from(pendingTranscriptQueue)
+      .where(eq(pendingTranscriptQueue.status, "pending"))
+      .orderBy(asc(pendingTranscriptQueue.priority), asc(pendingTranscriptQueue.createdAt))
+      .limit(limit);
+  }
+
+  async updateTranscriptQueueStatus(id: number, status: string, errorMessage?: string): Promise<void> {
+    await db
+      .update(pendingTranscriptQueue)
+      .set({
+        status,
+        lastAttemptAt: new Date(),
+        attempts: sql`${pendingTranscriptQueue.attempts} + 1`,
+        errorMessage: errorMessage || null,
+      })
+      .where(eq(pendingTranscriptQueue.id, id));
+  }
+
+  async getTranscriptQueueDepth(): Promise<number> {
+    const [result] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(pendingTranscriptQueue)
+      .where(eq(pendingTranscriptQueue.status, "pending"));
+    return result?.count || 0;
   }
 }
 

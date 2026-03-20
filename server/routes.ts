@@ -788,6 +788,44 @@ export async function registerRoutes(
       );
     `);
 
+    await migrationPool.query(`
+      CREATE TABLE IF NOT EXISTS pending_transcript_queue (
+        id SERIAL PRIMARY KEY,
+        podcast_id TEXT NOT NULL,
+        podcast_name TEXT NOT NULL,
+        episode_guid TEXT NOT NULL,
+        episode_title TEXT NOT NULL,
+        taddy_uuid TEXT,
+        priority INTEGER NOT NULL DEFAULT 50,
+        status TEXT NOT NULL DEFAULT 'pending',
+        attempts INTEGER NOT NULL DEFAULT 0,
+        last_attempt_at TIMESTAMP,
+        error_message TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    await migrationPool.query(`
+      CREATE TABLE IF NOT EXISTS taddy_api_usage (
+        id SERIAL PRIMARY KEY,
+        month_key TEXT NOT NULL UNIQUE,
+        call_count INTEGER NOT NULL DEFAULT 0,
+        last_reset_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    await migrationPool.query(`
+      CREATE INDEX IF NOT EXISTS idx_pending_transcript_queue_status
+      ON pending_transcript_queue (status, priority, created_at);
+    `);
+
+    await migrationPool.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_pending_transcript_queue_dedup
+      ON pending_transcript_queue (podcast_id, episode_guid)
+      WHERE status = 'pending';
+    `);
+
     console.log("[startup] Schema migration check complete");
 
     
@@ -8875,6 +8913,72 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
 
 
+  app.get("/api/admin/episode-ingestion", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { getTaddyBudgetStatus } = await import("./taddyClient");
+
+      const { rows: zeroPodcasts } = await pool.query(`
+        SELECT pd.itunes_id, pd.name, pd.slug
+        FROM podcast_directory pd
+        WHERE pd.has_landing_page = true
+          AND NOT EXISTS (SELECT 1 FROM episode_transcripts et WHERE et.podcast_id = pd.itunes_id)
+        ORDER BY pd.name
+      `);
+
+      const { rows: episodeStats } = await pool.query(`
+        SELECT COUNT(*) as total_transcripts,
+               COUNT(DISTINCT podcast_id) as podcasts_with_transcripts,
+               COUNT(CASE WHEN fetched_at > NOW() - INTERVAL '24 hours' THEN 1 END) as fetched_last_24h,
+               COUNT(CASE WHEN fetched_at > NOW() - INTERVAL '7 days' THEN 1 END) as fetched_last_7d
+        FROM episode_transcripts
+      `);
+
+      const { rows: queueStats } = await pool.query(`
+        SELECT status, COUNT(*) as cnt FROM pending_transcript_queue GROUP BY status
+      `);
+
+      const { rows: recentErrors } = await pool.query(`
+        SELECT podcast_name, episode_title, error_message, attempts, last_attempt_at, created_at
+        FROM pending_transcript_queue
+        WHERE status = 'failed' OR (status = 'pending' AND attempts > 0)
+        ORDER BY last_attempt_at DESC NULLS LAST
+        LIMIT 20
+      `);
+
+      const budgetStatus = getTaddyBudgetStatus();
+
+      const queueDepth: Record<string, number> = {};
+      for (const r of queueStats) {
+        queueDepth[r.status] = parseInt(r.cnt);
+      }
+
+      res.json({
+        taddyBudget: budgetStatus,
+        podcastsWithZeroEpisodes: {
+          count: zeroPodcasts.length,
+          podcasts: zeroPodcasts,
+        },
+        transcriptStats: episodeStats[0] || {},
+        queueDepth,
+        recentErrors,
+      });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to fetch ingestion stats" });
+    }
+  });
+
+  app.post("/api/admin/process-transcript-queue", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { refreshNewTranscripts } = await import("./emailScheduler");
+      refreshNewTranscripts();
+      res.json({ message: "Transcript refresh triggered (includes queue processing)" });
+    } catch (err: any) {
+      res.status(500).json({ message: err?.message || "Failed to trigger queue processing" });
+    }
+  });
+
   app.get("/api/admin/processing-health", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     try {
@@ -15879,6 +15983,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     }
   });
 
+  app.post("/api/webhooks/taddy/", (req, res, next) => next());
   app.post("/api/webhooks/taddy", async (req, res) => {
     try {
       const webhookSecret = process.env.TADDY_WEBHOOK_SECRET;
@@ -15939,10 +16044,32 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
               return;
             }
 
-            const { getEpisodeTranscript } = await import("./taddyClient");
+            const { getEpisodeTranscript, isTaddyBudgetExhausted: isBudgetExhausted } = await import("./taddyClient");
+
+            if (isBudgetExhausted()) {
+              console.log(`[TaddyWebhook] Budget exhausted, queuing "${epTitle.slice(0, 60)}"`);
+              await storage.queueTranscriptFetch({
+                podcastId: podcast.itunes_id,
+                podcastName: podcast.name,
+                episodeGuid: epUuid,
+                episodeTitle: epTitle,
+                taddyUuid: podcast.taddy_uuid || seriesUuid || undefined,
+                priority: 10,
+              });
+              return;
+            }
+
             const transcript = await getEpisodeTranscript(epUuid);
             if (!transcript) {
-              console.log(`[TaddyWebhook] No transcript available yet for "${epTitle.slice(0, 60)}"`);
+              console.log(`[TaddyWebhook] No transcript available yet, queuing "${epTitle.slice(0, 60)}"`);
+              await storage.queueTranscriptFetch({
+                podcastId: podcast.itunes_id,
+                podcastName: podcast.name,
+                episodeGuid: epUuid,
+                episodeTitle: epTitle,
+                taddyUuid: podcast.taddy_uuid || seriesUuid || undefined,
+                priority: 10,
+              });
               return;
             }
 
