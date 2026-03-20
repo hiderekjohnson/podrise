@@ -157,10 +157,38 @@ interface ChatMsg {
   content: string;
 }
 
+const INLINE_SAMPLE_QUESTIONS = [
+  "What was the most surprising thing discussed?",
+  "What were the key takeaways?",
+  "Were there any disagreements between the hosts?",
+  "What advice was given that I could apply today?",
+  "What assumptions were challenged?",
+  "Were there any predictions made about the future?",
+  "What was the most controversial opinion shared?",
+  "What questions went unanswered?",
+  "Were any books or resources recommended?",
+  "What was the strongest argument made?",
+  "How does this connect to current events?",
+  "What was the most memorable quote or moment?",
+  "What did the hosts seem most passionate about?",
+  "What's the one thing I should remember from this?",
+];
+
+function getInlineSampleQuestions(): string[] {
+  const count = Math.random() < 0.5 ? 2 : 3;
+  const shuffled = [...INLINE_SAMPLE_QUESTIONS];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.slice(0, count);
+}
+
 function InlineChatSection({ item }: { item: AccordionItemData }) {
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sampleQuestions] = useState<string[]>(() => getInlineSampleQuestions());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -199,6 +227,21 @@ function InlineChatSection({ item }: { item: AccordionItemData }) {
   return (
     <div className="px-4 md:px-5 py-4" data-testid={`inline-chat-${item.id}`}>
       <div className="max-h-[280px] overflow-y-auto space-y-2.5 mb-3">
+        {messages.length === 0 && (
+          <div className="space-y-2">
+            <p className="text-[13px] text-[#71717A] leading-relaxed" data-testid={`inline-chat-subtitle-${item.id}`}>Go beyond the recap. Explore what stood out, what was implied, and what's worth thinking more about.</p>
+            {sampleQuestions.map((q, i) => (
+              <button
+                key={i}
+                onClick={() => sendMessage(q)}
+                className="block w-full text-left text-[14px] px-3 py-2.5 rounded-xl border border-[#E4E4E7] hover:bg-[#6366F1]/[0.04] hover:border-[#6366F1]/20 text-[#3F3F46] transition-all"
+                data-testid={`inline-sample-question-${item.id}-${i}`}
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+        )}
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
             <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-[14px] leading-relaxed ${
@@ -377,7 +420,7 @@ export function CardBottomAccordion({ item, bottomBar, isLoggedIn }: {
               <Sparkles className="w-[22px] h-[22px] text-[#6366F1]" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[14px] font-bold text-[#09090B]">Chat about this episode</div>
+              <div className="text-[14px] font-bold text-[#09090B]">Ask AI about this episode</div>
             </div>
             <ChevronDown className={`w-4 h-4 text-[#A1A1AA] flex-shrink-0 transition-transform duration-200 ${openSection === "chat" ? "rotate-180 text-[#6366F1]" : ""}`} />
           </div>
