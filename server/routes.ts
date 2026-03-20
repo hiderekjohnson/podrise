@@ -12204,14 +12204,12 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
     try {
       const { ITUNES_ID_TO_SLUG, SLUG_TO_ITUNES_ID } = await import("./podcastLandingMap");
-      const { getEpisodeTranscript } = await import("./taddyClient");
+      const { getEpisodeTranscript, getPodcastSeriesWithEpisodes, getTranscriptCreditsRemaining } = await import("./taddyClient");
 
       const { slugFilter, target: customTarget } = req.body || {};
       const TARGET = (customTarget && Number(customTarget) > 0) ? Number(customTarget) : 25;
 
-      const taddyUserId = process.env.TADDY_USER_ID;
-      const taddyApiKey = process.env.TADDY_API_KEY;
-      if (!taddyUserId || !taddyApiKey) {
+      if (!process.env.TADDY_USER_ID || !process.env.TADDY_API_KEY) {
         return res.status(500).json({ message: "Taddy API credentials not configured" });
       }
 
@@ -12240,13 +12238,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       res.writeHead(200, { "Content-Type": "application/json", "Transfer-Encoding": "chunked" });
       res.write(JSON.stringify({ type: "plan", totalPodcasts: podcastsToProcess.length, phase: "transcript_download" }) + "\n");
 
-      const creditsRes = await fetch("https://api.taddy.org", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
-        body: JSON.stringify({ query: "{ getTranscriptCreditsRemaining }" }),
-      });
-      const creditsData = await creditsRes.json();
-      const creditsRemaining = creditsData?.data?.getTranscriptCreditsRemaining ?? "unknown";
+      const creditsRemaining = await getTranscriptCreditsRemaining() ?? "unknown";
       res.write(JSON.stringify({ type: "credits", remaining: creditsRemaining }) + "\n");
 
       let totalDownloaded = 0;
@@ -12264,50 +12256,12 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           }
 
           const epLimit = Math.min(needed + 5, 25);
-          const taddyQuery = `{
-            getPodcastSeries(itunesId: ${numericItunesId}) {
-              uuid
-              name
-              taddyTranscribeStatus
-              episodes(sortOrder: LATEST, limitPerPage: ${epLimit}) {
-                uuid
-                name
-                datePublished
-                taddyTranscribeStatus
-              }
-            }
-          }`;
 
-          const taddyRes = await fetch("https://api.taddy.org", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
-            body: JSON.stringify({ query: taddyQuery }),
-          });
-          const taddyData = await taddyRes.json();
-          let taddySeries = taddyData?.data?.getPodcastSeries;
+          let taddySeries = await getPodcastSeriesWithEpisodes({ itunesId: numericItunesId }, epLimit);
 
           if (taddySeries?.uuid && (!taddySeries.episodes || taddySeries.episodes.length === 0)) {
             await new Promise(resolve => setTimeout(resolve, 1000));
-            const retryQuery = `{
-              getPodcastSeries(uuid: "${taddySeries.uuid}") {
-                uuid
-                name
-                taddyTranscribeStatus
-                episodes(sortOrder: LATEST, limitPerPage: ${epLimit}) {
-                  uuid
-                  name
-                  datePublished
-                  taddyTranscribeStatus
-                }
-              }
-            }`;
-            const retryRes = await fetch("https://api.taddy.org", {
-              method: "POST",
-              headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
-              body: JSON.stringify({ query: retryQuery }),
-            });
-            const retryData = await retryRes.json();
-            const retrySeries = retryData?.data?.getPodcastSeries;
+            const retrySeries = await getPodcastSeriesWithEpisodes({ uuid: taddySeries.uuid }, epLimit);
             if (retrySeries?.episodes && retrySeries.episodes.length > 0) {
               taddySeries = retrySeries;
             }
@@ -12384,13 +12338,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         await new Promise(resolve => setTimeout(resolve, 500));
       }
 
-      const creditsRes2 = await fetch("https://api.taddy.org", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-USER-ID": taddyUserId, "X-API-KEY": taddyApiKey },
-        body: JSON.stringify({ query: "{ getTranscriptCreditsRemaining }" }),
-      });
-      const creditsData2 = await creditsRes2.json();
-      const creditsAfter = creditsData2?.data?.getTranscriptCreditsRemaining ?? "unknown";
+      const creditsAfter = await getTranscriptCreditsRemaining() ?? "unknown";
 
       res.write(JSON.stringify({
         type: "done",

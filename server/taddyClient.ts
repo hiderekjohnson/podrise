@@ -425,6 +425,65 @@ export async function getEpisodeTranscript(episodeUuid: string): Promise<string 
   return lines.join("\n");
 }
 
+export interface TaddySeriesWithEpisodes {
+  uuid: string;
+  name: string;
+  taddyTranscribeStatus?: string;
+  episodes: Array<{
+    uuid: string;
+    name: string;
+    datePublished?: number;
+    taddyTranscribeStatus?: string;
+  }>;
+}
+
+export async function getPodcastSeriesWithEpisodes(
+  opts: { uuid?: string; itunesId?: number },
+  epLimit: number = 25
+): Promise<TaddySeriesWithEpisodes | null> {
+  epLimit = Math.min(epLimit, 25);
+  let query: string;
+  if (opts.uuid) {
+    query = `{
+      getPodcastSeries(uuid: "${opts.uuid}") {
+        uuid
+        name
+        taddyTranscribeStatus
+        episodes(sortOrder: LATEST, limitPerPage: ${epLimit}) {
+          uuid
+          name
+          datePublished
+          taddyTranscribeStatus
+        }
+      }
+    }`;
+  } else if (opts.itunesId) {
+    query = `{
+      getPodcastSeries(itunesId: ${opts.itunesId}) {
+        uuid
+        name
+        taddyTranscribeStatus
+        episodes(sortOrder: LATEST, limitPerPage: ${epLimit}) {
+          uuid
+          name
+          datePublished
+          taddyTranscribeStatus
+        }
+      }
+    }`;
+  } else {
+    return null;
+  }
+
+  const data = await taddyRequest(query);
+  return data?.data?.getPodcastSeries || null;
+}
+
+export async function getTranscriptCreditsRemaining(): Promise<number | null> {
+  const data = await taddyRequest("{ getTranscriptCreditsRemaining }");
+  return data?.data?.getTranscriptCreditsRemaining ?? null;
+}
+
 export async function registerWebhook(endpointUrl: string, events: string[] = ["new_episodes_released"]): Promise<any> {
   const eventsStr = events.map(e => `"${e}"`).join(", ");
   const query = `mutation { addWebhookUrlForUser(endpointUrl: "${endpointUrl}", webhookEvents: [${eventsStr}]) { id endpointUrl isVerified isActive webhookSecret events } }`;
