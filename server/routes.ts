@@ -13283,6 +13283,204 @@ Rules:
     }
   });
 
+  app.get("/api/admin/users/:id/profile", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const userId = parseInt(req.params.id, 10);
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+    try {
+      const userResult = await pool.query(`SELECT * FROM users WHERE id = $1`, [userId]);
+      if (userResult.rows.length === 0) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      const row = userResult.rows[0];
+      const user = {
+        id: row.id,
+        email: row.email,
+        podcasts: row.podcasts || [],
+        industries: row.industries || [],
+        interests: row.interests || [],
+        roles: row.roles || [],
+        topicFrequencies: row.topic_frequencies || {},
+        deliveryTime: row.delivery_time,
+        deliveryTimezone: row.delivery_timezone,
+        stripeCustomerId: row.stripe_customer_id,
+        stripeSubscriptionId: row.stripe_subscription_id,
+        plan: row.plan,
+        vacationUntil: row.vacation_until,
+        emailVerified: row.email_verified,
+        signupSource: row.signup_source,
+        signupSourceDetail: row.signup_source_detail,
+        utmSource: row.utm_source,
+        utmMedium: row.utm_medium,
+        utmCampaign: row.utm_campaign,
+        utmContent: row.utm_content,
+        utmTerm: row.utm_term,
+        ipAddress: row.ip_address,
+        userAgent: row.user_agent,
+        deviceType: row.device_type,
+        googleId: row.google_id,
+        onboardingCompleted: row.onboarding_completed,
+        displayName: row.display_name,
+        birthday: row.birthday,
+        gender: row.gender,
+        location: row.location,
+        language: row.language,
+        referralCode: row.referral_code,
+        referredBy: row.referred_by,
+        createdAt: row.created_at,
+        lastLoginAt: row.last_login_at,
+      };
+
+      const emailStatsResult = await pool.query(
+        `SELECT
+          COUNT(*) FILTER (WHERE status = 'sent') as total_sent,
+          COUNT(*) FILTER (WHERE status = 'sent' AND email_opened_at IS NOT NULL) as total_opened,
+          COUNT(*) FILTER (WHERE status = 'sent' AND first_clicked_at IS NOT NULL) as total_clicked,
+          MAX(sent_at) as last_email_date
+        FROM pending_emails WHERE user_id = $1`,
+        [userId]
+      );
+      const emailStats = emailStatsResult.rows[0] || {};
+
+      const recentEmailsResult = await pool.query(
+        `SELECT id, recipient_email, podcasts, recap_date, subject, status, sent_at, email_opened_at, first_clicked_at, created_at
+        FROM pending_emails WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50`,
+        [userId]
+      );
+      const recentEmails = recentEmailsResult.rows.map((r: any) => ({
+        id: r.id,
+        recipientEmail: r.recipient_email,
+        podcasts: r.podcasts || [],
+        recapDate: r.recap_date,
+        subject: r.subject,
+        status: r.status,
+        sentAt: r.sent_at,
+        emailOpenedAt: r.email_opened_at,
+        firstClickedAt: r.first_clicked_at,
+        createdAt: r.created_at,
+      }));
+
+      const emailClicksResult = await pool.query(
+        `SELECT ec.id, ec.email_id, ec.url, ec.clicked_at
+        FROM email_clicks ec
+        JOIN pending_emails pe ON pe.id = ec.email_id
+        WHERE pe.user_id = $1
+        ORDER BY ec.clicked_at DESC LIMIT 100`,
+        [userId]
+      );
+      const clicks = emailClicksResult.rows.map((r: any) => ({
+        id: r.id,
+        emailId: r.email_id,
+        url: r.url,
+        clickedAt: r.clicked_at,
+      }));
+
+      const bookmarksResult = await pool.query(
+        `SELECT id, episode_slug, podcast_slug, created_at FROM bookmarks WHERE user_id = $1 ORDER BY created_at DESC`,
+        [userId]
+      );
+      const userBookmarks = bookmarksResult.rows.map((r: any) => ({
+        id: r.id,
+        episodeSlug: r.episode_slug,
+        podcastSlug: r.podcast_slug,
+        createdAt: r.created_at,
+      }));
+
+      const referralsMadeResult = await pool.query(
+        `SELECT r.id, r.referred_user_id, r.status, r.created_at, r.verified_at, u.email as referred_email
+        FROM referrals r LEFT JOIN users u ON u.id = r.referred_user_id
+        WHERE r.referrer_id = $1 ORDER BY r.created_at DESC`,
+        [userId]
+      );
+      const referralsMade = referralsMadeResult.rows.map((r: any) => ({
+        id: r.id,
+        referredUserId: r.referred_user_id,
+        referredEmail: r.referred_email,
+        status: r.status,
+        createdAt: r.created_at,
+        verifiedAt: r.verified_at,
+      }));
+
+      let referredByUser = null;
+      if (user.referredBy) {
+        const refByResult = await pool.query(`SELECT id, email, display_name FROM users WHERE id = $1`, [user.referredBy]);
+        if (refByResult.rows.length > 0) {
+          const rb = refByResult.rows[0];
+          referredByUser = { id: rb.id, email: rb.email, displayName: rb.display_name };
+        }
+      }
+
+      res.json({
+        user,
+        emailStats: {
+          totalSent: parseInt(emailStats.total_sent || "0"),
+          totalOpened: parseInt(emailStats.total_opened || "0"),
+          totalClicked: parseInt(emailStats.total_clicked || "0"),
+          lastEmailDate: emailStats.last_email_date,
+        },
+        recentEmails,
+        emailClicks: clicks,
+        bookmarks: userBookmarks,
+        referralsMade,
+        referredByUser,
+      });
+    } catch (err) {
+      console.error("Failed to fetch user profile:", err);
+      res.status(500).json({ message: "Failed to fetch user profile" });
+    }
+  });
+
+  app.patch("/api/admin/users/:id/profile", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    const userId = parseInt(req.params.id, 10);
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+    const profileUpdateSchema = z.object({
+      displayName: z.string().nullable().optional(),
+      birthday: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD").nullable().optional(),
+      gender: z.string().nullable().optional(),
+      location: z.string().nullable().optional(),
+      language: z.string().nullable().optional(),
+      plan: z.enum(["free", "pro"]).optional(),
+      deliveryTime: z.string().regex(/^\d{2}:\d{2}$/, "Must be HH:MM").optional(),
+      deliveryTimezone: z.string().min(1).optional(),
+      vacationUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD").nullable().optional(),
+      emailVerified: z.boolean().optional(),
+      onboardingCompleted: z.boolean().optional(),
+    }).strict();
+    const parsed = profileUpdateSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ message: "Invalid fields", errors: parsed.error.flatten() });
+    }
+    const updates: Record<string, any> = {};
+    for (const [key, value] of Object.entries(parsed.data)) {
+      if (value !== undefined) {
+        updates[key] = value;
+      }
+    }
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ message: "No valid fields to update" });
+    }
+    try {
+      const existingUser = await storage.getUserById(userId);
+      if (!existingUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      const updated = await storage.updateUser(userId, updates);
+      res.json(updated);
+    } catch (err) {
+      console.error("Failed to update user profile:", err);
+      res.status(500).json({ message: "Failed to update user profile" });
+    }
+  });
+
   app.post("/api/admin/impersonate", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });

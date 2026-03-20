@@ -911,7 +911,7 @@ export default function Admin() {
                             </tr>
                           ) : (
                             filteredUsers.map((user) => (
-                              <tr key={user.id} className="hover:bg-black/[0.015] transition-colors" data-testid={`row-admin-user-${user.id}`}>
+                              <tr key={user.id} className="hover:bg-black/[0.015] transition-colors cursor-pointer" data-testid={`row-admin-user-${user.id}`} onClick={() => adminNavigate(`/admin/users/${user.id}`)}>
                                 <td className="px-5 py-4">
                                   <div className="flex items-center gap-3">
                                     <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -963,7 +963,7 @@ export default function Admin() {
                                     <p>{user.deliveryTime} · {user.deliveryTimezone?.replace("America/", "").replace("_", " ") || "ET"}</p>
                                   </div>
                                 </td>
-                                <td className="px-5 py-4">
+                                <td className="px-5 py-4" onClick={(e) => e.stopPropagation()}>
                                   <div className="flex items-center gap-2">
                                     <button
                                       data-testid={`button-impersonate-${user.id}`}
