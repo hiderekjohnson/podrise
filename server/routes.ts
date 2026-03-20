@@ -3272,39 +3272,17 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     }
     const searchTerm = `%${term.trim()}%`;
     try {
-      const [podcastsResult, episodesResult, peopleResult, companiesResult] = await Promise.all([
-        pool.query(
-          `SELECT pd.itunes_id, pd.name, pd.artwork_url, pd.slug, pd.has_landing_page,
-                  EXISTS(
-                    SELECT 1 FROM landing_page_recaps lpr
-                    WHERE lpr.slug = pd.slug AND lpr.published = true AND lpr.status = 'published'
-                  ) AS has_published_recaps
-           FROM podcast_directory pd
-           WHERE (pd.name ILIKE $1 OR pd.slug ILIKE $1)
-           ORDER BY pd.has_landing_page DESC, pd.name ASC LIMIT 10`,
-          [searchTerm]
-        ),
-        pool.query(
-          `SELECT id, slug, episode_slug, podcast_name, episode_title, artwork_url, publish_date
-           FROM landing_page_recaps
-           WHERE published = true AND status = 'published'
-             AND (episode_title ILIKE $1)
-           ORDER BY publish_date DESC LIMIT 5`,
-          [searchTerm]
-        ),
-        pool.query(
-          `SELECT slug, name, photo_url, title, company FROM entity_people
-           WHERE name ILIKE $1 OR $2 = ANY(search_terms)
-           ORDER BY name ASC LIMIT 5`,
-          [searchTerm, term.trim()]
-        ),
-        pool.query(
-          `SELECT slug, name, logo_url, industry FROM entity_companies
-           WHERE name ILIKE $1 OR $2 = ANY(search_terms)
-           ORDER BY name ASC LIMIT 5`,
-          [searchTerm, term.trim()]
-        ),
-      ]);
+      const podcastsResult = await pool.query(
+        `SELECT pd.itunes_id, pd.name, pd.artwork_url, pd.slug, pd.has_landing_page,
+                EXISTS(
+                  SELECT 1 FROM landing_page_recaps lpr
+                  WHERE lpr.slug = pd.slug AND lpr.published = true AND lpr.status = 'published'
+                ) AS has_published_recaps
+         FROM podcast_directory pd
+         WHERE (pd.name ILIKE $1 OR pd.slug ILIKE $1)
+         ORDER BY pd.has_landing_page DESC, pd.name ASC LIMIT 10`,
+        [searchTerm]
+      );
 
       res.json({
         podcasts: podcastsResult.rows.map((r: any) => ({
@@ -3312,19 +3290,9 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
           itunesId: r.itunes_id ? String(r.itunes_id) : null,
           hasLandingPage: !!(r.has_landing_page && r.has_published_recaps),
         })),
-        episodes: episodesResult.rows.map((r: any) => ({
-          podcastSlug: r.slug, episodeSlug: r.episode_slug, podcastName: r.podcast_name,
-          episodeTitle: r.episode_title, artworkUrl: r.artwork_url || "",
-          publishDate: r.publish_date, type: "episode" as const,
-        })),
-        people: peopleResult.rows.map((r: any) => ({
-          slug: r.slug, name: r.name, photoUrl: r.photo_url || "",
-          title: r.title || "", company: r.company || "", type: "person" as const,
-        })),
-        companies: companiesResult.rows.map((r: any) => ({
-          slug: r.slug, name: r.name, logoUrl: r.logo_url || "",
-          industry: r.industry || "", type: "company" as const,
-        })),
+        episodes: [],
+        people: [],
+        companies: [],
       });
     } catch (err) {
       console.warn("[GlobalSearch] Error:", err);

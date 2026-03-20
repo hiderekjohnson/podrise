@@ -106,7 +106,7 @@ function SidebarSearch() {
 
   const showResults = query.trim().length >= 2;
   const totalResults = searchData
-    ? searchData.podcasts.length + searchData.episodes.length + searchData.people.length + searchData.companies.length
+    ? searchData.podcasts.length
     : 0;
   const noResults = showResults && !searchLoading && totalResults === 0 && itunesExternalResults.length === 0;
 
@@ -241,32 +241,6 @@ function SidebarSearch() {
                   ))}
                 </div>
               )}
-              {searchData!.episodes.length > 0 && (
-                <div>
-                  <div className="px-3 py-1.5 text-[10px] font-bold text-[#A1A1AA] uppercase tracking-wider bg-[#FAFAFA]">Episodes</div>
-                  {searchData!.episodes.map((ep) => (
-                    <Link
-                      key={`${ep.podcastSlug}-${ep.episodeSlug}`}
-                      href={`/podcasts/${ep.podcastSlug}/${ep.episodeSlug}`}
-                      className="flex items-center gap-2.5 px-3 py-2 hover:bg-[#F7F7FC] transition-colors border-b border-[#F0F0F2] last:border-b-0 no-underline"
-                      onClick={() => setQuery("")}
-                      data-testid={`sidebar-result-episode-${ep.episodeSlug}`}
-                    >
-                      <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-[#F0F0F2]">
-                        {ep.artworkUrl ? (
-                          <img src={hiResArtwork(ep.artworkUrl)} alt={ep.episodeTitle} className="w-full h-full object-cover" loading="lazy" />
-                        ) : (
-                          <div className="w-full h-full bg-[#E4E4E7] flex items-center justify-center"><Mic className="w-3 h-3 text-[#A1A1AA]" /></div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[12px] font-semibold text-[#09090B] truncate">{ep.episodeTitle}</div>
-                        <div className="text-[10px] text-[#A1A1AA] mt-[1px] truncate">{ep.podcastName}</div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
             </>
           ) : null}
           {noResults ? (
@@ -275,7 +249,7 @@ function SidebarSearch() {
                 No results found
               </div>
               <p className="text-[12px] text-[#A1A1AA] leading-relaxed">
-                We couldn't find any podcasts, episodes, people, or companies matching your search.
+                We couldn't find any podcasts matching your search.
               </p>
             </div>
           ) : null}
