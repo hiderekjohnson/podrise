@@ -9,6 +9,7 @@ import { RightSidebar } from "@/components/RightSidebar";
 interface DashboardLayoutProps {
   children: React.ReactNode;
   hideRightSidebar?: boolean;
+  customRightSidebar?: React.ReactNode;
 }
 
 const ALL_NAV_ITEMS = [
@@ -131,7 +132,7 @@ function MobileBottomNav({ currentPath, navItems }: { currentPath: string; navIt
   );
 }
 
-export function DashboardLayout({ children, hideRightSidebar }: DashboardLayoutProps) {
+export function DashboardLayout({ children, hideRightSidebar, customRightSidebar }: DashboardLayoutProps) {
   const [location] = useLocation();
 
   const NAV_ITEMS = ALL_NAV_ITEMS;
@@ -215,7 +216,7 @@ export function DashboardLayout({ children, hideRightSidebar }: DashboardLayoutP
           </div>
           {showRightSidebar && (
             <div className="hidden xl:block transition-all duration-200">
-              <RightSidebar />
+              {customRightSidebar || <RightSidebar />}
             </div>
           )}
         </div>
