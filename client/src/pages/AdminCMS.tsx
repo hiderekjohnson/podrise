@@ -2004,6 +2004,15 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
     },
   });
 
+  const completenessQuery = useQuery<{ total: number; fullyEnriched: number; percentage: number }>({
+    queryKey: ["/api/admin/cms/all-episodes/completeness-stats"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/cms/all-episodes/completeness-stats", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+  });
+
   const episodes = data?.episodes || [];
   const total = data?.total || 0;
 
@@ -2081,6 +2090,28 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
           )}
         </div>
       )}
+      {completenessQuery.data && (
+        <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4" data-testid="completeness-stats-bar">
+          <div className="flex items-center justify-between gap-4 mb-2">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-foreground">Episode Enrichment Completeness</span>
+            </div>
+            <span className="text-xs text-muted-foreground" data-testid="text-completeness-stats">
+              {completenessQuery.data.percentage}% of episodes fully enriched ({completenessQuery.data.fullyEnriched.toLocaleString()} of {completenessQuery.data.total.toLocaleString()})
+            </span>
+          </div>
+          <div className="w-full h-2 bg-muted rounded-full overflow-hidden" data-testid="bar-completeness">
+            <div
+              className="h-full bg-emerald-500 dark:bg-emerald-400 rounded-full transition-all duration-500"
+              style={{ width: `${completenessQuery.data.percentage}%` }}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            Tabloid headline + sub-headline + key insights + recap
+          </p>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h3 className="text-lg font-bold text-foreground">All Episodes</h3>
@@ -2111,11 +2142,22 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
           </select>
           <select
             data-testid="select-cms-all-episode-sort"
-            value={sortField}
-            onChange={(e) => { setSortField(e.target.value); setPage(1); }}
+            value={sortField === "date" && sortOrder === "asc" ? "date_asc" : sortField}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === "date_asc") {
+                setSortField("date");
+                setSortOrder("asc");
+              } else {
+                setSortField(val);
+                setSortOrder(val === "date" || val === "enrichment" ? "desc" : "asc");
+              }
+              setPage(1);
+            }}
             className="h-9 px-3 border border-border rounded-lg text-sm bg-white dark:bg-zinc-900"
           >
             <option value="date">Most Recent</option>
+            <option value="date_asc">Oldest First</option>
             <option value="popular">Most Popular</option>
             <option value="title">Title A–Z</option>
             <option value="enrichment">Enrichment</option>

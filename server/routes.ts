@@ -11280,6 +11280,30 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/admin/cms/all-episodes/completeness-stats", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { rows } = await pool.query(`
+        SELECT
+          count(*)::int AS total,
+          count(*) FILTER (
+            WHERE tabloid_headline IS NOT NULL AND tabloid_headline != ''
+              AND tabloid_sub_headline IS NOT NULL AND tabloid_sub_headline != ''
+              AND key_insights IS NOT NULL AND cardinality(key_insights) > 0
+              AND what_happened IS NOT NULL AND what_happened != ''
+          )::int AS fully_enriched
+        FROM landing_page_recaps
+      `);
+      const total = rows[0]?.total || 0;
+      const fullyEnriched = rows[0]?.fully_enriched || 0;
+      const percentage = total > 0 ? Math.round((fullyEnriched / total) * 100) : 0;
+      res.json({ total, fullyEnriched, percentage });
+    } catch (err: any) {
+      console.error("[CMS] Completeness stats error:", err);
+      res.status(500).json({ message: err?.message || "Failed to fetch completeness stats" });
+    }
+  });
+
   app.get("/api/admin/cms/products", async (req, res) => {
     console.log("[CMS] GET /api/admin/cms/products", { search: req.query.search, status: req.query.status, category: req.query.category, page: req.query.page, isAdmin: req.session.isAdmin });
     if (!req.session.isAdmin) { console.log("[CMS] GET /api/admin/cms/products -> 401 Unauthorized"); return res.status(401).json({ message: "Unauthorized" }); }
