@@ -2196,28 +2196,45 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
           )}
         </div>
       )}
-      {completenessQuery.data && (
-        <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4" data-testid="completeness-stats-bar">
-          <div className="flex items-center justify-between gap-4 mb-2">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-foreground">Episode Enrichment Completeness</span>
+      {completenessQuery.data && (() => {
+        const d = completenessQuery.data;
+        const fields = [
+          { label: "Headlines", count: d.withHeadlines, testId: "stat-headlines" },
+          { label: "Sub-headlines", count: d.withSubHeadlines, testId: "stat-sub-headlines" },
+          { label: "Takeaways", count: d.withTakeaways, testId: "stat-takeaways" },
+          { label: "Recaps", count: d.withRecaps, testId: "stat-recaps" },
+        ];
+        return (
+          <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4" data-testid="completeness-stats-bar">
+            <div className="flex items-center justify-between gap-4 mb-3">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm font-medium text-foreground">Episode Enrichment Completeness</span>
+              </div>
+              <span className="text-xs text-muted-foreground" data-testid="text-completeness-stats">
+                {d.percentage}% fully enriched ({d.fullyEnriched.toLocaleString()} of {d.total.toLocaleString()})
+              </span>
             </div>
-            <span className="text-xs text-muted-foreground" data-testid="text-completeness-stats">
-              {completenessQuery.data.percentage}% of episodes fully enriched ({completenessQuery.data.fullyEnriched.toLocaleString()} of {completenessQuery.data.total.toLocaleString()})
-            </span>
+            <div className="w-full h-2 bg-muted rounded-full overflow-hidden mb-3" data-testid="bar-completeness">
+              <div
+                className="h-full bg-emerald-500 dark:bg-emerald-400 rounded-full transition-all duration-500"
+                style={{ width: `${d.percentage}%` }}
+              />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {fields.map((f) => {
+                const pct = d.total > 0 ? Math.round((f.count / d.total) * 100) : 0;
+                return (
+                  <div key={f.testId} className="text-center" data-testid={f.testId}>
+                    <div className="text-lg font-bold text-foreground">{f.count.toLocaleString()}</div>
+                    <div className="text-xs text-muted-foreground">{f.label} ({pct}%)</div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          <div className="w-full h-2 bg-muted rounded-full overflow-hidden" data-testid="bar-completeness">
-            <div
-              className="h-full bg-emerald-500 dark:bg-emerald-400 rounded-full transition-all duration-500"
-              style={{ width: `${completenessQuery.data.percentage}%` }}
-            />
-          </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Tabloid headline + sub-headline + key insights + recap
-          </p>
-        </div>
-      )}
+        );
+      })()}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h3 className="text-lg font-bold text-foreground">All Episodes</h3>

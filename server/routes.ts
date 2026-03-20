@@ -11496,13 +11496,21 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
               AND tabloid_sub_headline IS NOT NULL AND tabloid_sub_headline != ''
               AND key_insights IS NOT NULL AND cardinality(key_insights) > 0
               AND what_happened IS NOT NULL AND what_happened != ''
-          )::int AS fully_enriched
+          )::int AS fully_enriched,
+          count(*) FILTER (WHERE tabloid_headline IS NOT NULL AND tabloid_headline != '')::int AS with_headlines,
+          count(*) FILTER (WHERE tabloid_sub_headline IS NOT NULL AND tabloid_sub_headline != '')::int AS with_sub_headlines,
+          count(*) FILTER (WHERE key_insights IS NOT NULL AND cardinality(key_insights) > 0)::int AS with_takeaways,
+          count(*) FILTER (WHERE what_happened IS NOT NULL AND what_happened != '')::int AS with_recaps
         FROM landing_page_recaps
       `);
       const total = rows[0]?.total || 0;
       const fullyEnriched = rows[0]?.fully_enriched || 0;
       const percentage = total > 0 ? Math.round((fullyEnriched / total) * 100) : 0;
-      res.json({ total, fullyEnriched, percentage });
+      const withHeadlines = rows[0]?.with_headlines || 0;
+      const withSubHeadlines = rows[0]?.with_sub_headlines || 0;
+      const withTakeaways = rows[0]?.with_takeaways || 0;
+      const withRecaps = rows[0]?.with_recaps || 0;
+      res.json({ total, fullyEnriched, percentage, withHeadlines, withSubHeadlines, withTakeaways, withRecaps });
     } catch (err: any) {
       console.error("[CMS] Completeness stats error:", err);
       res.status(500).json({ message: err?.message || "Failed to fetch completeness stats" });
