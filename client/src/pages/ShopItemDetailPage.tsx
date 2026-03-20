@@ -601,7 +601,7 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData, is
       {!isLoggedIn && <SiteHeader />}
 
       <div
-        className={`fixed z-[55] bg-white/95 dark:bg-[#08080F]/95 backdrop-blur-md transition-all duration-300 hidden md:block border-b border-[#F0F0F2] dark:border-white/[0.08] ${isLoggedIn ? "left-[64px] right-0 xl:right-[312px]" : "left-0 right-0"} ${showStickyBar ? "top-[69px] opacity-100" : "top-[12px] opacity-0 pointer-events-none"}`}
+        className={`fixed z-[55] bg-white/95 dark:bg-[#08080F]/95 backdrop-blur-md transition-all duration-300 hidden md:block border-b border-[#F0F0F2] dark:border-white/[0.08] ${isLoggedIn ? "left-[64px] right-0 xl:right-[312px]" : "left-0 right-0"} ${showStickyBar ? (isLoggedIn ? "top-0" : "top-[68px]") + " opacity-100" : (isLoggedIn ? "-top-[56px]" : "top-[12px]") + " opacity-0 pointer-events-none"}`}
         data-testid="sticky-buy-bar"
       >
         <div className="max-w-[960px] mx-auto px-5 sm:px-8 flex items-center gap-3 h-[56px]">
