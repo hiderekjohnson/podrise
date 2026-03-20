@@ -1614,7 +1614,7 @@ export default function EpisodeRecapPage() {
         <SiteHeader />
 
         <div className="bg-white dark:bg-zinc-950 border-b border-[#E4E4E7] dark:border-white/[0.06]" data-testid="episode-hero">
-          <div className="max-w-[1080px] mx-auto px-4 sm:px-7 pt-8 pb-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-7 pt-8 pb-0">
             <div className="flex gap-6 items-start mb-6">
               <Link href={`/podcasts/${podcastSlug}`}>
                 <img
@@ -1688,7 +1688,7 @@ export default function EpisodeRecapPage() {
         </div>
 
         <main className="flex-1">
-          <div className="max-w-[1080px] mx-auto px-4 sm:px-7 py-8 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_260px] gap-8 items-start">
+          <div className="max-w-7xl mx-auto px-4 sm:px-7 py-8 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_300px] gap-8 items-start">
             <div>
               {loggedOutTab === "takeaways" && episode.keyInsights?.length > 0 && (
                 <div className="bg-white dark:bg-zinc-900 border border-[#E4E4E7] dark:border-white/[0.1] rounded-xl p-6 mb-5" data-testid="section-key-insights">

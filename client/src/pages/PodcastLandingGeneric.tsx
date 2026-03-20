@@ -934,7 +934,7 @@ export default function PodcastLandingGeneric() {
       <SiteHeader />
 
       <div className="bg-white dark:bg-zinc-950 border-b border-[#E4E4E7] dark:border-white/[0.06]" data-testid="podcast-hero">
-        <div className="max-w-[960px] mx-auto px-4 sm:px-7 py-7">
+        <div className="max-w-7xl mx-auto px-4 sm:px-7 py-7">
           <div className="flex items-center gap-5">
             {artworkUrl && (
               <img
@@ -962,7 +962,7 @@ export default function PodcastLandingGeneric() {
       </div>
 
       <main className="flex-1">
-        <div className="max-w-[960px] mx-auto px-4 sm:px-7 py-6 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_280px] gap-6 items-start">
+        <div className="max-w-7xl mx-auto px-4 sm:px-7 py-6 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_320px] gap-8 items-start">
           <div>
             <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[#6366F1] mb-[14px]" data-testid="section-label-episodes">Latest episodes</p>
 
