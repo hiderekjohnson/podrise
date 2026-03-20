@@ -14746,7 +14746,7 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
                 NULL as context, NULL as context_summary, 'book_mention' as mention_type,
                 'book' as category, NULL as episode_title, NULL as episode_slug, NULL as podcast_slug,
                 CASE WHEN cover_approved IS NULL THEN 'pending' WHEN cover_approved = true THEN 'approved' ELSE 'rejected' END as status,
-                'pending' as image_status, created_at
+                'pending' as image_status, created_at, isbn, google_books_id
          FROM book_enrichments WHERE ${QUEUE_FILTER}
          ORDER BY ${bookOrderBy}
          LIMIT $1 OFFSET $2`,
@@ -15407,7 +15407,7 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
     try {
       const { sourceType, id } = req.params;
       const numId = parseInt(id, 10);
-      const { name, description, url, imageUrl, category } = req.body;
+      const { name, description, url, imageUrl, category, isbn, googleBooksId } = req.body;
       if (!numId) return res.status(400).json({ message: "Invalid id" });
       const validCategories = ["physical_product", "service_or_tool", "experience", "book"];
 
@@ -15434,6 +15434,8 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
         if (name !== undefined) { sets.push(`book_title = $${idx++}`); vals.push(name); }
         if (description !== undefined) { sets.push(`description = $${idx++}`); vals.push(description); }
         if (url !== undefined) { sets.push(`amazon_url = $${idx++}`); vals.push(url); }
+        if (isbn !== undefined) { sets.push(`isbn = $${idx++}`); vals.push(isbn); }
+        if (googleBooksId !== undefined) { sets.push(`google_books_id = $${idx++}`); vals.push(googleBooksId); }
         if (imageUrl !== undefined) {
           const { rows: bookRows } = await pool.query(`SELECT slug FROM book_enrichments WHERE id = $1`, [numId]);
           if (bookRows.length > 0) {

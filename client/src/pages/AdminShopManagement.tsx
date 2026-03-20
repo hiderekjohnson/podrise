@@ -33,6 +33,8 @@ interface ShopItem {
   reviewed_at?: string | null;
   rejection_reason?: string | null;
   click_count?: number;
+  isbn?: string | null;
+  google_books_id?: string | null;
 }
 
 interface QueueResponse {
@@ -172,7 +174,7 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [imageSearch, setImageSearch] = useState<{ loading: boolean; images: string[]; selectedIdx: number | null }>({ loading: false, images: [], selectedIdx: null });
   const [showRejectModal, setShowRejectModal] = useState(false);
-  const [editFields, setEditFields] = useState<{ name: string; description: string; url: string } | null>(null);
+  const [editFields, setEditFields] = useState<{ name: string; description: string; url: string; isbn: string; googleBooksId: string } | null>(null);
   const [queueSort, setQueueSort] = useState("recent");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageRefreshProgress, setImageRefreshProgress] = useState<{
@@ -211,6 +213,8 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
         name: current.name || "",
         description: current.description || "",
         url: current.url || "",
+        isbn: current.isbn || "",
+        googleBooksId: current.google_books_id || "",
       });
     }
   }, [current?.id]);
@@ -631,6 +635,65 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
                         )}
                       </div>
                     </div>
+                    <div className="flex gap-3">
+                      <div className="flex-1">
+                        <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1 mb-1">
+                          <Hash className="w-3 h-3" /> ISBN
+                        </label>
+                        <input
+                          type="text"
+                          value={editFields.isbn}
+                          onChange={(e) => setEditFields((f) => f ? { ...f, isbn: e.target.value } : f)}
+                          placeholder="e.g. 9780735214484"
+                          className="w-full h-9 px-3 bg-white border border-black/[0.08] rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          data-testid="input-queue-edit-isbn"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1 mb-1">
+                          <BookOpen className="w-3 h-3" /> Google Books ID
+                        </label>
+                        <div className="flex gap-1.5">
+                          <input
+                            type="text"
+                            value={editFields.googleBooksId}
+                            onChange={(e) => setEditFields((f) => f ? { ...f, googleBooksId: e.target.value } : f)}
+                            placeholder="e.g. lFhbDwAAQBAJ"
+                            className="flex-1 h-9 px-3 bg-white border border-black/[0.08] rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            data-testid="input-queue-edit-google-books-id"
+                          />
+                          {editFields.googleBooksId && (
+                            <a
+                              href={`https://books.google.com/books?id=${editFields.googleBooksId}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-center h-9 w-9 rounded-lg bg-black/[0.04] hover:bg-black/[0.07] transition-all shrink-0"
+                              data-testid="button-open-google-books"
+                            >
+                              <ExternalLink className="w-4 h-4 text-blue-600" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        if (!editFields.isbn && !editFields.googleBooksId && !editFields.name) return;
+                        const updates: any = {};
+                        if (editFields.isbn !== (current.isbn || "")) updates.isbn = editFields.isbn;
+                        if (editFields.googleBooksId !== (current.google_books_id || "")) updates.googleBooksId = editFields.googleBooksId;
+                        if (Object.keys(updates).length > 0) {
+                          await apiRequest("POST", `/api/admin/shop/${current.source_type}/${current.id}/update`, updates);
+                        }
+                        findImages(current);
+                        toast({ title: "Looking up images", description: "Searching Google Books with updated IDs..." });
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 transition-all"
+                      data-testid="button-google-books-lookup"
+                    >
+                      <Search className="w-3.5 h-3.5" />
+                      Google Books Lookup
+                    </button>
                   </div>
                 )}
               </div>
@@ -646,6 +709,8 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
                   if (editFields.name !== current.name) updates.name = editFields.name;
                   if (editFields.description !== (current.description || "")) updates.description = editFields.description;
                   if (editFields.url !== (current.url || "")) updates.url = editFields.url;
+                  if (editFields.isbn !== (current.isbn || "")) updates.isbn = editFields.isbn;
+                  if (editFields.googleBooksId !== (current.google_books_id || "")) updates.googleBooksId = editFields.googleBooksId;
                 }
                 approveMutation.mutate({ item: current, imageUrl: selectedImg, updates });
               }}
