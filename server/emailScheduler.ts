@@ -1147,11 +1147,12 @@ export async function bulkDownloadTranscripts() {
 
 let dailyTranscriptRefreshRunning = false;
 
-export async function refreshNewTranscripts() {
+export async function refreshNewTranscripts(options?: { force?: boolean }) {
   if (dailyTranscriptRefreshRunning) {
     console.log("[DailyTranscripts] Already running, skipping");
     return;
   }
+  const force = options?.force ?? false;
   dailyTranscriptRefreshRunning = true;
 
   try {
@@ -1233,7 +1234,7 @@ export async function refreshNewTranscripts() {
     for (const podcast of prioritizedPodcasts) {
       totalChecked++;
 
-      if (podcast.recentlyRefreshed && podcast.episodeCount > 0) {
+      if (!force && podcast.recentlyRefreshed && podcast.episodeCount > 0) {
         totalSkippedRecent++;
         continue;
       }

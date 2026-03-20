@@ -10,7 +10,8 @@ import {
   Save, RefreshCw, Plus, Trash2, GripVertical, ExternalLink,
   Image, Clock, Calendar, Hash, Eye, EyeOff, AlertCircle,
   Globe, Star, CheckCircle, XCircle, Copy, Check, Sparkles,
-  CircleDot, Link, BookOpen, Tag, Newspaper, X, Shield, ShieldOff
+  CircleDot, Link, BookOpen, Tag, Newspaper, X, Shield, ShieldOff,
+  Download
 } from "lucide-react";
 
 function useDebouncedValue(value: string, delay = 300) {
@@ -2061,6 +2062,17 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
   const [showBulkSpotifyConfirm, setShowBulkSpotifyConfirm] = useState(false);
   const { toast } = useToast();
 
+  const backfillMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/process-transcript-queue", { force: true }),
+    onSuccess: async (res: Response) => {
+      const data = await res.json();
+      toast({ title: "Backfill started", description: data.message });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to start episode backfill.", variant: "destructive" });
+    },
+  });
+
   const [dupSpotifyRunning, setDupSpotifyRunning] = useState(false);
   const [dupSpotifyProgress, setDupSpotifyProgress] = useState<{ processed: number; cleared: number; total: number; podcastsChecked: number; totalPodcasts: number; complete: boolean } | null>(null);
 
@@ -2150,6 +2162,27 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
 
   return (
     <div className="space-y-4" data-testid="cms-all-episodes">
+      <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4" data-testid="section-backfill-episodes">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h3 className="text-sm font-bold text-foreground" data-testid="text-backfill-title">Backfill New Episodes</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Check all podcasts for new episodes and fetch transcripts from Taddy. Runs in the background.</p>
+          </div>
+          <button
+            data-testid="button-backfill-episodes"
+            onClick={() => backfillMutation.mutate()}
+            disabled={backfillMutation.isPending}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-primary text-primary-foreground shadow-sm hover:shadow-md transition-all disabled:opacity-50 shrink-0"
+          >
+            {backfillMutation.isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+            {backfillMutation.isPending ? "Starting..." : "Backfill Episodes"}
+          </button>
+        </div>
+      </div>
       {spotifyStatusQuery.data && spotifyStatusQuery.data.count > 0 && (
         <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4" data-testid="spotify-status-bar">
           <div className="flex items-center justify-between gap-4 mb-2">

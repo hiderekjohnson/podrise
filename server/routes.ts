@@ -9129,9 +9129,10 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   app.post("/api/admin/process-transcript-queue", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     try {
+      const force = req.body?.force === true;
       const { refreshNewTranscripts } = await import("./emailScheduler");
-      refreshNewTranscripts();
-      res.json({ message: "Transcript refresh triggered (includes queue processing)" });
+      refreshNewTranscripts({ force });
+      res.json({ message: force ? "Episode backfill started (force mode, skipping recency check)" : "Transcript refresh triggered (includes queue processing)" });
     } catch (err: any) {
       res.status(500).json({ message: err?.message || "Failed to trigger queue processing" });
     }
