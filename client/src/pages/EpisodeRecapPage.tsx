@@ -1013,11 +1013,23 @@ export default function EpisodeRecapPage() {
             </h3>
           </div>
           <div className="px-5 sm:px-6 py-[22px] space-y-5">
-            {whatHappenedParagraphs.map((paragraph: string, i: number) => (
-              <p key={i} className="text-[16px] leading-[1.6] text-[#52525B] dark:text-[#A1A1AA]">
-                {paragraph}
-              </p>
-            ))}
+            {whatHappenedParagraphs.map((paragraph: string, i: number) => {
+              const isBlurred = !authUser && i >= Math.max(1, whatHappenedParagraphs.length - 2);
+              if (isBlurred) {
+                return (
+                  <BlurredInsightGate key={i} onRevealClick={() => setShowSignUpCTA(true)}>
+                    <p className="text-[16px] leading-[1.6] text-[#52525B] dark:text-[#A1A1AA]">
+                      {paragraph}
+                    </p>
+                  </BlurredInsightGate>
+                );
+              }
+              return (
+                <p key={i} className="text-[16px] leading-[1.6] text-[#52525B] dark:text-[#A1A1AA]">
+                  {paragraph}
+                </p>
+              );
+            })}
           </div>
         </section>
 
@@ -1099,9 +1111,14 @@ export default function EpisodeRecapPage() {
                           <h4 className="text-[17px] font-bold text-foreground" data-testid={`guest-name-${i}`}>
                             {guest.name}
                           </h4>
-                          {(guest.title || guest.bio) && (
-                            <p className="text-[16px] leading-[1.8] text-muted-foreground mt-1">
-                              {guest.title ? guest.title + ". " : ""}{guest.bio || ""}
+                          {guest.title && (
+                            <p className="text-[15px] font-medium text-muted-foreground mt-0.5" data-testid={`guest-title-${i}`}>
+                              {guest.title}
+                            </p>
+                          )}
+                          {guest.bio && (
+                            <p className="text-[16px] leading-[1.8] text-muted-foreground mt-1" data-testid={`guest-bio-${i}`}>
+                              {guest.bio}
                             </p>
                           )}
                           {(guest.twitter || guest.linkedin || guest.instagram || guest.website) && (
@@ -1743,11 +1760,23 @@ export default function EpisodeRecapPage() {
                   <BookOpen className="w-[14px] h-[14px]" />
                   Episode recap
                 </p>
-                {whatHappenedParagraphs.map((paragraph: string, i: number) => (
-                  <p key={i} className="text-[15px] leading-[1.8] text-[#52525B] dark:text-[#A1A1AA] mb-4 last:mb-0">
-                    {paragraph}
-                  </p>
-                ))}
+                {whatHappenedParagraphs.map((paragraph: string, i: number) => {
+                  const isBlurred = !authUser && i >= Math.max(1, whatHappenedParagraphs.length - 2);
+                  if (isBlurred) {
+                    return (
+                      <BlurredInsightGate key={i} onRevealClick={() => setShowSignUpCTA(true)}>
+                        <p className="text-[15px] leading-[1.8] text-[#52525B] dark:text-[#A1A1AA] mb-4 last:mb-0">
+                          {paragraph}
+                        </p>
+                      </BlurredInsightGate>
+                    );
+                  }
+                  return (
+                    <p key={i} className="text-[15px] leading-[1.8] text-[#52525B] dark:text-[#A1A1AA] mb-4 last:mb-0">
+                      {paragraph}
+                    </p>
+                  );
+                })}
               </div>
 
               {previousEpisodes.length > 0 && (
@@ -1812,9 +1841,9 @@ export default function EpisodeRecapPage() {
                         </div>
                       </div>
                       {guest.bio && (
-                        <p className="text-[12px] text-[#52525B] dark:text-[#A1A1AA] leading-[1.55] mt-1 line-clamp-2">{guest.bio}</p>
+                        <p className="text-[12px] text-[#52525B] dark:text-[#A1A1AA] leading-[1.55] mt-1" data-testid={`sidebar-guest-bio-${i}`}>{guest.bio}</p>
                       )}
-                      {(guest.twitter || guest.linkedin || guest.website) && (
+                      {(guest.twitter || guest.linkedin || guest.instagram || guest.website) && (
                         <div className="flex gap-2 mt-[6px]">
                           {guest.website && (
                             <a href={guest.website.startsWith("http") ? guest.website : `https://${guest.website}`} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#6366F1] hover:underline flex items-center gap-1" data-testid={`sidebar-guest-website-${i}`}>
@@ -1829,6 +1858,11 @@ export default function EpisodeRecapPage() {
                           {guest.linkedin && (
                             <a href={guest.linkedin.startsWith("http") ? guest.linkedin : `https://linkedin.com/in/${guest.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#6366F1] hover:underline flex items-center gap-1" data-testid={`sidebar-guest-linkedin-${i}`}>
                               <SiLinkedin className="w-3 h-3" />
+                            </a>
+                          )}
+                          {guest.instagram && (
+                            <a href={guest.instagram.startsWith("http") ? guest.instagram : `https://instagram.com/${guest.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#6366F1] hover:underline flex items-center gap-1" data-testid={`sidebar-guest-instagram-${i}`}>
+                              <SiInstagram className="w-3 h-3" />
                             </a>
                           )}
                         </div>

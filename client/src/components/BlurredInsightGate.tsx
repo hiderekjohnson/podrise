@@ -39,7 +39,7 @@ export function BlurredInsightGate({ children, onRevealClick, as: Tag = "div", c
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-[#18181B] text-white text-[13px] font-medium px-3.5 py-2 rounded-lg shadow-lg whitespace-nowrap"
           data-testid="tooltip-see-info"
         >
-          See this info
+          See what you're missing
         </div>
       )}
     </Tag>
