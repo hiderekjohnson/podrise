@@ -61,6 +61,7 @@ interface ShopData {
   books: ShopBook[];
   products: ShopProduct[];
   total: number;
+  podcastArtwork?: Record<string, string>;
 }
 
 function AuthorWithLinks({ author }: { author: string }) {
@@ -738,8 +739,13 @@ function PublicShopPage() {
     for (const p of PODCAST_LANDINGS) {
       map.set(p.name, p.artworkUrl);
     }
+    if (data?.podcastArtwork) {
+      for (const [name, url] of Object.entries(data.podcastArtwork)) {
+        map.set(name, url);
+      }
+    }
     return map;
-  }, []);
+  }, [data?.podcastArtwork]);
 
   const availableCategories = useMemo(() => {
     if (!data?.items) return [];

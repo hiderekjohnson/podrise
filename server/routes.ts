@@ -4542,8 +4542,12 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       }
 
       const slugToName: Record<string, string> = {};
-      const { rows: pdRows } = await pool.query(`SELECT slug, name FROM podcast_directory WHERE has_landing_page = true`);
-      for (const p of pdRows) slugToName[p.slug] = p.name;
+      const nameToArtwork: Record<string, string> = {};
+      const { rows: pdRows } = await pool.query(`SELECT slug, name, artwork_url FROM podcast_directory WHERE has_landing_page = true`);
+      for (const p of pdRows) {
+        slugToName[p.slug] = p.name;
+        if (p.artwork_url) nameToArtwork[p.name] = p.artwork_url;
+      }
 
       const { rows: productRows } = await pool.query(
         `SELECT ep.name, ep.company, ep.description, ep.purchase_url, ep.image_url, ep.context,
@@ -4751,7 +4755,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
         .filter(b => !!b.slug)
         .sort((a, b) => b.mentionCount - a.mentionCount || b.podcastCount - a.podcastCount);
 
-      const result = { items: [...books, ...products], books, products, total: books.length + products.length };
+      const result = { items: [...books, ...products], books, products, total: books.length + products.length, podcastArtwork: nameToArtwork };
       shopCache.set(result);
       if (showNonBookProducts) {
         res.json(result);
