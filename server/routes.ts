@@ -7830,13 +7830,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         params = [effectiveSlugs, limit];
         if (cursor) params.push(cursor);
       } else {
-        const hasFollowedFilter = isAuthenticated && userPodcastSlugs.length > 0;
-        let paramIdx = 1;
-        const slugFilterParam = hasFollowedFilter ? paramIdx++ : 0;
-        const limitParamIdx = paramIdx++;
-        const cursorParamIdx = cursor ? paramIdx++ : 0;
-        const cursorParam = cursor ? `AND lr.id < $${cursorParamIdx}` : "";
-        const slugExclude = hasFollowedFilter ? `AND lr.slug != ALL($${slugFilterParam})` : "";
+        const cursorParam = cursor ? `AND lr.id < $2` : "";
         query = `
           SELECT lr.id, lr.slug, lr.podcast_name, lr.episode_title, lr.episode_slug,
                  lr.publish_date, lr.artwork_url, lr.tldl, lr.key_insights,
@@ -7854,14 +7848,11 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           LEFT JOIN podcast_directory pd ON pd.slug = lr.slug
           WHERE lr.episode_slug IS NOT NULL
             AND lr.tldl IS NOT NULL
-            ${slugExclude}
             ${cursorParam}
           ORDER BY lr.publish_date DESC NULLS LAST, lr.id DESC
-          LIMIT $${limitParamIdx}
+          LIMIT $1
         `;
-        params = [];
-        if (hasFollowedFilter) params.push(userPodcastSlugs);
-        params.push(limit);
+        params = [limit];
         if (cursor) params.push(cursor);
       }
 
