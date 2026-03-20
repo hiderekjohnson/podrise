@@ -2606,6 +2606,10 @@ function ElevenLabsSection({ podcastSlug, episodeSlug }: { podcastSlug: string; 
               onEnded={() => setIsPlaying(false)}
               onPause={() => setIsPlaying(false)}
               onPlay={() => setIsPlaying(true)}
+              onError={(e) => {
+                setIsPlaying(false);
+                console.error("[AudioPreview] Load error:", (e.target as HTMLAudioElement).error);
+              }}
               preload="none"
             />
             <div className="flex-1">

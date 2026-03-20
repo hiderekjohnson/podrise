@@ -16867,13 +16867,14 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     }
   });
 
+  const AUDIO_RECAP_ALLOWED_SLUGS = ["my-first-million", "myfirstmillion"];
   app.get("/api/audio-recap/:podcastSlug/:episodeSlug", async (req, res) => {
     try {
       if (!req.session.userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
       const { podcastSlug, episodeSlug } = req.params;
-      if (podcastSlug !== "my-first-million") {
+      if (!AUDIO_RECAP_ALLOWED_SLUGS.includes(podcastSlug)) {
         return res.status(403).json({ error: "Audio recaps not available for this podcast" });
       }
       const { getRecapAudioStatus } = await import("./audioRecapGenerator");
@@ -16894,7 +16895,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
         return res.status(401).json({ error: "Authentication required" });
       }
       const { podcastSlug, episodeSlug } = req.params;
-      if (podcastSlug !== "my-first-million") {
+      if (!AUDIO_RECAP_ALLOWED_SLUGS.includes(podcastSlug)) {
         return res.status(403).json({ error: "Audio recaps not available for this podcast" });
       }
       const sanitizedPodcast = podcastSlug.replace(/[^a-z0-9_-]/gi, "");
