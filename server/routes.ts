@@ -14731,14 +14731,18 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
       const sortBy = (req.query.sort as string || "recent").trim();
 
       const bookOrderBy = sortBy === "alphabetical" ? "book_title ASC" : "created_at DESC NULLS LAST";
+      const queueFilter = (req.query.filter as string || "").trim();
 
-      const QUEUE_FILTER = `cover_approved IS NULL
+      let QUEUE_FILTER = `cover_approved IS NULL
            AND book_key NOT IN (SELECT book_key FROM book_enrichments WHERE cover_approved = true)
            AND slug NOT IN (SELECT slug FROM book_enrichments WHERE cover_approved = true)
            AND (NULLIF(UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')), '') IS NULL
                 OR UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')) NOT IN (
                   SELECT UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')) FROM book_enrichments
                   WHERE cover_approved = true AND NULLIF(UPPER(REGEXP_REPLACE(isbn, '[^0-9X]', '', 'gi')), '') IS NOT NULL))`;
+      if (queueFilter === "no_isbn") QUEUE_FILTER += ` AND (isbn IS NULL OR TRIM(isbn) = '')`;
+      if (queueFilter === "no_google_id") QUEUE_FILTER += ` AND (google_books_id IS NULL OR TRIM(google_books_id) = '')`;
+      if (queueFilter === "no_isbn_or_google_id") QUEUE_FILTER += ` AND (isbn IS NULL OR TRIM(isbn) = '') AND (google_books_id IS NULL OR TRIM(google_books_id) = '')`;
 
       const { rows: bookRows } = await pool.query(
         `SELECT id, 'book' as source_type, book_title as name, author as company, description,
@@ -15075,6 +15079,7 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
       const offset = (page - 1) * limit;
       const sortBy = (req.query.sort as string || "alphabetical").trim();
 
+      const approvedFilter = (req.query.filter as string || "").trim();
       let bookWhere = "cover_approved = true";
       const bookVals: any[] = [];
       let paramIdx = 1;
@@ -15084,6 +15089,9 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
         bookWhere += ` AND (LOWER(book_title) LIKE $${paramIdx} OR LOWER(author) LIKE $${paramIdx} OR LOWER(description) LIKE $${paramIdx})`;
         paramIdx++;
       }
+      if (approvedFilter === "no_isbn") bookWhere += ` AND (isbn IS NULL OR TRIM(isbn) = '')`;
+      if (approvedFilter === "no_google_id") bookWhere += ` AND (google_books_id IS NULL OR TRIM(google_books_id) = '')`;
+      if (approvedFilter === "no_isbn_or_google_id") bookWhere += ` AND (isbn IS NULL OR TRIM(isbn) = '') AND (google_books_id IS NULL OR TRIM(google_books_id) = '')`;
 
       let bookOrderBy = "book_title ASC";
       if (sortBy === "recent") {
@@ -15099,18 +15107,22 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
                 amazon_url as url, CASE WHEN has_cover THEN '/books/' || slug || '.jpg' ELSE NULL END as image_url,
                 NULL as context, NULL as context_summary, 'book_mention' as mention_type,
                 'book' as category, NULL as episode_title, NULL as podcast_slug,
-                'approved' as status, 'approved' as image_status, NULL as approved_by, NULL as approved_at, created_at
+                'approved' as status, 'approved' as image_status, NULL as approved_by, NULL as approved_at, created_at,
+                isbn, google_books_id
          FROM book_enrichments WHERE ${bookWhere}
          ORDER BY ${bookOrderBy}
          LIMIT $${bLimitIdx} OFFSET $${bOffsetIdx}`,
         bookVals
       );
 
-      const countBookVals = search ? [`%${search}%`] : [];
       let countBookWhere = "cover_approved = true";
+      const countBookVals = search ? [`%${search}%`] : [];
       if (search) {
         countBookWhere += ` AND (LOWER(book_title) LIKE $1 OR LOWER(author) LIKE $1 OR LOWER(description) LIKE $1)`;
       }
+      if (approvedFilter === "no_isbn") countBookWhere += ` AND (isbn IS NULL OR TRIM(isbn) = '')`;
+      if (approvedFilter === "no_google_id") countBookWhere += ` AND (google_books_id IS NULL OR TRIM(google_books_id) = '')`;
+      if (approvedFilter === "no_isbn_or_google_id") countBookWhere += ` AND (isbn IS NULL OR TRIM(isbn) = '') AND (google_books_id IS NULL OR TRIM(google_books_id) = '')`;
 
       const { rows: bcRows } = await pool.query(
         `SELECT COUNT(*)::int as cnt FROM book_enrichments WHERE ${countBookWhere}`,

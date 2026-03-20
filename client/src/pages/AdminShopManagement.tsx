@@ -176,6 +176,7 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [editFields, setEditFields] = useState<{ name: string; description: string; url: string; isbn: string; googleBooksId: string } | null>(null);
   const [queueSort, setQueueSort] = useState("recent");
+  const [queueFilter, setQueueFilter] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageRefreshProgress, setImageRefreshProgress] = useState<{
     phase: "running" | "done";
@@ -187,10 +188,11 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
   } | null>(null);
 
   const { data, isLoading, refetch } = useQuery<QueueResponse>({
-    queryKey: ["/api/admin/shop/queue", 1, queueSort],
+    queryKey: ["/api/admin/shop/queue", 1, queueSort, queueFilter],
     queryFn: async () => {
       const params = new URLSearchParams({ limit: "50" });
       if (queueSort) params.set("sort", queueSort);
+      if (queueFilter) params.set("filter", queueFilter);
       const res = await fetch(`/api/admin/shop/queue?${params}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to load");
       return res.json();
@@ -417,17 +419,33 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
             {imageRefreshProgress?.phase === "running" ? "Refreshing..." : "Refresh Images"}
           </button>
         </div>
-        <div className="relative">
-          <select
-            value={queueSort}
-            onChange={(e) => { setQueueSort(e.target.value); setCurrentIndex(0); resetImageState(); }}
-            className="h-8 pl-7 pr-3 bg-white border border-black/[0.08] rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer"
-            data-testid="select-queue-sort"
-          >
-            <option value="recent">Recently Added</option>
-            <option value="alphabetical">Alphabetical</option>
-          </select>
-          <SortAsc className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <select
+              value={queueFilter}
+              onChange={(e) => { setQueueFilter(e.target.value); setCurrentIndex(0); resetImageState(); }}
+              className="h-8 pl-7 pr-3 bg-white border border-black/[0.08] rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer"
+              data-testid="select-queue-filter"
+            >
+              <option value="">All Books</option>
+              <option value="no_isbn">Missing ISBN</option>
+              <option value="no_google_id">Missing Google ID</option>
+              <option value="no_isbn_or_google_id">Missing Both</option>
+            </select>
+            <AlertCircle className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+          </div>
+          <div className="relative">
+            <select
+              value={queueSort}
+              onChange={(e) => { setQueueSort(e.target.value); setCurrentIndex(0); resetImageState(); }}
+              className="h-8 pl-7 pr-3 bg-white border border-black/[0.08] rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer"
+              data-testid="select-queue-sort"
+            >
+              <option value="recent">Recently Added</option>
+              <option value="alphabetical">Alphabetical</option>
+            </select>
+            <SortAsc className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+          </div>
         </div>
       </div>
 
@@ -1199,6 +1217,7 @@ function ApprovedBooks({ onViewBook }: { onViewBook: (id: number) => void }) {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sortBy, setSortBy] = useState("alphabetical");
+  const [approvedFilter, setApprovedFilter] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const requeueNoCoverMutation = useMutation({
@@ -1222,11 +1241,12 @@ function ApprovedBooks({ onViewBook }: { onViewBook: (id: number) => void }) {
   };
 
   const { data, isLoading } = useQuery<ApprovedResponse>({
-    queryKey: ["/api/admin/shop/approved", debouncedSearch, sortBy],
+    queryKey: ["/api/admin/shop/approved", debouncedSearch, sortBy, approvedFilter],
     queryFn: async () => {
       const params = new URLSearchParams({ limit: "50" });
       if (debouncedSearch) params.set("search", debouncedSearch);
       if (sortBy) params.set("sort", sortBy);
+      if (approvedFilter) params.set("filter", approvedFilter);
       const res = await fetch(`/api/admin/shop/approved?${params}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to load");
       return res.json();
@@ -1278,6 +1298,20 @@ function ApprovedBooks({ onViewBook }: { onViewBook: (id: number) => void }) {
             className="w-full h-10 pl-10 pr-4 bg-white border border-black/[0.08] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
             data-testid="input-search-approved"
           />
+        </div>
+        <div className="relative">
+          <select
+            value={approvedFilter}
+            onChange={(e) => setApprovedFilter(e.target.value)}
+            className="h-10 pl-8 pr-4 bg-white border border-black/[0.08] rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer"
+            data-testid="select-approved-filter"
+          >
+            <option value="">All Books</option>
+            <option value="no_isbn">Missing ISBN</option>
+            <option value="no_google_id">Missing Google ID</option>
+            <option value="no_isbn_or_google_id">Missing Both</option>
+          </select>
+          <AlertCircle className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
         </div>
         <div className="relative">
           <select
