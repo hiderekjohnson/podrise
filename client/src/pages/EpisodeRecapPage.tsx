@@ -1548,6 +1548,15 @@ export default function EpisodeRecapPage() {
                 publishDate={ep.publishDate}
                 artworkUrl={episode.artworkUrl || podcastConfig?.artworkUrl || null}
                 tldl={ep.tldl}
+                tabloidSubHeadline={ep.tabloidSubHeadline}
+                keyInsights={ep.keyInsights}
+                quote={ep.quote}
+                quoteAttribution={ep.quoteAttribution}
+                whatHappened={ep.whatHappened}
+                spotifyEpisodeUrl={ep.spotifyEpisodeUrl}
+                spotifyUrl={ep.spotifyUrl}
+                youtubeUrl={ep.youtubeUrl}
+                mentions={ep.mentions}
                 duration={ep.duration}
                 hosts={podcastConfig?.hosts}
                 totalEpisodes={podcastConfig?.totalEpisodes}
