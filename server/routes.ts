@@ -778,6 +778,16 @@ export async function registerRoutes(
       ON CONFLICT (email) DO NOTHING;
     `);
 
+    await migrationPool.query(`
+      CREATE TABLE IF NOT EXISTS book_bookmarks (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        book_slug TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(user_id, book_slug)
+      );
+    `);
+
     console.log("[startup] Schema migration check complete");
 
     
