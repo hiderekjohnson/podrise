@@ -9,6 +9,7 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { PODCAST_ENRICHMENT_FIELDS, EPISODE_ENRICHMENT_FIELDS, computeEnrichmentFromRecord } from "@shared/enrichment";
 import { z } from "zod";
+import { insertBookBookmarkSchema } from "@shared/schema";
 import { getUncachableResendClient } from "./resendClient";
 import { markdownToEmailHtml, recapHasContent, type EpisodeMetaForEmail } from "./emailTemplate";
 import { generateRecap } from "./recapGenerator";
@@ -3045,6 +3046,108 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     } catch (err) {
       console.error("[Bookmarks] Failed to fetch enriched bookmarks:", err);
       res.status(500).json({ message: "Failed to fetch enriched bookmarks" });
+    }
+  });
+
+  app.get("/api/book-bookmarks", async (req, res) => {
+    const userId = getAuthUserId(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const list = await storage.getBookBookmarksByUserId(userId);
+    res.json(list);
+  });
+
+  app.post("/api/book-bookmarks", async (req, res) => {
+    const userId = getAuthUserId(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const parsed = insertBookBookmarkSchema.safeParse({ ...req.body, userId });
+    if (!parsed.success) {
+      return res.status(400).json({ message: "Invalid request", errors: parsed.error.flatten().fieldErrors });
+    }
+    try {
+      const exists = await storage.isBookBookmarked(userId, parsed.data.bookSlug);
+      if (exists) {
+        return res.json({ message: "Already bookmarked" });
+      }
+      const bookmark = await storage.addBookBookmark({ userId, bookSlug: parsed.data.bookSlug });
+      res.status(201).json(bookmark);
+    } catch (err) {
+      console.error("[BookBookmark] Failed to add bookmark:", err);
+      res.status(500).json({ message: "Failed to bookmark book" });
+    }
+  });
+
+  app.delete("/api/book-bookmarks/:bookSlug", async (req, res) => {
+    const userId = getAuthUserId(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    await storage.removeBookBookmark(userId, req.params.bookSlug);
+    res.json({ message: "Book bookmark removed" });
+  });
+
+  app.get("/api/book-bookmarks/check/:bookSlug", async (req, res) => {
+    const userId = getAuthUserId(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const isBookmarked = await storage.isBookBookmarked(userId, req.params.bookSlug);
+    res.json({ isBookmarked });
+  });
+
+  app.get("/api/book-bookmarks/enriched", async (req, res) => {
+    const userId = getAuthUserId(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    try {
+      const list = await storage.getBookBookmarksByUserId(userId);
+      if (list.length === 0) {
+        return res.json([]);
+      }
+
+      const slugs = list.map(b => b.bookSlug);
+      const { rows: enrichments } = await pool.query(
+        `SELECT slug, book_title, author, description, has_cover, amazon_url, google_books_id
+         FROM book_enrichments WHERE slug = ANY($1)`,
+        [slugs]
+      );
+
+      const enrichMap = new Map<string, any>();
+      for (const e of enrichments) {
+        enrichMap.set(e.slug, e);
+      }
+
+      function ensureAffiliateTag(url: string): string {
+        if (url.includes("tag=")) return url.replace(/tag=[^&]*/, "tag=podcap-20");
+        return url + (url.includes("?") ? "&" : "?") + "tag=podcap-20";
+      }
+
+      const enriched = list.map(bm => {
+        const e = enrichMap.get(bm.bookSlug);
+        const amazonUrl = e?.amazon_url
+          ? ensureAffiliateTag(e.amazon_url)
+          : `https://www.amazon.com/s?k=${encodeURIComponent(`${e?.book_title || bm.bookSlug.replace(/-/g, " ")} book`)}&tag=podcap-20`;
+        return {
+          id: bm.id,
+          bookSlug: bm.bookSlug,
+          createdAt: bm.createdAt,
+          name: e?.book_title || bm.bookSlug.replace(/-/g, " "),
+          author: e?.author || null,
+          description: e?.description || null,
+          hasCover: e?.has_cover || false,
+          googleBooksId: e?.google_books_id || null,
+          amazonUrl,
+        };
+      });
+
+      res.json(enriched);
+    } catch (err) {
+      console.error("[BookBookmarks] Failed to fetch enriched book bookmarks:", err);
+      res.status(500).json({ message: "Failed to fetch enriched book bookmarks" });
     }
   });
 

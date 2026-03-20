@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Link } from "wouter";
-import { BookOpen, ShoppingBag, ExternalLink, ChevronDown, FileText, ArrowLeft } from "lucide-react";
+import { BookOpen, ShoppingBag, ExternalLink, ChevronDown, FileText, ArrowLeft, Bookmark } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { BookCover as SharedBookCover } from "@/components/BookCover";
 import { PodcastMicBadge } from "@/components/PodcastMicBadge";
 import { Footer } from "@/components/Footer";
@@ -498,6 +500,28 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData, is
   const heroRef = useRef<HTMLDivElement>(null);
   const [productImgError, setProductImgError] = useState(false);
 
+  const { data: bookmarkCheck } = useQuery<{ isBookmarked: boolean }>({
+    queryKey: ["/api/book-bookmarks/check", item?.slug],
+    enabled: isLoggedIn && isBook && !!item?.slug,
+  });
+  const isBookSaved = bookmarkCheck?.isBookmarked ?? false;
+
+  const toggleBookBookmark = useMutation({
+    mutationFn: async () => {
+      if (!item) return;
+      if (isBookSaved) {
+        await apiRequest("DELETE", `/api/book-bookmarks/${encodeURIComponent(item.slug)}`);
+      } else {
+        await apiRequest("POST", "/api/book-bookmarks", { bookSlug: item.slug });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/book-bookmarks/check", item?.slug] });
+      queryClient.invalidateQueries({ queryKey: ["/api/book-bookmarks/enriched"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/book-bookmarks"] });
+    },
+  });
+
   useEffect(() => {
     setDetailsOpen(false);
     setVisibleCards(isBook ? 4 : 6);
@@ -779,6 +803,21 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData, is
                     <FileText className="w-4 h-4" />
                     Blinkist Summary
                   </a>
+                )}
+                {isBook && isLoggedIn && (
+                  <button
+                    onClick={() => toggleBookBookmark.mutate()}
+                    disabled={toggleBookBookmark.isPending}
+                    className={`rounded-lg px-4 py-2.5 text-[14px] font-semibold transition-colors flex items-center gap-2 border ${
+                      isBookSaved
+                        ? "bg-[#6366F1]/10 border-[#6366F1]/30 text-[#6366F1] hover:bg-[#6366F1]/20"
+                        : "border-[#E4E4E7] dark:border-white/[0.12] text-[#52525B] dark:text-[#A1A1AA] hover:border-[#6366F1]/40 hover:text-[#6366F1]"
+                    }`}
+                    data-testid="button-save-book"
+                  >
+                    <Bookmark className={`w-4 h-4 ${isBookSaved ? "fill-current" : ""}`} />
+                    {isBookSaved ? "Saved" : "Save"}
+                  </button>
                 )}
               </div>
 

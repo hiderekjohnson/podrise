@@ -55,6 +55,20 @@ export const bookmarks = pgTable("bookmarks", {
 export type Bookmark = typeof bookmarks.$inferSelect;
 export type InsertBookmark = typeof bookmarks.$inferInsert;
 
+export const bookBookmarks = pgTable("book_bookmarks", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  bookSlug: text("book_slug").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  uniqueUserBook: unique().on(table.userId, table.bookSlug),
+}));
+
+export const insertBookBookmarkSchema = createInsertSchema(bookBookmarks).omit({ id: true, createdAt: true });
+
+export type BookBookmark = typeof bookBookmarks.$inferSelect;
+export type InsertBookBookmark = typeof bookBookmarks.$inferInsert;
+
 export const podcastCategories = pgTable("podcast_categories", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),

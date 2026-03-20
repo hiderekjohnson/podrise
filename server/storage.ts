@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, advertisers, bookmarks, deviceTokens, refreshTokens, errorLogs, referrals, referralTiers, supportArticles, feedAds, feedAdSettings, featureFlags, userFeatureOverrides, adEvents, siteSettings, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog, type Referral, type ReferralTier, type InsertReferralTier, type SupportArticle, type InsertSupportArticle, type FeedAd, type InsertFeedAd, type FeedAdSetting, type FeatureFlag, type InsertFeatureFlag, type UserFeatureOverride, type AdEvent, type InsertAdEvent, type SiteSetting } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, advertisers, bookmarks, bookBookmarks, deviceTokens, refreshTokens, errorLogs, referrals, referralTiers, supportArticles, feedAds, feedAdSettings, featureFlags, userFeatureOverrides, adEvents, siteSettings, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type BookBookmark, type InsertBookBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog, type Referral, type ReferralTier, type InsertReferralTier, type SupportArticle, type InsertSupportArticle, type FeedAd, type InsertFeedAd, type FeedAdSetting, type FeatureFlag, type InsertFeatureFlag, type UserFeatureOverride, type AdEvent, type InsertAdEvent, type SiteSetting } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull, asc, inArray } from "drizzle-orm";
 import { normalizeTitle } from "./utils/normalizeTitle";
 
@@ -82,6 +82,10 @@ export interface IStorage {
   addBookmark(data: InsertBookmark): Promise<Bookmark>;
   removeBookmark(userId: number, podcastSlug: string, episodeSlug: string): Promise<void>;
   isBookmarked(userId: number, podcastSlug: string, episodeSlug: string): Promise<boolean>;
+  getBookBookmarksByUserId(userId: number): Promise<BookBookmark[]>;
+  addBookBookmark(data: InsertBookBookmark): Promise<BookBookmark>;
+  removeBookBookmark(userId: number, bookSlug: string): Promise<void>;
+  isBookBookmarked(userId: number, bookSlug: string): Promise<boolean>;
   registerDeviceToken(userId: number, deviceToken: string, platform?: string): Promise<DeviceToken>;
   unregisterDeviceToken(deviceToken: string, userId: number): Promise<void>;
   getDeviceTokensByUserId(userId: number): Promise<DeviceToken[]>;
@@ -868,6 +872,36 @@ export class DatabaseStorage implements IStorage {
 
   async isBookmarked(userId: number, podcastSlug: string, episodeSlug: string): Promise<boolean> {
     const [row] = await db.select().from(bookmarks).where(and(eq(bookmarks.userId, userId), eq(bookmarks.podcastSlug, podcastSlug), eq(bookmarks.episodeSlug, episodeSlug)));
+    return !!row;
+  }
+
+  async getBookBookmarksByUserId(userId: number): Promise<BookBookmark[]> {
+    return db.select().from(bookBookmarks).where(eq(bookBookmarks.userId, userId)).orderBy(desc(bookBookmarks.createdAt));
+  }
+
+  async addBookBookmark(data: InsertBookBookmark): Promise<BookBookmark> {
+    const existing = await db.select().from(bookBookmarks).where(and(eq(bookBookmarks.userId, data.userId!), eq(bookBookmarks.bookSlug, data.bookSlug)));
+    if (existing.length > 0) {
+      return existing[0];
+    }
+    try {
+      const [created] = await db.insert(bookBookmarks).values(data).returning();
+      return created;
+    } catch (e: any) {
+      if (e.code === "23505") {
+        const [dup] = await db.select().from(bookBookmarks).where(and(eq(bookBookmarks.userId, data.userId!), eq(bookBookmarks.bookSlug, data.bookSlug)));
+        return dup;
+      }
+      throw e;
+    }
+  }
+
+  async removeBookBookmark(userId: number, bookSlug: string): Promise<void> {
+    await db.delete(bookBookmarks).where(and(eq(bookBookmarks.userId, userId), eq(bookBookmarks.bookSlug, bookSlug)));
+  }
+
+  async isBookBookmarked(userId: number, bookSlug: string): Promise<boolean> {
+    const [row] = await db.select().from(bookBookmarks).where(and(eq(bookBookmarks.userId, userId), eq(bookBookmarks.bookSlug, bookSlug)));
     return !!row;
   }
 
