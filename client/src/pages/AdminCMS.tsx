@@ -294,7 +294,19 @@ interface EpisodeForm {
   tabloidSubHeadline: string;
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, variant = "default" }: { status: string; variant?: "episode" | "default" }) {
+  if (variant === "episode") {
+    const isPublished = status === "published";
+    const displayStatus = isPublished ? "Published" : "Processing";
+    const colorClass = isPublished
+      ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+      : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
+    return (
+      <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold ${colorClass}`} data-testid={`status-badge-${status}`}>
+        {displayStatus}
+      </span>
+    );
+  }
   const colors: Record<string, string> = {
     published: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
     requested: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
@@ -333,7 +345,21 @@ function ReadinessBadge({ ep }: { ep: { tabloid_headline?: string; tabloid_sub_h
   );
 }
 
-function StatusSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function StatusSelect({ value, onChange, variant = "default" }: { value: string; onChange: (v: string) => void; variant?: "episode" | "default" }) {
+  if (variant === "episode") {
+    const normalizedValue = value === "published" ? "published" : "processing";
+    return (
+      <select
+        value={normalizedValue}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-9 px-3 border border-border rounded-lg text-sm bg-white dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary/20"
+        data-testid="select-status"
+      >
+        <option value="published">Published</option>
+        <option value="processing">Processing</option>
+      </select>
+    );
+  }
   return (
     <select
       value={value}
@@ -1845,8 +1871,7 @@ function EpisodesList({ podcastSlug, onNavigate }: { podcastSlug: string; onNavi
           >
             <option value="all">All Status</option>
             <option value="published">Published</option>
-            <option value="needs_review">Needs Review</option>
-            <option value="hidden">Hidden</option>
+            <option value="processing">Processing</option>
           </select>
         </div>
       </div>
@@ -1915,7 +1940,7 @@ function EpisodesList({ podcastSlug, onNavigate }: { podcastSlug: string; onNavi
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5">
-                      <StatusBadge status={ep.status || "published"} />
+                      <StatusBadge status={ep.status || "published"} variant="episode" />
                       <ReadinessBadge ep={ep} />
                     </div>
                   </td>
@@ -2137,8 +2162,7 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
           >
             <option value="all">All Status</option>
             <option value="published">Published</option>
-            <option value="needs_review">Needs Review</option>
-            <option value="hidden">Hidden</option>
+            <option value="processing">Processing</option>
           </select>
           <select
             data-testid="select-cms-all-episode-sort"
@@ -2238,7 +2262,7 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
                       }`}>{ep.enrichment_score}%</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3"><StatusBadge status={ep.status || "published"} /></td>
+                  <td className="px-4 py-3"><StatusBadge status={ep.status || "published"} variant="episode" /></td>
                 </tr>
               ))
             )}
@@ -2637,7 +2661,7 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
             <h4 className="text-sm font-bold text-foreground">Status & Meta</h4>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Status</label>
-              <StatusSelect value={form.status} onChange={(v) => setForm({ ...form, status: v })} />
+              <StatusSelect value={form.status} onChange={(v) => setForm({ ...form, status: v })} variant="episode" />
             </div>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Title</label>

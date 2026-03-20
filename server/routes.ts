@@ -10605,8 +10605,12 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         query += ` AND (episode_title ILIKE $${params.length})`;
       }
       if (status && status !== "all") {
-        params.push(status);
-        query += ` AND status = $${params.length}`;
+        if (status === "processing") {
+          query += ` AND status != 'published'`;
+        } else {
+          params.push(status);
+          query += ` AND status = $${params.length}`;
+        }
       }
       const sortCol = sort === "title" ? "episode_title" : sort === "date" ? "publish_date" : "publish_date";
       const sortOrder = order === "asc" ? "ASC" : "DESC";
@@ -10678,9 +10682,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {
       const { podcastSlug, episodeSlug } = req.params;
-      const validStatuses = ["published", "needs_review", "hidden"];
+      const validStatuses = ["published", "processing", "needs_review", "hidden", "requested"];
       if (req.body.status && !validStatuses.includes(req.body.status)) {
-        return res.status(400).json({ message: "Invalid status. Must be: published, needs_review, or hidden" });
+        return res.status(400).json({ message: "Invalid status. Must be: published or processing" });
       }
       const allowedFields: Record<string, string> = {
         episodeTitle: "episode_title", publishDate: "publish_date", duration: "duration",
@@ -11224,8 +11228,12 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       let where = "WHERE 1=1";
       const params: any[] = [];
       if (status && status !== "all") {
-        params.push(status);
-        where += ` AND lpr.status = $${params.length}`;
+        if (status === "processing") {
+          where += ` AND lpr.status != 'published'`;
+        } else {
+          params.push(status);
+          where += ` AND lpr.status = $${params.length}`;
+        }
       }
       if (search) {
         params.push(`%${search}%`);
