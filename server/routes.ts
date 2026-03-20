@@ -15259,6 +15259,143 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
     }
   });
 
+  app.post("/api/admin/shop/purge-unmentioned-books", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
+    const dryRun = req.query.dryRun === "true";
+
+    const AD_CONTEXT_PATTERNS = [
+      /\bavailable on blinkist\b/i,
+      /\bmentioned as a book available on\b/i,
+      /\bavailable on audible\b/i,
+      /\bsponsored by\b/i,
+      /\bbrought to you by\b/i,
+      /\bpromo code\b/i,
+      /\buse code\b/i,
+      /\bdiscount code\b/i,
+      /\bfor quick learning\b/i,
+      /\bget (?:a )?free (?:trial|audiobook)\b/i,
+    ];
+    const normalizeKey = (k: string) => k.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+
+    try {
+      const { rows: allBooks } = await pool.query(
+        `SELECT id, book_key, book_title AS name, slug FROM book_enrichments`
+      );
+
+      const { rows: allAliases } = await pool.query(
+        `SELECT alias_key, canonical_key FROM book_aliases`
+      );
+      const aliasMap = new Map<string, string[]>();
+      for (const a of allAliases) {
+        if (!aliasMap.has(a.canonical_key)) aliasMap.set(a.canonical_key, []);
+        aliasMap.get(a.canonical_key)!.push(a.alias_key);
+      }
+
+      const { rows: recapRows } = await pool.query(
+        `SELECT resources FROM landing_page_recaps WHERE resources IS NOT NULL AND resources::text != '[]'`
+      );
+
+      const mentionedKeys = new Set<string>();
+      for (const row of recapRows) {
+        let resources: any[];
+        try {
+          const parsed = typeof row.resources === 'string' ? JSON.parse(row.resources) : row.resources;
+          if (!Array.isArray(parsed)) continue;
+          resources = parsed;
+        } catch { continue; }
+
+        for (const r of resources) {
+          if (!r || r.type !== 'book' || !r.name) continue;
+          const ctx = r.context || "";
+          const isAdMention = AD_CONTEXT_PATTERNS.some(p => p.test(ctx));
+          if (!isAdMention) {
+            mentionedKeys.add(normalizeKey(r.name));
+          }
+        }
+      }
+
+      if (dryRun) {
+        const toDelete: { id: number; name: string }[] = [];
+        for (const book of allBooks) {
+          const rawVariants = [book.book_key, ...(aliasMap.get(book.book_key) || [])];
+          const normalizedVariants = rawVariants.map(normalizeKey);
+          const hasMention = normalizedVariants.some(v => mentionedKeys.has(v));
+          if (!hasMention) {
+            toDelete.push({ id: book.id, name: book.name });
+          }
+        }
+        return res.json({
+          dryRun: true,
+          count: toDelete.length,
+          totalBooks: allBooks.length,
+          books: toDelete,
+        });
+      }
+
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      });
+
+      const sendEvent = (data: any) => {
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+      };
+
+      sendEvent({ type: "start", totalBooks: allBooks.length });
+
+      const toDelete: { id: number; name: string; slug: string; bookKey: string }[] = [];
+      let checked = 0;
+      for (const book of allBooks) {
+        checked++;
+        const rawVariants = [book.book_key, ...(aliasMap.get(book.book_key) || [])];
+        const normalizedVariants = rawVariants.map(normalizeKey);
+        const hasMention = normalizedVariants.some(v => mentionedKeys.has(v));
+        if (!hasMention) {
+          toDelete.push({ id: book.id, name: book.name, slug: book.slug, bookKey: book.book_key });
+        }
+        if (checked % 50 === 0 || checked === allBooks.length) {
+          sendEvent({ type: "checking", checked, totalBooks: allBooks.length, unmentioned: toDelete.length, currentBook: book.name });
+        }
+      }
+
+      sendEvent({ type: "check_complete", checked: allBooks.length, toDelete: toDelete.length });
+
+      let deleted = 0;
+      let errors = 0;
+      for (const book of toDelete) {
+        const client = await pool.connect();
+        try {
+          await client.query("BEGIN");
+          await client.query(`DELETE FROM book_bookmarks WHERE book_slug = $1`, [book.slug]);
+          await client.query(`DELETE FROM book_aliases WHERE canonical_key = $1 OR alias_key = $1`, [book.bookKey]);
+          await client.query(`DELETE FROM book_enrichments WHERE id = $1`, [book.id]);
+          await client.query("COMMIT");
+          deleted++;
+          sendEvent({ type: "deleting", deleted, totalToDelete: toDelete.length, currentBook: book.name });
+        } catch (err: any) {
+          await client.query("ROLLBACK");
+          errors++;
+          sendEvent({ type: "error", book: book.name, message: err?.message || "Delete failed" });
+        } finally {
+          client.release();
+        }
+      }
+
+      shopCache.invalidate();
+      sendEvent({ type: "complete", totalDeleted: deleted, totalChecked: allBooks.length, errors });
+      res.end();
+    } catch (err: any) {
+      console.error("[PurgeBooks] Error:", err);
+      if (!res.headersSent) {
+        res.status(500).json({ message: err?.message || "Failed to purge" });
+      } else {
+        res.write(`data: ${JSON.stringify({ type: "error", message: err?.message || "Fatal error" })}\n\n`);
+        res.end();
+      }
+    }
+  });
+
   app.post("/api/admin/shop/:sourceType/:id/move-to-queue", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
     try {

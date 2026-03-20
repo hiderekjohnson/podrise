@@ -1034,6 +1034,21 @@ function ApprovedBooks({ onViewBook }: { onViewBook: (id: number) => void }) {
   const [sortBy, setSortBy] = useState("alphabetical");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
+  const [purgeConfirmOpen, setPurgeConfirmOpen] = useState(false);
+  const [purgeLoading, setPurgeLoading] = useState(false);
+  const [purgeDryRunCount, setPurgeDryRunCount] = useState<number | null>(null);
+  const [purgeTotalBooks, setPurgeTotalBooks] = useState<number | null>(null);
+  const [purgeProgress, setPurgeProgress] = useState<{
+    phase: "checking" | "deleting" | "done";
+    totalBooks: number;
+    checked: number;
+    unmentioned: number;
+    deleted: number;
+    totalToDelete: number;
+    errors: number;
+    currentBook: string;
+  } | null>(null);
+
   const handleSearch = (val: string) => {
     setSearch(val);
     clearTimeout(debounceRef.current);
@@ -1068,6 +1083,75 @@ function ApprovedBooks({ onViewBook }: { onViewBook: (id: number) => void }) {
 
   const items = data?.items || [];
 
+  const handlePurgeClick = async () => {
+    setPurgeLoading(true);
+    try {
+      const res = await fetch("/api/admin/shop/purge-unmentioned-books?dryRun=true", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to check");
+      const data = await res.json();
+      setPurgeDryRunCount(data.count);
+      setPurgeTotalBooks(data.totalBooks);
+      setPurgeConfirmOpen(true);
+    } catch {
+      toast({ title: "Error", description: "Failed to check unmentioned books.", variant: "destructive" });
+    } finally {
+      setPurgeLoading(false);
+    }
+  };
+
+  const handlePurgeConfirm = async () => {
+    setPurgeConfirmOpen(false);
+    setPurgeProgress({ phase: "checking", totalBooks: purgeTotalBooks || 0, checked: 0, unmentioned: 0, deleted: 0, totalToDelete: 0, errors: 0, currentBook: "" });
+
+    try {
+      const res = await fetch("/api/admin/shop/purge-unmentioned-books", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Purge failed");
+
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+      if (!reader) throw new Error("No response stream");
+
+      let buffer = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const event = JSON.parse(line.slice(6));
+            if (event.type === "start") {
+              setPurgeProgress(prev => prev ? { ...prev, totalBooks: event.totalBooks } : prev);
+            } else if (event.type === "checking") {
+              setPurgeProgress(prev => prev ? { ...prev, phase: "checking", checked: event.checked, unmentioned: event.unmentioned, currentBook: event.currentBook } : prev);
+            } else if (event.type === "check_complete") {
+              setPurgeProgress(prev => prev ? { ...prev, phase: "deleting", checked: event.checked, totalToDelete: event.toDelete } : prev);
+            } else if (event.type === "deleting") {
+              setPurgeProgress(prev => prev ? { ...prev, phase: "deleting", deleted: event.deleted, totalToDelete: event.totalToDelete, currentBook: event.currentBook } : prev);
+            } else if (event.type === "complete") {
+              setPurgeProgress(prev => prev ? { ...prev, phase: "done", deleted: event.totalDeleted, errors: event.errors || 0 } : prev);
+            } else if (event.type === "error") {
+              setPurgeProgress(prev => prev ? { ...prev, errors: prev.errors + 1 } : prev);
+            }
+          } catch {}
+        }
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/shop/approved"] });
+    } catch {
+      toast({ title: "Error", description: "Purge operation failed.", variant: "destructive" });
+      setPurgeProgress(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -1078,6 +1162,115 @@ function ApprovedBooks({ onViewBook }: { onViewBook: (id: number) => void }) {
 
   return (
     <div className="space-y-4" data-testid="section-approved-books">
+      {purgeConfirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" data-testid="dialog-purge-confirm">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <Trash2 className="w-5 h-5 text-red-600" />
+              </div>
+              <h3 className="text-lg font-bold text-foreground">Purge Unmentioned Books</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-1">
+              Checked {purgeTotalBooks} books. <span className="font-bold text-foreground">{purgeDryRunCount}</span> book{purgeDryRunCount !== 1 ? "s" : ""} ha{purgeDryRunCount !== 1 ? "ve" : "s"} no podcast episode mentions and will be permanently deleted.
+            </p>
+            <p className="text-sm text-muted-foreground mb-5">
+              This action cannot be undone. Related aliases and bookmarks will also be removed.
+            </p>
+            <div className="flex items-center gap-3 justify-end">
+              <button
+                onClick={() => setPurgeConfirmOpen(false)}
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-muted-foreground hover:bg-gray-100 transition-all"
+                data-testid="button-purge-cancel"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePurgeConfirm}
+                className="px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700 transition-all"
+                data-testid="button-purge-confirm"
+              >
+                Delete {purgeDryRunCount} Book{purgeDryRunCount !== 1 ? "s" : ""}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {purgeProgress && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" data-testid="dialog-purge-progress">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              {purgeProgress.phase === "done" ? (
+                <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+              ) : (
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              )}
+              <h3 className="text-lg font-bold text-foreground">
+                {purgeProgress.phase === "checking" ? "Checking Books..." : purgeProgress.phase === "deleting" ? "Deleting Books..." : "Purge Complete"}
+              </h3>
+            </div>
+            {purgeProgress.phase === "checking" && (
+              <>
+                <div className="w-full bg-gray-100 rounded-full h-2.5 mb-3">
+                  <div
+                    className="bg-blue-500 h-2.5 rounded-full transition-all duration-300"
+                    style={{ width: `${purgeProgress.totalBooks > 0 ? Math.round((purgeProgress.checked / purgeProgress.totalBooks) * 100) : 0}%` }}
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground mb-1">
+                  Checked {purgeProgress.checked} of {purgeProgress.totalBooks} books ({purgeProgress.unmentioned} unmentioned so far)
+                </p>
+                {purgeProgress.currentBook && (
+                  <p className="text-xs text-muted-foreground truncate">
+                    Current: {purgeProgress.currentBook}
+                  </p>
+                )}
+              </>
+            )}
+            {purgeProgress.phase === "deleting" && (
+              <>
+                <div className="w-full bg-gray-100 rounded-full h-2.5 mb-3">
+                  <div
+                    className="bg-primary h-2.5 rounded-full transition-all duration-300"
+                    style={{ width: `${purgeProgress.totalToDelete > 0 ? Math.round((purgeProgress.deleted / purgeProgress.totalToDelete) * 100) : 0}%` }}
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground mb-1">
+                  Deleted {purgeProgress.deleted} of {purgeProgress.totalToDelete} unmentioned books
+                </p>
+                {purgeProgress.currentBook && (
+                  <p className="text-xs text-muted-foreground truncate">
+                    Current: {purgeProgress.currentBook}
+                  </p>
+                )}
+              </>
+            )}
+            {purgeProgress.phase === "done" && (
+              <>
+                <p className="text-sm text-muted-foreground mb-1">
+                  Successfully deleted <span className="font-bold text-foreground">{purgeProgress.deleted}</span> book{purgeProgress.deleted !== 1 ? "s" : ""} with no podcast mentions.
+                </p>
+                {purgeProgress.errors > 0 && (
+                  <p className="text-sm text-red-600 mb-1">
+                    {purgeProgress.errors} book{purgeProgress.errors !== 1 ? "s" : ""} failed to delete.
+                  </p>
+                )}
+                <div className="flex justify-end mt-4">
+                  <button
+                    onClick={() => setPurgeProgress(null)}
+                    className="px-4 py-2 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary/90 transition-all"
+                    data-testid="button-purge-done"
+                  >
+                    Done
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h3 className="text-base font-bold text-foreground">Approved Books</h3>
@@ -1085,19 +1278,30 @@ function ApprovedBooks({ onViewBook }: { onViewBook: (id: number) => void }) {
             {data?.total || 0} books live on the shop.
           </p>
         </div>
-        <button
-          onClick={() => removeApprovedDupsMutation.mutate()}
-          disabled={removeApprovedDupsMutation.isPending}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-all disabled:opacity-50"
-          data-testid="button-remove-approved-duplicates"
-        >
-          {removeApprovedDupsMutation.isPending ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          ) : (
-            <Trash2 className="w-3.5 h-3.5" />
-          )}
-          {removeApprovedDupsMutation.isPending ? "Removing..." : "Remove Duplicates"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => removeApprovedDupsMutation.mutate()}
+            disabled={removeApprovedDupsMutation.isPending}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-all disabled:opacity-50"
+            data-testid="button-remove-approved-duplicates"
+          >
+            {removeApprovedDupsMutation.isPending ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Trash2 className="w-3.5 h-3.5" />
+            )}
+            {removeApprovedDupsMutation.isPending ? "Removing..." : "Remove Duplicates"}
+          </button>
+          <button
+            onClick={handlePurgeClick}
+            disabled={purgeLoading}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-all disabled:opacity-50"
+            data-testid="button-purge-unmentioned"
+          >
+            {purgeLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+            Purge unmentioned books
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
