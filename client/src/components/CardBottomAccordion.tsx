@@ -229,7 +229,7 @@ function InlineChatSection({ item }: { item: AccordionItemData }) {
         <button
           onClick={() => sendMessage()}
           disabled={!input.trim() || loading}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all ${input.trim() && !loading ? "bg-[#6366F1] text-white hover:bg-[#4F46E5]" : "text-[#D4D4D8]"}`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all ${input.trim() && !loading ? "bg-[#6366F1] text-white hover:bg-[#4F46E5]" : "text-[#6366F1]"}`}
           data-testid={`inline-chat-send-${item.id}`}
         >
           <ArrowUp className="w-3.5 h-3.5" />
