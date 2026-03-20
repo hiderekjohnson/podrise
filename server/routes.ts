@@ -17773,6 +17773,83 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     console.warn("[YouTubeBackfill] skipped:", err);
   }
 
+  const podcastSlugCache = new DataCache<Set<string>>("podcastSlugs", 5 * 60 * 1000);
+
+  async function getKnownPodcastSlugs(): Promise<Set<string>> {
+    const cached = podcastSlugCache.get();
+    if (cached) return cached;
+    try {
+      const { rows } = await pool.query(`SELECT slug FROM podcast_directory WHERE slug IS NOT NULL`);
+      const slugSet = new Set<string>(rows.map((r: any) => (r.slug as string).toLowerCase()));
+      podcastSlugCache.set(slugSet);
+      return slugSet;
+    } catch (err) {
+      console.error("[PodcastSlugRedirect] Failed to fetch slugs:", err);
+      return new Set<string>();
+    }
+  }
+
+  const RESERVED_TOP_LEVEL = new Set([
+    "api", "admin", "login", "register", "dashboard", "settings", "podcasts",
+    "shop", "people", "companies", "insights", "trends", "pod-squad", "about",
+    "contact", "enterprise", "privacy", "terms", "leaderboard", "get-started",
+    "verify-email", "topics", "industry", "role", "interest", "lp", "sitemap.xml",
+    "robots.txt", "favicon.ico", "assets", "public", "static",
+  ]);
+
+  app.use(async (req, res, next) => {
+    if (req.method !== "GET") return next();
+    const pathSegments = req.path.split("/").filter(Boolean);
+    if (pathSegments.length === 0 || pathSegments.length > 2) return next();
+    const firstSegment = pathSegments[0].toLowerCase();
+    if (RESERVED_TOP_LEVEL.has(firstSegment)) return next();
+    if (firstSegment.includes(".")) return next();
+
+    const slugs = await getKnownPodcastSlugs();
+    if (slugs.has(firstSegment)) {
+      const newPath = `/podcasts/${pathSegments.join("/")}`;
+      const qs = req.originalUrl.includes("?") ? req.originalUrl.slice(req.originalUrl.indexOf("?")) : "";
+      return res.redirect(301, newPath + qs);
+    }
+    next();
+  });
+
+  app.post("/api/admin/fix-pending-email-links", async (req, res) => {
+    if (!req.session?.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const slugs = await getKnownPodcastSlugs();
+      if (slugs.size === 0) return res.json({ fixed: 0, scanned: 0, message: "No podcast slugs found" });
+
+      const { rows: pendingRows } = await pool.query(
+        `SELECT id, email_html FROM pending_emails WHERE status = 'pending' AND email_html IS NOT NULL`
+      );
+
+      const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      let fixedCount = 0;
+      for (const row of pendingRows) {
+        let html = row.email_html;
+        let changed = false;
+        for (const slug of slugs) {
+          const pattern = new RegExp(`(https?://(?:www\\.)?podrise\\.com)/${escapeRegExp(slug)}/`, "g");
+          const replaced = html.replace(pattern, `$1/podcasts/${slug}/`);
+          if (replaced !== html) {
+            html = replaced;
+            changed = true;
+          }
+        }
+        if (changed) {
+          await pool.query(`UPDATE pending_emails SET email_html = $1 WHERE id = $2`, [html, row.id]);
+          fixedCount++;
+        }
+      }
+
+      res.json({ fixed: fixedCount, scanned: pendingRows.length });
+    } catch (err: any) {
+      console.error("[FixPendingEmailLinks] Error:", err);
+      res.status(500).json({ message: "Failed to fix pending email links" });
+    }
+  });
+
   setTimeout(async () => {
     try {
       await pool.query(`

@@ -931,7 +931,7 @@ function BookDetailPage({ bookId, onBack }: { bookId: number; onBack: () => void
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
                           <a
-                            href={`/${ep.podcastSlug}/${ep.episodeSlug}`}
+                            href={`/podcasts/${ep.podcastSlug}/${ep.episodeSlug}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-sm font-semibold text-foreground hover:text-primary transition-colors line-clamp-1"
@@ -947,7 +947,7 @@ function BookDetailPage({ bookId, onBack }: { bookId: number; onBack: () => void
                           </div>
                         </div>
                         <a
-                          href={`/${ep.podcastSlug}/${ep.episodeSlug}`}
+                          href={`/podcasts/${ep.podcastSlug}/${ep.episodeSlug}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-1.5 rounded-lg hover:bg-black/[0.05] shrink-0 transition-all"

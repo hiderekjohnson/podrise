@@ -91,6 +91,47 @@ function useAdminPath() {
   return { path: fullPath, navigate: adminNavigate };
 }
 
+function FixPendingEmailLinks() {
+  const { toast } = useToast();
+  const fixMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/fix-pending-email-links"),
+    onSuccess: async (res: Response) => {
+      const data = await res.json();
+      toast({
+        title: "Episode links fixed",
+        description: `Scanned ${data.scanned} pending emails, fixed ${data.fixed} record${data.fixed !== 1 ? "s" : ""}.`,
+      });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to fix pending email links.", variant: "destructive" });
+    },
+  });
+
+  return (
+    <div className="mt-6 p-4 border border-black/[0.06] dark:border-white/[0.06] rounded-xl" data-testid="section-fix-email-links">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h3 className="text-sm font-bold text-foreground" data-testid="text-fix-email-links-title">Fix Episode Links in Pending Emails</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">Scan pending emails for old-format episode URLs (missing /podcasts/ prefix) and rewrite them.</p>
+        </div>
+        <button
+          data-testid="button-fix-email-links"
+          onClick={() => fixMutation.mutate()}
+          disabled={fixMutation.isPending}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-primary text-primary-foreground shadow-sm hover:shadow-md transition-all disabled:opacity-50 shrink-0"
+        >
+          {fixMutation.isPending ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Wrench className="w-4 h-4" />
+          )}
+          {fixMutation.isPending ? "Fixing..." : "Fix Links"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function Admin() {
   const { path: adminPath, navigate: adminNavigate } = useAdminPath();
   const { toast } = useToast();
@@ -879,6 +920,8 @@ export default function Admin() {
                     <AdminAlerts />
                   </Suspense>
                 )}
+
+                <FixPendingEmailLinks />
               </div>
             )}
 
