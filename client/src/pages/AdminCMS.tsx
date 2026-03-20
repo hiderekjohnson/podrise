@@ -964,7 +964,19 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <p className="font-medium text-foreground text-sm">{p.name}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-medium text-foreground text-sm">{p.name}</p>
+                      <a
+                        href={`/podcasts/${p.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+                        data-testid={`link-podcast-external-${p.id}`}
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
                     {p.hosts && <p className="text-xs text-muted-foreground mt-0.5">{p.hosts}</p>}
                   </td>
                   <td className="px-4 py-3">
@@ -1881,7 +1893,19 @@ function EpisodesList({ podcastSlug, onNavigate }: { podcastSlug: string; onNavi
                   data-testid={`row-cms-episode-${ep.id}`}
                 >
                   <td className="px-4 py-3">
-                    <p className="font-medium text-foreground text-sm truncate max-w-md">{ep.episode_title}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-medium text-foreground text-sm truncate max-w-md">{ep.episode_title}</p>
+                      <a
+                        href={`/podcasts/${podcastSlug}/${ep.episode_slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-muted-foreground/40 hover:text-muted-foreground transition-colors flex-shrink-0"
+                        data-testid={`link-episode-external-${ep.id}`}
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     <span className="text-sm text-muted-foreground">{ep.publish_date || "—"}</span>
@@ -2139,6 +2163,16 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
                     <div className="flex items-center gap-3">
                       {ep.artwork_url && <img src={ep.artwork_url} alt="" className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />}
                       <p className="font-medium text-foreground text-sm truncate max-w-md">{ep.episode_title}</p>
+                      <a
+                        href={`/podcasts/${ep.slug}/${ep.episode_slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-muted-foreground/40 hover:text-muted-foreground transition-colors flex-shrink-0"
+                        data-testid={`link-all-episode-external-${ep.id}`}
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
                     </div>
                   </td>
                   <td className="px-4 py-3">
