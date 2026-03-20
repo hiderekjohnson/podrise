@@ -183,6 +183,7 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
   const [showRejectModal, setShowRejectModal] = useState<number | null>(null);
   const [queueSort, setQueueSort] = useState("recent");
   const [queueFilter, setQueueFilter] = useState("");
+  const [queuePage, setQueuePage] = useState(1);
   const [imageRefreshProgress, setImageRefreshProgress] = useState<{
     phase: "running" | "done";
     total: number;
@@ -192,10 +193,11 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
     current: string;
   } | null>(null);
 
+  const ITEMS_PER_PAGE = 50;
   const { data, isLoading } = useQuery<QueueResponse>({
-    queryKey: ["/api/admin/shop/queue", 1, queueSort, queueFilter],
+    queryKey: ["/api/admin/shop/queue", queuePage, queueSort, queueFilter],
     queryFn: async () => {
-      const params = new URLSearchParams({ limit: "50" });
+      const params = new URLSearchParams({ limit: String(ITEMS_PER_PAGE), page: String(queuePage) });
       if (queueSort) params.set("sort", queueSort);
       if (queueFilter) params.set("filter", queueFilter);
       const res = await fetch(`/api/admin/shop/queue?${params}`, { credentials: "include" });
@@ -206,6 +208,13 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
 
   const items = data?.items || [];
   const stats = data?.stats;
+  const totalPages = stats ? Math.max(1, Math.ceil(stats.pending / ITEMS_PER_PAGE)) : 1;
+
+  useEffect(() => {
+    if (queuePage > totalPages) {
+      setQueuePage(totalPages);
+    }
+  }, [queuePage, totalPages]);
 
   useEffect(() => {
     if (items.length > 0) {
@@ -380,7 +389,7 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
           <div className="relative">
             <select
               value={queueFilter}
-              onChange={(e) => { setQueueFilter(e.target.value); setSelectedIds(new Set()); }}
+              onChange={(e) => { setQueueFilter(e.target.value); setSelectedIds(new Set()); setQueuePage(1); }}
               className="h-8 pl-7 pr-3 bg-white border border-black/[0.08] rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer"
               data-testid="select-queue-filter"
             >
@@ -394,7 +403,7 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
           <div className="relative">
             <select
               value={queueSort}
-              onChange={(e) => { setQueueSort(e.target.value); setSelectedIds(new Set()); }}
+              onChange={(e) => { setQueueSort(e.target.value); setSelectedIds(new Set()); setQueuePage(1); }}
               className="h-8 pl-7 pr-3 bg-white border border-black/[0.08] rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer"
               data-testid="select-queue-sort"
             >
@@ -446,11 +455,16 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
         </div>
       )}
 
-      {items.length === 0 ? (
+      {items.length === 0 && (!stats || stats.pending === 0) ? (
         <div className="glass-panel rounded-2xl p-12 text-center">
           <CheckCircle2 className="w-10 h-10 text-green-400 mx-auto mb-3" />
           <p className="text-base font-bold text-foreground">All caught up!</p>
           <p className="text-sm text-muted-foreground mt-1">No pending books to review.</p>
+        </div>
+      ) : items.length === 0 ? (
+        <div className="glass-panel rounded-2xl p-12 text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground">Loading page...</p>
         </div>
       ) : (
         <>
@@ -549,6 +563,32 @@ function ApprovalQueue({ onViewBook }: { onViewBook: (id: number) => void }) {
               </div>
             ))}
           </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 pt-4" data-testid="pagination-controls">
+              <button
+                onClick={() => { setQueuePage(p => Math.max(1, p - 1)); setSelectedIds(new Set()); }}
+                disabled={queuePage <= 1}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-white border border-black/[0.08] hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                data-testid="button-page-previous"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </button>
+              <span className="text-sm font-semibold text-muted-foreground" data-testid="text-page-indicator">
+                Page {queuePage} of {totalPages}
+              </span>
+              <button
+                onClick={() => { setQueuePage(p => Math.min(totalPages, p + 1)); setSelectedIds(new Set()); }}
+                disabled={queuePage >= totalPages}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-white border border-black/[0.08] hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                data-testid="button-page-next"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
 
           {selectedIds.size > 0 && (
             <div className="fixed bottom-0 left-0 right-0 z-50 bg-green-600 text-white py-3 px-4 sm:px-6 shadow-lg" data-testid="fixed-bottom-approve-bar">

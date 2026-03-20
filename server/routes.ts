@@ -15152,7 +15152,7 @@ Write a polished 2-4 sentence editorial summary of why the podcast host recommen
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authorized" });
     try {
       const page = Math.max(1, parseInt(req.query.page as string) || 1);
-      const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20));
+      const limit = Math.min(200, Math.max(1, parseInt(req.query.limit as string) || 50));
       const offset = (page - 1) * limit;
       const sortBy = (req.query.sort as string || "recent").trim();
 
