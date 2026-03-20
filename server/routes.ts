@@ -28,6 +28,9 @@ declare module "express-session" {
     originalUserId?: number;
     podcasterEmail?: string;
     oauthState?: string;
+    spotifyOAuthState?: string;
+    spotifyOAuthRedirect?: string;
+    spotifyCodeVerifier?: string;
     signupContext?: string;
     referralCode?: string;
     utmSource?: string;
@@ -585,6 +588,9 @@ export async function registerRoutes(
       ALTER TABLE users ADD COLUMN IF NOT EXISTS utm_content TEXT;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS utm_term TEXT;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS channel TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS spotify_access_token TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS spotify_refresh_token TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS spotify_token_expires_at BIGINT;
     `);
 
     const { rows: allUsers } = await migrationPool.query(`SELECT id, utm_source, utm_medium, utm_campaign, signup_source, channel FROM users`);
@@ -2329,6 +2335,467 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       console.error("[GoogleAuth] Callback error:", err);
       logAuthError("/api/auth/google/callback", err?.message || "Unknown Google OAuth error", req);
       res.redirect("/login?error=invalid");
+    }
+  });
+
+  app.get("/api/auth/spotify", (req, res) => {
+    const clientId = process.env.SPOTIFY_CLIENT_ID;
+    if (!clientId) return res.status(500).json({ message: "Spotify OAuth not configured" });
+
+    const userId = getAuthUserId(req);
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    const redirectUri = `${baseUrl}/api/auth/spotify/callback`;
+    const scope = "user-library-read user-follow-read";
+    const state = crypto.randomBytes(16).toString("hex");
+    req.session.spotifyOAuthState = state;
+
+    const codeVerifier = crypto.randomBytes(32).toString("base64url");
+    const codeChallenge = crypto.createHash("sha256").update(codeVerifier).digest("base64url");
+    req.session.spotifyCodeVerifier = codeVerifier;
+
+    let returnTo = "/my-podcasts";
+    const rawReturn = req.query.return_to as string;
+    if (rawReturn && typeof rawReturn === "string" && rawReturn.startsWith("/") && !rawReturn.startsWith("//") && !rawReturn.includes("://")) {
+      returnTo = rawReturn;
+    }
+    req.session.spotifyOAuthRedirect = returnTo;
+
+    const url = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${state}&code_challenge_method=S256&code_challenge=${codeChallenge}&show_dialog=true`;
+    req.session.save((err) => {
+      if (err) console.error("[SpotifyAuth] Session save error:", err);
+      res.redirect(url);
+    });
+  });
+
+  app.get("/api/auth/spotify/callback", async (req, res) => {
+    try {
+      const { code, state, error } = req.query as { code?: string; state?: string; error?: string };
+
+      const returnTo = req.session.spotifyOAuthRedirect || "/my-podcasts";
+      delete req.session.spotifyOAuthRedirect;
+
+      if (error) {
+        console.warn("[SpotifyAuth] User denied or error:", error);
+        delete req.session.spotifyOAuthState;
+        return res.redirect(`${returnTo}?spotify_error=denied`);
+      }
+
+      if (!code) {
+        console.error("[SpotifyAuth] Missing code param");
+        delete req.session.spotifyOAuthState;
+        return res.redirect(`${returnTo}?spotify_error=invalid`);
+      }
+
+      if (!state || state !== req.session.spotifyOAuthState) {
+        console.error("[SpotifyAuth] State mismatch");
+        delete req.session.spotifyOAuthState;
+        return res.redirect(`${returnTo}?spotify_error=invalid`);
+      }
+      delete req.session.spotifyOAuthState;
+
+      const userId = getAuthUserId(req);
+      if (!userId) return res.redirect("/login");
+
+      const clientId = process.env.SPOTIFY_CLIENT_ID!;
+      const clientSecret = process.env.SPOTIFY_CLIENT_SECRET!;
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      const redirectUri = `${baseUrl}/api/auth/spotify/callback`;
+      const codeVerifier = req.session.spotifyCodeVerifier;
+      delete req.session.spotifyCodeVerifier;
+
+      const tokenBody: Record<string, string> = {
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: redirectUri,
+        client_id: clientId,
+      };
+      if (codeVerifier) {
+        tokenBody.code_verifier = codeVerifier;
+      }
+
+      const tokenRes = await fetch("https://accounts.spotify.com/api/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "Authorization": "Basic " + Buffer.from(`${clientId}:${clientSecret}`).toString("base64"),
+        },
+        body: new URLSearchParams(tokenBody),
+      });
+
+      const tokenData = await tokenRes.json() as any;
+      if (!tokenData.access_token) {
+        console.error("[SpotifyAuth] Token exchange failed:", tokenData.error);
+        return res.redirect(`${returnTo}?spotify_error=token_failed`);
+      }
+
+      const expiresAt = Date.now() + (tokenData.expires_in || 3600) * 1000;
+
+      await pool.query(
+        `UPDATE users SET spotify_access_token = $1, spotify_refresh_token = $2, spotify_token_expires_at = $3 WHERE id = $4`,
+        [tokenData.access_token, tokenData.refresh_token || null, expiresAt, userId]
+      );
+
+      req.session.save(() => {
+        res.redirect(`${returnTo}?spotify_connected=true`);
+      });
+    } catch (err: any) {
+      console.error("[SpotifyAuth] Callback error:", err);
+      res.redirect("/my-podcasts?spotify_error=unknown");
+    }
+  });
+
+  async function refreshSpotifyToken(userId: number): Promise<string | null> {
+    const result = await pool.query(
+      `SELECT spotify_access_token, spotify_refresh_token, spotify_token_expires_at FROM users WHERE id = $1`,
+      [userId]
+    );
+    const row = result.rows[0];
+    if (!row?.spotify_refresh_token) return null;
+
+    if (row.spotify_access_token && row.spotify_token_expires_at && Date.now() < Number(row.spotify_token_expires_at) - 60000) {
+      return row.spotify_access_token;
+    }
+
+    const clientId = process.env.SPOTIFY_CLIENT_ID!;
+    const clientSecret = process.env.SPOTIFY_CLIENT_SECRET!;
+
+    const tokenRes = await fetch("https://accounts.spotify.com/api/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Authorization": "Basic " + Buffer.from(`${clientId}:${clientSecret}`).toString("base64"),
+      },
+      body: new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: row.spotify_refresh_token,
+      }),
+    });
+
+    const tokenData = await tokenRes.json() as any;
+    if (!tokenData.access_token) {
+      console.error("[SpotifyAuth] Token refresh failed:", tokenData.error);
+      await pool.query(
+        `UPDATE users SET spotify_access_token = NULL, spotify_refresh_token = NULL, spotify_token_expires_at = NULL WHERE id = $1`,
+        [userId]
+      );
+      return null;
+    }
+
+    const expiresAt = Date.now() + (tokenData.expires_in || 3600) * 1000;
+    await pool.query(
+      `UPDATE users SET spotify_access_token = $1, spotify_refresh_token = COALESCE($2, spotify_refresh_token), spotify_token_expires_at = $3 WHERE id = $4`,
+      [tokenData.access_token, tokenData.refresh_token || null, expiresAt, userId]
+    );
+
+    return tokenData.access_token;
+  }
+
+  app.get("/api/spotify/status", async (req, res) => {
+    const userId = getAuthUserId(req);
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+
+    const result = await pool.query(
+      `SELECT spotify_refresh_token FROM users WHERE id = $1`,
+      [userId]
+    );
+    res.json({ connected: !!result.rows[0]?.spotify_refresh_token });
+  });
+
+  app.post("/api/spotify/disconnect", async (req, res) => {
+    const userId = getAuthUserId(req);
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+
+    await pool.query(
+      `UPDATE users SET spotify_access_token = NULL, spotify_refresh_token = NULL, spotify_token_expires_at = NULL WHERE id = $1`,
+      [userId]
+    );
+    res.json({ success: true });
+  });
+
+  app.get("/api/spotify/shows", async (req, res) => {
+    const userId = getAuthUserId(req);
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+
+    try {
+      let accessToken = await refreshSpotifyToken(userId);
+      if (!accessToken) {
+        return res.status(401).json({ message: "Spotify not connected", spotifyDisconnected: true });
+      }
+
+      const shows: any[] = [];
+      let url: string | null = "https://api.spotify.com/v1/me/shows?limit=50";
+      let retried401 = false;
+
+      while (url) {
+        const spotRes = await fetch(url, {
+          headers: { "Authorization": `Bearer ${accessToken}` },
+        });
+
+        if (spotRes.status === 401 && !retried401) {
+          retried401 = true;
+          await pool.query(`UPDATE users SET spotify_access_token = NULL, spotify_token_expires_at = NULL WHERE id = $1`, [userId]);
+          const refreshed = await refreshSpotifyToken(userId);
+          if (refreshed) {
+            accessToken = refreshed;
+            continue;
+          }
+          await pool.query(
+            `UPDATE users SET spotify_access_token = NULL, spotify_refresh_token = NULL, spotify_token_expires_at = NULL WHERE id = $1`,
+            [userId]
+          );
+          return res.status(401).json({ message: "Spotify token expired", spotifyDisconnected: true });
+        }
+
+        if (spotRes.status === 401) {
+          await pool.query(
+            `UPDATE users SET spotify_access_token = NULL, spotify_refresh_token = NULL, spotify_token_expires_at = NULL WHERE id = $1`,
+            [userId]
+          );
+          return res.status(401).json({ message: "Spotify token expired", spotifyDisconnected: true });
+        }
+
+        if (spotRes.status === 403) {
+          return res.status(403).json({ message: "Spotify access was revoked. Please reconnect.", spotifyDisconnected: true });
+        }
+
+        if (spotRes.status === 429) {
+          const retryAfter = spotRes.headers.get("retry-after") || "30";
+          console.warn("[SpotifyShows] Rate limited, retry-after:", retryAfter);
+          return res.status(429).json({ message: `Spotify rate limit reached. Please try again in ${retryAfter} seconds.`, retryAfter: parseInt(retryAfter, 10) });
+        }
+
+        if (!spotRes.ok) {
+          console.error("[SpotifyShows] API error:", spotRes.status);
+          return res.status(502).json({ message: "Spotify is temporarily unavailable. Please try again later." });
+        }
+
+        const data = await spotRes.json() as any;
+        for (const item of (data.items || [])) {
+          const show = item.show;
+          if (show) {
+            shows.push({
+              spotifyId: show.id,
+              name: show.name,
+              publisher: show.publisher || "",
+              description: (show.description || "").substring(0, 200),
+              artworkUrl: show.images?.[0]?.url || "",
+              totalEpisodes: show.total_episodes || 0,
+              spotifyUrl: show.external_urls?.spotify || "",
+            });
+          }
+        }
+        url = data.next || null;
+      }
+
+      const user = await storage.getUserById(userId);
+      const currentPodcasts = user?.podcasts || [];
+      const followedItunesIds = new Set(
+        currentPodcasts.map((p: string) => {
+          try { return JSON.parse(p).id; } catch { return p; }
+        }).filter(Boolean)
+      );
+
+      const pdResult = await pool.query(`SELECT itunes_id, spotify_url FROM podcast_directory WHERE spotify_url IS NOT NULL AND spotify_url != ''`);
+      const spotifyUrlToItunesId = new Map<string, string>();
+      for (const row of pdResult.rows) {
+        if (row.spotify_url) {
+          const match = row.spotify_url.match(/show\/([a-zA-Z0-9]+)/);
+          if (match) spotifyUrlToItunesId.set(match[1], row.itunes_id);
+        }
+      }
+
+      const enrichedShows = shows.map(show => {
+        const matchedItunesId = spotifyUrlToItunesId.get(show.spotifyId);
+        return {
+          ...show,
+          alreadyFollowed: matchedItunesId ? followedItunesIds.has(matchedItunesId) : false,
+          itunesId: matchedItunesId || null,
+        };
+      });
+
+      res.json({ shows: enrichedShows });
+    } catch (err: any) {
+      console.error("[SpotifyShows] Error:", err);
+      res.status(500).json({ message: "Failed to fetch Spotify shows" });
+    }
+  });
+
+  app.post("/api/spotify/bulk-follow", async (req, res) => {
+    const userId = getAuthUserId(req);
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+
+    const { shows } = req.body as { shows: Array<{ spotifyId: string; name: string; artworkUrl: string }> };
+    if (!shows || !Array.isArray(shows) || shows.length === 0) {
+      return res.status(400).json({ message: "No shows provided" });
+    }
+
+    if (shows.length > 100) {
+      return res.status(400).json({ message: "Too many shows (max 100)" });
+    }
+
+    try {
+      const user = await storage.getUserById(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      let currentPodcasts = [...(user.podcasts || [])];
+      const existingIds = new Set(
+        currentPodcasts.map((p: string) => {
+          try { return JSON.parse(p).id; } catch { return p; }
+        }).filter(Boolean)
+      );
+
+      const results: Array<{ spotifyId: string; name: string; status: string; slug?: string }> = [];
+
+      for (const show of shows) {
+        try {
+          let pd: any = null;
+
+          const pdBySpotify = await pool.query(
+            `SELECT itunes_id, name, slug, artwork_url FROM podcast_directory WHERE spotify_url LIKE $1 LIMIT 1`,
+            [`%${show.spotifyId}%`]
+          );
+          pd = pdBySpotify.rows[0] || null;
+
+          if (!pd) {
+            const searchRes = await fetch(
+              `https://itunes.apple.com/search?term=${encodeURIComponent(show.name)}&media=podcast&limit=5`
+            );
+            const searchData = await searchRes.json() as any;
+            const itunesResults = searchData.results || [];
+
+            const nameNorm = show.name.toLowerCase().trim();
+            const itunesMatch = itunesResults.find((r: any) => {
+              const n = (r.collectionName || r.trackName || "").toLowerCase().trim();
+              return n === nameNorm || n.includes(nameNorm) || nameNorm.includes(n);
+            }) || itunesResults[0];
+
+            if (itunesMatch) {
+              const itunesId = String(itunesMatch.collectionId || itunesMatch.trackId);
+              const pdExisting = await pool.query(
+                `SELECT itunes_id, name, slug, artwork_url FROM podcast_directory WHERE itunes_id = $1`,
+                [itunesId]
+              );
+              pd = pdExisting.rows[0] || null;
+
+              if (!pd) {
+                let slug = show.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                const existingSlug = await pool.query(`SELECT slug FROM podcast_directory WHERE slug = $1`, [slug]);
+                if (existingSlug.rows.length > 0) slug = `${slug}-${itunesId}`;
+
+                const artUrl = (itunesMatch.artworkUrl600 || itunesMatch.artworkUrl100 || show.artworkUrl || "").replace(/\d+x\d+bb/, "600x600bb");
+                const spotifyUrl = `https://open.spotify.com/show/${show.spotifyId}`;
+
+                await pool.query(
+                  `INSERT INTO podcast_directory (itunes_id, name, slug, artwork_url, spotify_url, status, has_landing_page, created_at, updated_at)
+                   VALUES ($1, $2, $3, $4, $5, 'requested', false, NOW(), NOW())
+                   ON CONFLICT (itunes_id) DO UPDATE SET spotify_url = COALESCE(NULLIF(podcast_directory.spotify_url, ''), $5)`,
+                  [itunesId, show.name, slug, artUrl, spotifyUrl]
+                );
+
+                const insertedResult = await pool.query(
+                  `SELECT itunes_id, name, slug, artwork_url FROM podcast_directory WHERE itunes_id = $1`,
+                  [itunesId]
+                );
+                pd = insertedResult.rows[0] || null;
+
+                if (pd) {
+                  (async () => {
+                    try {
+                      const lookupRes = await fetch(`https://itunes.apple.com/lookup?id=${itunesId}&media=podcast`);
+                      const lookupJson = await lookupRes.json() as any;
+                      const itunesData = lookupJson.results?.[0];
+                      if (itunesData) {
+                        const description = itunesData.description || "";
+                        const category = itunesData.primaryGenreName || "";
+                        const appleUrl = itunesData.collectionViewUrl || "";
+                        const highResArt = (itunesData.artworkUrl600 || itunesData.artworkUrl100 || "").replace(/\d+x\d+bb/, "600x600bb");
+                        const trackCount = itunesData.trackCount || null;
+                        await pool.query(
+                          `UPDATE podcast_directory SET
+                            description = COALESCE(NULLIF(description, ''), $1),
+                            category = COALESCE(NULLIF(category, ''), $2),
+                            apple_url = COALESCE(NULLIF(apple_url, ''), $3),
+                            artwork_url = COALESCE(NULLIF(artwork_url, ''), $4),
+                            total_episodes = COALESCE(total_episodes, $5),
+                            updated_at = NOW()
+                          WHERE itunes_id = $6`,
+                          [description, category, appleUrl, highResArt, trackCount, itunesId]
+                        );
+                      }
+                    } catch (enrichErr) {
+                      console.warn("[SpotifyBulkFollow] iTunes enrichment error:", enrichErr);
+                    }
+                  })();
+                }
+              }
+            }
+          }
+
+          if (!pd) {
+            let slug = show.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+            const fakeItunesId = `spotify-${show.spotifyId}`;
+            const existingSlug = await pool.query(`SELECT slug FROM podcast_directory WHERE slug = $1`, [slug]);
+            if (existingSlug.rows.length > 0) slug = `${slug}-${show.spotifyId}`;
+
+            const artUrl = (show.artworkUrl || "").replace(/\d+x\d+bb/, "600x600bb");
+            const spotifyUrl = `https://open.spotify.com/show/${show.spotifyId}`;
+
+            await pool.query(
+              `INSERT INTO podcast_directory (itunes_id, name, slug, artwork_url, spotify_url, status, has_landing_page, created_at, updated_at)
+               VALUES ($1, $2, $3, $4, $5, 'requested', false, NOW(), NOW())
+               ON CONFLICT (itunes_id) DO NOTHING`,
+              [fakeItunesId, show.name, slug, artUrl, spotifyUrl]
+            );
+            const insertedResult = await pool.query(
+              `SELECT itunes_id, name, slug, artwork_url FROM podcast_directory WHERE itunes_id = $1`,
+              [fakeItunesId]
+            );
+            pd = insertedResult.rows[0] || null;
+          }
+
+          if (!pd) {
+            results.push({ spotifyId: show.spotifyId, name: show.name, status: "not_found" });
+            continue;
+          }
+
+          if (existingIds.has(pd.itunes_id.toString())) {
+            results.push({ spotifyId: show.spotifyId, name: show.name, status: "already_followed", slug: pd.slug });
+            continue;
+          }
+
+          const artworkResult = await pool.query(
+            `SELECT artwork_url FROM landing_page_recaps WHERE slug = $1 LIMIT 1`,
+            [pd.slug]
+          );
+          const finalArtworkUrl = artworkResult.rows[0]?.artwork_url || pd.artwork_url || "";
+
+          const newEntry = JSON.stringify({
+            id: pd.itunes_id.toString(),
+            name: pd.name,
+            artworkUrl: finalArtworkUrl,
+          });
+
+          currentPodcasts.push(newEntry);
+          existingIds.add(pd.itunes_id.toString());
+          results.push({ spotifyId: show.spotifyId, name: show.name, status: "followed", slug: pd.slug });
+        } catch (err) {
+          console.error(`[SpotifyBulkFollow] Error following ${show.name}:`, err);
+          results.push({ spotifyId: show.spotifyId, name: show.name, status: "error" });
+        }
+      }
+
+      await pool.query(
+        `UPDATE users SET podcasts = $1 WHERE id = $2`,
+        [currentPodcasts, userId]
+      );
+
+      const followed = results.filter(r => r.status === "followed").length;
+      res.json({ success: true, followed, results });
+    } catch (err) {
+      console.error("[SpotifyBulkFollow] Error:", err);
+      res.status(500).json({ message: "Failed to bulk follow" });
     }
   });
 

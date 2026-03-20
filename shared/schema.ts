@@ -37,6 +37,9 @@ export const users = pgTable("users", {
   language: text("language"),
   referralCode: text("referral_code").unique(),
   referredBy: integer("referred_by"),
+  spotifyAccessToken: text("spotify_access_token"),
+  spotifyRefreshToken: text("spotify_refresh_token"),
+  spotifyTokenExpiresAt: text("spotify_token_expires_at"),
   createdAt: timestamp("created_at").defaultNow(),
   lastLoginAt: timestamp("last_login_at"),
 });
