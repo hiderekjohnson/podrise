@@ -401,7 +401,7 @@ export default function AdminUserProfile() {
 
   return (
     <div className="min-h-screen bg-background" data-testid="admin-user-profile">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="w-full px-6 lg:px-10 xl:px-16 py-8">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => navigate("/admin")}

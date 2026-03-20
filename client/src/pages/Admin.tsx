@@ -582,7 +582,7 @@ export default function Admin() {
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex flex-col">
-        <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
+        <header className="w-full px-6 lg:px-10 xl:px-16 py-5 flex items-center justify-between">
           <a href="/" className="flex items-center">
             <PodRiseWordmark />
           </a>
@@ -653,8 +653,8 @@ export default function Admin() {
   return (
     <div className="min-h-screen flex flex-col">
       {isDev && (
-        <div className="w-full bg-amber-500/15 border-b border-amber-500/30 px-6 py-3" data-testid="banner-dev-warning">
-          <div className="max-w-6xl mx-auto flex items-center gap-3">
+        <div className="w-full bg-amber-500/15 border-b border-amber-500/30 px-6 lg:px-10 xl:px-16 py-3" data-testid="banner-dev-warning">
+          <div className="flex items-center gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0" />
             <p className="text-sm font-medium text-amber-400">
               <span className="font-bold">Dev Environment</span> — Changes made here won't appear on the live site. Approve/reject products and manage data on the <a href="https://podrise.com/admin" target="_blank" rel="noopener noreferrer" className="underline font-bold hover:text-amber-300">production admin</a> instead.
@@ -663,7 +663,7 @@ export default function Admin() {
         </div>
       )}
       {impersonationStatus?.impersonating && (
-        <div className="w-full bg-amber-500 text-white px-6 py-2.5 flex items-center justify-center gap-3" data-testid="banner-admin-impersonating">
+        <div className="w-full bg-amber-500 text-white px-6 lg:px-10 xl:px-16 py-2.5 flex items-center justify-center gap-3" data-testid="banner-admin-impersonating">
           <Shield className="w-4 h-4" />
           <span className="text-sm font-semibold">You are currently impersonating user ID {impersonationStatus.userId}</span>
           <button
@@ -676,7 +676,7 @@ export default function Admin() {
           </button>
         </div>
       )}
-      <header className="w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
+      <header className="w-full px-6 lg:px-10 xl:px-16 py-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <a href="/" className="flex items-center">
             <PodRiseWordmark />
@@ -768,8 +768,8 @@ export default function Admin() {
         </div>
       )}
 
-      <main className="flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 pb-16">
-        <section className="w-full max-w-5xl pt-8 pb-6">
+      <main className="flex-1 flex flex-col px-6 lg:px-10 xl:px-16 pb-16">
+        <section className="w-full pt-8 pb-6">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
