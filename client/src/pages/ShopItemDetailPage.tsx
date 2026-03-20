@@ -690,21 +690,34 @@ export default function ShopItemDetailPage({ itemKind, bookData, productData, is
       <main className="flex-1">
         <div className="max-w-[960px] mx-auto px-5 sm:px-8 pt-8 pb-24">
 
-          <button
-            onClick={() => window.history.back()}
-            className="text-[#71717A] hover:text-[#09090B] dark:hover:text-white transition-colors mb-4"
-            data-testid="back-button"
-            aria-label="Go back"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="text-[13px] text-[#A1A1AA] mb-6 flex items-center gap-2" data-testid="breadcrumb">
-            <Link href="/" className="text-[#52525B] hover:text-[#6366F1] transition-colors">Home</Link>
-            <span>›</span>
-            <Link href="/shop" className="text-[#52525B] hover:text-[#6366F1] transition-colors">Pod Shop</Link>
-            <span>›</span>
-            <span>{item.name}</span>
-          </div>
+          {isLoggedIn ? (
+            <button
+              onClick={() => window.history.back()}
+              className="flex items-center gap-1.5 text-[15px] text-[#71717A] dark:text-[#A1A1AA] hover:text-[#09090B] dark:hover:text-white transition-colors mb-6"
+              data-testid="back-link"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>{item.name}</span>
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => window.history.back()}
+                className="text-[#71717A] hover:text-[#09090B] dark:hover:text-white transition-colors mb-4"
+                data-testid="back-button"
+                aria-label="Go back"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <div className="text-[13px] text-[#A1A1AA] mb-6 flex items-center gap-2" data-testid="breadcrumb">
+                <Link href="/" className="text-[#52525B] hover:text-[#6366F1] transition-colors">Home</Link>
+                <span>›</span>
+                <Link href="/shop" className="text-[#52525B] hover:text-[#6366F1] transition-colors">Pod Shop</Link>
+                <span>›</span>
+                <span>{item.name}</span>
+              </div>
+            </>
+          )}
 
           <div ref={heroRef} className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-start mb-8" data-testid="section-hero">
             {isBook ? (

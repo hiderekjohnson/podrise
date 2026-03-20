@@ -155,6 +155,7 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
             break;
           }
           console.warn(`[ProdRecap] Tabloid headline returned null/timeout for "${epTitle?.slice(0, 50)}" (attempt ${attempt}/${HEADLINE_RETRY_COUNT + 1})`);
+
         } catch (headlineErr: any) {
           console.error(`[ProdRecap] Tabloid headline error for "${epTitle?.slice(0, 50)}" (attempt ${attempt}/${HEADLINE_RETRY_COUNT + 1}): ${headlineErr.message}`);
         }
