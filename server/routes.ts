@@ -10953,7 +10953,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     try {
       const { slug } = req.params;
       const { search, sort, order, status } = req.query;
-      let query = `SELECT id, slug, episode_slug, episode_title, publish_date, duration, artwork_url, status, tldl, tabloid_headline, tabloid_sub_headline, what_happened, key_insights FROM landing_page_recaps WHERE slug = $1`;
+      let query = `SELECT id, slug, episode_slug, episode_title, publish_date, duration, artwork_url, status, published, created_at, tldl, tabloid_headline, tabloid_sub_headline, what_happened, key_insights FROM landing_page_recaps WHERE slug = $1`;
       const params: any[] = [slug];
       if (search) {
         params.push(`%${search}%`);
@@ -10961,7 +10961,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       }
       if (status && status !== "all") {
         if (status === "processing") {
-          query += ` AND status != 'published'`;
+          query += ` AND published = false AND (created_at IS NULL OR created_at > NOW() - INTERVAL '3 days')`;
+        } else if (status === "published") {
+          query += ` AND (published = true OR (published = false AND (created_at IS NOT NULL AND created_at <= NOW() - INTERVAL '3 days')))`;
         } else {
           params.push(status);
           query += ` AND status = $${params.length}`;
@@ -11584,7 +11586,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const params: any[] = [];
       if (status && status !== "all") {
         if (status === "processing") {
-          where += ` AND lpr.status != 'published'`;
+          where += ` AND lpr.published = false AND (lpr.created_at IS NULL OR lpr.created_at > NOW() - INTERVAL '3 days')`;
+        } else if (status === "published") {
+          where += ` AND (lpr.published = true OR (lpr.published = false AND (lpr.created_at IS NOT NULL AND lpr.created_at <= NOW() - INTERVAL '3 days')))`;
         } else {
           params.push(status);
           where += ` AND lpr.status = $${params.length}`;
@@ -11611,14 +11615,14 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         return {
           id: r.id, slug: r.slug, podcast_name: r.podcast_name, episode_title: r.episode_title,
           episode_slug: r.episode_slug, publish_date: r.publish_date, duration: r.duration,
-          status: r.status, artwork_url: r.artwork_url,
+          status: r.status, published: r.published, created_at: r.created_at, artwork_url: r.artwork_url,
           enrichment_score: computeEnrichmentFromRecord(enrichRecord, EPISODE_ENRICHMENT_FIELDS).score,
         };
       };
 
       if (sortByEnrichment) {
         const { rows: allRows } = await pool.query(
-          `SELECT lpr.id, lpr.slug, lpr.podcast_name, lpr.episode_title, lpr.episode_slug, lpr.publish_date, lpr.duration, lpr.status, lpr.artwork_url,
+          `SELECT lpr.id, lpr.slug, lpr.podcast_name, lpr.episode_title, lpr.episode_slug, lpr.publish_date, lpr.duration, lpr.status, lpr.published, lpr.created_at, lpr.artwork_url,
            ${enrichmentCols}, ${transcriptSubquery}
            FROM landing_page_recaps lpr ${where} ORDER BY lpr.id DESC`,
           params
@@ -11630,7 +11634,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         params.push(limit);
         params.push(offset);
         const { rows } = await pool.query(
-          `SELECT lpr.id, lpr.slug, lpr.podcast_name, lpr.episode_title, lpr.episode_slug, lpr.publish_date, lpr.duration, lpr.status, lpr.artwork_url,
+          `SELECT lpr.id, lpr.slug, lpr.podcast_name, lpr.episode_title, lpr.episode_slug, lpr.publish_date, lpr.duration, lpr.status, lpr.published, lpr.created_at, lpr.artwork_url,
            ${enrichmentCols}, ${transcriptSubquery}
            FROM landing_page_recaps lpr ${where} ORDER BY ${orderBy}, lpr.id DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
           params

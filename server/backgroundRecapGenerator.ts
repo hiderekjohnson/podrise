@@ -228,12 +228,13 @@ async function publishCompletedRecaps(podcastSlug: string) {
          OR tabloid_sub_headline IS NULL OR btrim(tabloid_sub_headline) = ''
          OR what_happened IS NULL OR btrim(what_happened) = ''
          OR key_insights IS NULL OR array_length(key_insights, 1) IS NULL OR array_length(key_insights, 1) = 0
-       )`,
+       )
+       AND (created_at IS NULL OR created_at > NOW() - INTERVAL '3 days')`,
     [podcastSlug]
   );
 
   if ((notReadyResult.rowCount || 0) > 0) {
-    console.log(`[BgRecap] ${notReadyResult.rowCount} episode(s) for ${podcastSlug} not ready — set to needs_review`);
+    console.log(`[BgRecap] ${notReadyResult.rowCount} recent episode(s) for ${podcastSlug} not ready — set to needs_review`);
   }
 
   return readyResult.rowCount || 0;

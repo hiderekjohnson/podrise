@@ -170,6 +170,8 @@ interface CMSEpisodeListItem {
   publish_date: string;
   duration: string;
   status: string;
+  published?: boolean;
+  created_at?: string | null;
   tldl: string;
   tabloid_headline: string;
   tabloid_sub_headline: string;
@@ -226,6 +228,8 @@ interface CMSEpisodeDetail {
   sponsors: string;
   key_topics: string[];
   status: string;
+  published?: boolean;
+  created_at?: string | null;
   transcript: string;
   entity_contexts_cache: string | Record<string, string>;
   quotes: CMSQuote[];
@@ -299,15 +303,27 @@ interface EpisodeForm {
   tabloidSubHeadline: string;
 }
 
-function StatusBadge({ status, variant = "default" }: { status: string; variant?: "episode" | "default" }) {
+function isRecentEpisode(publishDate?: string | null, createdAt?: string | null): boolean {
+  const ref = publishDate || createdAt;
+  if (!ref) return true;
+  const date = new Date(ref);
+  if (isNaN(date.getTime())) return true;
+  const threeDaysAgo = new Date();
+  threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+  return date >= threeDaysAgo;
+}
+
+function StatusBadge({ status, variant = "default", published, publishDate, createdAt }: { status: string; variant?: "episode" | "default"; published?: boolean; publishDate?: string | null; createdAt?: string | null }) {
   if (variant === "episode") {
-    const isPublished = status === "published";
+    const isPublished = typeof published === "boolean"
+      ? (published || !isRecentEpisode(publishDate, createdAt))
+      : status === "published";
     const displayStatus = isPublished ? "Published" : "Processing";
     const colorClass = isPublished
       ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
       : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
     return (
-      <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold ${colorClass}`} data-testid={`status-badge-${status}`}>
+      <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold ${colorClass}`} data-testid={`status-badge-${isPublished ? "published" : "processing"}`}>
         {displayStatus}
       </span>
     );
@@ -2021,7 +2037,7 @@ function EpisodesList({ podcastSlug, onNavigate }: { podcastSlug: string; onNavi
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5">
-                      <StatusBadge status={ep.status || "published"} variant="episode" />
+                      <StatusBadge status={ep.status || "published"} variant="episode" published={ep.published} publishDate={ep.publish_date} createdAt={ep.created_at} />
                       <ReadinessBadge ep={ep} />
                     </div>
                   </td>
@@ -2095,7 +2111,7 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
     }
   };
 
-  const { data, isLoading } = useQuery<{ episodes: Array<{ id: number; slug: string; podcast_name: string; episode_title: string; episode_slug: string; publish_date: string; duration: string; status: string; artwork_url: string; view_count: number; enrichment_score: number }>; total: number }>({
+  const { data, isLoading } = useQuery<{ episodes: Array<{ id: number; slug: string; podcast_name: string; episode_title: string; episode_slug: string; publish_date: string; duration: string; status: string; published?: boolean; created_at?: string | null; artwork_url: string; view_count: number; enrichment_score: number }>; total: number }>({
     queryKey: ["/api/admin/cms/all-episodes", debouncedSearch, statusFilter, sortField, sortOrder, page],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -2360,7 +2376,7 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
                       }`}>{ep.enrichment_score}%</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3"><StatusBadge status={ep.status || "published"} variant="episode" /></td>
+                  <td className="px-4 py-3"><StatusBadge status={ep.status || "published"} variant="episode" published={ep.published} publishDate={ep.publish_date} createdAt={ep.created_at} /></td>
                 </tr>
               ))
             )}
@@ -2398,6 +2414,7 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
   });
 
   const [form, setForm] = useState<EpisodeForm | null>(null);
+  const [statusChanged, setStatusChanged] = useState(false);
 
   useEffect(() => {
     if (episode && !form) {
@@ -2412,7 +2429,7 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
         guests: parseJSON<CMSGuest[]>(episode.guests, []),
         resources: parseJSON<CMSResource[]>(episode.resources, []),
         keyTopics: episode.key_topics || [],
-        status: episode.status || "published",
+        status: episode.published ? "published" : (episode.status || "published"),
         spotifyEpisodeUrl: episode.spotify_episode_url || "",
         appleEpisodeUrl: episode.apple_episode_url || "",
         audioUrl: episode.audio_url || "",
@@ -2421,6 +2438,7 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
         tabloidHeadline: episode.tabloid_headline || "",
         tabloidSubHeadline: episode.tabloid_sub_headline || "",
       });
+      setStatusChanged(false);
     }
   }, [episode]);
 
@@ -2471,11 +2489,15 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
   }
 
   const handleSave = () => {
+    const { status: formStatus, ...restForm } = form;
     const payload: Record<string, string | string[]> = {
-      ...form,
+      ...restForm,
       guests: JSON.stringify(form.guests),
       resources: JSON.stringify(form.resources),
     };
+    if (statusChanged) {
+      payload.status = formStatus;
+    }
     updateMutation.mutate(payload);
   };
 
@@ -2759,7 +2781,7 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
             <h4 className="text-sm font-bold text-foreground">Status & Meta</h4>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Status</label>
-              <StatusSelect value={form.status} onChange={(v) => setForm({ ...form, status: v })} variant="episode" />
+              <StatusSelect value={form.status} onChange={(v) => { setForm({ ...form, status: v }); setStatusChanged(true); }} variant="episode" />
             </div>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Title</label>
