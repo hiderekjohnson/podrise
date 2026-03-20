@@ -74,7 +74,7 @@ async function catchUpMissingHeadlines() {
         AND what_happened != ''
         AND created_at >= NOW() - INTERVAL '7 days'
       ORDER BY created_at DESC
-      LIMIT 20
+      LIMIT 50
     `);
 
     if (rows.length === 0) {
@@ -109,7 +109,6 @@ async function catchUpMissingHeadlines() {
 
 interface ProcessEpisodeResult {
   success: boolean;
-  headlineInfo?: { recapId: number; epTitle: string; podcastName: string; whatHappened: string; keyInsights: string[] };
 }
 
 async function processEpisode(ep: any, podcastSlug: string, podcastName: string, itunesId: string, hosts: string, artwork: string): Promise<ProcessEpisodeResult> {
@@ -139,6 +138,32 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
       return { success: true };
     }
 
+    let tabloidHeadline: string | null = null;
+    let tabloidSubHeadline: string | null = null;
+    try {
+      const { generateTabloidHeadline } = await import("./emailScheduler");
+      const headlineTimeout = 30_000;
+      for (let attempt = 1; attempt <= HEADLINE_RETRY_COUNT + 1; attempt++) {
+        try {
+          const headlinePromise = generateTabloidHeadline(epTitle, podcastName, "", recap.whatHappened, recap.keyInsights || []);
+          const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), headlineTimeout));
+          const result = await Promise.race([headlinePromise, timeoutPromise]);
+          if (result) {
+            tabloidHeadline = result.tabloidHeadline;
+            tabloidSubHeadline = result.tabloidSubHeadline;
+            console.log(`[ProdRecap] Generated tabloid headline for "${epTitle?.slice(0, 50)}" (attempt ${attempt})`);
+            break;
+          }
+          console.warn(`[ProdRecap] Tabloid headline returned null/timeout for "${epTitle?.slice(0, 50)}" (attempt ${attempt}/${HEADLINE_RETRY_COUNT + 1})`);
+        } catch (headlineErr: any) {
+          console.error(`[ProdRecap] Tabloid headline error for "${epTitle?.slice(0, 50)}" (attempt ${attempt}/${HEADLINE_RETRY_COUNT + 1}): ${headlineErr.message}`);
+        }
+        if (attempt <= HEADLINE_RETRY_COUNT) await new Promise(r => setTimeout(r, HEADLINE_RETRY_DELAY_MS));
+      }
+    } catch (headlineErr: any) {
+      console.warn(`[ProdRecap] Inline headline generation failed for "${epTitle?.slice(0, 50)}": ${headlineErr.message}`);
+    }
+
     const upsertedRecap = await storage.upsertLandingPageRecap({
       slug: podcastSlug,
       itunesId,
@@ -157,8 +182,8 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
       keyTopics: [],
       guests: JSON.stringify(recap.guests || []),
       resources: JSON.stringify(recap.resources || []),
-      tabloidHeadline: null,
-      tabloidSubHeadline: null,
+      tabloidHeadline,
+      tabloidSubHeadline,
       showNotes: ep.description || null,
       published: true,
     });
@@ -174,11 +199,6 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
       } catch (valErr) {
         console.warn(`[ProdRecap] Validation failed for "${epTitle?.slice(0, 50)}":`, valErr);
       }
-
-      return {
-        success: true,
-        headlineInfo: { recapId: upsertedRecap.id, epTitle, podcastName, whatHappened: recap.whatHappened, keyInsights: recap.keyInsights || [] },
-      };
     }
 
     return { success: true };
@@ -260,14 +280,6 @@ async function runBatch() {
       console.log(`[ProdRecap] Processing: "${ep.episode_title?.slice(0, 60)}" (${podcastName})`);
 
       const processPromise = processEpisode(ep, podcastSlug, podcastName, ep.podcast_id, hosts, artwork);
-
-      processPromise.then((res) => {
-        if (res.headlineInfo) {
-          const hi = res.headlineInfo;
-          generateTabloidHeadlineWithRetry(hi.recapId, hi.epTitle, hi.podcastName, hi.whatHappened, hi.keyInsights)
-            .catch(err => console.error(`[ProdRecap] Fire-and-forget headline generation error: ${err.message}`));
-        }
-      }).catch(() => {});
 
       const episodeTimeout = new Promise<ProcessEpisodeResult>((resolve) => setTimeout(() => {
         console.warn(`[ProdRecap] Episode timed out after 4min: "${ep.episode_title?.slice(0, 60)}"`);
