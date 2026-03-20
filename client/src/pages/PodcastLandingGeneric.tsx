@@ -911,14 +911,19 @@ export default function PodcastLandingGeneric() {
     return (
       <div className="min-h-screen bg-[#F9F9FB] pb-[calc(60px+env(safe-area-inset-bottom,0px))] md:pb-0">
         <div className="px-4 md:px-6 py-6 pb-24 md:pb-8">
-          <button
-            onClick={() => window.history.back()}
-            className="text-[#71717A] hover:text-[#09090B] dark:hover:text-white transition-colors mb-4"
-            data-testid="back-button"
-            aria-label="Go back"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-3 mb-4">
+            <button
+              onClick={() => window.history.back()}
+              className="text-[#71717A] hover:text-[#09090B] dark:hover:text-white transition-colors shrink-0"
+              data-testid="back-button"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-xl font-bold text-[#09090B] dark:text-white truncate" data-testid="text-podcast-name-header">
+              {config.name}
+            </h1>
+          </div>
           {contentSections}
         </div>
       </div>
