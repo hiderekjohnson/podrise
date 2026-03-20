@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { ChevronDown, ExternalLink, Sparkles, ArrowUp, Loader2 } from "lucide-react";
+import { ChevronDown, ExternalLink, Sparkles, ArrowUp, Loader2, UserCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export interface MentionEntry {
@@ -19,6 +19,11 @@ export interface ProductEntry {
   purchaseUrl: string | null;
 }
 
+export interface GuestEntry {
+  name: string;
+  title?: string | null;
+}
+
 export interface AccordionItemData {
   id: number | string;
   episodeSlug: string;
@@ -33,6 +38,7 @@ export interface AccordionItemData {
     companies: MentionEntry[];
     products: ProductEntry[];
   };
+  guests?: string | null;
 }
 
 export function parseSpotifyEpisodeId(url: string | null): string | null {
@@ -240,21 +246,37 @@ function InlineChatSection({ item }: { item: AccordionItemData }) {
   );
 }
 
+function parseGuests(guestsJson: string | null | undefined): GuestEntry[] {
+  if (!guestsJson) return [];
+  try {
+    const parsed = JSON.parse(guestsJson);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((g: any) => g && g.name);
+  } catch {
+    return [];
+  }
+}
+
 export function CardBottomAccordion({ item, bottomBar, isLoggedIn }: {
   item: AccordionItemData;
   bottomBar: React.ReactNode;
   isLoggedIn?: boolean;
 }) {
-  const [openSection, setOpenSection] = useState<"recap" | "listen" | "chat" | null>(null);
+  const [openSection, setOpenSection] = useState<"recap" | "listen" | "chat" | "guests" | null>(null);
 
   const whatHappenedParagraphs = item.whatHappened ? item.whatHappened.split(/\n\n+/).filter((p) => p.trim()) : [];
   const hasRecap = whatHappenedParagraphs.length > 0;
 
   const spotifyId = parseSpotifyEpisodeId(item.spotifyEpisodeUrl);
   const youtubeId = parseYouTubeVideoId(item.youtubeUrl);
-  const hasListen = !!spotifyId || !!youtubeId || !!item.spotifyEpisodeUrl || !!item.spotifyUrl || (!!item.youtubeUrl && item.youtubeUrl !== '');
+  const hasSpotify = !!spotifyId || !!item.spotifyEpisodeUrl || !!item.spotifyUrl;
+  const hasYoutube = !!youtubeId || (!!item.youtubeUrl && item.youtubeUrl !== '');
+  const hasListen = hasSpotify || hasYoutube;
 
-  const toggleSection = (section: "recap" | "listen" | "chat") => {
+  const parsedGuests = parseGuests(item.guests);
+  const hasGuests = parsedGuests.length > 0;
+
+  const toggleSection = (section: "recap" | "listen" | "chat" | "guests") => {
     setOpenSection(prev => prev === section ? null : section);
   };
 
@@ -297,6 +319,51 @@ export function CardBottomAccordion({ item, bottomBar, isLoggedIn }: {
         </div>
       )}
 
+      {hasGuests && (
+        <div className="border-t border-[#E4E4E7]" data-testid={`feed-guests-section-${item.id}`}>
+          <div
+            className={`flex items-center gap-3 px-4 md:px-5 py-[13px] cursor-pointer transition-colors ${openSection === "guests" ? "bg-[#F7F7FC]" : "hover:bg-[#FAFAFB]"}`}
+            onClick={() => toggleSection("guests")}
+            data-testid={`feed-guests-toggle-${item.id}`}
+          >
+            <div className="flex items-center flex-shrink-0">
+              <UserCircle className="w-[22px] h-[22px] text-[#6366F1]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px] font-bold text-[#09090B]">Guests</div>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-[#A1A1AA] flex-shrink-0 transition-transform duration-200 ${openSection === "guests" ? "rotate-180 text-[#6366F1]" : ""}`} />
+          </div>
+          <AnimatePresence>
+            {openSection === "guests" && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                <div className="px-5 md:px-6 py-4 border-t border-[#F0F0F2]">
+                  <div className="flex flex-col gap-3" data-testid={`feed-guests-list-${item.id}`}>
+                    {parsedGuests.map((guest, i) => (
+                      <div key={i} className="flex items-start gap-3" data-testid={`feed-guest-${item.id}-${i}`}>
+                        <div className="w-8 h-8 rounded-full bg-[#6366F1]/[0.08] flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <UserCircle className="w-4 h-4 text-[#6366F1]" />
+                        </div>
+                        <div>
+                          <div className="text-[15px] font-semibold text-[#09090B]">{guest.name}</div>
+                          {guest.title && <div className="text-[13px] text-[#71717A] mt-0.5">{guest.title}</div>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+
       {isLoggedIn && (
         <div className="border-t border-[#E4E4E7]" data-testid={`feed-chat-section-${item.id}`}>
           <div
@@ -328,7 +395,37 @@ export function CardBottomAccordion({ item, bottomBar, isLoggedIn }: {
         </div>
       )}
 
-      {hasListen && (
+      {isLoggedIn && hasListen ? (
+        <div className="border-t border-[#E4E4E7]" data-testid={`feed-listen-section-${item.id}`}>
+          <div
+            className={`flex items-center gap-3 px-4 md:px-5 py-[13px] cursor-pointer transition-colors ${openSection === "listen" ? "bg-[#F7F7FC]" : "hover:bg-[#FAFAFB]"}`}
+            onClick={() => toggleSection("listen")}
+            data-testid={`feed-listen-toggle-${item.id}`}
+          >
+            <div className="flex items-center flex-shrink-0">
+              <SpotifyIcon className={`w-[22px] h-[22px] ${hasSpotify ? "text-[#1DB954]" : "text-[#1DB954]/30"}`} />
+              <YouTubeIcon className={`w-[22px] h-[22px] -ml-[4px] ${hasYoutube ? "text-[#FF0000]" : "text-[#FF0000]/30"}`} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px] font-bold text-[#09090B]">Listen to this episode</div>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-[#A1A1AA] flex-shrink-0 transition-transform duration-200 ${openSection === "listen" ? "rotate-180 text-[#6366F1]" : ""}`} />
+          </div>
+          <AnimatePresence>
+            {openSection === "listen" && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="overflow-hidden border-t border-[#F0F0F2]"
+              >
+                <ListenSection item={item} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      ) : !isLoggedIn && hasListen ? (
         <div className="border-t border-[#E4E4E7]" data-testid={`feed-listen-section-${item.id}`}>
           <div
             className={`flex items-center gap-3 px-4 md:px-5 py-[13px] cursor-pointer transition-colors ${openSection === "listen" ? "bg-[#F7F7FC]" : "hover:bg-[#FAFAFB]"}`}
@@ -358,7 +455,7 @@ export function CardBottomAccordion({ item, bottomBar, isLoggedIn }: {
             )}
           </AnimatePresence>
         </div>
-      )}
+      ) : null}
 
       {bottomBar}
     </div>

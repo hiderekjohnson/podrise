@@ -753,6 +753,38 @@ export default function PodcastLandingGeneric() {
     .filter((p): p is PodcastLandingConfig => !!p)
     .slice(0, 3);
 
+  const relatedPodcastsSidebar = user && relatedPodcasts.length > 0 ? (
+    <div data-testid="section-related-podcasts" className="lg:sticky lg:top-6">
+      <div className="flex items-center gap-2.5 mb-4">
+        <Headphones className="w-5 h-5 text-primary" />
+        <h3 className="text-[17px] font-display font-bold text-foreground">Related Podcasts</h3>
+      </div>
+      <div className="flex flex-col gap-3">
+        {relatedPodcasts.map((rp) => (
+          <a
+            key={rp.slug}
+            href={`/podcasts/${rp.slug}`}
+            className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-4 flex items-center gap-4 hover:border-primary/[0.15] hover:shadow-md hover:shadow-black/[0.04] transition-all group"
+            data-testid={`related-podcast-${rp.slug}`}
+          >
+            {rp.artworkUrl ? (
+              <img src={rp.artworkUrl} alt={rp.name} className="w-14 h-14 rounded-xl object-cover shadow-sm shadow-black/[0.06] shrink-0 ring-1 ring-black/[0.04]" />
+            ) : (
+              <div className="w-14 h-14 rounded-xl bg-primary/[0.06] flex items-center justify-center shrink-0">
+                <Headphones className="w-5 h-5 text-primary/30" />
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="text-[16px] font-bold text-foreground truncate group-hover:text-primary transition-colors">{rp.name}</p>
+              <p className="text-[16px] text-[#52525B] mt-0.5 uppercase tracking-wider font-semibold">{rp.category}</p>
+            </div>
+            <ArrowRight className="shrink-0 w-4 h-4 text-muted-foreground/20 group-hover:text-primary transition-colors" />
+          </a>
+        ))}
+      </div>
+    </div>
+  ) : null;
+
   const contentSections = (
     <>
       <section id="section-episodes" className="pb-16" data-testid="section-episode-list">
@@ -784,6 +816,7 @@ export default function PodcastLandingGeneric() {
                       spotifyUrl={ep.pdSpotifyUrl || spotifyUrl}
                       youtubeUrl={ep.youtubeUrl || ep.pdYoutubeUrl}
                       mentions={ep.mentions}
+                      guests={ep.guests}
                       hosts={hosts}
                       totalEpisodes={config.totalEpisodes}
                       yearStarted={config.yearStarted}
@@ -831,7 +864,7 @@ export default function PodcastLandingGeneric() {
         </section>
 
         <section id="section-discover" className="pb-16 space-y-10" data-testid="section-discover">
-          {user && entityLinks?.guests && entityLinks.guests.length > 0 && (
+          {!user && entityLinks?.guests && entityLinks.guests.length > 0 && (
             <div data-testid="section-recent-guests">
               <div className="flex items-center gap-2.5 mb-4">
                 <UserCircle className="w-5 h-5 text-primary" />
@@ -858,8 +891,8 @@ export default function PodcastLandingGeneric() {
             </div>
           )}
 
-          {relatedPodcasts.length > 0 && (
-            <div data-testid="section-related-podcasts">
+          {!user && relatedPodcasts.length > 0 && (
+            <div data-testid="section-related-podcasts-inline">
               <div className="flex items-center gap-2.5 mb-4">
                 <Headphones className="w-5 h-5 text-primary" />
                 <h3 className="text-[17px] font-display font-bold text-foreground">Related Podcasts</h3>
@@ -902,7 +935,7 @@ export default function PodcastLandingGeneric() {
 
         <div id="section-shop" data-testid="section-shop">
           <PodcastBooksTab slug={slug} podcastName={config.name} isLoggedIn={!!user} />
-          {user && <PodcastShopTab slug={slug} podcastName={config.name} />}
+          {!user && <PodcastShopTab slug={slug} podcastName={config.name} />}
         </div>
     </>
   );
@@ -924,7 +957,14 @@ export default function PodcastLandingGeneric() {
               {config.name}
             </h1>
           </div>
-          {contentSections}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
+            <div>{contentSections}</div>
+            {relatedPodcastsSidebar && (
+              <aside className="order-last" data-testid="sidebar-related-podcasts">
+                {relatedPodcastsSidebar}
+              </aside>
+            )}
+          </div>
         </div>
       </div>
     );

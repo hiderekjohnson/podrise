@@ -149,6 +149,7 @@ export interface RecapCardProps {
     companies: MentionEntry[];
     products: ProductEntry[];
   };
+  guests?: string | null;
   isFollowing?: boolean;
   isBookmarked?: boolean;
   onFollowToggle?: (slug: string, follow: boolean) => void;
@@ -181,6 +182,7 @@ export function RecapCard({
   spotifyUrl,
   youtubeUrl,
   mentions,
+  guests,
   isFollowing = false,
   isBookmarked = false,
   onFollowToggle,
@@ -249,6 +251,7 @@ export function RecapCard({
     spotifyUrl: spotifyUrl || null,
     youtubeUrl: youtubeUrl || null,
     mentions: mentions || { people: [], companies: [], products: [] },
+    guests: guests || null,
   };
 
   return (
