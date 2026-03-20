@@ -168,6 +168,8 @@ interface CMSEpisodeListItem {
   tldl: string;
   tabloid_headline: string;
   tabloid_sub_headline: string;
+  what_happened: string;
+  key_insights: string[];
 }
 
 interface CMSGuest {
@@ -302,6 +304,31 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold ${colors[status] || colors.hidden}`} data-testid={`status-badge-${status}`}>
       {status === "needs_review" ? "Needs Review" : status.charAt(0).toUpperCase() + status.slice(1)}
+    </span>
+  );
+}
+
+function getEpisodeReadiness(ep: { tabloid_headline?: string; tabloid_sub_headline?: string; what_happened?: string; key_insights?: string[] | null }) {
+  const fields = [
+    { key: "tabloid_headline", label: "Tabloid Headline", ok: !!(ep.tabloid_headline && ep.tabloid_headline.trim()) },
+    { key: "tabloid_sub_headline", label: "Tabloid Sub-Headline", ok: !!(ep.tabloid_sub_headline && ep.tabloid_sub_headline.trim()) },
+    { key: "what_happened", label: "What Happened", ok: !!(ep.what_happened && ep.what_happened.trim()) },
+    { key: "key_insights", label: "Key Insights", ok: !!(ep.key_insights && Array.isArray(ep.key_insights) && ep.key_insights.length > 0) },
+  ];
+  return { fields, ready: fields.every(f => f.ok), missing: fields.filter(f => !f.ok).length };
+}
+
+function ReadinessBadge({ ep }: { ep: { tabloid_headline?: string; tabloid_sub_headline?: string; what_happened?: string; key_insights?: string[] | null } }) {
+  const { ready, missing } = getEpisodeReadiness(ep);
+  if (ready) return null;
+  return (
+    <span
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+      data-testid="badge-incomplete"
+      title={`${missing} required field(s) missing`}
+    >
+      <AlertCircle className="w-3 h-3" />
+      Incomplete
     </span>
   );
 }
@@ -1863,7 +1890,10 @@ function EpisodesList({ podcastSlug, onNavigate }: { podcastSlug: string; onNavi
                     <span className="text-sm text-muted-foreground">{ep.duration || "—"}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <StatusBadge status={ep.status || "published"} />
+                    <div className="flex items-center gap-1.5">
+                      <StatusBadge status={ep.status || "published"} />
+                      <ReadinessBadge ep={ep} />
+                    </div>
                   </td>
                 </tr>
               ))
@@ -2391,6 +2421,35 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
+          {(() => {
+            const readiness = getEpisodeReadiness({
+              tabloid_headline: form.tabloidHeadline,
+              tabloid_sub_headline: form.tabloidSubHeadline,
+              what_happened: form.whatHappened,
+              key_insights: form.keyInsights,
+            });
+            return (
+              <div className={`border rounded-xl p-4 space-y-2 ${readiness.ready ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800" : "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800"}`} data-testid="readiness-checklist">
+                <h4 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                  {readiness.ready ? <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> : <AlertCircle className="w-4 h-4 text-orange-600 dark:text-orange-400" />}
+                  Publish Readiness
+                </h4>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {readiness.fields.map((f) => (
+                    <div key={f.key} className="flex items-center gap-1.5 text-xs" data-testid={`readiness-field-${f.key}`}>
+                      {f.ok ? (
+                        <CheckCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                      ) : (
+                        <XCircle className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+                      )}
+                      <span className={f.ok ? "text-emerald-700 dark:text-emerald-400" : "text-orange-700 dark:text-orange-400"}>{f.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
           <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-bold text-foreground">Email Headlines</h4>

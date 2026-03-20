@@ -156,6 +156,7 @@ async function processEpisode(
         guests: recap.guests ? JSON.stringify(recap.guests) : "[]",
         resources: recap.resources ? JSON.stringify(recap.resources) : "[]",
         published: false,
+        status: "needs_review",
         appleEpisodeUrl: appleEpisodeUrl || null,
         spotifyEpisodeUrl,
         showNotes,
@@ -209,11 +210,33 @@ async function processEpisode(
 }
 
 async function publishCompletedRecaps(podcastSlug: string) {
-  const result = await pool.query(
-    `UPDATE landing_page_recaps SET published = true WHERE slug = $1 AND published = false`,
+  const readyResult = await pool.query(
+    `UPDATE landing_page_recaps SET published = true, status = 'published'
+     WHERE slug = $1 AND published = false AND status NOT IN ('hidden')
+       AND tabloid_headline IS NOT NULL AND btrim(tabloid_headline) != ''
+       AND tabloid_sub_headline IS NOT NULL AND btrim(tabloid_sub_headline) != ''
+       AND what_happened IS NOT NULL AND btrim(what_happened) != ''
+       AND key_insights IS NOT NULL AND array_length(key_insights, 1) > 0`,
     [podcastSlug]
   );
-  return result.rowCount || 0;
+
+  const notReadyResult = await pool.query(
+    `UPDATE landing_page_recaps SET status = 'needs_review'
+     WHERE slug = $1 AND published = false AND status = 'published'
+       AND (
+         tabloid_headline IS NULL OR btrim(tabloid_headline) = ''
+         OR tabloid_sub_headline IS NULL OR btrim(tabloid_sub_headline) = ''
+         OR what_happened IS NULL OR btrim(what_happened) = ''
+         OR key_insights IS NULL OR array_length(key_insights, 1) IS NULL OR array_length(key_insights, 1) = 0
+       )`,
+    [podcastSlug]
+  );
+
+  if ((notReadyResult.rowCount || 0) > 0) {
+    console.log(`[BgRecap] ${notReadyResult.rowCount} episode(s) for ${podcastSlug} not ready — set to needs_review`);
+  }
+
+  return readyResult.rowCount || 0;
 }
 
 async function main() {
