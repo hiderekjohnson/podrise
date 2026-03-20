@@ -1737,6 +1737,52 @@ export default function EpisodeRecapPage() {
             </div>
 
             <aside className="flex flex-col gap-4" data-testid="episode-sidebar">
+              {guests.length > 0 && (
+                <div className="bg-white dark:bg-zinc-900 border border-[#E4E4E7] dark:border-white/[0.1] rounded-xl overflow-hidden" data-testid="sidebar-guests">
+                  <div className="px-4 py-[14px] border-b border-[#F0F0F2] dark:border-white/[0.06]">
+                    <p className="text-[13px] font-medium text-[#09090B] dark:text-white flex items-center gap-1.5 mb-[2px]">
+                      <Users className="w-[14px] h-[14px] text-[#6366F1]" />
+                      {guests.length === 1 ? "Guest" : "Guests"}
+                    </p>
+                    <p className="text-[12px] text-[#A1A1AA]">In this episode</p>
+                  </div>
+                  {guests.map((guest, i) => (
+                    <div key={i} className="px-4 py-[10px] border-b border-[#F0F0F2] dark:border-white/[0.06] last:border-b-0" data-testid={`sidebar-guest-${i}`}>
+                      <div className="flex items-center gap-[10px] mb-1">
+                        <div className="w-8 h-8 rounded-full bg-[#EEF2FF] flex items-center justify-center text-[13px] font-medium text-[#6366F1] shrink-0">
+                          {guest.name.charAt(0)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] font-medium text-[#09090B] dark:text-white truncate" data-testid={`sidebar-guest-name-${i}`}>{guest.name}</p>
+                          {guest.title && <p className="text-[12px] text-[#A1A1AA] truncate">{guest.title}</p>}
+                        </div>
+                      </div>
+                      {guest.bio && (
+                        <p className="text-[12px] text-[#52525B] dark:text-[#A1A1AA] leading-[1.55] mt-1 line-clamp-2">{guest.bio}</p>
+                      )}
+                      {(guest.twitter || guest.linkedin || guest.website) && (
+                        <div className="flex gap-2 mt-[6px]">
+                          {guest.website && (
+                            <a href={guest.website.startsWith("http") ? guest.website : `https://${guest.website}`} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#6366F1] hover:underline flex items-center gap-1" data-testid={`sidebar-guest-website-${i}`}>
+                              <Globe className="w-3 h-3" />
+                            </a>
+                          )}
+                          {guest.twitter && (
+                            <a href={guest.twitter.startsWith("http") ? guest.twitter : `https://x.com/${guest.twitter.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#6366F1] hover:underline flex items-center gap-1" data-testid={`sidebar-guest-twitter-${i}`}>
+                              <SiX className="w-3 h-3" />
+                            </a>
+                          )}
+                          {guest.linkedin && (
+                            <a href={guest.linkedin.startsWith("http") ? guest.linkedin : `https://linkedin.com/in/${guest.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#6366F1] hover:underline flex items-center gap-1" data-testid={`sidebar-guest-linkedin-${i}`}>
+                              <SiLinkedin className="w-3 h-3" />
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
               {sidebarBooksForEpisode.length > 0 && (
                 <div className="bg-white dark:bg-zinc-900 border border-[#E4E4E7] dark:border-white/[0.1] rounded-xl overflow-hidden" data-testid="sidebar-books-mentioned">
                   <div className="px-4 py-[14px] border-b border-[#F0F0F2] dark:border-white/[0.06]">
