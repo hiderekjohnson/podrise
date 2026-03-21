@@ -16,7 +16,7 @@ let catchUpRunning = false;
 
 async function getPodcastInfo(itunesId: string) {
   const { rows } = await pool.query(
-    `SELECT name, slug, hosts, artwork_url, itunes_id FROM podcast_directory WHERE itunes_id = $1`,
+    `SELECT name, slug, hosts, artwork_url, itunes_id FROM podcast_directory WHERE itunes_id = $1 AND status = 'published'`,
     [itunesId]
   );
   return rows[0] || null;
@@ -237,6 +237,7 @@ async function runBatch() {
                 et.date_published, et.duration, et.audio_url, et.image_url, et.fetched_at,
                 ROW_NUMBER() OVER (PARTITION BY et.podcast_id ORDER BY et.date_published DESC) AS rn
          FROM episode_transcripts et
+         INNER JOIN podcast_directory pd ON pd.itunes_id = et.podcast_id AND pd.status = 'published'
          WHERE et.transcript IS NOT NULL AND et.transcript != ''
            AND et.date_published IS NOT NULL
            AND et.date_published >= $3

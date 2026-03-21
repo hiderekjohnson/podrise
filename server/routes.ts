@@ -17117,12 +17117,17 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
         }
 
         const { rows: [podcast] } = await pool.query(
-          `SELECT name, slug, itunes_id, taddy_uuid, hosts, artwork_url FROM podcast_directory WHERE itunes_id = $1 OR taddy_uuid = $2 LIMIT 1`,
+          `SELECT name, slug, itunes_id, taddy_uuid, hosts, artwork_url, status FROM podcast_directory WHERE (itunes_id = $1 OR taddy_uuid = $2) LIMIT 1`,
           [seriesItunesId, seriesUuid]
         );
 
         if (!podcast) {
           console.log(`[TaddyWebhook] Episode for untracked podcast (iTunes ${seriesItunesId}), ignoring`);
+          return res.status(200).json({ success: true });
+        }
+
+        if (podcast.status !== "published") {
+          console.log(`[TaddyWebhook] Episode for non-published podcast "${podcast.name}" (status=${podcast.status}), ignoring`);
           return res.status(200).json({ success: true });
         }
 

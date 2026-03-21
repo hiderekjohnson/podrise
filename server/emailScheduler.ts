@@ -1459,6 +1459,17 @@ export async function processTranscriptQueue() {
       }
 
       try {
+        const { rows: [podcastStatus] } = await pool.query(
+          `SELECT status FROM podcast_directory WHERE itunes_id = $1 LIMIT 1`,
+          [item.podcastId]
+        );
+        if (!podcastStatus || podcastStatus.status !== "published") {
+          console.log(`[TranscriptQueue] Skipping queued transcript for non-published podcast (id=${item.podcastId})`);
+          await storage.updateTranscriptQueueStatus(item.id, "failed", "Podcast not published");
+          failed++;
+          continue;
+        }
+
         const existing = await storage.getTranscriptByEpisodeGuid(item.episodeGuid);
         if (existing) {
           await storage.updateTranscriptQueueStatus(item.id, "completed");
