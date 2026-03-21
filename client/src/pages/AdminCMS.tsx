@@ -1019,7 +1019,7 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
                     <div className="flex items-center gap-1.5">
                       <p className="font-medium text-foreground text-sm">{p.name}</p>
                       <a
-                        href={`/podcasts/${p.slug}`}
+                        href={`/admin/cms/podcasts/${p.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
@@ -2045,7 +2045,7 @@ function EpisodesList({ podcastSlug, onNavigate }: { podcastSlug: string; onNavi
                     <div className="flex items-center gap-1.5">
                       <p className="font-medium text-foreground text-sm truncate max-w-md">{ep.episode_title}</p>
                       <a
-                        href={`/podcasts/${podcastSlug}/${ep.episode_slug}`}
+                        href={`/admin/cms/podcasts/${podcastSlug}/episodes/${ep.episode_slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
@@ -2237,7 +2237,7 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
                       {ep.artwork_url && <img src={ep.artwork_url} alt="" className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />}
                       <p className="font-medium text-foreground text-sm truncate max-w-md">{ep.episode_title}</p>
                       <a
-                        href={`/podcasts/${ep.slug}/${ep.episode_slug}`}
+                        href={`/admin/cms/podcasts/${ep.slug}/episodes/${ep.episode_slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
