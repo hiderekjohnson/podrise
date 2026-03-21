@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { ChevronDown, ExternalLink, Sparkles, ArrowUp, Loader2, UserCircle } from "lucide-react";
+import { ChevronDown, ExternalLink, Globe, Sparkles, ArrowUp, Loader2, UserCircle } from "lucide-react";
+import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
 import { motion, AnimatePresence } from "framer-motion";
 
 export interface MentionEntry {
@@ -22,6 +23,12 @@ export interface ProductEntry {
 export interface GuestEntry {
   name: string;
   title?: string | null;
+  bio?: string | null;
+  photoUrl?: string | null;
+  twitter?: string | null;
+  linkedin?: string | null;
+  instagram?: string | null;
+  website?: string | null;
 }
 
 export interface AccordionItemData {
@@ -291,6 +298,28 @@ function InlineChatSection({ item }: { item: AccordionItemData }) {
   );
 }
 
+function FeedGuestPhoto({ name, photoUrl, testId }: { name: string; photoUrl?: string | null; testId: string }) {
+  const [failed, setFailed] = useState(false);
+
+  if (photoUrl && !failed) {
+    return (
+      <img
+        src={photoUrl}
+        alt={name}
+        className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-black/[0.06]"
+        data-testid={testId}
+        onError={() => setFailed(true)}
+      />
+    );
+  }
+
+  return (
+    <div className="w-10 h-10 rounded-full bg-[#6366F1]/[0.08] flex items-center justify-center flex-shrink-0" data-testid={testId}>
+      <span className="text-sm font-bold text-[#6366F1]">{name.charAt(0)}</span>
+    </div>
+  );
+}
+
 function parseGuests(guestsJson: string | null | undefined): GuestEntry[] {
   if (!guestsJson) return [];
   try {
@@ -389,15 +418,42 @@ export function CardBottomAccordion({ item, bottomBar, isLoggedIn }: {
                 className="overflow-hidden"
               >
                 <div className="px-5 md:px-6 py-4 border-t border-[#F0F0F2]">
-                  <div className="flex flex-col gap-3" data-testid={`feed-guests-list-${item.id}`}>
+                  <div className="flex flex-col gap-4" data-testid={`feed-guests-list-${item.id}`}>
                     {parsedGuests.map((guest, i) => (
                       <div key={i} className="flex items-start gap-3" data-testid={`feed-guest-${item.id}-${i}`}>
-                        <div className="w-8 h-8 rounded-full bg-[#6366F1]/[0.08] flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <UserCircle className="w-4 h-4 text-[#6366F1]" />
-                        </div>
-                        <div>
+                        <FeedGuestPhoto name={guest.name} photoUrl={guest.photoUrl} testId={`feed-guest-photo-${item.id}-${i}`} />
+                        <div className="flex-1 min-w-0">
                           <div className="text-[15px] font-semibold text-[#09090B]">{guest.name}</div>
                           {guest.title && <div className="text-[13px] text-[#71717A] mt-0.5">{guest.title}</div>}
+                          {guest.bio && <p className="text-[13px] leading-[1.6] text-[#52525B] mt-1" data-testid={`feed-guest-bio-${item.id}-${i}`}>{guest.bio}</p>}
+                          {(guest.twitter || guest.linkedin || guest.instagram || guest.website) && (
+                            <div className="flex items-center gap-2.5 mt-2">
+                              {guest.twitter && (
+                                <a href={guest.twitter.startsWith("http") ? guest.twitter : `https://x.com/${guest.twitter.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-[#71717A] hover:text-[#09090B] transition-colors" data-testid={`feed-guest-twitter-${item.id}-${i}`} title="X / Twitter">
+                                  <SiX className="w-3.5 h-3.5" />
+                                  <ExternalLink className="w-2.5 h-2.5 text-[#71717A]/40" />
+                                </a>
+                              )}
+                              {guest.linkedin && (
+                                <a href={guest.linkedin.startsWith("http") ? guest.linkedin : `https://linkedin.com/in/${guest.linkedin}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-[#71717A] hover:text-[#09090B] transition-colors" data-testid={`feed-guest-linkedin-${item.id}-${i}`} title="LinkedIn">
+                                  <SiLinkedin className="w-3.5 h-3.5" />
+                                  <ExternalLink className="w-2.5 h-2.5 text-[#71717A]/40" />
+                                </a>
+                              )}
+                              {guest.instagram && (
+                                <a href={guest.instagram.startsWith("http") ? guest.instagram : `https://instagram.com/${guest.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-[#71717A] hover:text-[#09090B] transition-colors" data-testid={`feed-guest-instagram-${item.id}-${i}`} title="Instagram">
+                                  <SiInstagram className="w-3.5 h-3.5" />
+                                  <ExternalLink className="w-2.5 h-2.5 text-[#71717A]/40" />
+                                </a>
+                              )}
+                              {guest.website && (
+                                <a href={guest.website.startsWith("http") ? guest.website : `https://${guest.website}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-[#71717A] hover:text-[#09090B] transition-colors" data-testid={`feed-guest-website-${item.id}-${i}`} title="Website">
+                                  <Globe className="w-3.5 h-3.5" />
+                                  <ExternalLink className="w-2.5 h-2.5 text-[#71717A]/40" />
+                                </a>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
