@@ -13700,21 +13700,26 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       if ("hasLandingPage" in b) data.hasLandingPage = typeof b.hasLandingPage === "boolean" ? b.hasLandingPage : false;
 
       const { rows: existingRows } = await pool.query(
-        `SELECT id FROM podcast_directory WHERE itunes_id = $1 LIMIT 1`, [trimmedId]
+        `SELECT id, status, has_landing_page FROM podcast_directory WHERE itunes_id = $1 LIMIT 1`, [trimmedId]
       );
       const isNewPodcast = existingRows.length === 0;
+      const existingStatus = existingRows[0]?.status;
+      const existingHasLandingPage = existingRows[0]?.has_landing_page;
 
       if (isNewPodcast) {
         if (!("hasLandingPage" in data)) data.hasLandingPage = true;
+        if (!("status" in data)) data.status = "published";
+      } else if (existingStatus === "requested") {
+        if (!("hasLandingPage" in data) && !existingHasLandingPage) data.hasLandingPage = true;
         if (!("status" in data)) data.status = "published";
       }
 
       const entry = await storage.upsertPodcastDirectoryEntry(data);
 
-      if (isNewPodcast && entry.slug) {
+      if ((isNewPodcast || existingStatus === "requested") && entry.slug) {
         const podcastSlug = entry.slug;
         const podcastName = entry.name || trimmedName;
-        console.log(`[CMS] New podcast added: "${podcastName}" (slug: ${podcastSlug}). Starting background metadata refresh...`);
+        console.log(`[CMS] ${isNewPodcast ? "New podcast added" : "Previously-requested podcast approved"}: "${podcastName}" (slug: ${podcastSlug}). Starting background metadata refresh...`);
         refreshPodcastMetadataBySlug(podcastSlug)
           .then((result) => {
             console.log(`[CMS] Background metadata refresh completed for "${podcastName}" (slug: ${podcastSlug}): ${result.totalUpdated} fields updated [${result.fieldsUpdated.join(", ")}]${result.errors.length > 0 ? ` | Errors: ${result.errors.join("; ")}` : ""}`);
