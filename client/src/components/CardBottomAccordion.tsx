@@ -393,7 +393,7 @@ export function CardBottomAccordion({ item, bottomBar, isLoggedIn }: {
         </div>
       )}
 
-      {hasGuests && (
+      {hasGuests && !isLoggedIn && (
         <div className="border-t border-[#E4E4E7]" data-testid={`feed-guests-section-${item.id}`}>
           <div
             className={`flex items-center gap-3 px-4 md:px-5 py-[13px] cursor-pointer transition-colors ${openSection === "guests" ? "bg-[#F7F7FC]" : "hover:bg-[#FAFAFB]"}`}
