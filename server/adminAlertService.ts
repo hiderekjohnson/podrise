@@ -12,6 +12,7 @@ interface AlertOptions {
   errorMessage: string;
   severity?: AlertSeverity;
   adminPath?: string;
+  footerText?: string;
 }
 
 function escapeHtml(str: string): string {
@@ -48,13 +49,13 @@ async function logAlertToDb(options: AlertOptions & { severity: AlertSeverity })
   }
 }
 
-export async function sendCriticalApiAlert(options: AlertOptions): Promise<void> {
-  const { apiName, errorType, errorMessage, severity = "critical", adminPath = "/admin" } = options;
+export async function sendCriticalApiAlert(options: AlertOptions): Promise<boolean> {
+  const { apiName, errorType, errorMessage, severity = "critical", adminPath = "/admin", footerText } = options;
   const key = getCooldownKey(apiName, errorType);
 
   if (isCoolingDown(key)) {
     console.log(`[AdminAlert] Suppressed duplicate alert for ${apiName}/${errorType} (cooldown active)`);
-    return;
+    return true;
   }
 
   const timestamp = new Date().toLocaleString("en-US", {
@@ -107,7 +108,7 @@ export async function sendCriticalApiAlert(options: AlertOptions): Promise<void>
         <a href="${adminUrl}" style="display: inline-block; background: #2563EB; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;">Open Admin Dashboard</a>
       </div>
       <p style="margin: 16px 0 0; font-size: 12px; color: #9CA3AF; text-align: center;">
-        Duplicate alerts for this error type are suppressed for 1 hour.
+        ${footerText ? escapeHtml(footerText) : "Duplicate alerts for this error type are suppressed for 1 hour."}
       </p>
     </div>
   `;
@@ -124,11 +125,13 @@ export async function sendCriticalApiAlert(options: AlertOptions): Promise<void>
     });
     cooldownMap.set(key, Date.now());
     console.log(`[AdminAlert] Alert email sent for ${apiName}/${errorType}`);
+    logAlertToDb({ apiName, errorType, errorMessage, severity: resolvedSeverity, adminPath }).catch(() => {});
+    return true;
   } catch (err) {
     console.error(`[AdminAlert] Failed to send alert email for ${apiName}/${errorType}:`, err);
+    logAlertToDb({ apiName, errorType, errorMessage, severity: resolvedSeverity, adminPath }).catch(() => {});
+    return false;
   }
-
-  logAlertToDb({ apiName, errorType, errorMessage, severity: resolvedSeverity, adminPath }).catch(() => {});
 }
 
 function getErrorMessage(err: unknown): string {
