@@ -3429,15 +3429,15 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       }
 
       function ensureAffiliateTag(url: string): string {
-        if (url.includes("tag=")) return url.replace(/tag=[^&]*/, "tag=podcap-20");
-        return url + (url.includes("?") ? "&" : "?") + "tag=podcap-20";
+        if (url.includes("tag=")) return url.replace(/tag=[^&]*/, "tag=podrise0c-20");
+        return url + (url.includes("?") ? "&" : "?") + "tag=podrise0c-20";
       }
 
       const enriched = list.map(bm => {
         const e = enrichMap.get(bm.bookSlug);
         const amazonUrl = e?.amazon_url
           ? ensureAffiliateTag(e.amazon_url)
-          : `https://www.amazon.com/s?k=${encodeURIComponent(`${e?.book_title || bm.bookSlug.replace(/-/g, " ")} book`)}&tag=podcap-20`;
+          : `https://www.amazon.com/s?k=${encodeURIComponent(`${e?.book_title || bm.bookSlug.replace(/-/g, " ")} book`)}&tag=podrise0c-20`;
         return {
           id: bm.id,
           bookSlug: bm.bookSlug,
@@ -5328,11 +5328,11 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     if (!isAmazonUrl(url)) return url;
     try {
       const u = new URL(url);
-      u.searchParams.set("tag", "podcap-20");
+      u.searchParams.set("tag", "podrise0c-20");
       return u.toString();
     } catch {
-      if (url.includes("tag=")) return url.replace(/tag=[^&]*/, "tag=podcap-20");
-      return url + (url.includes("?") ? "&" : "?") + "tag=podcap-20";
+      if (url.includes("tag=")) return url.replace(/tag=[^&]*/, "tag=podrise0c-20");
+      return url + (url.includes("?") ? "&" : "?") + "tag=podrise0c-20";
     }
   }
 
@@ -5692,7 +5692,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
           const enrichedAsin = enrichment?.asin || null;
           const originalAsin = extractAsinFromUrl(b.url);
           const finalAsin = enrichedAsin || originalAsin;
-          const amazonUrl = `https://www.amazon.com/s?k=${encodeURIComponent(`${b.name}${enrichment?.author || b.author ? ` ${enrichment?.author || b.author}` : ""} book`)}&tag=podcap-20`;
+          const amazonUrl = `https://www.amazon.com/s?k=${encodeURIComponent(`${b.name}${enrichment?.author || b.author ? ` ${enrichment?.author || b.author}` : ""} book`)}&tag=podrise0c-20`;
 
           return {
             name: b.name,
@@ -5883,7 +5883,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
           const enrichedAsin = enrichment?.asin || null;
           const originalAsin = extractAsinFromUrl(b.url);
           const finalAsin = enrichedAsin || originalAsin;
-          const amazonUrl = `https://www.amazon.com/s?k=${encodeURIComponent(`${b.name}${enrichment?.author || b.author ? ` ${enrichment?.author || b.author}` : ""} book`)}&tag=podcap-20`;
+          const amazonUrl = `https://www.amazon.com/s?k=${encodeURIComponent(`${b.name}${enrichment?.author || b.author ? ` ${enrichment?.author || b.author}` : ""} book`)}&tag=podrise0c-20`;
 
           return {
             name: b.name,
@@ -6326,10 +6326,10 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       }
 
       const finalAsin = enrichment.asin || null;
-      const amazonSearchUrl = `https://www.amazon.com/s?k=${encodeURIComponent(`${enrichment.book_title}${enrichment.author ? ` ${enrichment.author}` : ""} book`)}&tag=podcap-20`;
+      const amazonSearchUrl = `https://www.amazon.com/s?k=${encodeURIComponent(`${enrichment.book_title}${enrichment.author ? ` ${enrichment.author}` : ""} book`)}&tag=podrise0c-20`;
       const amazonUrl = amazonSearchUrl;
 
-      const audibleUrl = `https://www.audible.com/search?keywords=${encodeURIComponent(`${enrichment.book_title}${enrichment.author ? ` ${enrichment.author}` : ""}`)}&tag=podcap0b-20`;
+      const audibleUrl = `https://www.audible.com/search?keywords=${encodeURIComponent(`${enrichment.book_title}${enrichment.author ? ` ${enrichment.author}` : ""}`)}&tag=podrise0c-20`;
 
       let blinkistUrl: string | null = null;
       try {

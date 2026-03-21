@@ -141,7 +141,7 @@ export async function enrichAllBooks(limit?: number): Promise<{ processed: numbe
       const enrichment = await enrichBook(book);
 
       const amazonUrl = enrichment.asin
-        ? `https://www.amazon.com/dp/${enrichment.asin}?tag=podcap-20`
+        ? `https://www.amazon.com/dp/${enrichment.asin}?tag=podrise0c-20`
         : null;
 
       let slug = generateSlug(book.name, book.author);
