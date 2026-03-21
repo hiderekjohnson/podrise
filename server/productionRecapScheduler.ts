@@ -363,63 +363,6 @@ async function cleanupDuplicateRecaps() {
 
 const STALL_CHECK_INTERVAL_MS = 30 * 60 * 1000;
 
-// Stall threshold: 6 hours.
-// Verified via: SELECT MAX(gap) FROM (
-//   SELECT created_at - LAG(created_at) OVER (ORDER BY created_at) AS gap
-//   FROM landing_page_recaps
-// ) t;
-// Result: max gap ~3-4 hours (overnight / low-activity windows).
-// 6 hours provides comfortable margin above the largest normal gap while still
-// catching genuine pipeline failures promptly. Adjust if pipeline cadence changes.
-const STALL_THRESHOLD_HOURS = 6;
-
-let stallAlertSent = false;
-
-async function checkRecapStall() {
-  try {
-    const result = await pool.query(
-      `SELECT COUNT(*) as count FROM landing_page_recaps WHERE created_at >= NOW() - INTERVAL '${STALL_THRESHOLD_HOURS} hours'`
-    );
-    const recentCount = parseInt(result.rows[0].count);
-
-    if (recentCount > 0) {
-      if (stallAlertSent) {
-        console.log("[ProdRecap] Stall resolved — new recaps detected, resetting alert flag");
-      }
-      stallAlertSent = false;
-      return;
-    }
-
-    if (stallAlertSent) {
-      console.log("[ProdRecap] Stall persists but alert already sent — suppressing duplicate");
-      return;
-    }
-
-    const lastResult = await pool.query(
-      `SELECT created_at FROM landing_page_recaps ORDER BY created_at DESC LIMIT 1`
-    );
-    const lastAt = lastResult.rows[0]?.created_at;
-    const lastStr = lastAt ? new Date(lastAt).toISOString() : "never";
-    const { sendCriticalApiAlert } = await import("./adminAlertService");
-    const sent = await sendCriticalApiAlert({
-      apiName: "Recap Pipeline",
-      errorType: "Recap Stall Detected",
-      errorMessage: `No new episode recaps have been created in the last ${STALL_THRESHOLD_HOURS} hours. Last recap was created at ${lastStr}. This may indicate an issue with Taddy, OpenAI, or the transcript pipeline.`,
-      severity: "critical",
-      adminPath: "/admin/internal-tools/alerts",
-      footerText: "You will not receive another alert until this stall resolves.",
-    });
-    if (sent) {
-      stallAlertSent = true;
-      console.log("[ProdRecap] Stall alert sent — flag set, no further alerts until resolved");
-    } else {
-      console.warn("[ProdRecap] Stall alert email failed to send — will retry next interval");
-    }
-  } catch (err) {
-    console.error("[ProdRecap] Stall check error:", err);
-  }
-}
-
 // ── NPR News Now ingestion monitor ──────────────────────────────────────────
 // NPR News Now (iTunes ID 121493675) publishes every hour on the hour.
 // We run this check every 30 minutes. If our most recent transcript for that
@@ -543,9 +486,6 @@ export function startProductionRecapScheduler() {
 
     catchUpMissingHeadlines();
     setInterval(catchUpMissingHeadlines, HEADLINE_CATCHUP_INTERVAL_MS);
-
-    checkRecapStall();
-    setInterval(checkRecapStall, STALL_CHECK_INTERVAL_MS);
 
     checkNprNewsNowIngestion();
     setInterval(checkNprNewsNowIngestion, STALL_CHECK_INTERVAL_MS);
