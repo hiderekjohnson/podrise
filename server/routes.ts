@@ -479,23 +479,29 @@ const DOMAIN = "https://podrise.com";
 const STATIC_PAGES = [
   { path: "/", priority: "1.0", changefreq: "daily" },
   { path: "/podcasts", priority: "0.9", changefreq: "daily" },
-  { path: "/trends", priority: "0.9", changefreq: "daily" },
   { path: "/shop", priority: "0.8", changefreq: "weekly" },
-  { path: "/people", priority: "0.8", changefreq: "weekly" },
-  { path: "/companies", priority: "0.8", changefreq: "weekly" },
-  { path: "/insights", priority: "0.7", changefreq: "weekly" },
   { path: "/pod-squad", priority: "0.7", changefreq: "weekly" },
   { path: "/advertise", priority: "0.6", changefreq: "monthly" },
+  { path: "/enterprise", priority: "0.6", changefreq: "monthly" },
+  { path: "/we-heart-podcasters", priority: "0.5", changefreq: "monthly" },
   { path: "/about", priority: "0.5", changefreq: "monthly" },
+  { path: "/updates", priority: "0.5", changefreq: "weekly" },
   { path: "/contact", priority: "0.4", changefreq: "monthly" },
   { path: "/login", priority: "0.3", changefreq: "monthly" },
   { path: "/privacy", priority: "0.3", changefreq: "yearly" },
   { path: "/terms", priority: "0.3", changefreq: "yearly" },
+  { path: "/cookies", priority: "0.2", changefreq: "yearly" },
+  { path: "/disclosure", priority: "0.2", changefreq: "yearly" },
 ];
 
 const PODCAST_SLUGS = Object.values(ITUNES_ID_TO_SLUG);
 
-async function buildSitemap(): Promise<string> {
+let sitemapCache: { xml: string; builtAt: number } | null = null;
+const SITEMAP_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+let sitemapBuildInProgress = false;
+let sitemapBuildPromise: Promise<string> | null = null;
+
+async function buildSitemapXml(): Promise<string> {
   const today = new Date().toISOString().split("T")[0];
   let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
   xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
@@ -525,16 +531,19 @@ async function buildSitemap(): Promise<string> {
   }
 
   try {
-    for (const slug of PODCAST_SLUGS) {
-      const recaps = await storage.getLandingPageRecaps(slug, 500);
-      for (const recap of recaps) {
-        xml += `  <url>\n`;
-        xml += `    <loc>${DOMAIN}/podcasts/${slug}/${recap.episodeSlug}</loc>\n`;
-        xml += `    <lastmod>${today}</lastmod>\n`;
-        xml += `    <changefreq>monthly</changefreq>\n`;
-        xml += `    <priority>0.7</priority>\n`;
-        xml += `  </url>\n`;
-      }
+    const slugSet = new Set(PODCAST_SLUGS);
+    const { rows: recapRows } = await pool.query<{ slug: string; episode_slug: string }>(
+      `SELECT slug, episode_slug FROM landing_page_recaps WHERE slug = ANY($1) ORDER BY slug, publish_date DESC`,
+      [PODCAST_SLUGS]
+    );
+    for (const row of recapRows) {
+      if (!slugSet.has(row.slug)) continue;
+      xml += `  <url>\n`;
+      xml += `    <loc>${DOMAIN}/podcasts/${row.slug}/${row.episode_slug}</loc>\n`;
+      xml += `    <lastmod>${today}</lastmod>\n`;
+      xml += `    <changefreq>monthly</changefreq>\n`;
+      xml += `    <priority>0.7</priority>\n`;
+      xml += `  </url>\n`;
     }
   } catch (err) {
     console.error("[Sitemap] Error fetching recaps:", err);
@@ -592,6 +601,54 @@ async function buildSitemap(): Promise<string> {
 
   xml += `</urlset>`;
   return xml;
+}
+
+async function buildSitemap(): Promise<string> {
+  const now = Date.now();
+  if (sitemapCache && now - sitemapCache.builtAt < SITEMAP_CACHE_TTL_MS) {
+    return sitemapCache.xml;
+  }
+  if (sitemapCache) {
+    if (!sitemapBuildInProgress) {
+      sitemapBuildInProgress = true;
+      buildSitemapXml()
+        .then(xml => {
+          sitemapCache = { xml, builtAt: Date.now() };
+          console.log("[Sitemap] Cache refreshed successfully");
+        })
+        .catch(err => console.error("[Sitemap] Background build failed:", err))
+        .finally(() => { sitemapBuildInProgress = false; });
+    }
+    return sitemapCache.xml;
+  }
+  if (sitemapBuildPromise) {
+    return sitemapBuildPromise;
+  }
+  sitemapBuildPromise = buildSitemapXml()
+    .then(xml => {
+      sitemapCache = { xml, builtAt: Date.now() };
+      sitemapBuildPromise = null;
+      return xml;
+    })
+    .catch(err => {
+      sitemapBuildPromise = null;
+      throw err;
+    });
+  return sitemapBuildPromise;
+}
+
+function startSitemapPeriodicRefresh() {
+  setInterval(() => {
+    if (sitemapBuildInProgress) return;
+    sitemapBuildInProgress = true;
+    buildSitemapXml()
+      .then(xml => {
+        sitemapCache = { xml, builtAt: Date.now() };
+        console.log("[Sitemap] Periodic cache refresh complete");
+      })
+      .catch(err => console.error("[Sitemap] Periodic refresh failed:", err))
+      .finally(() => { sitemapBuildInProgress = false; });
+  }, SITEMAP_CACHE_TTL_MS);
 }
 
 const ROBOTS_TXT = `User-agent: *
@@ -19196,6 +19253,10 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       console.error("[Backfill] Failed to mark stale jobs:", err);
     }
   }, 5000);
+
+  startSitemapPeriodicRefresh();
+
+  void buildSitemap().then(() => console.log("[Sitemap] Initial cache warm-up complete")).catch(err => console.error("[Sitemap] Initial warm-up failed:", err));
 
   return httpServer;
 }

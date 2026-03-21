@@ -116,9 +116,15 @@ export default function Enterprise() {
     setMeta("property", "og:description", desc);
     setMeta("property", "og:url", "https://podrise.com/enterprise");
     setMeta("property", "og:type", "website");
+    setMeta("property", "og:site_name", "PodRise");
     setMeta("name", "twitter:card", "summary_large_image");
+    setMeta("name", "twitter:site", "@podrise_hq");
     setMeta("name", "twitter:title", title);
     setMeta("name", "twitter:description", desc);
+
+    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!canonical) { canonical = document.createElement("link"); canonical.rel = "canonical"; document.head.appendChild(canonical); }
+    canonical.href = "https://podrise.com/enterprise";
   }, []);
 
   return (

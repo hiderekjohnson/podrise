@@ -32,7 +32,9 @@ export default function Advertise() {
     setMeta("property", "og:type", "website");
     setMeta("property", "og:url", "https://podrise.com/advertise");
     setMeta("property", "og:image", "https://podrise.com/og/og-advertise.png");
+    setMeta("property", "og:site_name", "PodRise");
     setMeta("name", "twitter:card", "summary_large_image");
+    setMeta("name", "twitter:site", "@podrise_hq");
     setMeta("name", "twitter:title", "Advertise with PodRise — Hyper-Targeted Podcast Advertising | PodRise");
     setMeta("name", "twitter:description", desc);
     setMeta("name", "twitter:image", "https://podrise.com/og/og-advertise.png");

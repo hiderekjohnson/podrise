@@ -239,7 +239,13 @@ function SEOHead({ item }: { item: NormalizedItem }) {
     setOrCreateMeta("property", "og:description", description);
     setOrCreateMeta("property", "og:url", `https://podrise.com/shop/${item.slug}`);
     setOrCreateMeta("property", "og:type", isBook ? "book" : "product");
-    setOrCreateMeta("name", "twitter:card", "summary");
+    setOrCreateMeta("property", "og:site_name", "PodRise");
+    if (item.imageUrl) {
+      setOrCreateMeta("property", "og:image", item.imageUrl);
+      setOrCreateMeta("name", "twitter:image", item.imageUrl);
+    }
+    setOrCreateMeta("name", "twitter:card", "summary_large_image");
+    setOrCreateMeta("name", "twitter:site", "@podrise_hq");
     setOrCreateMeta("name", "twitter:title", title);
     setOrCreateMeta("name", "twitter:description", description);
 
@@ -270,6 +276,7 @@ function SEOHead({ item }: { item: NormalizedItem }) {
         ...(item.description ? { description: item.description } : {}),
         ...(book.publishYear ? { datePublished: String(book.publishYear) } : {}),
         ...(book.pageCount ? { numberOfPages: book.pageCount } : {}),
+        ...(item.imageUrl ? { image: item.imageUrl } : {}),
         url: `https://podrise.com/shop/${item.slug}`,
       });
     } else {
@@ -280,9 +287,26 @@ function SEOHead({ item }: { item: NormalizedItem }) {
         name: item.name,
         ...(item.description ? { description: item.description } : {}),
         ...(product.company ? { brand: { "@type": "Brand", name: product.company } } : {}),
+        ...(item.imageUrl ? { image: item.imageUrl } : {}),
         url: `https://podrise.com/shop/${item.slug}`,
       });
     }
+
+    let breadcrumbScript = document.querySelector('script[data-shop-breadcrumb]') as HTMLScriptElement;
+    if (!breadcrumbScript) {
+      breadcrumbScript = document.createElement("script");
+      breadcrumbScript.type = "application/ld+json";
+      breadcrumbScript.setAttribute("data-shop-breadcrumb", "true");
+      document.head.appendChild(breadcrumbScript);
+    }
+    breadcrumbScript.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Shop", "item": "https://podrise.com/shop" },
+        { "@type": "ListItem", "position": 2, "name": item.name, "item": `https://podrise.com/shop/${item.slug}` },
+      ]
+    });
   }, [item, title, description, isBook]);
 
   return null;

@@ -818,7 +818,9 @@ export default function EpisodeRecapPage() {
     setMeta('meta[property="og:image"]', "content", episode.artworkUrl);
     setMeta('meta[property="og:url"]', "content", canonicalUrl);
     setMeta('meta[property="og:type"]', "content", "article");
+    setMeta('meta[property="og:site_name"]', "content", "PodRise");
     setMeta('meta[name="twitter:card"]', "content", "summary_large_image");
+    setMeta('meta[name="twitter:site"]', "content", "@podrise_hq");
     setMeta('meta[name="twitter:title"]', "content", pageTitle);
     setMeta('meta[name="twitter:description"]', "content", pageDescription);
     setMeta('meta[name="twitter:image"]', "content", episode.artworkUrl);
@@ -831,8 +833,49 @@ export default function EpisodeRecapPage() {
     }
     canonical.href = canonicalUrl;
 
+    let jsonLd = document.querySelector('script[type="application/ld+json"][data-page="episode"]') as HTMLScriptElement | null;
+    if (!jsonLd) {
+      jsonLd = document.createElement("script");
+      jsonLd.type = "application/ld+json";
+      jsonLd.setAttribute("data-page", "episode");
+      document.head.appendChild(jsonLd);
+    }
+    const breadcrumb = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Podcasts", "item": "https://podrise.com/podcasts" },
+        { "@type": "ListItem", "position": 2, "name": episode.podcastName, "item": `https://podrise.com/podcasts/${podcastSlug}` },
+        { "@type": "ListItem", "position": 3, "name": episode.episodeTitle, "item": canonicalUrl },
+      ]
+    };
+    const article = {
+      "@context": "https://schema.org",
+      "@type": "NewsArticle",
+      "headline": episode.episodeTitle,
+      "description": pageDescription,
+      "image": episode.artworkUrl,
+      "url": canonicalUrl,
+      "mainEntityOfPage": canonicalUrl,
+      ...(episode.publishDate ? { "datePublished": (() => { try { const d = new Date(episode.publishDate); return isNaN(d.getTime()) ? undefined : d.toISOString(); } catch { return undefined; } })() } : {}),
+      "publisher": {
+        "@type": "Organization",
+        "name": "PodRise",
+        "url": "https://podrise.com",
+        "logo": { "@type": "ImageObject", "url": "https://podrise.com/og/og-podcasts.png" }
+      },
+      "isPartOf": {
+        "@type": "PodcastSeries",
+        "name": episode.podcastName,
+        "url": `https://podrise.com/podcasts/${podcastSlug}`
+      }
+    };
+    jsonLd.textContent = JSON.stringify([breadcrumb, article]);
+
     return () => {
       document.title = "PodRise | Daily Podcast Recaps from Your Favorite Shows";
+      const el = document.querySelector('script[type="application/ld+json"][data-page="episode"]');
+      if (el) el.remove();
     };
   }, [episode, podcastSlug, episodeSlug]);
 

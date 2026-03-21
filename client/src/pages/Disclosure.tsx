@@ -22,7 +22,9 @@ export default function Disclosure() {
     setMeta("property", "og:type", "website");
     setMeta("property", "og:url", "https://podrise.com/disclosure");
     setMeta("property", "og:image", "https://podrise.com/og/og-podcasts.png");
+    setMeta("property", "og:site_name", "PodRise");
     setMeta("name", "twitter:card", "summary_large_image");
+    setMeta("name", "twitter:site", "@podrise_hq");
     setMeta("name", "twitter:title", title);
     setMeta("name", "twitter:description", desc);
     setMeta("name", "twitter:image", "https://podrise.com/og/og-podcasts.png");

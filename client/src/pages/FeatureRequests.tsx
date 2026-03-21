@@ -232,6 +232,7 @@ export default function FeatureRequests() {
     setMeta("property", "og:type", "website");
     setMeta("property", "og:site_name", "PodRise");
     setMeta("name", "twitter:card", "summary_large_image");
+    setMeta("name", "twitter:site", "@podrise_hq");
     setMeta("name", "twitter:title", "What's New — PodRise Updates, Features & Product Changelog | PodRise");
     setMeta("name", "twitter:description", desc);
 

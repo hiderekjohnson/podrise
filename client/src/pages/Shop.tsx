@@ -125,7 +125,9 @@ function SEOHead() {
     setOrCreate("property", "og:url", "https://podrise.com/shop");
     setOrCreate("property", "og:type", "website");
     setOrCreate("property", "og:image", "https://podrise.com/og/og-shop.png");
+    setOrCreate("property", "og:site_name", "PodRise");
     setOrCreate("name", "twitter:card", "summary_large_image");
+    setOrCreate("name", "twitter:site", "@podrise_hq");
     setOrCreate("name", "twitter:title", title);
     setOrCreate("name", "twitter:description", description);
 

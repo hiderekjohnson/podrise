@@ -600,6 +600,7 @@ export default function PodcastLandingGeneric() {
     } else {
       setMeta("name", "twitter:card", "summary");
     }
+    setMeta("name", "twitter:site", "@podrise_hq");
     setMeta("name", "twitter:title", `${name} Podcast Summary, Recaps & Key Takeaways | PodRise`);
     setMeta("name", "twitter:description", `Free daily ${name} podcast summaries and episode recaps delivered to your inbox.`);
 

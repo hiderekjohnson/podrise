@@ -34,9 +34,16 @@ function SEOHead() {
     setOrCreate('meta[property="og:title"]', "property", title);
     setOrCreate('meta[property="og:description"]', "property", description);
     setOrCreate('meta[property="og:image"]', "property", "https://podrise.com/podrise-og-image.png");
+    setOrCreate('meta[property="og:site_name"]', "property", "PodRise");
+    setOrCreate('meta[property="og:url"]', "property", "https://podrise.com/");
     setOrCreate('meta[name="twitter:card"]', "name", "summary_large_image");
+    setOrCreate('meta[name="twitter:site"]', "name", "@podrise_hq");
     setOrCreate('meta[name="twitter:title"]', "name", title);
     setOrCreate('meta[name="twitter:description"]', "name", description);
+
+    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!canonical) { canonical = document.createElement("link"); canonical.setAttribute("rel", "canonical"); document.head.appendChild(canonical); }
+    canonical.setAttribute("href", "https://podrise.com/");
   }
   return null;
 }
