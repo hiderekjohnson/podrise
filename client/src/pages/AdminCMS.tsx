@@ -912,6 +912,7 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
       )}
 
       <div className="bg-white dark:bg-zinc-900 border border-border rounded-2xl overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full" data-testid="table-cms-podcasts">
           <thead>
             <tr className="border-b border-border bg-muted/30">
@@ -1099,6 +1100,7 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
     </>
@@ -2001,6 +2003,7 @@ function EpisodesList({ podcastSlug, onNavigate }: { podcastSlug: string; onNavi
       </div>
 
       <div className="bg-white dark:bg-zinc-900 border border-border rounded-2xl overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full" data-testid="table-cms-episodes">
           <thead>
             <tr className="border-b border-border bg-muted/30">
@@ -2073,6 +2076,7 @@ function EpisodesList({ podcastSlug, onNavigate }: { podcastSlug: string; onNavi
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );
@@ -2197,6 +2201,7 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
       </div>
 
       <div className="bg-white dark:bg-zinc-900 border border-border rounded-2xl overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full" data-testid="table-cms-all-episodes">
           <thead>
             <tr className="border-b border-border bg-muted/30">
@@ -2282,6 +2287,7 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {total > 50 && (

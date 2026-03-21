@@ -420,7 +420,7 @@ export default function Admin() {
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex flex-col">
-        <header className="w-full px-6 lg:px-10 xl:px-16 py-5 flex items-center justify-between">
+        <header className="w-full px-4 sm:px-6 lg:px-10 xl:px-16 py-5 flex items-center justify-between">
           <a href="/" className="flex items-center">
             <PodRiseWordmark />
           </a>
@@ -508,7 +508,7 @@ export default function Admin() {
   return (
     <div className="min-h-screen flex flex-col">
       {isDev && (
-        <div className="w-full bg-amber-500/15 border-b border-amber-500/30 px-6 lg:px-10 xl:px-16 py-3" data-testid="banner-dev-warning">
+        <div className="w-full bg-amber-500/15 border-b border-amber-500/30 px-4 sm:px-6 lg:px-10 xl:px-16 py-3" data-testid="banner-dev-warning">
           <div className="flex items-center gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0" />
             <p className="text-sm font-medium text-amber-400">
@@ -518,7 +518,7 @@ export default function Admin() {
         </div>
       )}
       {impersonationStatus?.impersonating && (
-        <div className="w-full bg-amber-500 text-white px-6 lg:px-10 xl:px-16 py-2.5 flex items-center justify-center gap-3" data-testid="banner-admin-impersonating">
+        <div className="w-full bg-amber-500 text-white px-4 sm:px-6 lg:px-10 xl:px-16 py-2.5 flex items-center justify-center gap-3" data-testid="banner-admin-impersonating">
           <Shield className="w-4 h-4" />
           <span className="text-sm font-semibold">You are currently impersonating user ID {impersonationStatus.userId}</span>
           <button
@@ -531,7 +531,7 @@ export default function Admin() {
           </button>
         </div>
       )}
-      <header className="w-full px-6 lg:px-10 xl:px-16 py-5 flex items-center justify-between">
+      <header className="w-full px-4 sm:px-6 lg:px-10 xl:px-16 py-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <a href="/" className="flex items-center">
             <PodRiseWordmark />
@@ -550,7 +550,7 @@ export default function Admin() {
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col px-6 lg:px-10 xl:px-16 pb-16">
+      <main className="flex-1 flex flex-col px-4 sm:px-6 lg:px-10 xl:px-16 pb-16">
         <section className="w-full pt-8 pb-6">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -856,11 +856,11 @@ export default function Admin() {
 
                     {selectedUserIds.size > 0 && (
                       <div className="sticky bottom-4 mx-4 mb-4 mt-2" data-testid="bulk-action-bar">
-                        <div className="flex items-center justify-between gap-3 px-5 py-3 rounded-xl bg-primary/5 border border-primary/20 shadow-lg backdrop-blur-sm">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-5 py-3 rounded-xl bg-primary/5 border border-primary/20 shadow-lg backdrop-blur-sm">
                           <span className="text-sm font-semibold text-foreground" data-testid="text-selected-count">
                             {selectedUserIds.size} user{selectedUserIds.size !== 1 ? "s" : ""} selected
                           </span>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center flex-wrap gap-2">
                             <button
                               data-testid="button-bulk-verify"
                               onClick={() => bulkStatusMutation.mutate({ userIds: Array.from(selectedUserIds), emailVerified: true })}

@@ -346,6 +346,7 @@ function ConversionEventsPanel() {
 
       {events.length > 0 && (
         <div className="border border-black/[0.06] rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full" data-testid="table-conversion-events">
             <thead>
               <tr className="border-b border-black/[0.06] bg-black/[0.02]">
@@ -431,6 +432,7 @@ function ConversionEventsPanel() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
