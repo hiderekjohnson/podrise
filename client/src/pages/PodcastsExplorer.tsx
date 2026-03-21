@@ -9,6 +9,7 @@ import { PODCAST_LANDINGS, type PodcastLandingConfig } from "@/data/podcastLandi
 import { SiteHeader } from "@/components/SiteHeader";
 import { RequestPodcastDialog } from "@/components/RequestPodcastDialog";
 import { hiResArtwork } from "@/lib/utils";
+import { usePrefetchPodcast } from "@/lib/queryClient";
 
 interface PodcastStat {
   slug: string;
@@ -130,9 +131,12 @@ const DISCOVERY_PROMPTS = [
 const prefersReducedMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 function PodcastCard({ podcast, stat, variant = "default", rank }: { podcast: PodcastLandingConfig; stat?: PodcastStat; variant?: "default" | "featured" | "compact" | "trending"; rank?: number }) {
+  const { data: authUser } = useAuth();
+  const { onMouseEnter, onMouseLeave } = usePrefetchPodcast(podcast.slug, !!authUser);
+
   if (variant === "featured") {
     return (
-      <Link href={`/podcasts/${podcast.slug}`} data-testid={`card-podcast-${podcast.slug}`}>
+      <Link href={`/podcasts/${podcast.slug}`} data-testid={`card-podcast-${podcast.slug}`} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
         <div className="group relative bg-card border border-black/[0.06] dark:border-white/[0.08] rounded-2xl overflow-hidden hover:border-primary/20 hover:shadow-lg transition-all cursor-pointer h-full">
           <div className="flex gap-4 p-5">
             <img
@@ -167,7 +171,7 @@ function PodcastCard({ podcast, stat, variant = "default", rank }: { podcast: Po
 
   if (variant === "trending") {
     return (
-      <Link href={`/podcasts/${podcast.slug}`} data-testid={`card-trending-${podcast.slug}`}>
+      <Link href={`/podcasts/${podcast.slug}`} data-testid={`card-trending-${podcast.slug}`} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
         <div className="group flex items-center gap-3 p-3 rounded-xl hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors cursor-pointer">
           {rank !== undefined && (
             <span className="text-[18px] font-display font-black text-muted-foreground/20 w-6 text-center shrink-0">{rank}</span>
@@ -191,7 +195,7 @@ function PodcastCard({ podcast, stat, variant = "default", rank }: { podcast: Po
 
   if (variant === "compact") {
     return (
-      <Link href={`/podcasts/${podcast.slug}`} data-testid={`card-podcast-${podcast.slug}`}>
+      <Link href={`/podcasts/${podcast.slug}`} data-testid={`card-podcast-${podcast.slug}`} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
         <div className="group flex items-center gap-3 p-3 rounded-xl border border-black/[0.04] dark:border-white/[0.04] hover:border-primary/15 hover:bg-primary/[0.015] transition-all cursor-pointer">
           <img
             src={podcast.artworkUrl}
@@ -212,7 +216,7 @@ function PodcastCard({ podcast, stat, variant = "default", rank }: { podcast: Po
   }
 
   return (
-    <Link href={`/podcasts/${podcast.slug}`} data-testid={`card-podcast-${podcast.slug}`}>
+    <Link href={`/podcasts/${podcast.slug}`} data-testid={`card-podcast-${podcast.slug}`} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       <div className="group relative bg-card border border-black/[0.06] dark:border-white/[0.06] rounded-xl p-4 hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer h-full">
         <div className="flex items-center gap-3 mb-2.5">
           {podcast.artworkUrl && (

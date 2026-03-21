@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { Search, X, Loader2, Mic, Headphones, ArrowRight } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient, usePrefetchPodcast } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { hiResArtwork } from "@/lib/utils";
@@ -41,6 +41,39 @@ interface GlobalSearchData {
   episodes: { podcastSlug: string; episodeSlug: string; podcastName: string; episodeTitle: string; artworkUrl: string; publishDate: string }[];
   people: { slug: string; name: string; photoUrl: string; title: string; company: string }[];
   companies: { slug: string; name: string; logoUrl: string; industry: string }[];
+}
+
+function PodcastSearchResultLink({ slug, name, artworkUrl, onClick, children }: {
+  slug: string;
+  name: string;
+  artworkUrl: string | null;
+  onClick: () => void;
+  children?: React.ReactNode;
+}) {
+  const { data: authUser } = useAuth();
+  const { onMouseEnter, onMouseLeave } = usePrefetchPodcast(slug, !!authUser);
+  return (
+    <Link
+      href={`/podcasts/${slug}`}
+      className="flex items-center gap-2.5 px-3 py-2 hover:bg-[#F7F7FC] transition-colors border-b border-[#F0F0F2] last:border-b-0 no-underline"
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      data-testid={`sidebar-result-podcast-${slug}`}
+    >
+      <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-[#F0F0F2]">
+        {artworkUrl ? (
+          <img src={hiResArtwork(artworkUrl)} alt={name} className="w-full h-full object-cover" loading="lazy" />
+        ) : (
+          <div className="w-full h-full bg-[#E4E4E7] flex items-center justify-center"><Mic className="w-3 h-3 text-[#A1A1AA]" /></div>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-[13px] font-semibold text-[#09090B] truncate">{name}</div>
+      </div>
+      {children}
+    </Link>
+  );
 }
 
 function SidebarSearch() {
@@ -150,24 +183,13 @@ function SidebarSearch() {
                   <div className="px-3 py-1.5 text-[10px] font-bold text-[#A1A1AA] uppercase tracking-wider bg-[#FAFAFA]">Podcasts</div>
                   {(searchData?.podcasts || []).map((result) => 
                     result.hasLandingPage ? (
-                      <Link
+                      <PodcastSearchResultLink
                         key={result.slug}
-                        href={`/podcasts/${result.slug}`}
-                        className="flex items-center gap-2.5 px-3 py-2 hover:bg-[#F7F7FC] transition-colors border-b border-[#F0F0F2] last:border-b-0 no-underline"
+                        slug={result.slug}
+                        name={result.name}
+                        artworkUrl={result.artworkUrl}
                         onClick={() => setQuery("")}
-                        data-testid={`sidebar-result-podcast-${result.slug}`}
-                      >
-                        <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-[#F0F0F2]">
-                          {result.artworkUrl ? (
-                            <img src={hiResArtwork(result.artworkUrl)} alt={result.name} className="w-full h-full object-cover" loading="lazy" />
-                          ) : (
-                            <div className="w-full h-full bg-[#E4E4E7] flex items-center justify-center"><Mic className="w-3 h-3 text-[#A1A1AA]" /></div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-[13px] font-semibold text-[#09090B] truncate">{result.name}</div>
-                        </div>
-                      </Link>
+                      />
                     ) : (
                       <div
                         key={result.slug}
@@ -348,6 +370,33 @@ function ShopSection() {
   );
 }
 
+function RelatedPodcastLink({ rp }: { rp: { slug: string; name: string; category: string; artworkUrl?: string | null } }) {
+  const { data: authUser } = useAuth();
+  const { onMouseEnter, onMouseLeave } = usePrefetchPodcast(rp.slug, !!authUser);
+  return (
+    <Link
+      href={`/podcasts/${rp.slug}`}
+      className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-3 flex items-center gap-3 hover:border-primary/[0.15] hover:shadow-md hover:shadow-black/[0.04] transition-all group"
+      data-testid={`related-podcast-${rp.slug}`}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      {rp.artworkUrl ? (
+        <img src={rp.artworkUrl} alt={rp.name} className="w-10 h-10 rounded-lg object-cover shadow-sm shadow-black/[0.06] shrink-0 ring-1 ring-black/[0.04]" />
+      ) : (
+        <div className="w-10 h-10 rounded-lg bg-primary/[0.06] flex items-center justify-center shrink-0">
+          <Headphones className="w-4 h-4 text-primary/30" />
+        </div>
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="text-[13px] font-bold text-foreground truncate group-hover:text-primary transition-colors">{rp.name}</p>
+        <p className="text-[11px] text-[#52525B] mt-0.5 uppercase tracking-wider font-semibold">{rp.category}</p>
+      </div>
+      <ArrowRight className="shrink-0 w-3.5 h-3.5 text-muted-foreground/20 group-hover:text-primary transition-colors" />
+    </Link>
+  );
+}
+
 function RelatedPodcastsSection() {
   const { podcasts } = useRelatedPodcasts();
 
@@ -361,25 +410,7 @@ function RelatedPodcastsSection() {
       </div>
       <div className="flex flex-col gap-2">
         {podcasts.map((rp) => (
-          <Link
-            key={rp.slug}
-            href={`/podcasts/${rp.slug}`}
-            className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] rounded-xl p-3 flex items-center gap-3 hover:border-primary/[0.15] hover:shadow-md hover:shadow-black/[0.04] transition-all group"
-            data-testid={`related-podcast-${rp.slug}`}
-          >
-            {rp.artworkUrl ? (
-              <img src={rp.artworkUrl} alt={rp.name} className="w-10 h-10 rounded-lg object-cover shadow-sm shadow-black/[0.06] shrink-0 ring-1 ring-black/[0.04]" />
-            ) : (
-              <div className="w-10 h-10 rounded-lg bg-primary/[0.06] flex items-center justify-center shrink-0">
-                <Headphones className="w-4 h-4 text-primary/30" />
-              </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="text-[13px] font-bold text-foreground truncate group-hover:text-primary transition-colors">{rp.name}</p>
-              <p className="text-[11px] text-[#52525B] mt-0.5 uppercase tracking-wider font-semibold">{rp.category}</p>
-            </div>
-            <ArrowRight className="shrink-0 w-3.5 h-3.5 text-muted-foreground/20 group-hover:text-primary transition-colors" />
-          </Link>
+          <RelatedPodcastLink key={rp.slug} rp={rp} />
         ))}
       </div>
     </div>

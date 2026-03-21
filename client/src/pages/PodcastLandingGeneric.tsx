@@ -7,7 +7,7 @@ import { BookCoverFill } from "@/components/BookCover";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient, podcastRecapsQueryKey, podcastRecapsQueryFn } from "@/lib/queryClient";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { GetRecapsModal } from "@/components/GetRecapsModal";
@@ -52,12 +52,13 @@ interface PodcastBook {
   hasCover: boolean | null;
 }
 
-function PodcastBooksTab({ slug, podcastName, isLoggedIn }: { slug: string; podcastName: string; isLoggedIn: boolean }) {
+function PodcastBooksTab({ slug, podcastName, isLoggedIn, enabled = true }: { slug: string; podcastName: string; isLoggedIn: boolean; enabled?: boolean }) {
   const [sortBy, setSortBy] = useState<"mentions" | "alpha">("mentions");
   const [visibleCount, setVisibleCount] = useState(20);
 
   const { data, isLoading, isError } = useQuery<{ books: PodcastBook[]; total: number }>({
     queryKey: ["/api/podcasts", slug, "books"],
+    enabled,
   });
 
   const books = data?.books || [];
@@ -263,12 +264,13 @@ interface PodcastProduct {
   isAmazon: boolean;
 }
 
-function PodcastShopTab({ slug, podcastName }: { slug: string; podcastName: string }) {
+function PodcastShopTab({ slug, podcastName, enabled = true }: { slug: string; podcastName: string; enabled?: boolean }) {
   const [filterType, setFilterType] = useState<string>("all");
   const [visibleCount, setVisibleCount] = useState(20);
 
   const { data, isLoading, isError } = useQuery<{ products: PodcastProduct[]; total: number }>({
     queryKey: ["/api/podcasts", slug, "products"],
+    enabled,
   });
 
   const products = data?.products || [];
@@ -528,7 +530,7 @@ export default function PodcastLandingGeneric() {
 
   const { data: podcastBooks } = useQuery<{ books: PodcastBook[]; total: number }>({
     queryKey: ["/api/podcasts", slug, "books"],
-    enabled: !!slug && !user,
+    enabled: !!slug && !user && !!dbEntry,
   });
 
   const config = dbEntry ? {
@@ -628,14 +630,8 @@ export default function PodcastLandingGeneric() {
   }, [config?.name]);
 
   const { data: episodeRecaps = [] } = useQuery<any[]>({
-    queryKey: ["/api/podcasts", slug, "recaps", user ? "enriched" : "basic"],
-    queryFn: async () => {
-      const mentionsParam = user ? "&mentions=true" : "";
-      const limit = user ? "10" : "50";
-      const res = await fetch(`/api/podcasts/${slug}/recaps?limit=${limit}${mentionsParam}`);
-      if (!res.ok) return [];
-      return res.json();
-    },
+    queryKey: podcastRecapsQueryKey(slug ?? "", !!user),
+    queryFn: podcastRecapsQueryFn(slug ?? "", !!user),
     enabled: !!slug && !!config,
   });
 
@@ -651,7 +647,7 @@ export default function PodcastLandingGeneric() {
       if (!res.ok) return { companies: [], people: [], topics: [], guests: [] };
       return res.json();
     },
-    enabled: !!slug && !!config,
+    enabled: !!slug && !!dbEntry,
     staleTime: 1000 * 60 * 30,
   });
 
@@ -942,8 +938,8 @@ export default function PodcastLandingGeneric() {
         </section>
 
         <div id="section-shop" data-testid="section-shop">
-          <PodcastBooksTab slug={slug} podcastName={config.name} isLoggedIn={!!user} />
-          {!user && <PodcastShopTab slug={slug} podcastName={config.name} />}
+          <PodcastBooksTab slug={slug} podcastName={config.name} isLoggedIn={!!user} enabled={!!dbEntry} />
+          {!user && <PodcastShopTab slug={slug} podcastName={config.name} enabled={!!dbEntry} />}
         </div>
     </>
   );

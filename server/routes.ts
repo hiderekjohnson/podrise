@@ -75,6 +75,32 @@ const directoryCache = {
   sidebarData: new DataCache<any>("sidebarData", 5 * 60 * 1000),
 };
 
+class SlugCache<T> {
+  private store = new Map<string, { data: T; cachedAt: number }>();
+  constructor(private ttlMs: number) {}
+  get(slug: string): T | null {
+    const entry = this.store.get(slug);
+    if (entry && (Date.now() - entry.cachedAt) < this.ttlMs) return entry.data;
+    return null;
+  }
+  set(slug: string, data: T): void {
+    this.store.set(slug, { data, cachedAt: Date.now() });
+  }
+  invalidate(slug: string): void {
+    this.store.delete(slug);
+  }
+  invalidateByPrefix(prefix: string): void {
+    for (const key of this.store.keys()) {
+      if (key === prefix || key.startsWith(prefix + "::")) {
+        this.store.delete(key);
+      }
+    }
+  }
+}
+
+const entityLinksCache = new SlugCache<any>(30 * 60 * 1000);
+const podcastRecapsCache = new SlugCache<any>(10 * 60 * 1000);
+
 export async function warmDirectoryCaches(): Promise<void> {
   try {
     const { pool: warmPool } = await import("./db");
@@ -5083,6 +5109,12 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       const limit = Math.min(parseInt(req.query.limit as string) || 10, 100);
       const offset = Math.max(0, parseInt(req.query.offset as string) || 0);
       const enrichMentions = req.query.mentions === "true";
+      const isSimpleRequest = offset === 0 && req.query.count !== "true" && req.query.offset === undefined;
+      const cacheKey = `${req.params.slug}::${limit}::${enrichMentions ? "enriched" : "basic"}`;
+      if (isSimpleRequest) {
+        const cached = podcastRecapsCache.get(cacheKey);
+        if (cached) return res.json(cached);
+      }
       const recaps = await storage.getLandingPageRecaps(req.params.slug, limit, offset);
 
       if (enrichMentions && recaps.length > 0) {
@@ -5144,6 +5176,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
           const total = await storage.getLandingPageRecapCount(req.params.slug);
           res.json({ recaps: enriched, total, limit, offset });
         } else {
+          if (isSimpleRequest) podcastRecapsCache.set(cacheKey, enriched);
           res.json(enriched);
         }
       } else {
@@ -5151,6 +5184,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
           const total = await storage.getLandingPageRecapCount(req.params.slug);
           res.json({ recaps, total, limit, offset });
         } else {
+          if (isSimpleRequest) podcastRecapsCache.set(cacheKey, recaps);
           res.json(recaps);
         }
       }
@@ -6441,6 +6475,8 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
   app.get("/api/podcasts/:slug/entity-links", async (req, res) => {
     try {
       const { slug } = req.params;
+      const cached = entityLinksCache.get(slug);
+      if (cached) return res.json(cached);
       const { TOPICS: CURATED_TOPICS_LIST } = await import("../client/src/data/topicData");
       const allRecaps = await storage.getLandingPageRecaps(slug, 200, 0);
       if (!allRecaps.length) return res.json({ companies: [], people: [], topics: [], guests: [] });
@@ -6563,7 +6599,9 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
         } catch {}
       }
 
-      res.json({ companies: topCompanies, people: topPeople, topics: topTopics, guests: recentGuests });
+      const result = { companies: topCompanies, people: topPeople, topics: topTopics, guests: recentGuests };
+      entityLinksCache.set(slug, result);
+      res.json(result);
     } catch (err) {
       console.error("Entity links error:", err);
       res.status(500).json({ error: "Failed to fetch entity links" });
@@ -17190,6 +17228,8 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
               published: true,
             });
             const webhookCanonicalSlug = webhookUpserted.episodeSlug;
+            podcastRecapsCache.invalidateByPrefix(podcast.slug);
+            entityLinksCache.invalidateByPrefix(podcast.slug);
             console.log(`[TaddyWebhook] Generated recap: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
 
 

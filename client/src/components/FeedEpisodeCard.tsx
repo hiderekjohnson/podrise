@@ -7,6 +7,7 @@ import { hiResArtwork } from "@/lib/utils";
 import { BlurredInsightGate } from "@/components/BlurredInsightGate";
 import { SignUpCTAModal } from "@/components/SignUpCTAModal";
 import { RecapAudioPlayer } from "@/components/RecapAudioPlayer";
+import { usePrefetchPodcast } from "@/lib/queryClient";
 
 export function relativeTime(dateStr: string | null): string {
   if (!dateStr) return "";
@@ -160,6 +161,7 @@ export function FeedEpisodeCard({
   const headerTint = getHeaderTint(artworkUrl || podcastSlug);
   const tintBg = theme === "dark" ? headerTint.dark : headerTint.light;
   const insights = keyInsights || [];
+  const { onMouseEnter, onMouseLeave } = usePrefetchPodcast(podcastSlug, !!authUser);
 
   return (
     <article
@@ -170,7 +172,7 @@ export function FeedEpisodeCard({
         className="flex items-center gap-4 sm:gap-5 px-5 md:px-6 py-5"
         style={{ background: tintBg }}
       >
-        <Link href={`/podcasts/${podcastSlug}`} className="w-[88px] h-[88px] sm:w-[124px] sm:h-[124px] rounded-[16px] overflow-hidden flex-shrink-0 shadow-[0_4px_16px_rgba(0,0,0,0.14),0_1px_3px_rgba(0,0,0,0.06)] border border-black/[0.06] dark:border-white/[0.06] block">
+        <Link href={`/podcasts/${podcastSlug}`} className="w-[88px] h-[88px] sm:w-[124px] sm:h-[124px] rounded-[16px] overflow-hidden flex-shrink-0 shadow-[0_4px_16px_rgba(0,0,0,0.14),0_1px_3px_rgba(0,0,0,0.06)] border border-black/[0.06] dark:border-white/[0.06] block" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
           {artworkUrl ? (
             <img src={hiResArtwork(artworkUrl)} alt={podcastName} className="w-full h-full object-cover" loading="lazy" />
           ) : (
@@ -185,7 +187,7 @@ export function FeedEpisodeCard({
               Ad
             </span>
           )}
-          <Link href={`/podcasts/${podcastSlug}`}>
+          <Link href={`/podcasts/${podcastSlug}`} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
             <span className="text-[17px] sm:text-[18px] font-extrabold text-[#09090B] dark:text-white tracking-[-0.02em] leading-[1.15] block hover:text-[#6366F1] transition-colors overflow-hidden text-ellipsis" data-testid={`${testIdPrefix}-podcast-name-${episodeSlug}`}>
               {podcastName}
             </span>
