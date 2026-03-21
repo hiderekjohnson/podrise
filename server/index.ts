@@ -1,5 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
+import { registerRoutes, warmDirectoryCaches } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import { startEmailScheduler } from "./emailScheduler";
@@ -341,6 +341,7 @@ process.on("uncaughtException", (err) => {
 
       startEmailScheduler();
       startProductionRecapScheduler();
+      warmDirectoryCaches().catch(err => console.error("[Cache] Warm failed:", err));
     },
   );
 })().catch((err) => {

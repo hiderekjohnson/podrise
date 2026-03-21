@@ -72,8 +72,61 @@ const directoryCache = {
   shop: new DataCache<any>("shop"),
   podcastsDiscovery: new DataCache<any>("podcastsDiscovery"),
   podcastsDirectory: new DataCache<any[]>("podcastsDirectory"),
-  sidebarData: new DataCache<any>("sidebarData"),
+  sidebarData: new DataCache<any>("sidebarData", 5 * 60 * 1000),
 };
+
+export async function warmDirectoryCaches(): Promise<void> {
+  try {
+    const { pool: warmPool } = await import("./db");
+
+    console.log("[Cache] Pre-warming podcast discovery cache after server ready...");
+    const [recentResult, statsResult] = await Promise.all([
+      warmPool.query(`
+        SELECT slug, episode_slug, episode_title, podcast_name, publish_date, artwork_url, tldl, hosts
+        FROM landing_page_recaps
+        WHERE publish_date IS NOT NULL AND published = true
+        ORDER BY publish_date DESC, created_at DESC
+        LIMIT 20
+      `),
+      warmPool.query(`
+        SELECT lpr.slug, lpr.podcast_name,
+          COUNT(*) as episode_count,
+          MAX(lpr.publish_date) as latest_episode,
+          MIN(lpr.publish_date) as first_episode,
+          COALESCE(pd.total_episodes, 0)::int as total_episodes
+        FROM landing_page_recaps lpr
+        LEFT JOIN podcast_directory pd ON pd.slug = lpr.slug
+        WHERE lpr.publish_date IS NOT NULL AND lpr.published = true
+        GROUP BY lpr.slug, lpr.podcast_name, pd.total_episodes
+        ORDER BY MAX(lpr.publish_date) DESC
+      `),
+    ]);
+
+    directoryCache.podcastsDiscovery.set({
+      recentEpisodes: recentResult.rows.map((r: any) => ({
+        slug: r.slug,
+        episodeSlug: r.episode_slug,
+        episodeTitle: r.episode_title,
+        podcastName: r.podcast_name,
+        publishDate: r.publish_date,
+        artworkUrl: r.artwork_url,
+        tldl: r.tldl,
+        hosts: r.hosts,
+      })),
+      podcastStats: statsResult.rows.map((r: any) => ({
+        slug: r.slug,
+        podcastName: r.podcast_name,
+        episodeCount: r.total_episodes > 0 ? r.total_episodes : parseInt(r.episode_count),
+        latestEpisode: r.latest_episode,
+        firstEpisode: r.first_episode,
+      })),
+    });
+
+    console.log(`[Cache] Pre-warmed podcast discovery cache (${recentResult.rows.length} recent episodes, ${statsResult.rows.length} podcasts)`);
+  } catch (err) {
+    console.error("[Cache] Pre-warm failed:", err);
+  }
+}
 
 function podcastNameToSlugForEmail(name: string): string {
   return name.toLowerCase().replace(/['']/g, "").replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
@@ -960,6 +1013,13 @@ export async function registerRoutes(
       CREATE INDEX IF NOT EXISTS idx_entity_mentions_slug ON entity_episode_mentions (entity_type, entity_slug);
       CREATE INDEX IF NOT EXISTS idx_entity_mentions_recap ON entity_episode_mentions (recap_id);
       CREATE INDEX IF NOT EXISTS idx_entity_mentions_podcast ON entity_episode_mentions (podcast_slug);
+    `);
+    await migrationPool.query(`
+      CREATE INDEX IF NOT EXISTS idx_lpr_episode_slug ON landing_page_recaps (episode_slug);
+      CREATE INDEX IF NOT EXISTS idx_lpr_slug_published ON landing_page_recaps (slug, published);
+      CREATE INDEX IF NOT EXISTS idx_podcast_directory_slug ON podcast_directory (slug);
+      CREATE INDEX IF NOT EXISTS idx_book_enrichments_slug ON book_enrichments (slug);
+      CREATE INDEX IF NOT EXISTS idx_extracted_products_slug ON extracted_products (episode_slug, podcast_slug);
     `);
     await migrationPool.query(`
       CREATE TABLE IF NOT EXISTS backfill_jobs (
@@ -4887,8 +4947,9 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     res.status(410).json({ error: "Transcript access has been removed" });
   });
 
-  async function enrichRecapsForCards(recaps: Array<{id: number; slug: string; episodeSlug: string; [key: string]: any}>) {
+  async function enrichRecapsForCards(recaps: Array<{id: number; slug: string; episodeSlug: string; [key: string]: any}>, maxItems = 200) {
     if (recaps.length === 0) return [];
+    if (recaps.length > maxItems) recaps = recaps.slice(0, maxItems);
     const recapIds = recaps.map(r => r.id);
     const podcastSlugs = [...new Set(recaps.map(r => r.slug))];
     const episodeSlugs = recaps.map(r => r.episodeSlug).filter(Boolean);
@@ -4952,8 +5013,8 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
         pdTotalEpisodes: pd.total_episodes || null,
         pdYearStarted: pd.year_started || null,
         mentions: {
-          people: mentionsMap[r.id]?.people || [],
-          companies: mentionsMap[r.id]?.companies || [],
+          people: (mentionsMap[r.id]?.people || []).slice(0, 5),
+          companies: (mentionsMap[r.id]?.companies || []).slice(0, 5),
           products: (r.episodeSlug ? productsMap[`${r.slug}:${r.episodeSlug}`] : undefined) || [],
         },
       };
@@ -7476,6 +7537,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
   app.get("/api/sidebar-data", async (_req, res) => {
     try {
+      const cachedSidebar = directoryCache.sidebarData.get();
+      if (cachedSidebar) return res.json(cachedSidebar);
+
       const client = await pool.connect();
       try {
         const topicsData = directoryCache.topics.get() || await computeTopicsData();
@@ -7496,7 +7560,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           `SELECT eq.speaker_name, eq.quote_text, eq.context, eq.podcast_slug, eq.episode_slug,
                   lpr.podcast_name, lpr.episode_title
            FROM episode_quotes eq
-           JOIN landing_page_recaps lpr ON eq.podcast_slug = lpr.slug AND (eq.episode_slug = lpr.episode_slug OR eq.episode_slug LIKE lpr.episode_slug || '%' OR lpr.episode_slug LIKE eq.episode_slug || '%')
+           JOIN landing_page_recaps lpr ON eq.podcast_slug = lpr.slug AND eq.episode_slug = lpr.episode_slug
            WHERE lpr.published = true
            ORDER BY lpr.publish_date DESC, eq.sort_order ASC
            LIMIT 30`
@@ -7531,6 +7595,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         }));
 
         const result = { trendingTopics, notableQuotes, trendingPeople, recommended };
+        directoryCache.sidebarData.set(result);
         res.json(result);
       } finally {
         client.release();
@@ -7950,48 +8015,49 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const recapIds = result.rows.map((r: any) => r.id);
 
       let mentionsMap: Record<number, { people: any[]; companies: any[] }> = {};
-      if (recapIds.length > 0) {
-        const mentionsResult = await pool.query(
-          `SELECT eem.recap_id, eem.entity_type, eem.entity_slug, eem.context,
-                  CASE WHEN eem.entity_type = 'person' THEN ep.name ELSE ec.name END as entity_name,
-                  CASE WHEN eem.entity_type = 'person' THEN ep.title ELSE ec.industry END as entity_role,
-                  CASE WHEN eem.entity_type = 'person' THEN ep.company ELSE NULL END as entity_company
-           FROM entity_episode_mentions eem
-           LEFT JOIN entity_people ep ON eem.entity_type = 'person' AND eem.entity_slug = ep.slug
-           LEFT JOIN entity_companies ec ON eem.entity_type = 'company' AND eem.entity_slug = ec.slug
-           WHERE eem.recap_id = ANY($1)`,
-          [recapIds]
-        );
-        for (const m of mentionsResult.rows) {
-          if (!mentionsMap[m.recap_id]) mentionsMap[m.recap_id] = { people: [], companies: [] };
-          const entry = { slug: m.entity_slug, name: m.entity_name, role: m.entity_role, company: m.entity_company, context: m.context };
-          if (m.entity_type === 'person') mentionsMap[m.recap_id].people.push(entry);
-          else mentionsMap[m.recap_id].companies.push(entry);
-        }
-      }
-
       let productsMap: Record<string, any[]> = {};
+
       if (recapIds.length > 0) {
         const episodePairs = result.rows
           .filter((r: any) => r.episode_slug && r.slug)
           .map((r: any) => ({ episodeSlug: r.episode_slug, podcastSlug: r.slug }));
         const episodeSlugs = [...new Set(episodePairs.map(p => p.episodeSlug))];
         const podcastSlugs = [...new Set(episodePairs.map(p => p.podcastSlug))];
-        if (episodeSlugs.length > 0) {
-          const productsResult = await pool.query(
+
+        const [mentionsResult, productsResult] = await Promise.all([
+          pool.query(
+            `SELECT eem.recap_id, eem.entity_type, eem.entity_slug, eem.context,
+                    CASE WHEN eem.entity_type = 'person' THEN ep.name ELSE ec.name END as entity_name,
+                    CASE WHEN eem.entity_type = 'person' THEN ep.title ELSE ec.industry END as entity_role,
+                    CASE WHEN eem.entity_type = 'person' THEN ep.company ELSE NULL END as entity_company
+             FROM entity_episode_mentions eem
+             LEFT JOIN entity_people ep ON eem.entity_type = 'person' AND eem.entity_slug = ep.slug
+             LEFT JOIN entity_companies ec ON eem.entity_type = 'company' AND eem.entity_slug = ec.slug
+             WHERE eem.recap_id = ANY($1)`,
+            [recapIds]
+          ),
+          episodeSlugs.length > 0 ? pool.query(
             `SELECT podcast_slug, episode_slug, name, company, description, image_url, category, purchase_url
              FROM extracted_products
              WHERE status = 'approved' AND episode_slug = ANY($1) AND podcast_slug = ANY($2)`,
             [episodeSlugs, podcastSlugs]
-          );
-          for (const p of productsResult.rows) {
-            const key = `${p.podcast_slug}:${p.episode_slug}`;
-            if (!productsMap[key]) productsMap[key] = [];
-            productsMap[key].push({
-              name: p.name, company: p.company, description: p.description,
-              imageUrl: p.image_url, category: p.category, purchaseUrl: p.purchase_url,
-            });
-          }
+          ) : { rows: [] },
+        ]);
+
+        for (const m of mentionsResult.rows) {
+          if (!mentionsMap[m.recap_id]) mentionsMap[m.recap_id] = { people: [], companies: [] };
+          const entry = { slug: m.entity_slug, name: m.entity_name, role: m.entity_role, company: m.entity_company, context: m.context };
+          if (m.entity_type === 'person') mentionsMap[m.recap_id].people.push(entry);
+          else mentionsMap[m.recap_id].companies.push(entry);
+        }
+
+        for (const p of productsResult.rows) {
+          const key = `${p.podcast_slug}:${p.episode_slug}`;
+          if (!productsMap[key]) productsMap[key] = [];
+          productsMap[key].push({
+            name: p.name, company: p.company, description: p.description,
+            imageUrl: p.image_url, category: p.category, purchaseUrl: p.purchase_url,
+          });
         }
       }
 
@@ -8027,8 +8093,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           youtubeEpisodeUrl: r.youtube_url || null,
           tabloidSubHeadline: r.tabloid_sub_headline || null,
           mentions: {
-            people: mentions.people,
-            companies: mentions.companies,
+            people: mentions.people.slice(0, 5),
+            companies: mentions.companies.slice(0, 5),
             products: products,
           },
         };
@@ -19111,20 +19177,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       console.error("[Seed] Failed to seed podcast categories:", err);
     }
 
-    try {
-      console.log("[Cache] Pre-warming directory caches on startup...");
-      const [peopleData, companiesData, topicsData] = await Promise.all([
-        computePeopleData(),
-        computeCompaniesData(),
-        computeTopicsData(),
-      ]);
-      directoryCache.people.set(peopleData);
-      directoryCache.companies.set(companiesData);
-      directoryCache.topics.set(topicsData);
-      console.log(`[Cache] Pre-warmed people (${peopleData.length}), companies (${companiesData.length}), topics (${topicsData.length}) caches`);
-    } catch (err) {
-      console.error("[Cache] Pre-warm failed:", err);
-    }
+    // Cache warming now deferred to after server is ready — see warmDirectoryCaches()
 
 
     try {
