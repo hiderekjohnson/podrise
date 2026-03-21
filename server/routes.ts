@@ -432,9 +432,9 @@ const STATIC_PAGES = [
   { path: "/companies", priority: "0.8", changefreq: "weekly" },
   { path: "/insights", priority: "0.7", changefreq: "weekly" },
   { path: "/pod-squad", priority: "0.7", changefreq: "weekly" },
+  { path: "/advertise", priority: "0.6", changefreq: "monthly" },
   { path: "/about", priority: "0.5", changefreq: "monthly" },
   { path: "/contact", priority: "0.4", changefreq: "monthly" },
-  { path: "/enterprise", priority: "0.5", changefreq: "monthly" },
   { path: "/login", priority: "0.3", changefreq: "monthly" },
   { path: "/privacy", priority: "0.3", changefreq: "yearly" },
   { path: "/terms", priority: "0.3", changefreq: "yearly" },
@@ -473,7 +473,7 @@ async function buildSitemap(): Promise<string> {
 
   try {
     for (const slug of PODCAST_SLUGS) {
-      const recaps = await storage.getLandingPageRecaps(slug, 100);
+      const recaps = await storage.getLandingPageRecaps(slug, 500);
       for (const recap of recaps) {
         xml += `  <url>\n`;
         xml += `    <loc>${DOMAIN}/podcasts/${slug}/${recap.episodeSlug}</loc>\n`;
