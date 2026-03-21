@@ -711,6 +711,17 @@ export default function PodcastLandingGeneric() {
     followMutation.mutate({ follow });
   };
 
+  const relatedPodcasts = (config?.relatedSlugs || [])
+    .map(s => getPodcastBySlug(s))
+    .filter((p): p is PodcastLandingConfig => !!p)
+    .slice(0, 3);
+
+  useSetRelatedPodcasts(
+    user && relatedPodcasts.length > 0
+      ? relatedPodcasts.map(rp => ({ slug: rp.slug, name: rp.name, category: rp.category, artworkUrl: rp.artworkUrl }))
+      : []
+  );
+
   if (!config && dbEntryLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -749,17 +760,6 @@ export default function PodcastLandingGeneric() {
 
   const appleUrl = config.appleUrl || `https://podcasts.apple.com/podcast/id${itunesId}`;
   const effectiveSpotifyUrl = spotifyUrl || `https://open.spotify.com/search/${encodeURIComponent(name)}`;
-
-  const relatedPodcasts = (relatedSlugs || [])
-    .map(s => getPodcastBySlug(s))
-    .filter((p): p is PodcastLandingConfig => !!p)
-    .slice(0, 3);
-
-  useSetRelatedPodcasts(
-    user && relatedPodcasts.length > 0
-      ? relatedPodcasts.map(rp => ({ slug: rp.slug, name: rp.name, category: rp.category, artworkUrl: rp.artworkUrl }))
-      : []
-  );
 
   const relatedPodcastsMobile = user && relatedPodcasts.length > 0 ? (
     <div data-testid="section-related-podcasts-mobile" className="xl:hidden mt-8">

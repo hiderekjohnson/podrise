@@ -13665,6 +13665,11 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       );
       const isNewPodcast = existingRows.length === 0;
 
+      if (isNewPodcast) {
+        if (!("hasLandingPage" in data)) data.hasLandingPage = true;
+        if (!("status" in data)) data.status = "published";
+      }
+
       const entry = await storage.upsertPodcastDirectoryEntry(data);
 
       if (isNewPodcast && entry.slug) {
