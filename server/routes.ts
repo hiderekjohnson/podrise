@@ -962,6 +962,19 @@ export async function registerRoutes(
       CREATE INDEX IF NOT EXISTS idx_entity_mentions_podcast ON entity_episode_mentions (podcast_slug);
     `);
     await migrationPool.query(`
+      CREATE TABLE IF NOT EXISTS backfill_jobs (
+        id SERIAL PRIMARY KEY,
+        key TEXT NOT NULL UNIQUE,
+        status TEXT NOT NULL DEFAULT 'idle',
+        total_records INTEGER,
+        processed_count INTEGER NOT NULL DEFAULT 0,
+        updated_count INTEGER NOT NULL DEFAULT 0,
+        error_message TEXT,
+        last_run_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    await migrationPool.query(`
       CREATE TABLE IF NOT EXISTS bookmarks (
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL,
@@ -8732,6 +8745,163 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     res.json({ message: "Override removed" });
   });
 
+  // Backfill jobs
+  const BACKFILL_DEFINITIONS: Record<string, { name: string; description: string; rateNote: string; createdAt: string }> = {
+    "tabloid-headlines": {
+      name: "Backfill Tabloid Headlines",
+      description: "Finds all landing page recaps where tabloidHeadline or tabloidSubHeadline is null/empty and generates them using OpenAI.",
+      rateNote: "Processes 1 episode every 10 seconds to avoid API overload",
+      createdAt: "2025-03-21",
+    },
+  };
+
+  let activeBackfillAbortControllers: Map<string, { abort: () => void }> = new Map();
+
+  app.get("/api/admin/backfills", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const jobs = await storage.getBackfillJobs();
+      const jobMap = new Map(jobs.map(j => [j.key, j]));
+      const result = Object.entries(BACKFILL_DEFINITIONS).map(([key, def]) => {
+        const job = jobMap.get(key);
+        return {
+          key,
+          ...def,
+          status: job?.status ?? "idle",
+          totalRecords: job?.totalRecords ?? null,
+          processedCount: job?.processedCount ?? 0,
+          updatedCount: job?.updatedCount ?? 0,
+          errorMessage: job?.errorMessage ?? null,
+          lastRunAt: job?.lastRunAt ?? null,
+        };
+      });
+      res.json(result);
+    } catch (err) {
+      console.error("[Backfill] Failed to list jobs:", err);
+      res.status(500).json({ message: "Failed to list backfill jobs" });
+    }
+  });
+
+  app.get("/api/admin/backfills/:key", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    const { key } = req.params;
+    if (!BACKFILL_DEFINITIONS[key]) return res.status(404).json({ message: "Unknown backfill key" });
+    try {
+      const job = await storage.getBackfillJobByKey(key);
+      const def = BACKFILL_DEFINITIONS[key];
+      res.json({
+        key,
+        ...def,
+        status: job?.status ?? "idle",
+        totalRecords: job?.totalRecords ?? null,
+        processedCount: job?.processedCount ?? 0,
+        updatedCount: job?.updatedCount ?? 0,
+        errorMessage: job?.errorMessage ?? null,
+        lastRunAt: job?.lastRunAt ?? null,
+      });
+    } catch (err) {
+      console.error("[Backfill] Failed to get job:", err);
+      res.status(500).json({ message: "Failed to get backfill job" });
+    }
+  });
+
+  app.post("/api/admin/backfills/:key/run", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    const { key } = req.params;
+    if (!BACKFILL_DEFINITIONS[key]) return res.status(404).json({ message: "Unknown backfill key" });
+
+    if (key === "tabloid-headlines") {
+      try {
+        const countResult = await pool.query(
+          `SELECT COUNT(*)::int as count FROM landing_page_recaps WHERE (tabloid_headline IS NULL OR tabloid_headline = '') OR (tabloid_sub_headline IS NULL OR tabloid_sub_headline = '')`
+        );
+        const total = countResult.rows[0]?.count ?? 0;
+
+        const claimResult = await pool.query(
+          `INSERT INTO backfill_jobs (key, status, total_records, processed_count, updated_count, error_message, last_run_at)
+           VALUES ($1, 'running', $2, 0, 0, NULL, NOW())
+           ON CONFLICT (key) DO UPDATE
+             SET status = 'running', total_records = $2, processed_count = 0, updated_count = 0, error_message = NULL, last_run_at = NOW()
+             WHERE backfill_jobs.status != 'running'
+           RETURNING id`,
+          [key, total]
+        );
+        if (claimResult.rows.length === 0) {
+          return res.status(409).json({ message: "Job is already running" });
+        }
+
+        res.json({ message: "Backfill started", totalRecords: total });
+
+        let aborted = false;
+        const controller = { abort: () => { aborted = true; } };
+        activeBackfillAbortControllers.set(key, controller);
+
+        (async () => {
+          try {
+            const rows = await pool.query(
+              `SELECT id, slug, episode_slug, episode_title, podcast_name, tldl, what_happened, key_insights FROM landing_page_recaps WHERE (tabloid_headline IS NULL OR tabloid_headline = '') OR (tabloid_sub_headline IS NULL OR tabloid_sub_headline = '') ORDER BY id`
+            );
+            const records = rows.rows;
+            let processed = 0;
+            let updated = 0;
+
+            for (const record of records) {
+              if (aborted) {
+                await storage.upsertBackfillJob(key, { status: "failed", processedCount: processed, updatedCount: updated, errorMessage: "Job was interrupted" });
+                break;
+              }
+
+              try {
+                const { generateTabloidHeadline } = await import("./emailScheduler");
+                let keyInsights: string[] = [];
+                try {
+                  const raw = record.key_insights;
+                  if (raw) keyInsights = typeof raw === "string" ? JSON.parse(raw) : raw;
+                } catch {}
+                const result = await generateTabloidHeadline(
+                  record.episode_title,
+                  record.podcast_name,
+                  record.tldl || "",
+                  record.what_happened || "",
+                  keyInsights
+                );
+                if (result) {
+                  await pool.query(
+                    `UPDATE landing_page_recaps SET tabloid_headline = $1, tabloid_sub_headline = $2 WHERE id = $3`,
+                    [result.tabloidHeadline, result.tabloidSubHeadline, record.id]
+                  );
+                  updated++;
+                }
+              } catch (err) {
+                console.warn(`[Backfill] Failed for record ${record.id}:`, err);
+              }
+
+              processed++;
+              await storage.upsertBackfillJob(key, { status: "running", processedCount: processed, updatedCount: updated });
+
+              if (processed < records.length) {
+                await new Promise(r => setTimeout(r, 10000));
+              }
+            }
+
+            if (!aborted) {
+              await storage.upsertBackfillJob(key, { status: "completed", processedCount: processed, updatedCount: updated, errorMessage: null });
+            }
+          } catch (err: any) {
+            console.error("[Backfill] tabloid-headlines runner error:", err);
+            await storage.upsertBackfillJob(key, { status: "failed", errorMessage: err?.message || "Unknown error" });
+          } finally {
+            activeBackfillAbortControllers.delete(key);
+          }
+        })();
+      } catch (err) {
+        console.error("[Backfill] Failed to start:", err);
+        res.status(500).json({ message: "Failed to start backfill job" });
+      }
+    } else {
+      res.status(400).json({ message: "No runner implemented for this backfill" });
+    }
+  });
 
   app.post("/api/admin/refresh-caches", async (req, res) => {
     if (!req.session.isAdmin) {
@@ -18962,6 +19132,15 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       console.log("[FeatureFlags] Default flags seeded");
     } catch (err) {
       console.error("[FeatureFlags] Seed failed:", err);
+    }
+
+    try {
+      await pool.query(
+        `UPDATE backfill_jobs SET status = 'failed', error_message = 'Server restarted while job was running' WHERE status = 'running'`
+      );
+      console.log("[Backfill] Marked stale running jobs as failed on startup");
+    } catch (err) {
+      console.error("[Backfill] Failed to mark stale jobs:", err);
     }
   }, 5000);
 

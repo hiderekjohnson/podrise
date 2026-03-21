@@ -1100,3 +1100,19 @@ export const insertAudioPlaybackEventSchema = createInsertSchema(audioPlaybackEv
 export type InsertAudioPlaybackEvent = z.infer<typeof insertAudioPlaybackEventSchema>;
 export type AudioPlaybackEvent = typeof audioPlaybackEvents.$inferSelect;
 
+export const backfillJobs = pgTable("backfill_jobs", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  status: text("status").notNull().default("idle"),
+  totalRecords: integer("total_records"),
+  processedCount: integer("processed_count").notNull().default(0),
+  updatedCount: integer("updated_count").notNull().default(0),
+  errorMessage: text("error_message"),
+  lastRunAt: timestamp("last_run_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertBackfillJobSchema = createInsertSchema(backfillJobs).omit({ id: true, createdAt: true });
+export type InsertBackfillJob = z.infer<typeof insertBackfillJobSchema>;
+export type BackfillJob = typeof backfillJobs.$inferSelect;
+

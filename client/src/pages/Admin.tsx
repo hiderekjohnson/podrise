@@ -22,6 +22,7 @@ const AdminSupportKB = lazy(() => import("./AdminSupportKB"));
 const AdminCMS = lazy(() => import("./AdminCMS"));
 const AdminLandingPages = lazy(() => import("./AdminLandingPages"));
 const AdminFeatureFlags = lazy(() => import("./AdminFeatureFlags"));
+const BackfillManager = lazy(() => import("./BackfillManager"));
 const AdminMTurk = lazy(() => import("./AdminMTurk"));
 const AdminAlerts = lazy(() => import("./AdminAlerts"));
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -143,12 +144,12 @@ export default function Admin() {
   type ProductFeaturesSubTabType = "shop" | "categories" | "referrals" | "support-kb";
   type InternalToolsSubTabType = "mturk" | "pending" | "analytics" | "errors" | "alerts";
   type AnalyticsSubTabType = "acquisition" | "affiliates" | "growth" | "email" | "elevenlabs";
-  type AdvancedSubTabType = "rss" | "hosts" | "api-costs" | "feature-flags";
+  type AdvancedSubTabType = "rss" | "hosts" | "api-costs" | "feature-flags" | "backfill";
 
   const productFeaturesSubTabs: ProductFeaturesSubTabType[] = ["shop", "categories", "referrals", "support-kb"];
   const internalToolsSubTabs: InternalToolsSubTabType[] = ["mturk", "pending", "analytics", "errors", "alerts"];
   const analyticsSubTabs: AnalyticsSubTabType[] = ["acquisition", "affiliates", "growth", "email", "elevenlabs"];
-  const advancedSubTabs: AdvancedSubTabType[] = ["rss", "hosts", "api-costs", "feature-flags"];
+  const advancedSubTabs: AdvancedSubTabType[] = ["rss", "hosts", "api-costs", "feature-flags", "backfill"];
 
   const deriveTabFromPath = useCallback((path: string): { tab: TabType; productFeaturesSub: ProductFeaturesSubTabType; internalToolsSub: InternalToolsSubTabType; analyticsSub: AnalyticsSubTabType; advancedSub: AdvancedSubTabType } => {
     const result = {
@@ -1147,6 +1148,18 @@ export default function Admin() {
                     <ToggleLeft className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
                     Feature Flags
                   </button>
+                  <button
+                    data-testid="advanced-subtab-backfill"
+                    onClick={() => switchAdvancedSubTab("backfill")}
+                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                      advancedSubTab === "backfill"
+                        ? "bg-white text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Database className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
+                    Backfill
+                  </button>
                 </div>
 
                 {advancedSubTab === "rss" && (
@@ -1169,6 +1182,11 @@ export default function Admin() {
                 {advancedSubTab === "feature-flags" && (
                   <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}>
                     <AdminFeatureFlags />
+                  </Suspense>
+                )}
+                {advancedSubTab === "backfill" && (
+                  <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}>
+                    <BackfillManager />
                   </Suspense>
                 )}
               </div>

@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, advertisers, bookmarks, bookBookmarks, deviceTokens, refreshTokens, errorLogs, referrals, referralTiers, supportArticles, feedAds, feedAdSettings, featureFlags, userFeatureOverrides, adEvents, siteSettings, pendingTranscriptQueue, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type BookBookmark, type InsertBookBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog, type Referral, type ReferralTier, type InsertReferralTier, type SupportArticle, type InsertSupportArticle, type FeedAd, type InsertFeedAd, type FeedAdSetting, type FeatureFlag, type InsertFeatureFlag, type UserFeatureOverride, type AdEvent, type InsertAdEvent, type SiteSetting, type PendingTranscriptQueueItem } from "@shared/schema";
+import { users, recaps, episodeTranscripts, emailLogs, magicLinks, transcriptLogs, pendingEmails, podcastExampleRecaps, podcastDirectory, landingPageRecaps, transcriptSegments, rssFeeds, podcastHosts, episodeQuotes, advertisers, bookmarks, bookBookmarks, deviceTokens, refreshTokens, errorLogs, referrals, referralTiers, supportArticles, feedAds, feedAdSettings, featureFlags, userFeatureOverrides, adEvents, siteSettings, pendingTranscriptQueue, backfillJobs, type CreateUserRequest, type UpdateUserRequest, type UserResponse, type Recap, type InsertRecap, type EpisodeTranscript, type EmailLog, type InsertEmailLog, type MagicLink, type TranscriptLog, type PendingEmail, type InsertPendingEmail, type PodcastExampleRecap, type InsertPodcastExampleRecap, type PodcastDirectoryEntry, type InsertPodcastDirectoryEntry, type LandingPageRecap, type InsertLandingPageRecap, type TranscriptSegment, type InsertTranscriptSegment, type RssFeed, type InsertRssFeed, type PodcastHost, type InsertPodcastHost, type EpisodeQuote, type InsertEpisodeQuote, type Advertiser, type InsertAdvertiser, type Bookmark, type InsertBookmark, type BookBookmark, type InsertBookBookmark, type DeviceToken, type InsertDeviceToken, type RefreshToken, type ErrorLog, type InsertErrorLog, type Referral, type ReferralTier, type InsertReferralTier, type SupportArticle, type InsertSupportArticle, type FeedAd, type InsertFeedAd, type FeedAdSetting, type FeatureFlag, type InsertFeatureFlag, type UserFeatureOverride, type AdEvent, type InsertAdEvent, type SiteSetting, type PendingTranscriptQueueItem, type BackfillJob } from "@shared/schema";
 import { eq, desc, sql, and, gt, isNull, asc, inArray } from "drizzle-orm";
 import { normalizeTitle } from "./utils/normalizeTitle";
 
@@ -131,6 +131,9 @@ export interface IStorage {
   getPendingTranscriptQueue(limit?: number): Promise<PendingTranscriptQueueItem[]>;
   updateTranscriptQueueStatus(id: number, status: string, errorMessage?: string): Promise<void>;
   getTranscriptQueueDepth(): Promise<number>;
+  getBackfillJobs(): Promise<BackfillJob[]>;
+  getBackfillJobByKey(key: string): Promise<BackfillJob | undefined>;
+  upsertBackfillJob(key: string, updates: Partial<Omit<BackfillJob, "id" | "key" | "createdAt">>): Promise<BackfillJob>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1294,6 +1297,27 @@ export class DatabaseStorage implements IStorage {
       .from(pendingTranscriptQueue)
       .where(eq(pendingTranscriptQueue.status, "pending"));
     return result?.count || 0;
+  }
+
+  async getBackfillJobs(): Promise<BackfillJob[]> {
+    return db.select().from(backfillJobs).orderBy(asc(backfillJobs.createdAt));
+  }
+
+  async getBackfillJobByKey(key: string): Promise<BackfillJob | undefined> {
+    const [job] = await db.select().from(backfillJobs).where(eq(backfillJobs.key, key));
+    return job ?? undefined;
+  }
+
+  async upsertBackfillJob(key: string, updates: Partial<Omit<BackfillJob, "id" | "key" | "createdAt">>): Promise<BackfillJob> {
+    const [job] = await db
+      .insert(backfillJobs)
+      .values({ key, ...updates })
+      .onConflictDoUpdate({
+        target: backfillJobs.key,
+        set: updates,
+      })
+      .returning();
+    return job;
   }
 }
 
