@@ -419,6 +419,114 @@ async function checkRecapStall() {
   }
 }
 
+// ── NPR News Now ingestion monitor ──────────────────────────────────────────
+// NPR News Now (iTunes ID 121493675) publishes every hour on the hour.
+// We run this check every 30 minutes. If our most recent transcript for that
+// podcast is older than 90 minutes we fire a high-severity alert — that means
+// we likely missed at least one episode, either because Taddy's webhook failed
+// or because our transcript pipeline stalled on this specific show.
+const NPR_NEWS_NOW_ITUNES_ID = "121493675";
+const NPR_INGESTION_THRESHOLD_MINUTES = 90;
+const NPR_GRACE_PERIOD_MINUTES = 120; // don't alert if podcast was just approved
+
+let nprIngestionAlertSent = false;
+
+async function checkNprNewsNowIngestion() {
+  try {
+    const { rows: pdRows } = await pool.query(
+      `SELECT status, has_landing_page, updated_at FROM podcast_directory WHERE itunes_id = $1 LIMIT 1`,
+      [NPR_NEWS_NOW_ITUNES_ID]
+    );
+    const pd = pdRows[0];
+    if (!pd || pd.status !== "published") return;
+
+    const minutesSincePublished = pd.updated_at
+      ? (Date.now() - new Date(pd.updated_at).getTime()) / 60000
+      : Infinity;
+    if (minutesSincePublished < NPR_GRACE_PERIOD_MINUTES) {
+      console.log(`[NPRMonitor] Podcast recently published (${Math.round(minutesSincePublished)}m ago), skipping check`);
+      return;
+    }
+
+    const { rows } = await pool.query(
+      `SELECT et.episode_title, et.date_published, et.fetched_at,
+              lpr.id AS recap_id, lpr.created_at AS recap_created_at
+       FROM episode_transcripts et
+       LEFT JOIN landing_page_recaps lpr
+         ON lpr.itunes_id = et.podcast_id
+        AND (lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
+          OR lpr.episode_slug = lower(regexp_replace(trim(et.episode_title), '[^a-zA-Z0-9]+', '-', 'g')))
+       WHERE et.podcast_id = $1
+       ORDER BY et.fetched_at DESC
+       LIMIT 1`,
+      [NPR_NEWS_NOW_ITUNES_ID]
+    );
+
+    if (rows.length === 0) {
+      if (nprIngestionAlertSent) {
+        console.log("[NPRMonitor] Still no transcripts for NPR News Now");
+        return;
+      }
+      const { sendCriticalApiAlert } = await import("./adminAlertService");
+      const sent = await sendCriticalApiAlert({
+        apiName: "NPR News Now Monitor",
+        errorType: "No Episodes Ingested",
+        errorMessage: `NPR News Now (publishes every hour) has been live for ${Math.round(minutesSincePublished)} minutes but has zero transcripts in our system. The Taddy webhook may not be delivering episodes for this podcast. Check the webhook logs and confirm Taddy is tracking iTunes ID ${NPR_NEWS_NOW_ITUNES_ID}.`,
+        severity: "high",
+        adminPath: "/podcast/npr-news-now",
+        footerText: "You will not receive another alert until a new episode is detected.",
+      });
+      if (sent) {
+        nprIngestionAlertSent = true;
+        console.log("[NPRMonitor] No-transcripts alert sent for NPR News Now");
+      }
+      return;
+    }
+
+    const latest = rows[0];
+    const latestFetchedAt = new Date(latest.fetched_at).getTime();
+    const minutesSinceLastEpisode = (Date.now() - latestFetchedAt) / 60000;
+
+    if (minutesSinceLastEpisode <= NPR_INGESTION_THRESHOLD_MINUTES) {
+      if (nprIngestionAlertSent) {
+        console.log("[NPRMonitor] NPR News Now ingestion recovered — resetting alert flag");
+      }
+      nprIngestionAlertSent = false;
+      return;
+    }
+
+    if (nprIngestionAlertSent) {
+      console.log(`[NPRMonitor] Stall persists — ${Math.round(minutesSinceLastEpisode)}m since last NPR News Now episode`);
+      return;
+    }
+
+    const lastTitle = latest.episode_title || "Unknown";
+    const lastFetchedStr = new Date(latest.fetched_at).toUTCString();
+    const hasRecap = !!latest.recap_id;
+    const recapStr = hasRecap
+      ? `Recap was generated at ${new Date(latest.recap_created_at).toUTCString()}.`
+      : "No recap has been generated for the last episode yet.";
+
+    const { sendCriticalApiAlert } = await import("./adminAlertService");
+    const sent = await sendCriticalApiAlert({
+      apiName: "NPR News Now Monitor",
+      errorType: "Episode Ingestion Stall",
+      errorMessage: `NPR News Now (publishes every hour) has not delivered a new episode in ${Math.round(minutesSinceLastEpisode)} minutes — we should have seen at least ${Math.floor(minutesSinceLastEpisode / 60)} new episode(s) by now.\n\nLast episode ingested: "${lastTitle}" at ${lastFetchedStr}.\n${recapStr}\n\nPossible causes: Taddy webhook not firing, transcript fetch failure, or NPR changed their publish schedule.`,
+      severity: "high",
+      adminPath: "/podcast/npr-news-now",
+      footerText: "You will not receive another alert until a new episode is detected.",
+    });
+    if (sent) {
+      nprIngestionAlertSent = true;
+      console.log(`[NPRMonitor] Ingestion stall alert sent — ${Math.round(minutesSinceLastEpisode)}m since last episode`);
+    } else {
+      console.warn("[NPRMonitor] Failed to send ingestion stall alert — will retry next interval");
+    }
+  } catch (err) {
+    console.error("[NPRMonitor] Check error:", err);
+  }
+}
+
 export function startProductionRecapScheduler() {
   if (process.env.NODE_ENV !== "production") {
     console.log("[ProdRecap] Not in production, skipping scheduler");
@@ -437,5 +545,8 @@ export function startProductionRecapScheduler() {
 
     checkRecapStall();
     setInterval(checkRecapStall, STALL_CHECK_INTERVAL_MS);
+
+    checkNprNewsNowIngestion();
+    setInterval(checkNprNewsNowIngestion, STALL_CHECK_INTERVAL_MS);
   }, 120_000);
 }
