@@ -361,17 +361,228 @@ async function cleanupDuplicateRecaps() {
   }
 }
 
+// ── Active Episode Catch-Up Scanner ─────────────────────────────────────────
+// Runs every 2 hours. For every published podcast that hasn't received a new
+// transcript in the last 3 hours, we proactively ask Taddy for its most recent
+// episodes and save any transcripts that are missing from our DB.
+// This is the primary safety net against Taddy webhook delays or drops —
+// we NEVER rely solely on incoming webhooks for critical content.
+
+const CATCHUP_SCAN_INTERVAL_MS = 2 * 60 * 60 * 1000;
+const CATCHUP_SCAN_STALENESS_HOURS = 3;
+const CATCHUP_SCAN_EPISODE_LIMIT = 3;
+const CATCHUP_SCAN_MAX_PODCASTS = 60;
+const CATCHUP_INTER_PODCAST_DELAY_MS = 400;
+let catchupScanRunning = false;
+
+async function runCatchupScan() {
+  if (catchupScanRunning) {
+    console.log("[CatchupScan] Already running, skipping");
+    return;
+  }
+  catchupScanRunning = true;
+
+  try {
+    const { isTaddyBudgetExhausted, getEpisodesByItunesId, getEpisodeTranscript } = await import("./taddyClient");
+
+    if (isTaddyBudgetExhausted()) {
+      console.log("[CatchupScan] Taddy budget exhausted, skipping scan");
+      return;
+    }
+
+    const stalenessThreshold = new Date(Date.now() - CATCHUP_SCAN_STALENESS_HOURS * 3600 * 1000).toISOString();
+
+    const { rows: stalePodcasts } = await pool.query(
+      `SELECT pd.itunes_id, pd.name, pd.slug,
+              MAX(et.fetched_at) as last_fetched
+       FROM podcast_directory pd
+       LEFT JOIN episode_transcripts et ON et.podcast_id = pd.itunes_id
+       WHERE pd.status = 'published'
+       GROUP BY pd.itunes_id, pd.name, pd.slug
+       HAVING MAX(et.fetched_at) IS NULL
+           OR MAX(et.fetched_at) < $1
+       ORDER BY MAX(et.fetched_at) ASC NULLS FIRST
+       LIMIT $2`,
+      [stalenessThreshold, CATCHUP_SCAN_MAX_PODCASTS]
+    );
+
+    if (stalePodcasts.length === 0) {
+      console.log("[CatchupScan] All podcasts are current, no catch-up needed");
+      return;
+    }
+
+    console.log(`[CatchupScan] Checking ${stalePodcasts.length} podcast(s) for missed episodes`);
+    let recovered = 0;
+    let apiErrors = 0;
+
+    for (const podcast of stalePodcasts) {
+      if (isTaddyBudgetExhausted()) {
+        console.log("[CatchupScan] Budget exhausted mid-scan, stopping");
+        break;
+      }
+
+      try {
+        const episodes = await getEpisodesByItunesId(
+          podcast.itunes_id,
+          CATCHUP_SCAN_EPISODE_LIMIT,
+          podcast.name
+        );
+
+        if (!episodes || episodes.length === 0) continue;
+
+        for (const ep of episodes) {
+          if (!ep.uuid || !ep.name) continue;
+
+          const { rows: existing } = await pool.query(
+            `SELECT id FROM episode_transcripts WHERE episode_guid = $1 LIMIT 1`,
+            [ep.uuid]
+          );
+          if (existing.length > 0) continue;
+
+          if (isTaddyBudgetExhausted()) break;
+
+          const transcript = await getEpisodeTranscript(ep.uuid);
+          if (!transcript) continue;
+
+          const datePublished = ep.datePublished
+            ? Math.floor(ep.datePublished)
+            : null;
+
+          await pool.query(
+            `INSERT INTO episode_transcripts
+               (podcast_id, episode_guid, episode_title, transcript, audio_url, date_published, fetched_at)
+             VALUES ($1, $2, $3, $4, $5, $6, NOW())
+             ON CONFLICT (episode_guid) DO NOTHING`,
+            [podcast.itunes_id, ep.uuid, ep.name, transcript, ep.audioUrl || null, datePublished]
+          );
+
+          recovered++;
+          console.log(`[CatchupScan] Recovered missed episode: "${ep.name?.slice(0, 60)}" (${podcast.name})`);
+        }
+
+        await new Promise(r => setTimeout(r, CATCHUP_INTER_PODCAST_DELAY_MS));
+      } catch (err: any) {
+        console.error(`[CatchupScan] Error checking "${podcast.name}": ${err.message}`);
+        apiErrors++;
+      }
+    }
+
+    const summary = `${recovered} episode(s) recovered, ${apiErrors} error(s)`;
+    console.log(`[CatchupScan] Complete — ${summary}`);
+
+    if (recovered > 0) {
+      console.log("[CatchupScan] Triggering recap batch for recovered episodes");
+      runBatch().catch((e: any) => console.error("[CatchupScan] Post-recovery batch error:", e.message));
+    }
+  } catch (err: any) {
+    console.error(`[CatchupScan] Fatal error: ${err.message}`, err.stack);
+  } finally {
+    catchupScanRunning = false;
+  }
+}
+
+// ── Recap Pipeline Health Monitor ───────────────────────────────────────────
+// Runs every 30 minutes. Two alert modes:
+//
+//   CRITICAL — transcripts are in the DB but the recap scheduler isn't
+//              processing them. Something is broken in our own code.
+//
+//   WARNING  — no new recaps in 5+ hours during active hours (8am–11pm UTC),
+//              and no pending transcripts. Likely means Taddy hasn't delivered
+//              today's episodes yet (or the catch-up scanner is still running).
+
+const RECAP_HEALTH_INTERVAL_MS = 30 * 60 * 1000;
+const RECAP_STALL_WARNING_HOURS = 5;
+let recapStallAlertSent = false;
+
+async function checkRecapPipelineHealth() {
+  try {
+    const { rows: [latestRow] } = await pool.query(
+      `SELECT MAX(created_at) as latest FROM landing_page_recaps`
+    );
+    const latestRecapAt = latestRow?.latest ? new Date(latestRow.latest).getTime() : 0;
+    const hoursSinceLastRecap = (Date.now() - latestRecapAt) / 3600000;
+
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString();
+    const processingGracePeriod = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+
+    const { rows: [pendingRow] } = await pool.query(
+      `SELECT COUNT(*) as cnt, MIN(et.fetched_at) as oldest
+       FROM episode_transcripts et
+       INNER JOIN podcast_directory pd ON pd.itunes_id = et.podcast_id AND pd.status = 'published'
+       WHERE et.transcript IS NOT NULL AND et.transcript != ''
+         AND et.date_published IS NOT NULL
+         AND et.date_published >= EXTRACT(EPOCH FROM $1::timestamptz)::int
+         AND et.fetched_at < $2
+         AND NOT EXISTS (
+           SELECT 1 FROM landing_page_recaps lpr
+           WHERE lpr.itunes_id = et.podcast_id
+             AND lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
+         )`,
+      [threeDaysAgo, processingGracePeriod]
+    );
+
+    const pendingCount = parseInt(pendingRow?.cnt || "0", 10);
+    const oldestPending = pendingRow?.oldest;
+
+    if (pendingCount > 0 && hoursSinceLastRecap >= 1) {
+      const oldestAgeMin = oldestPending
+        ? Math.round((Date.now() - new Date(oldestPending).getTime()) / 60000)
+        : 0;
+
+      if (!recapStallAlertSent) {
+        const { sendCriticalApiAlert } = await import("./adminAlertService");
+        const sent = await sendCriticalApiAlert({
+          apiName: "Recap Pipeline Monitor",
+          errorType: "Transcripts Not Being Processed",
+          errorMessage: `${pendingCount} episode transcript(s) have been in the database for 30+ minutes but no recap has been generated in ${Math.round(hoursSinceLastRecap * 10) / 10} hours. The oldest pending transcript is ${oldestAgeMin} minutes old. The recap scheduler may be stuck or failing silently. Last successful recap: ${latestRecapAt ? new Date(latestRecapAt).toUTCString() : "never"}.`,
+          severity: "critical",
+          adminPath: "/admin",
+          footerText: "This alert will reset automatically once a new recap is generated.",
+        });
+        if (sent) {
+          recapStallAlertSent = true;
+          console.log(`[RecapHealth] CRITICAL alert sent — ${pendingCount} transcripts pending, ${Math.round(hoursSinceLastRecap * 10) / 10}h since last recap`);
+        }
+      }
+      return;
+    }
+
+    const utcHour = new Date().getUTCHours();
+    const isActiveHours = utcHour >= 8 && utcHour < 23;
+
+    if (hoursSinceLastRecap >= RECAP_STALL_WARNING_HOURS && isActiveHours && !recapStallAlertSent) {
+      const { sendCriticalApiAlert } = await import("./adminAlertService");
+      const sent = await sendCriticalApiAlert({
+        apiName: "Recap Pipeline Monitor",
+        errorType: "Recap Generation Stall",
+        errorMessage: `No new recaps have been generated in ${Math.round(hoursSinceLastRecap * 10) / 10} hours (since ${latestRecapAt ? new Date(latestRecapAt).toUTCString() : "startup"}). There are currently no ready-to-process transcripts in the database, which means Taddy has not yet delivered transcripts for today's episodes. The catch-up scanner runs every 2 hours and will proactively fetch any missed episodes. If this persists beyond 8 hours, check Taddy webhook delivery.`,
+        severity: "warning",
+        adminPath: "/admin",
+        footerText: "This alert will reset automatically once a new recap is generated.",
+      });
+      if (sent) {
+        recapStallAlertSent = true;
+        console.log(`[RecapHealth] Warning sent — ${Math.round(hoursSinceLastRecap * 10) / 10}h stall, no pending transcripts`);
+      }
+      return;
+    }
+
+    if (recapStallAlertSent && hoursSinceLastRecap < 1) {
+      console.log("[RecapHealth] Pipeline recovered — resetting alert flag");
+      recapStallAlertSent = false;
+    }
+  } catch (err: any) {
+    console.error(`[RecapHealth] Check error: ${err.message}`, err.stack);
+  }
+}
+
 const STALL_CHECK_INTERVAL_MS = 30 * 60 * 1000;
 
 // ── NPR News Now ingestion monitor ──────────────────────────────────────────
-// NPR News Now (iTunes ID 121493675) publishes every hour on the hour.
-// We run this check every 30 minutes. If our most recent transcript for that
-// podcast is older than 90 minutes we fire a high-severity alert — that means
-// we likely missed at least one episode, either because Taddy's webhook failed
-// or because our transcript pipeline stalled on this specific show.
 const NPR_NEWS_NOW_ITUNES_ID = "121493675";
 const NPR_INGESTION_THRESHOLD_MINUTES = 90;
-const NPR_GRACE_PERIOD_MINUTES = 120; // don't alert if podcast was just approved
+const NPR_GRACE_PERIOD_MINUTES = 120;
 
 let nprIngestionAlertSent = false;
 
@@ -416,7 +627,7 @@ async function checkNprNewsNowIngestion() {
         apiName: "NPR News Now Monitor",
         errorType: "No Episodes Ingested",
         errorMessage: `NPR News Now (publishes every hour) has been live for ${Math.round(minutesSincePublished)} minutes but has zero transcripts in our system. The Taddy webhook may not be delivering episodes for this podcast. Check the webhook logs and confirm Taddy is tracking iTunes ID ${NPR_NEWS_NOW_ITUNES_ID}.`,
-        severity: "high",
+        severity: "critical",
         adminPath: "/podcast/npr-news-now",
         footerText: "You will not receive another alert until a new episode is detected.",
       });
@@ -456,7 +667,7 @@ async function checkNprNewsNowIngestion() {
       apiName: "NPR News Now Monitor",
       errorType: "Episode Ingestion Stall",
       errorMessage: `NPR News Now (publishes every hour) has not delivered a new episode in ${Math.round(minutesSinceLastEpisode)} minutes — we should have seen at least ${Math.floor(minutesSinceLastEpisode / 60)} new episode(s) by now.\n\nLast episode ingested: "${lastTitle}" at ${lastFetchedStr}.\n${recapStr}\n\nPossible causes: Taddy webhook not firing, transcript fetch failure, or NPR changed their publish schedule.`,
-      severity: "high",
+      severity: "critical",
       adminPath: "/podcast/npr-news-now",
       footerText: "You will not receive another alert until a new episode is detected.",
     });
@@ -481,6 +692,7 @@ export function startProductionRecapScheduler() {
 
   setTimeout(async () => {
     await cleanupDuplicateRecaps();
+
     runBatch();
     setInterval(runBatch, INTERVAL_MS);
 
@@ -489,5 +701,13 @@ export function startProductionRecapScheduler() {
 
     checkNprNewsNowIngestion();
     setInterval(checkNprNewsNowIngestion, STALL_CHECK_INTERVAL_MS);
+
+    checkRecapPipelineHealth();
+    setInterval(checkRecapPipelineHealth, RECAP_HEALTH_INTERVAL_MS);
+
+    setTimeout(() => {
+      runCatchupScan();
+      setInterval(runCatchupScan, CATCHUP_SCAN_INTERVAL_MS);
+    }, 10 * 60 * 1000);
   }, 120_000);
 }
