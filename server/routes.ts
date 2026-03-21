@@ -8042,7 +8042,11 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         params = [effectiveSlugs, limit];
         if (cursor) params.push(cursor);
       } else {
-        const cursorParam = cursor ? `AND lr.id < $2` : "";
+        const excludeSlugs = isAuthenticated && userPodcastSlugs.length > 0 ? userPodcastSlugs : [];
+        const excludeParam = excludeSlugs.length > 0 ? `AND lr.slug != ALL($2)` : "";
+        const cursorParam = cursor
+          ? `AND lr.id < $${excludeSlugs.length > 0 ? 3 : 2}`
+          : "";
         query = `
           SELECT lr.id, lr.slug, lr.podcast_name, lr.episode_title, lr.episode_slug,
                  lr.publish_date, lr.artwork_url, lr.tldl, lr.key_insights,
@@ -8060,11 +8064,13 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           LEFT JOIN podcast_directory pd ON pd.slug = lr.slug
           WHERE lr.episode_slug IS NOT NULL
             AND lr.tldl IS NOT NULL
+            ${excludeParam}
             ${cursorParam}
           ORDER BY lr.publish_date DESC NULLS LAST, lr.id DESC
           LIMIT $1
         `;
         params = [limit];
+        if (excludeSlugs.length > 0) params.push(excludeSlugs);
         if (cursor) params.push(cursor);
       }
 
