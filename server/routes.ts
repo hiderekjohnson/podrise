@@ -9274,6 +9274,96 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     res.json(logs);
   });
 
+  app.get("/api/admin/pipeline-monitor", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const days = Math.min(parseInt(String(req.query.days || "7")), 30);
+      const interval = `${days} days`;
+
+      // Transcripts (with recap status + queue context if it was queued first)
+      const { rows: transcriptRows } = await pool.query(`
+        SELECT
+          'transcript' AS source,
+          et.id AS transcript_id,
+          et.podcast_id,
+          et.episode_guid,
+          pd.name AS podcast_name,
+          pd.slug AS podcast_slug,
+          et.episode_title,
+          et.fetched_at AS transcript_at,
+          to_timestamp(et.date_published) AS date_published,
+          char_length(et.transcript) AS transcript_chars,
+          ptq.status AS queue_status,
+          ptq.attempts AS queue_attempts,
+          ptq.error_message AS queue_error,
+          ptq.created_at AS queued_at,
+          ptq.last_attempt_at AS queue_last_attempt,
+          lpr.id AS recap_id,
+          lpr.episode_slug,
+          lpr.published AS recap_published,
+          lpr.created_at AS recap_at
+        FROM episode_transcripts et
+        INNER JOIN podcast_directory pd
+          ON pd.itunes_id = et.podcast_id AND pd.status = 'published'
+        LEFT JOIN pending_transcript_queue ptq
+          ON ptq.podcast_id = et.podcast_id
+          AND (ptq.episode_guid = et.episode_guid
+            OR lower(trim(ptq.episode_title)) = lower(trim(et.episode_title)))
+        LEFT JOIN landing_page_recaps lpr
+          ON lpr.itunes_id = et.podcast_id
+          AND lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
+        WHERE et.fetched_at > NOW() - INTERVAL '${interval}'
+        ORDER BY et.fetched_at DESC
+        LIMIT 250
+      `);
+
+      // Queue-only items: webhook arrived, transcript not yet fetched
+      const { rows: queueOnlyRows } = await pool.query(`
+        SELECT
+          'queue_only' AS source,
+          NULL AS transcript_id,
+          ptq.podcast_id,
+          ptq.episode_guid,
+          ptq.podcast_name,
+          '' AS podcast_slug,
+          ptq.episode_title,
+          NULL AS transcript_at,
+          NULL AS date_published,
+          NULL AS transcript_chars,
+          ptq.status AS queue_status,
+          ptq.attempts AS queue_attempts,
+          ptq.error_message AS queue_error,
+          ptq.created_at AS queued_at,
+          ptq.last_attempt_at AS queue_last_attempt,
+          NULL AS recap_id,
+          NULL AS episode_slug,
+          NULL AS recap_published,
+          NULL AS recap_at
+        FROM pending_transcript_queue ptq
+        WHERE ptq.created_at > NOW() - INTERVAL '${interval}'
+          AND NOT EXISTS (
+            SELECT 1 FROM episode_transcripts et
+            WHERE et.podcast_id = ptq.podcast_id
+              AND (et.episode_guid = ptq.episode_guid
+                OR lower(trim(et.episode_title)) = lower(trim(ptq.episode_title)))
+          )
+        ORDER BY ptq.created_at DESC
+        LIMIT 100
+      `);
+
+      const allRows = [...transcriptRows, ...queueOnlyRows].sort(
+        (a, b) => new Date(b.transcript_at || b.queued_at).getTime() - new Date(a.transcript_at || a.queued_at).getTime()
+      );
+
+      res.json(allRows);
+    } catch (err: any) {
+      console.error("[PipelineMonitor] Error:", err.message);
+      res.status(500).json({ message: "Failed to fetch pipeline data" });
+    }
+  });
+
   app.get("/api/admin/transcripts/:id", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
