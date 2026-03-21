@@ -72,7 +72,6 @@ async function catchUpMissingHeadlines() {
       WHERE tabloid_headline IS NULL
         AND what_happened IS NOT NULL
         AND what_happened != ''
-        AND created_at >= NOW() - INTERVAL '7 days'
       ORDER BY created_at DESC
       LIMIT 50
     `);

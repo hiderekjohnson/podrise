@@ -2,7 +2,14 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Play, Clock, CheckCircle2, AlertCircle, Loader2, RefreshCw } from "lucide-react";
+import { Play, Clock, CheckCircle2, AlertCircle, Loader2, RefreshCw, Database } from "lucide-react";
+
+interface TabloidHeadlineStats {
+  totalInTable: number;
+  withContent: number;
+  missingHeadlineWithContent: number;
+  missingContent: number;
+}
 
 interface BackfillJobStatus {
   key: string;
@@ -52,6 +59,12 @@ function BackfillCard({ job, onRunSuccess }: { job: BackfillJobStatus; onRunSucc
 
   const [liveJob, setLiveJob] = useState<BackfillJobStatus>(job);
 
+  const { data: tabloidStats, isLoading: statsLoading } = useQuery<TabloidHeadlineStats>({
+    queryKey: ["/api/admin/backfills/tabloid-headlines/stats"],
+    enabled: job.key === "tabloid-headlines",
+    refetchInterval: false,
+  });
+
   useEffect(() => {
     setLiveJob(job);
   }, [job]);
@@ -72,6 +85,9 @@ function BackfillCard({ job, onRunSuccess }: { job: BackfillJobStatus; onRunSucc
                 clearInterval(pollingRef.current!);
                 pollingRef.current = null;
                 runStartedAtRef.current = null;
+                if (liveJob.key === "tabloid-headlines") {
+                  queryClient.invalidateQueries({ queryKey: ["/api/admin/backfills/tabloid-headlines/stats"] });
+                }
                 onRunSuccess();
               }
             }
@@ -174,6 +190,27 @@ function BackfillCard({ job, onRunSuccess }: { job: BackfillJobStatus; onRunSucc
         <span data-testid={`backfill-created-${liveJob.key}`}>Created {liveJob.createdAt}</span>
         <span data-testid={`backfill-last-run-${liveJob.key}`}>Last run: {formatDate(liveJob.lastRunAt)}</span>
       </div>
+
+      {liveJob.key === "tabloid-headlines" && (
+        <div className="bg-muted/30 border border-border/50 rounded-lg p-3 text-xs space-y-1.5" data-testid="backfill-stats-tabloid-headlines">
+          <div className="flex items-center gap-1.5 font-medium text-foreground mb-1">
+            <Database className="w-3.5 h-3.5" />
+            Database Diagnostics
+          </div>
+          {statsLoading ? (
+            <div className="flex items-center gap-1.5 text-muted-foreground"><Loader2 className="w-3 h-3 animate-spin" /> Loading stats...</div>
+          ) : tabloidStats ? (
+            <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-muted-foreground">
+              <span>Total episodes in table: <strong className="text-foreground" data-testid="stat-total">{tabloidStats.totalInTable.toLocaleString()}</strong></span>
+              <span>Have recap content: <strong className="text-foreground" data-testid="stat-with-content">{tabloidStats.withContent.toLocaleString()}</strong></span>
+              <span className="text-amber-700">Missing headline (processable): <strong data-testid="stat-processable">{tabloidStats.missingHeadlineWithContent.toLocaleString()}</strong></span>
+              <span className="text-muted-foreground">No content (skipped): <strong data-testid="stat-no-content">{tabloidStats.missingContent.toLocaleString()}</strong></span>
+            </div>
+          ) : (
+            <div className="text-muted-foreground">Could not load stats</div>
+          )}
+        </div>
+      )}
 
       {(isCompleted || isFailed) && liveJob.lastRunAt && (
         <div className="bg-muted/40 rounded-lg p-3 text-xs space-y-1" data-testid={`backfill-results-${liveJob.key}`}>

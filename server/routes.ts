@@ -8872,7 +8872,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   const BACKFILL_DEFINITIONS: Record<string, { name: string; description: string; rateNote: string; createdAt: string }> = {
     "tabloid-headlines": {
       name: "Backfill Tabloid Headlines",
-      description: "Finds all landing page recaps where tabloidHeadline or tabloidSubHeadline is null/empty and generates them using OpenAI.",
+      description: "Finds all landing page recaps that have recap content (what_happened or tldl) but are missing tabloid headlines, and generates them using OpenAI. Episodes without any recap content are skipped.",
       rateNote: "Processes 1 episode every 10 seconds to avoid API overload",
       createdAt: "2025-03-21",
     },
@@ -8928,6 +8928,24 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/admin/backfills/tabloid-headlines/stats", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const result = await pool.query(`
+        SELECT
+          COUNT(*)::int AS "totalInTable",
+          COUNT(*) FILTER (WHERE (what_happened IS NOT NULL AND what_happened != '') OR (tldl IS NOT NULL AND tldl != ''))::int AS "withContent",
+          COUNT(*) FILTER (WHERE ((what_happened IS NOT NULL AND what_happened != '') OR (tldl IS NOT NULL AND tldl != '')) AND ((tabloid_headline IS NULL OR tabloid_headline = '') OR (tabloid_sub_headline IS NULL OR tabloid_sub_headline = '')))::int AS "missingHeadlineWithContent",
+          COUNT(*) FILTER (WHERE (what_happened IS NULL OR what_happened = '') AND (tldl IS NULL OR tldl = ''))::int AS "missingContent"
+        FROM landing_page_recaps
+      `);
+      res.json(result.rows[0]);
+    } catch (err) {
+      console.error("[Backfill] Failed to get tabloid-headlines stats:", err);
+      res.status(500).json({ message: "Failed to get stats" });
+    }
+  });
+
   app.post("/api/admin/backfills/:key/run", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     const { key } = req.params;
@@ -8936,7 +8954,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (key === "tabloid-headlines") {
       try {
         const countResult = await pool.query(
-          `SELECT COUNT(*)::int as count FROM landing_page_recaps WHERE (tabloid_headline IS NULL OR tabloid_headline = '') OR (tabloid_sub_headline IS NULL OR tabloid_sub_headline = '')`
+          `SELECT COUNT(*)::int as count FROM landing_page_recaps WHERE ((tabloid_headline IS NULL OR tabloid_headline = '') OR (tabloid_sub_headline IS NULL OR tabloid_sub_headline = '')) AND ((what_happened IS NOT NULL AND what_happened != '') OR (tldl IS NOT NULL AND tldl != ''))`
         );
         const total = countResult.rows[0]?.count ?? 0;
 
@@ -8962,7 +8980,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         (async () => {
           try {
             const rows = await pool.query(
-              `SELECT id, slug, episode_slug, episode_title, podcast_name, tldl, what_happened, key_insights FROM landing_page_recaps WHERE (tabloid_headline IS NULL OR tabloid_headline = '') OR (tabloid_sub_headline IS NULL OR tabloid_sub_headline = '') ORDER BY id`
+              `SELECT id, slug, episode_slug, episode_title, podcast_name, tldl, what_happened, key_insights FROM landing_page_recaps WHERE ((tabloid_headline IS NULL OR tabloid_headline = '') OR (tabloid_sub_headline IS NULL OR tabloid_sub_headline = '')) AND ((what_happened IS NOT NULL AND what_happened != '') OR (tldl IS NOT NULL AND tldl != '')) ORDER BY id`
             );
             const records = rows.rows;
             let processed = 0;
