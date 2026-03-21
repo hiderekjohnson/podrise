@@ -492,7 +492,7 @@ function SpotifyImportSection() {
       const res = await apiRequest("POST", "/api/spotify/bulk-follow", { shows });
       return await res.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data, shows) => {
       queryClient.invalidateQueries({ queryKey: ["/api/feed/followed-slugs"] });
       queryClient.invalidateQueries({ queryKey: ["/api/feed/followed-podcasts-details"] });
       queryClient.invalidateQueries({ queryKey: ["/api/feed"] });
@@ -502,6 +502,12 @@ function SpotifyImportSection() {
         title: "Podcasts imported",
         description: `${data.followed} podcast${data.followed !== 1 ? "s" : ""} added to your feed`,
       });
+      fetch("/api/feature-events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ feature: "spotify_import", metadata: { action: "connect", showCount: shows.length } }),
+      }).catch(() => {});
     },
     onError: () => {
       toast({ title: "Error", description: "Failed to import podcasts", variant: "destructive" });

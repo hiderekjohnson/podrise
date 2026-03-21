@@ -12,6 +12,7 @@ const AnalyticsAffiliates = lazy(() => import("./AnalyticsAffiliates"));
 const AnalyticsGrowth = lazy(() => import("./AnalyticsGrowth"));
 const AnalyticsEmail = lazy(() => import("./AnalyticsEmail"));
 const AnalyticsElevenLabs = lazy(() => import("./AnalyticsElevenLabs"));
+const AnalyticsFeatures = lazy(() => import("./AnalyticsFeatures"));
 const ApiUsageDashboard = lazy(() => import("./ApiUsageDashboard"));
 const AdvertisersAdmin = lazy(() => import("./AdvertisersAdmin"));
 const AdminUsersManager = lazy(() => import("./AdminUsersManager"));
@@ -143,12 +144,12 @@ export default function Admin() {
   type TabType = "cms" | "users" | "advertisers" | "landing-pages" | "product-features" | "internal-tools" | "advanced" | "admin-users";
   type ProductFeaturesSubTabType = "shop" | "categories" | "referrals" | "support-kb";
   type InternalToolsSubTabType = "mturk" | "pending" | "analytics" | "errors" | "alerts";
-  type AnalyticsSubTabType = "acquisition" | "affiliates" | "growth" | "email" | "elevenlabs";
+  type AnalyticsSubTabType = "acquisition" | "affiliates" | "growth" | "email" | "elevenlabs" | "features";
   type AdvancedSubTabType = "rss" | "hosts" | "api-costs" | "feature-flags" | "backfill";
 
   const productFeaturesSubTabs: ProductFeaturesSubTabType[] = ["shop", "categories", "referrals", "support-kb"];
   const internalToolsSubTabs: InternalToolsSubTabType[] = ["mturk", "pending", "analytics", "errors", "alerts"];
-  const analyticsSubTabs: AnalyticsSubTabType[] = ["acquisition", "affiliates", "growth", "email", "elevenlabs"];
+  const analyticsSubTabs: AnalyticsSubTabType[] = ["acquisition", "affiliates", "growth", "email", "elevenlabs", "features"];
   const advancedSubTabs: AdvancedSubTabType[] = ["rss", "hosts", "api-costs", "feature-flags", "backfill"];
 
   const deriveTabFromPath = useCallback((path: string): { tab: TabType; productFeaturesSub: ProductFeaturesSubTabType; internalToolsSub: InternalToolsSubTabType; analyticsSub: AnalyticsSubTabType; advancedSub: AdvancedSubTabType } => {
@@ -1057,6 +1058,7 @@ export default function Admin() {
                         { key: "growth" as const, label: "User Growth", icon: TrendingUp },
                         { key: "email" as const, label: "Email", icon: Mail },
                         { key: "elevenlabs" as const, label: "ElevenLabs", icon: Headphones },
+                        { key: "features" as const, label: "Features", icon: BarChart3 },
                       ]).map(({ key, label, icon: Icon }) => (
                         <button
                           key={key}
@@ -1079,6 +1081,7 @@ export default function Admin() {
                       {analyticsSubTab === "growth" && <AnalyticsGrowth />}
                       {analyticsSubTab === "email" && <AnalyticsEmail />}
                       {analyticsSubTab === "elevenlabs" && <AnalyticsElevenLabs />}
+                      {analyticsSubTab === "features" && <AnalyticsFeatures />}
                     </Suspense>
                   </div>
                 )}

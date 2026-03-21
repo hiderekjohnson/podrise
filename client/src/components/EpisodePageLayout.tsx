@@ -57,6 +57,15 @@ export function EpisodePageLayout({
   const [showRecapsModal, setShowRecapsModal] = useState(false);
   const ctaSectionRef = useRef<HTMLDivElement>(null);
 
+  const trackEpisodeLink = (platform: string) => {
+    fetch("/api/feature-events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ feature: "episode_link", metadata: { platform, episodeSlug, podcastSlug } }),
+    }).catch(() => {});
+  };
+
   useSetConversion({
     pageType: "episode",
     name: episode.episodeTitle,
@@ -161,6 +170,7 @@ export function EpisodePageLayout({
                   href={appleLink}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackEpisodeLink("apple")}
                   className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#52525B] hover:text-foreground transition-colors whitespace-nowrap shrink-0"
                   data-testid="link-apple-podcasts"
                   title="Listen on Apple Podcasts"
@@ -173,6 +183,7 @@ export function EpisodePageLayout({
                   href={spotifyLink}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackEpisodeLink("spotify")}
                   className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#52525B] hover:text-foreground transition-colors whitespace-nowrap shrink-0"
                   data-testid="link-spotify"
                   title="Listen on Spotify"
@@ -186,6 +197,7 @@ export function EpisodePageLayout({
                     href={effectiveYoutubeUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => trackEpisodeLink("youtube")}
                     className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 bg-black/[0.04] min-h-[44px] hover:bg-black/[0.07] rounded-lg text-[15px] sm:text-[16px] font-semibold text-[#52525B] hover:text-foreground transition-colors whitespace-nowrap shrink-0"
                     data-testid="link-youtube"
                     title="Watch on YouTube"

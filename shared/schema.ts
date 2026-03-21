@@ -1,4 +1,5 @@
-import { pgTable, serial, integer, text, timestamp, date, boolean, jsonb, real, unique } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, timestamp, date, boolean, jsonb, real, unique, check } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -92,10 +93,25 @@ export const affiliateClicks = pgTable("affiliate_clicks", {
   productId: integer("product_id"),
   destinationUrl: text("destination_url").notNull(),
   referrerPage: text("referrer_page"),
+  userId: integer("user_id"),
   clickedAt: timestamp("clicked_at").defaultNow(),
 });
 
 export type AffiliateClick = typeof affiliateClicks.$inferSelect;
+
+export const featureEvents = pgTable("feature_events", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id"),
+  feature: text("feature").notNull(),
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => [
+  check("feature_events_feature_check", sql`${t.feature} IN ('ai_chat', 'episode_link', 'spotify_import')`),
+]);
+
+export const insertFeatureEventSchema = createInsertSchema(featureEvents).omit({ id: true, createdAt: true });
+export type InsertFeatureEvent = z.infer<typeof insertFeatureEventSchema>;
+export type FeatureEvent = typeof featureEvents.$inferSelect;
 
 export const emailVerificationTokens = pgTable("email_verification_tokens", {
   id: serial("id").primaryKey(),

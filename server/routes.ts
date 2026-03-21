@@ -3648,9 +3648,10 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     }
 
     try {
+      const affiliateUserId = req.session?.userId || null;
       await pool.query(
-        `INSERT INTO affiliate_clicks (product_type, product_name, product_id, destination_url, referrer_page) VALUES ($1, $2, $3, $4, $5)`,
-        [productType, productName, productId, validatedUrl, referrerPage]
+        `INSERT INTO affiliate_clicks (product_type, product_name, product_id, destination_url, referrer_page, user_id) VALUES ($1, $2, $3, $4, $5, $6)`,
+        [productType, productName, productId, validatedUrl, referrerPage, affiliateUserId]
       );
     } catch (e) {
       console.error("[AffiliateClick] Failed to record click:", e);
@@ -14664,9 +14665,44 @@ ${recapContext}${hasTranscript ? `\n\nFull Episode Transcript:\n${transcript}` :
 
       const answer = completion.choices[0]?.message?.content || "Sorry, I couldn't generate a response.";
       res.json({ answer });
+
+      try {
+        const chatUserId = req.session?.userId || null;
+        await pool.query(
+          `INSERT INTO feature_events (user_id, feature, metadata) VALUES ($1, 'ai_chat', $2)`,
+          [chatUserId, JSON.stringify({ episodeSlug, podcastSlug })]
+        );
+      } catch (feErr) {
+        console.error("[EpisodeChat] Failed to log feature event:", feErr);
+      }
     } catch (err) {
       console.error("[EpisodeChat] Error:", err);
       res.status(500).json({ error: "Failed to generate response" });
+    }
+  });
+
+  app.post("/api/feature-events", async (req, res) => {
+    try {
+      const feUserId = req.session?.userId || null;
+      if (!feUserId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      const { feature, metadata } = req.body;
+      if (!feature || typeof feature !== "string") {
+        return res.status(400).json({ error: "Missing feature" });
+      }
+      const allowed = ["ai_chat", "episode_link", "spotify_import"];
+      if (!allowed.includes(feature)) {
+        return res.status(400).json({ error: "Invalid feature" });
+      }
+      await pool.query(
+        `INSERT INTO feature_events (user_id, feature, metadata) VALUES ($1, $2, $3)`,
+        [feUserId, feature, JSON.stringify(metadata || {})]
+      );
+      res.json({ ok: true });
+    } catch (err) {
+      console.error("[FeatureEvents] Error:", err);
+      res.status(500).json({ error: "Failed to record event" });
     }
   });
 
@@ -17744,6 +17780,283 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     } catch (err) {
       console.error("[AudioAnalytics] Completion funnel error:", err);
       res.status(500).json({ error: "Failed to fetch completion funnel" });
+    }
+  });
+
+  app.get("/api/admin/analytics/features/ai-chat", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const startDate = (req.query.startDate as string) || null;
+      const endDate = (req.query.endDate as string) || null;
+      const days = parseInt(req.query.days as string) || 30;
+
+      const params: any[] = [];
+      let feWhere = " AND fe.feature = 'ai_chat'";
+      if (startDate) { params.push(startDate); feWhere += ` AND fe.created_at >= $${params.length}::timestamp`; }
+      if (endDate) { params.push(endDate + " 23:59:59"); feWhere += ` AND fe.created_at <= $${params.length}::timestamp`; }
+      if (!startDate && !endDate) {
+        params.push(days);
+        feWhere += ` AND fe.created_at >= NOW() - ($${params.length} || ' days')::interval`;
+      }
+
+      const [totals, allTimeTotals, daily, topEpisodes, perUser] = await Promise.all([
+        pool.query(
+          `SELECT COUNT(*)::int AS total_questions, COUNT(DISTINCT fe.user_id)::int AS unique_users FROM feature_events fe WHERE fe.user_id IS NOT NULL${feWhere}`,
+          params
+        ),
+        pool.query(
+          `SELECT COUNT(*)::int AS total_questions_all_time, COUNT(DISTINCT user_id)::int AS unique_users_all_time FROM feature_events WHERE feature = 'ai_chat'`
+        ),
+        pool.query(
+          `SELECT date_trunc('day', fe.created_at)::date AS day, COUNT(*)::int AS count FROM feature_events fe WHERE 1=1${feWhere} GROUP BY day ORDER BY day ASC`,
+          params
+        ),
+        pool.query(
+          `SELECT fe.metadata->>'episodeSlug' AS episode_slug, fe.metadata->>'podcastSlug' AS podcast_slug, COUNT(*)::int AS count FROM feature_events fe WHERE 1=1${feWhere} AND fe.metadata->>'episodeSlug' IS NOT NULL GROUP BY episode_slug, podcast_slug ORDER BY count DESC LIMIT 10`,
+          params
+        ),
+        pool.query(
+          `SELECT fe.user_id, u.email, COUNT(*)::int AS question_count, MAX(fe.created_at) AS last_active FROM feature_events fe LEFT JOIN users u ON u.id = fe.user_id WHERE fe.user_id IS NOT NULL${feWhere} GROUP BY fe.user_id, u.email ORDER BY question_count DESC LIMIT 20`,
+          params
+        ),
+      ]);
+
+      res.json({
+        totalQuestions: totals.rows[0]?.total_questions || 0,
+        uniqueUsers: totals.rows[0]?.unique_users || 0,
+        totalQuestionsAllTime: allTimeTotals.rows[0]?.total_questions_all_time || 0,
+        uniqueUsersAllTime: allTimeTotals.rows[0]?.unique_users_all_time || 0,
+        dailyTrend: daily.rows,
+        topEpisodes: topEpisodes.rows,
+        perUser: perUser.rows,
+      });
+    } catch (err) {
+      console.error("[FeaturesAnalytics] ai-chat error:", err);
+      res.status(500).json({ error: "Failed to fetch ai-chat analytics" });
+    }
+  });
+
+  app.get("/api/admin/analytics/features/audio", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const startDate = (req.query.startDate as string) || null;
+      const endDate = (req.query.endDate as string) || null;
+      const days = parseInt(req.query.days as string) || 30;
+
+      const params: any[] = [];
+      let apeWhere = "";
+      if (startDate) { params.push(startDate); apeWhere += ` AND ape.created_at >= $${params.length}::timestamp`; }
+      if (endDate) { params.push(endDate + " 23:59:59"); apeWhere += ` AND ape.created_at <= $${params.length}::timestamp`; }
+      if (!startDate && !endDate) {
+        params.push(days);
+        apeWhere += ` AND ape.created_at >= NOW() - ($${params.length} || ' days')::interval`;
+      }
+
+      const [totals, daily, topEpisodes, perUser] = await Promise.all([
+        pool.query(
+          `SELECT
+             COUNT(*) FILTER (WHERE ape.event_type = 'play')::int AS total_plays,
+             COUNT(DISTINCT ape.user_id) FILTER (WHERE ape.event_type = 'play')::int AS unique_listeners,
+             COUNT(DISTINCT COALESCE(ape.session_id, ape.user_id::text)) FILTER (WHERE ape.event_type = 'play')::int AS total_sessions,
+             COUNT(DISTINCT COALESCE(ape.session_id, ape.user_id::text)) FILTER (WHERE ape.event_type = 'complete' OR ape.percentage_reached >= 80)::int AS completed_sessions
+           FROM audio_playback_events ape WHERE 1=1${apeWhere}`,
+          params
+        ),
+        pool.query(
+          `SELECT date_trunc('day', ape.created_at)::date AS day,
+             COUNT(*) FILTER (WHERE ape.event_type = 'play')::int AS plays,
+             COUNT(DISTINCT COALESCE(ape.session_id, ape.user_id::text)) FILTER (WHERE ape.event_type = 'complete' OR ape.percentage_reached >= 80)::int AS completions
+           FROM audio_playback_events ape WHERE 1=1${apeWhere} GROUP BY day ORDER BY day ASC`,
+          params
+        ),
+        pool.query(
+          `SELECT ape.episode_slug, ape.podcast_slug, COUNT(*) FILTER (WHERE ape.event_type = 'play')::int AS plays
+           FROM audio_playback_events ape WHERE 1=1${apeWhere}
+           GROUP BY ape.episode_slug, ape.podcast_slug ORDER BY plays DESC LIMIT 10`,
+          params
+        ),
+        pool.query(
+          `SELECT ape.user_id, u.email, COUNT(*) FILTER (WHERE ape.event_type = 'play')::int AS play_count
+           FROM audio_playback_events ape LEFT JOIN users u ON u.id = ape.user_id
+           WHERE ape.user_id IS NOT NULL${apeWhere}
+           GROUP BY ape.user_id, u.email ORDER BY play_count DESC LIMIT 20`,
+          params
+        ),
+      ]);
+
+      const total = totals.rows[0]?.total_plays || 0;
+      const sessions = totals.rows[0]?.total_sessions || 0;
+      const completedSessions = totals.rows[0]?.completed_sessions || 0;
+      res.json({
+        totalPlays: total,
+        uniqueListeners: totals.rows[0]?.unique_listeners || 0,
+        completionRate: sessions > 0 ? Math.round((completedSessions / sessions) * 100) : 0,
+        dailyTrend: daily.rows,
+        topEpisodes: topEpisodes.rows,
+        perUser: perUser.rows,
+      });
+    } catch (err) {
+      console.error("[FeaturesAnalytics] audio error:", err);
+      res.status(500).json({ error: "Failed to fetch audio analytics" });
+    }
+  });
+
+  app.get("/api/admin/analytics/features/shop", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const startDate = (req.query.startDate as string) || null;
+      const endDate = (req.query.endDate as string) || null;
+      const days = parseInt(req.query.days as string) || 30;
+
+      let dateWhere = "";
+      const params: any[] = [];
+      if (startDate) { params.push(startDate); dateWhere += ` AND clicked_at >= $${params.length}::timestamp`; }
+      if (endDate) { params.push(endDate + " 23:59:59"); dateWhere += ` AND clicked_at <= $${params.length}::timestamp`; }
+      if (!startDate && !endDate) {
+        params.push(days);
+        dateWhere += ` AND clicked_at >= NOW() - ($${params.length} || ' days')::interval`;
+      }
+
+      const [totals, daily, topProducts, bookmarkStats] = await Promise.all([
+        pool.query(
+          `SELECT COUNT(*)::int AS total_clicks, COUNT(DISTINCT user_id)::int AS unique_users, COUNT(DISTINCT product_name)::int AS unique_products FROM affiliate_clicks WHERE 1=1${dateWhere}`,
+          params
+        ),
+        pool.query(
+          `SELECT date_trunc('day', clicked_at)::date AS day, COUNT(*)::int AS clicks FROM affiliate_clicks WHERE 1=1${dateWhere} GROUP BY day ORDER BY day ASC`,
+          params
+        ),
+        pool.query(
+          `SELECT product_name, product_type, COUNT(*)::int AS clicks FROM affiliate_clicks WHERE 1=1${dateWhere} GROUP BY product_name, product_type ORDER BY clicks DESC LIMIT 10`,
+          params
+        ),
+        pool.query(
+          `SELECT sb.book_slug, COUNT(*)::int AS saves
+           FROM book_bookmarks sb
+           GROUP BY sb.book_slug ORDER BY saves DESC LIMIT 10`
+        ),
+      ]);
+
+      res.json({
+        totalClicks: totals.rows[0]?.total_clicks || 0,
+        uniqueUsers: totals.rows[0]?.unique_users || 0,
+        uniqueProducts: totals.rows[0]?.unique_products || 0,
+        dailyTrend: daily.rows,
+        topProducts: topProducts.rows,
+        bookmarksByProduct: bookmarkStats.rows,
+      });
+    } catch (err) {
+      console.error("[FeaturesAnalytics] shop error:", err);
+      res.status(500).json({ error: "Failed to fetch shop analytics" });
+    }
+  });
+
+  app.get("/api/admin/analytics/features/spotify", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const startDate = (req.query.startDate as string) || null;
+      const endDate = (req.query.endDate as string) || null;
+      const days = parseInt(req.query.days as string) || 30;
+
+      const feParams: any[] = [];
+      let feWhere = " AND fe.feature = 'spotify_import'";
+      if (startDate) { feParams.push(startDate); feWhere += ` AND fe.created_at >= $${feParams.length}::timestamp`; }
+      if (endDate) { feParams.push(endDate + " 23:59:59"); feWhere += ` AND fe.created_at <= $${feParams.length}::timestamp`; }
+      if (!startDate && !endDate) {
+        feParams.push(days);
+        feWhere += ` AND fe.created_at >= NOW() - ($${feParams.length} || ' days')::interval`;
+      }
+
+      const [connected, totalUsers, everConnected, daily, importEvents] = await Promise.all([
+        pool.query(
+          `SELECT COUNT(*)::int AS connected_users FROM users WHERE spotify_access_token IS NOT NULL`
+        ),
+        pool.query(`SELECT COUNT(*)::int AS total FROM users`),
+        pool.query(
+          `SELECT COUNT(DISTINCT user_id)::int AS ever_connected FROM feature_events WHERE feature = 'spotify_import'`
+        ),
+        pool.query(
+          `SELECT date_trunc('day', fe.created_at)::date AS day, COUNT(DISTINCT fe.user_id)::int AS unique_importers
+           FROM feature_events fe WHERE 1=1${feWhere} GROUP BY day ORDER BY day ASC`,
+          feParams
+        ),
+        pool.query(
+          `SELECT COUNT(*)::int AS total_imports, COUNT(DISTINCT fe.user_id)::int AS unique_importers,
+           AVG((fe.metadata->>'showCount')::numeric) AS avg_shows_imported
+           FROM feature_events fe WHERE 1=1${feWhere}`,
+          feParams
+        ),
+      ]);
+
+      const connectedCount = connected.rows[0]?.connected_users || 0;
+      const total = totalUsers.rows[0]?.total || 1;
+
+      res.json({
+        connectedUsers: connectedCount,
+        totalUsers: total,
+        connectedPct: total > 0 ? Math.round((connectedCount / total) * 100) : 0,
+        everConnected: everConnected.rows[0]?.ever_connected || 0,
+        totalImports: importEvents.rows[0]?.total_imports || 0,
+        uniqueImporters: importEvents.rows[0]?.unique_importers || 0,
+        avgShowsImported: Math.round((parseFloat(importEvents.rows[0]?.avg_shows_imported) || 0) * 10) / 10,
+        dailyTrend: daily.rows,
+      });
+    } catch (err) {
+      console.error("[FeaturesAnalytics] spotify error:", err);
+      res.status(500).json({ error: "Failed to fetch spotify analytics" });
+    }
+  });
+
+  app.get("/api/admin/analytics/features/episode-links", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const startDate = (req.query.startDate as string) || null;
+      const endDate = (req.query.endDate as string) || null;
+      const days = parseInt(req.query.days as string) || 30;
+
+      const params: any[] = [];
+      let feWhere = " AND fe.feature = 'episode_link'";
+      if (startDate) { params.push(startDate); feWhere += ` AND fe.created_at >= $${params.length}::timestamp`; }
+      if (endDate) { params.push(endDate + " 23:59:59"); feWhere += ` AND fe.created_at <= $${params.length}::timestamp`; }
+      if (!startDate && !endDate) {
+        params.push(days);
+        feWhere += ` AND fe.created_at >= NOW() - ($${params.length} || ' days')::interval`;
+      }
+
+      const [totals, byPlatform, daily, topEpisodes, perUser] = await Promise.all([
+        pool.query(
+          `SELECT COUNT(*)::int AS total_clicks, COUNT(DISTINCT fe.user_id)::int AS unique_users FROM feature_events fe WHERE 1=1${feWhere}`,
+          params
+        ),
+        pool.query(
+          `SELECT fe.metadata->>'platform' AS platform, COUNT(*)::int AS clicks FROM feature_events fe WHERE 1=1${feWhere} GROUP BY platform ORDER BY clicks DESC`,
+          params
+        ),
+        pool.query(
+          `SELECT date_trunc('day', fe.created_at)::date AS day, COUNT(*)::int AS clicks FROM feature_events fe WHERE 1=1${feWhere} GROUP BY day ORDER BY day ASC`,
+          params
+        ),
+        pool.query(
+          `SELECT fe.metadata->>'episodeSlug' AS episode_slug, fe.metadata->>'podcastSlug' AS podcast_slug, COUNT(*)::int AS clicks FROM feature_events fe WHERE 1=1${feWhere} AND fe.metadata->>'episodeSlug' IS NOT NULL GROUP BY episode_slug, podcast_slug ORDER BY clicks DESC LIMIT 10`,
+          params
+        ),
+        pool.query(
+          `SELECT fe.user_id, u.email, COUNT(*)::int AS click_count FROM feature_events fe LEFT JOIN users u ON u.id = fe.user_id WHERE fe.user_id IS NOT NULL${feWhere} GROUP BY fe.user_id, u.email ORDER BY click_count DESC LIMIT 20`,
+          params
+        ),
+      ]);
+
+      res.json({
+        totalClicks: totals.rows[0]?.total_clicks || 0,
+        uniqueUsers: totals.rows[0]?.unique_users || 0,
+        byPlatform: byPlatform.rows,
+        dailyTrend: daily.rows,
+        topEpisodes: topEpisodes.rows,
+        perUser: perUser.rows,
+      });
+    } catch (err) {
+      console.error("[FeaturesAnalytics] episode-links error:", err);
+      res.status(500).json({ error: "Failed to fetch episode-links analytics" });
     }
   });
 
