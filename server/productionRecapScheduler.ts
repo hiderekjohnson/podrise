@@ -682,6 +682,79 @@ async function checkNprNewsNowIngestion() {
   }
 }
 
+async function runMissedEpisodeCatchup() {
+  console.log("[MissedCatchup] Starting one-time 7-day backfill scan...");
+  try {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const cutoffTimestamp = Math.floor(sevenDaysAgo.getTime() / 1000);
+
+    const { rows: episodes } = await pool.query(
+      `WITH ranked AS (
+         SELECT et.id, et.podcast_id, et.episode_title, et.transcript, et.description,
+                et.date_published, et.duration, et.audio_url, et.image_url, et.fetched_at,
+                ROW_NUMBER() OVER (PARTITION BY et.podcast_id ORDER BY et.date_published DESC) AS rn
+         FROM episode_transcripts et
+         INNER JOIN podcast_directory pd ON pd.itunes_id = et.podcast_id AND pd.status = 'published'
+         WHERE et.transcript IS NOT NULL AND et.transcript != ''
+           AND et.date_published IS NOT NULL
+           AND et.date_published >= $1
+           AND NOT EXISTS (
+             SELECT 1 FROM landing_page_recaps lpr
+             WHERE lpr.itunes_id = et.podcast_id
+               AND (lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
+                 OR lpr.episode_slug = lower(regexp_replace(trim(et.episode_title), '[^a-zA-Z0-9]+', '-', 'g')))
+           )
+       )
+       SELECT id, podcast_id, episode_title, transcript, description,
+              date_published, duration, audio_url, image_url, fetched_at
+       FROM ranked
+       WHERE rn <= $2
+       ORDER BY date_published DESC`,
+      [cutoffTimestamp, PER_PODCAST]
+    );
+
+    if (episodes.length === 0) {
+      console.log("[MissedCatchup] No missed episodes found — all clear.");
+      return;
+    }
+
+    console.log(`[MissedCatchup] Found ${episodes.length} missed episode(s) to backfill.`);
+    let generated = 0;
+    let failed = 0;
+
+    for (const ep of episodes) {
+      const info = await getPodcastInfo(ep.podcast_id);
+      if (!info) {
+        console.log(`[MissedCatchup] Skip: no podcast info for itunesId=${ep.podcast_id}`);
+        failed++;
+        continue;
+      }
+
+      const podcastSlug = ITUNES_ID_TO_SLUG[ep.podcast_id] || info.slug || info.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 80);
+
+      console.log(`[MissedCatchup] Processing: "${ep.episode_title?.slice(0, 60)}" (${info.name})`);
+
+      const processPromise = processEpisode(ep, podcastSlug, info.name, ep.podcast_id, info.hosts || "", info.artwork_url || "");
+      const episodeTimeout = new Promise<ProcessEpisodeResult>((resolve) => setTimeout(() => {
+        console.warn(`[MissedCatchup] Episode timed out after 4min: "${ep.episode_title?.slice(0, 60)}"`);
+        resolve({ success: false });
+      }, 4 * 60 * 1000));
+      const result = await Promise.race([processPromise, episodeTimeout]);
+
+      if (result.success) generated++;
+      else failed++;
+
+      if (episodes.indexOf(ep) < episodes.length - 1) {
+        await new Promise(r => setTimeout(r, 30_000));
+      }
+    }
+
+    console.log(`[MissedCatchup] Done: ${generated} generated, ${failed} failed`);
+  } catch (err: any) {
+    console.error("[MissedCatchup] Error:", err.message);
+  }
+}
+
 export function startProductionRecapScheduler() {
   if (process.env.NODE_ENV !== "production") {
     console.log("[ProdRecap] Not in production, skipping scheduler");
@@ -709,5 +782,9 @@ export function startProductionRecapScheduler() {
       runCatchupScan();
       setInterval(runCatchupScan, CATCHUP_SCAN_INTERVAL_MS);
     }, 10 * 60 * 1000);
+
+    setTimeout(() => {
+      runMissedEpisodeCatchup();
+    }, 3 * 60 * 1000);
   }, 120_000);
 }
