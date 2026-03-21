@@ -25,7 +25,7 @@ interface FeedItem {
   quote: string | null;
   quoteAttribution: string | null;
   duration: string | null;
-  guests: string[];
+  guests: string | null;
   keyTopics: string[];
   isFollowing: boolean;
   tabloidSubHeadline: string | null;
@@ -125,6 +125,7 @@ function FeedRecapCard({ item, onFollowToggle, bookmarkedKeys, onBookmarkToggle,
       spotifyEpisodeUrl={item.spotifyEpisodeUrl}
       spotifyUrl={item.spotifyUrl}
       youtubeUrl={item.youtubeUrl}
+      guests={item.guests}
       mentions={item.mentions}
       isFollowing={item.isFollowing}
       isBookmarked={isBookmarked}

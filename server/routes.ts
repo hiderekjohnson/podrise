@@ -7983,15 +7983,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       }
 
       const items = result.rows.map((r: any) => {
-        let parsedGuests: string[] = [];
-        if (r.guests) {
-          try {
-            const raw = typeof r.guests === 'string' ? JSON.parse(r.guests) : r.guests;
-            if (Array.isArray(raw)) {
-              parsedGuests = raw.map((g: any) => typeof g === 'string' ? g : (g?.name || ''));
-            }
-          } catch { parsedGuests = []; }
-        }
+        const rawGuests = r.guests ? (typeof r.guests === 'string' ? r.guests : JSON.stringify(r.guests)) : null;
         const mentions = mentionsMap[r.id] || { people: [], companies: [] };
         const products = productsMap[`${r.slug}:${r.episode_slug}`] || [];
         return {
@@ -8008,7 +8000,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           quote: r.quote,
           quoteAttribution: r.quote_attribution,
           duration: r.duration,
-          guests: parsedGuests,
+          guests: rawGuests,
           keyTopics: r.key_topics || [],
           isFollowing: userPodcastSlugs.includes(r.slug),
           hosts: r.pd_hosts || null,
