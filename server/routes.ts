@@ -10416,7 +10416,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const { episode_title, itunes_id } = recapRows[0];
 
       const { rows: transcriptRows } = await pool.query(
-        `SELECT transcript FROM episode_transcripts WHERE podcast_id = $1 AND ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$2')} LIMIT 1`,
+        `SELECT transcript, description FROM episode_transcripts WHERE podcast_id = $1 AND ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$2')} LIMIT 1`,
         [String(itunes_id), episode_title]
       );
       if (transcriptRows.length === 0) return res.status(404).json({ message: "Transcript not found" });
@@ -10427,12 +10427,14 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const { rows: pdRows } = await pool.query(`SELECT name FROM podcast_directory WHERE slug = $1`, [podcastSlug]);
       const podcastName = pdRows[0]?.name || podcastSlug;
 
+      const showNotes = transcriptRows[0].description || null;
+
       const { generateRecapFromTranscript } = await import("./recapGenerator");
-      const recap = await generateRecapFromTranscript(processedTranscript, podcastName, episode_title);
+      const recap = await generateRecapFromTranscript(processedTranscript, podcastName, episode_title, showNotes);
       if (!recap) return res.status(500).json({ message: "AI generation failed" });
 
       const { rows: existingRows } = await pool.query(
-        `SELECT tldl, tabloid_headline, tabloid_sub_headline, spotify_episode_url FROM landing_page_recaps WHERE slug = $1 AND episode_slug = $2`,
+        `SELECT tldl, tabloid_headline, tabloid_sub_headline, spotify_episode_url, guests FROM landing_page_recaps WHERE slug = $1 AND episode_slug = $2`,
         [podcastSlug, episodeSlug]
       );
       const existingRecap = existingRows[0] || {};
@@ -10458,12 +10460,31 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         console.warn("[Admin] Tabloid headline generation failed during regenerate, continuing:", err);
       }
 
+      const aiGuests = recap.guests && recap.guests.length > 0 ? recap.guests : null;
+      let guestsToStore: string;
+      if (aiGuests) {
+        guestsToStore = JSON.stringify(aiGuests);
+      } else {
+        const existingGuestsRaw = existingRecap.guests;
+        let hasExistingGuests = false;
+        if (existingGuestsRaw) {
+          try {
+            const parsed = typeof existingGuestsRaw === 'string' ? JSON.parse(existingGuestsRaw) : existingGuestsRaw;
+            hasExistingGuests = Array.isArray(parsed) && parsed.length > 0;
+          } catch {}
+        }
+        guestsToStore = hasExistingGuests ? (typeof existingGuestsRaw === 'string' ? existingGuestsRaw : JSON.stringify(existingGuestsRaw)) : "[]";
+        if (hasExistingGuests) {
+          console.log(`[Admin] Regenerate: AI returned empty guests, preserving existing guest data for ${podcastSlug}/${episodeSlug}`);
+        }
+      }
+
       await pool.query(
         `UPDATE landing_page_recaps SET what_happened = $1, key_insights = $2, guests = $3, resources = $4, tabloid_headline = $5, tabloid_sub_headline = $6, spotify_episode_url = $7 WHERE slug = $8 AND episode_slug = $9`,
         [
           recap.whatHappened,
           recap.keyInsights && recap.keyInsights.length > 0 ? recap.keyInsights : null,
-          recap.guests ? JSON.stringify(recap.guests) : "[]",
+          guestsToStore,
           recap.resources ? JSON.stringify(recap.resources) : "[]",
           tabloidHeadline,
           tabloidSubHeadline,
@@ -16744,7 +16765,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
               return;
             }
 
-            const recap = await generateRecapFromTranscript(transcript, podcast.name, epTitle);
+            const recap = await generateRecapFromTranscript(transcript, podcast.name, epTitle, epData.description || null);
             if (!recap) {
               console.log(`[TaddyWebhook] Failed to generate recap for "${epTitle.slice(0, 60)}"`);
               return;
@@ -16758,6 +16779,29 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
             const publishDate = epData.datePublished
               ? new Date(epData.datePublished * 1000).toISOString().split("T")[0]
               : new Date().toISOString().split("T")[0];
+
+            let webhookGuests: string;
+            const aiWebhookGuests = recap.guests && recap.guests.length > 0 ? recap.guests : null;
+            if (aiWebhookGuests) {
+              webhookGuests = JSON.stringify(aiWebhookGuests);
+            } else if (existingRecap) {
+              const existingGuestsRaw = existingRecap.guests;
+              let hasExisting = false;
+              if (existingGuestsRaw) {
+                try {
+                  const parsed = typeof existingGuestsRaw === 'string' ? JSON.parse(existingGuestsRaw) : existingGuestsRaw;
+                  hasExisting = Array.isArray(parsed) && parsed.length > 0;
+                } catch {}
+              }
+              if (hasExisting) {
+                webhookGuests = typeof existingGuestsRaw === 'string' ? existingGuestsRaw : JSON.stringify(existingGuestsRaw);
+                console.log(`[TaddyWebhook] AI returned empty guests, preserving existing guest data for "${epTitle.slice(0, 60)}"`);
+              } else {
+                webhookGuests = "[]";
+              }
+            } else {
+              webhookGuests = "[]";
+            }
 
             const webhookSpotifyUrl = "";
             const webhookUpserted = await storage.upsertLandingPageRecap({
@@ -16779,7 +16823,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
               topQuestions: null,
               audioUrl: epData.audioUrl || "",
               sponsors: "[]",
-              guests: recap.guests ? JSON.stringify(recap.guests) : "[]",
+              guests: webhookGuests,
               resources: recap.resources ? JSON.stringify(recap.resources) : "[]",
               spotifyEpisodeUrl: webhookSpotifyUrl,
               topicContexts: null,
