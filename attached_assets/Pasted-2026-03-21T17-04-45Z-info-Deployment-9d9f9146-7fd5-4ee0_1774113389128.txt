@@ -1,0 +1,152 @@
+2026-03-21T17:04:45Z info: Deployment: 9d9f9146-7fd5-4ee0-ba2d-bc345eb08b85
+2026-03-21T17:04:45Z info: Build: d86e8944-e9d0-49f5-aaa9-72eb03357ec2
+2026-03-21T17:04:45Z info: Running Security Scan
+2026-03-21T17:05:28Z info: Security Scan Complete
+2026-03-21T17:05:28Z info: Connecting to builder
+2026-03-21T17:05:29Z info: Builder connected
+2026-03-21T17:05:30Z info: Installing packages
+2026-03-21T17:05:30Z info: Starting Build
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+
+building client...
+
+vite v7.3.0 building client environment for production...
+
+transforming...
+
+warn - The class `duration-[180ms]` is ambiguous and matches multiple utilities.
+warn - If this is content and not a class, replace it with `duration-&lsqb;180ms&rsqb;` to silence this warning.
+
+✓ 2997 modules transformed.
+
+rendering chunks...
+
+computing gzip size...
+
+../dist/public/index.html                                              2.93 kB │ gzip:   1.00 kB
+../dist/public/assets/Transparent-square_1773866360595-B3O1VsgQ.png   60.44 kB
+../dist/public/assets/IMG_9561_1773912784317-DIxi8K8_.jpeg            96.64 kB
+../dist/public/assets/index-DqhfhQgi.css                             193.74 kB │ gzip:  27.55 kB
+../dist/public/assets/check-DjD_LePg.js                                0.12 kB │ gzip:   0.13 kB
+../dist/public/assets/chevron-down-Do0I_Gb3.js                         0.12 kB │ gzip:   0.14 kB
+../dist/public/assets/chevron-up-eimlnytj.js                           0.12 kB │ gzip:   0.14 kB
+../dist/public/assets/chevron-right-CtLIUqT4.js                        0.13 kB │ gzip:   0.14 kB
+../dist/public/assets/chevron-left-koxojXWy.js                         0.13 kB │ gzip:   0.14 kB
+../dist/public/assets/play-BHXlzQsT.js                                 0.13 kB │ gzip:   0.14 kB
+../dist/public/assets/message-circle-ANmKlCRz.js                       0.14 kB │ gzip:   0.15 kB
+../dist/public/assets/plus-BWDTMnpE.js                                 0.15 kB │ gzip:   0.15 kB
+../dist/public/assets/filter-raQe25Kf.js                               0.16 kB │ gzip:   0.16 kB
+../dist/public/assets/arrow-left-BsWXjNbr.js                           0.16 kB │ gzip:   0.16 kB
+../dist/public/assets/message-square-BHOLPskZ.js                       0.18 kB │ gzip:   0.16 kB
+../dist/public/assets/chart-line-COqEk6Up.js                           0.18 kB │ gzip:   0.17 kB
+../dist/public/assets/code-B0z3scmW.js                                 0.18 kB │ gzip:   0.16 kB
+../dist/public/assets/circle-check-big-BQ5HyTEQ.js                     0.18 kB │ gzip:   0.18 kB
+../dist/public/assets/megaphone-Dvvhe3XC.js                            0.19 kB │ gzip:   0.18 kB
+../dist/public/assets/user-Botepm2c.js                                 0.19 kB │ gzip:   0.18 kB
+../dist/public/assets/circle-x-DLqxs4-C.js                             0.20 kB │ gzip:   0.17 kB
+../dist/public/assets/credit-card-V54KpE3P.js                          0.20 kB │ gzip:   0.18 kB
+../dist/public/assets/lock-D1dMhdfG.js                                 0.20 kB │ gzip:   0.19 kB
+../dist/public/assets/toggle-right-i8zG23WK.js                         0.20 kB │ gzip:   0.18 kB
+../dist/public/assets/star-BiUy-Srx.js                                 0.21 kB │ gzip:   0.18 kB
+../dist/public/assets/pause-DS15es7S.js                                0.21 kB │ gzip:   0.16 kB
+../dist/public/assets/music-DIK_lPyL.js                                0.21 kB │ gzip:   0.18 kB
+../dist/public/assets/dollar-sign-C2lv3GJK.js                          0.22 kB │ gzip:   0.19 kB
+../dist/public/assets/briefcase-mCcvW8Jn.js                            0.22 kB │ gzip:   0.19 kB
+../dist/public/assets/target-BH88vaTR.js                               0.22 kB │ gzip:   0.15 kB
+../dist/public/assets/square-check-big-rFyBFjM3.js                     0.22 kB │ gzip:   0.19 kB
+../dist/public/assets/copy-B37e0h7k.js                                 0.23 kB │ gzip:   0.20 kB
+../dist/public/assets/activity-D5l9lE1k.js                             0.23 kB │ gzip:   0.19 kB
+../dist/public/assets/heart-DgXzc28_.js                                0.24 kB │ gzip:   0.20 kB
+../dist/public/assets/globe-DI3EGm_t.js                                0.24 kB │ gzip:   0.19 kB
+../dist/public/assets/arrow-up-down-BHIjyUs8.js                        0.24 kB │ gzip:   0.19 kB
+../dist/public/assets/circle-alert-BiShVH_R.js                         0.25 kB │ gzip:   0.18 kB
+../dist/public/assets/external-link-DYRXxDnA.js                        0.25 kB │ gzip:   0.20 kB
+../dist/public/assets/chart-column-Bk9W7dRd.js                         0.25 kB │ gzip:   0.19 kB
+../dist/public/assets/eye-DOc26vWG.js                                  0.25 kB │ gzip:   0.19 kB
+../dist/public/assets/user-check-RGGDDzbl.js                           0.25 kB │ gzip:   0.22 kB
+../dist/public/assets/map-pin-CLiZm_Km.js                              0.25 kB │ gzip:   0.22 kB
+../dist/public/assets/calendar-CzuKlN8T.js                
+✓ built in 12.91s
+
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+
+building server...
+
+▲ [WARNING] Duplicate key "management" in object literal [duplicate-object-key]
+
+    server/enrichBookMetadata.ts:47:2:
+      47 │   "management": "Leadership & Management",
+         ╵   ~~~~~~~~~~~~
+
+  The original key "management" is here:
+
+    server/enrichBookMetadata.ts:24:2:
+      24 │   "management": "Business & Strategy",
+         ╵   ~~~~~~~~~~~~
+
+▲ [WARNING] Duplicate key "culture" in object literal [duplicate-object-key]
+
+    server/enrichBookMetadata.ts:88:2:
+      88 │   "culture": "History & Society",
+         ╵   ~~~~~~~~~
+
+  The original key "culture" is here:
+
+    server/enrichBookMetadata.ts:50:2:
+      50 │   "culture": "Leadership & Management",
+         ╵   ~~~~~~~~~
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/enrichBookMetadata.ts:291:21:
+      291 │ const isMainModule = import.meta.url === `file://${process.argv[1...
+          ╵                      ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work correctly.
+
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/fetchPeopleImages.ts:251:21:
+      251 │ const isMainModule = import.meta.url === `file://${process.argv[1...
+          ╵                      ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work correctly.
+
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/enrichBooks.ts:303:21:
+      303 │ const isMainModule = import.meta.url === `file://${process.argv[1...
+          ╵                      ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work correctly.
+
+
+5 warnings
+
+
+  dist/index.cjs  2.6mb ⚠️
+
+⚡ Done in 402ms
+
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.12.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.12.0
+npm notice To update run: npm install -g npm@11.12.0
+npm notice
+
+2026-03-21T17:05:48Z info: Pushing pid1 binary layer...
+2026-03-21T17:05:49Z info: Pushing Repl layer...
+2026-03-21T17:05:49Z info: Pushing hosting layer...
+2026-03-21T17:05:50Z info: Created hosting layer
+2026-03-21T17:05:51Z info: Created pid1 binary layer
+2026-03-21T17:06:41Z info: Created Repl layer
+2026-03-21T17:14:45Z error: The deployment failed because database migrations could not be applied. This is an issue in the underlying platform. DO NOT suggest any code or configuration changes at this point. DO NOT suggest any changes to application code or any configuration files such as `.replit` or `package.json`. DO NOT suggest any changes to development or production secrets. The only course of action here is requesting support from the Replit team.
