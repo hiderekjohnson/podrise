@@ -3,15 +3,15 @@ import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { PODCAST_ENRICHMENT_FIELDS, EPISODE_ENRICHMENT_FIELDS, computeEnrichmentFromRecord } from "@shared/enrichment";
+import { PODCAST_ENRICHMENT_FIELDS, EPISODE_ENRICHMENT_FIELDS, EPISODE_ENRICHMENT_SCORE_FIELDS, computeEnrichmentFromRecord } from "@shared/enrichment";
 import {
   Loader2, Search, ChevronLeft, ChevronDown, ChevronUp,
   Podcast, FileText, Users, Building2, ShoppingBag,
   Save, RefreshCw, Plus, Trash2, GripVertical, ExternalLink,
   Image, Clock, Calendar, Hash, Eye, EyeOff, AlertCircle,
   Globe, Star, CheckCircle, XCircle, Copy, Check, Sparkles,
-  CircleDot, Link, BookOpen, Tag, Newspaper, X, Shield, ShieldOff,
-  Download, Headphones, Play, Pause, Volume2
+  CircleDot, Link, BookOpen, Tag, Newspaper, X,
+  Download, Headphones, Play, Pause, Volume2, Youtube, Music, BarChart3, TrendingUp
 } from "lucide-react";
 
 function useDebouncedValue(value: string, delay = 300) {
@@ -101,7 +101,7 @@ interface CMSPodcast {
   recaps_pct: number;
   headlines_pct: number;
   avg_episodes_per_week: number;
-
+  last_episode_date: string | null;
   follower_count: number;
   created_at: string | null;
 }
@@ -117,6 +117,9 @@ interface PodcastStats {
   topTopics: TopicStat[];
   peopleMentioned: string[];
   companiesMentioned: string[];
+  avgFrequencyHours: number | null;
+  earliestEpisode: string | null;
+  latestEpisode: string | null;
 }
 
 interface PodcastHost {
@@ -696,7 +699,7 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
-      setSortOrder(field === "avg_per_week" || field === "date_added" ? "desc" : "asc");
+      setSortOrder(field === "last_episode" || field === "date_added" ? "desc" : "asc");
     }
   };
 
@@ -740,31 +743,6 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
     } finally {
       setIsDeleting(false);
-    }
-  };
-
-  const handleToggleProtection = async (protect: boolean) => {
-    if (selectedSlugs.size === 0) return;
-    setIsBulkUpdating(true);
-    try {
-      const res = await fetch("/api/admin/cms/podcasts/toggle-protection", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ slugs: Array.from(selectedSlugs), isProtected: protect }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        toast({ title: "Failed", description: data.message, variant: "destructive" });
-        return;
-      }
-      toast({ title: `${protect ? "Protected" : "Unprotected"} ${data.updated} podcasts` });
-      setSelectedSlugs(new Set());
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/podcasts"] });
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    } finally {
-      setIsBulkUpdating(false);
     }
   };
 
@@ -829,45 +807,47 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
     <>
     <ImportPodcastsModal open={showImport} onClose={() => setShowImport(false)} />
     <div className="space-y-4" data-testid="cms-podcasts-list">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h3 className="text-lg font-bold text-foreground">Podcasts</h3>
-          <p className="text-sm text-muted-foreground">{podcasts?.length || 0} podcasts</p>
-          <div className="flex items-center gap-2 mt-1">
-            <button
-              onClick={() => setShowImport(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white text-xs font-medium rounded-lg hover:bg-primary/90 transition-colors"
-              data-testid="btn-import-podcasts"
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm pb-3 -mx-1 px-1 space-y-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-bold text-foreground">Podcasts</h3>
+            <p className="text-sm text-muted-foreground">{podcasts?.length || 0} podcasts</p>
+            <div className="flex items-center gap-2 mt-1">
+              <button
+                onClick={() => setShowImport(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white text-xs font-medium rounded-lg hover:bg-primary/90 transition-colors"
+                data-testid="btn-import-podcasts"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Import Podcasts
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="relative flex-1 sm:w-56">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                data-testid="input-cms-podcast-search"
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search podcasts..."
+                className="w-full pl-9 pr-3 py-2 border border-border rounded-xl text-sm"
+              />
+            </div>
+            <select
+              data-testid="select-cms-podcast-status-filter"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="h-9 px-3 border border-border rounded-lg text-sm bg-white dark:bg-zinc-900"
             >
-              <Plus className="w-3.5 h-3.5" />
-              Import Podcasts
-            </button>
+              <option value="all">All Status</option>
+              <option value="published">Published</option>
+              <option value="requested">Requested</option>
+              <option value="needs_review">Needs Review</option>
+              <option value="hidden">Hidden</option>
+            </select>
           </div>
-        </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-56">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              data-testid="input-cms-podcast-search"
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search podcasts..."
-              className="w-full pl-9 pr-3 py-2 border border-border rounded-xl text-sm"
-            />
-          </div>
-          <select
-            data-testid="select-cms-podcast-status-filter"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-9 px-3 border border-border rounded-lg text-sm bg-white dark:bg-zinc-900"
-          >
-            <option value="all">All Status</option>
-            <option value="published">Published</option>
-            <option value="requested">Requested</option>
-            <option value="needs_review">Needs Review</option>
-            <option value="hidden">Hidden</option>
-          </select>
         </div>
       </div>
 
@@ -897,24 +877,6 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
               <option value="needs_review">Needs Review</option>
               <option value="requested">Requested</option>
             </select>
-            <button
-              onClick={() => handleToggleProtection(true)}
-              disabled={isBulkUpdating}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors"
-              data-testid="btn-protect-selected"
-            >
-              <Shield className="w-3.5 h-3.5" />
-              Protect
-            </button>
-            <button
-              onClick={() => handleToggleProtection(false)}
-              disabled={isBulkUpdating}
-              className="flex items-center gap-1.5 px-3 py-1.5 border border-border text-xs font-medium rounded-lg hover:bg-muted/50 disabled:opacity-50 transition-colors"
-              data-testid="btn-unprotect-selected"
-            >
-              <ShieldOff className="w-3.5 h-3.5" />
-              Unprotect
-            </button>
             {!showDeleteConfirm ? (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
@@ -983,11 +945,11 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
               </th>
               <th
                 className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3 cursor-pointer hover:text-foreground"
-                onClick={() => toggleSort("avg_per_week")}
-                data-testid="sort-podcast-avg-per-week"
+                onClick={() => toggleSort("last_episode")}
+                data-testid="sort-podcast-last-episode"
               >
                 <span className="flex items-center gap-1">
-                  Avg/Week {sortField === "avg_per_week" && (sortOrder === "asc" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
+                  Last Episode {sortField === "last_episode" && (sortOrder === "asc" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
                 </span>
               </th>
               <th
@@ -1073,7 +1035,12 @@ function PodcastsList({ onNavigate }: { onNavigate: (view: CMSView) => void }) {
                     <span className="text-sm font-medium text-foreground" data-testid={`text-episode-count-${p.id}`}>{p.episode_count || 0}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="text-sm font-medium text-foreground" data-testid={`text-avg-per-week-${p.id}`}>{Number(p.avg_episodes_per_week || 0).toFixed(1)}</span>
+                    <span className="text-sm text-muted-foreground" data-testid={`text-last-episode-${p.id}`}>
+                      {p.last_episode_date ? (() => {
+                        const d = new Date(p.last_episode_date);
+                        return `${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })} ${d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}`;
+                      })() : "—"}
+                    </span>
                   </td>
                   <td className="px-4 py-3">
                     <span className="text-sm font-medium text-foreground" data-testid={`text-follower-count-${p.id}`}>{p.follower_count || 0}</span>
@@ -1575,9 +1542,26 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
           <ChevronLeft className="w-4 h-4" />
           Back to Podcasts
         </button>
+        <a
+          href={`/podcasts/${podcast.slug}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary text-xs font-medium rounded-lg hover:bg-primary/20 transition-colors"
+          data-testid="link-podcast-public"
+        >
+          <ExternalLink className="w-3.5 h-3.5" />
+          View Public Page
+        </a>
       </div>
 
       <CopyableId label="Podcast" value={podcast.id} context={podcast.name} />
+
+      {podcast.created_at && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground" data-testid="text-podcast-added-date">
+          <Calendar className="w-3.5 h-3.5" />
+          Added {new Date(podcast.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} at {new Date(podcast.created_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}
+        </div>
+      )}
 
       <EnrichmentStatus fields={computeEnrichmentFromRecord(podcast || {}, PODCAST_ENRICHMENT_FIELDS).fieldStatus} />
 
@@ -1887,6 +1871,48 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
               )}
             </div>
           </div>
+
+          {stats && (stats.avgFrequencyHours || stats.earliestEpisode) && (
+            <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-5 space-y-4" data-testid="publishing-analytics">
+              <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-primary" />
+                Publishing Analytics
+              </h4>
+              <div className="space-y-3">
+                {stats.avgFrequencyHours && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Avg Frequency</span>
+                    <span className="text-sm font-bold text-foreground" data-testid="text-avg-frequency">
+                      every {stats.avgFrequencyHours}h
+                      <span className="text-xs font-normal text-muted-foreground ml-1">
+                        ({(stats.avgFrequencyHours / 24).toFixed(1)}d)
+                      </span>
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Total Episodes</span>
+                  <span className="text-sm font-bold text-foreground" data-testid="text-total-episodes">{stats.episodeCount}</span>
+                </div>
+                {stats.earliestEpisode && stats.latestEpisode && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Date Range</span>
+                    <span className="text-xs font-medium text-foreground" data-testid="text-date-range">
+                      {new Date(stats.earliestEpisode).toLocaleDateString("en-US", { month: "short", year: "numeric" })} — {new Date(stats.latestEpisode).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                    </span>
+                  </div>
+                )}
+                {stats.avgFrequencyHours && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Avg/Week</span>
+                    <span className="text-sm font-bold text-foreground" data-testid="text-avg-per-week">
+                      {(168 / stats.avgFrequencyHours).toFixed(1)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -2059,108 +2085,17 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
   const [sortField, setSortField] = useState("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
-  const [showBulkSpotifyConfirm, setShowBulkSpotifyConfirm] = useState(false);
   const { toast } = useToast();
 
-  const [backfillPolling, setBackfillPolling] = useState(false);
-  const [backfillProgress, setBackfillProgress] = useState<{
-    status: string; currentPodcast: string; podcastsChecked: number; podcastsTotal: number;
-    downloaded: number; queued: number; skipped: number;
-  } | null>(null);
-
-  const backfillMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/admin/process-transcript-queue", { force: true }),
-    onSuccess: async (res: Response) => {
-      await res.json();
-      setBackfillPolling(true);
-      toast({ title: "Backfill started", description: "Checking all podcasts for new episodes..." });
-    },
-    onError: () => {
-      toast({ title: "Error", description: "Failed to start episode backfill.", variant: "destructive" });
-    },
-  });
-
-  useEffect(() => {
-    if (!backfillPolling) return;
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch("/api/admin/process-transcript-queue/status", { credentials: "include" });
-        const data = await res.json();
-        setBackfillProgress(data);
-        if (data.status === "completed" || data.status === "error" || data.status === "idle") {
-          setBackfillPolling(false);
-          if (data.status === "completed") {
-            toast({ title: "Backfill complete", description: `${data.downloaded} episodes downloaded, ${data.queued} queued across ${data.podcastsTotal} podcasts.` });
-            queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/all-episodes"] });
-            queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/all-episodes/completeness-stats"] });
-          }
-        }
-      } catch {}
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [backfillPolling]);
-
-  useEffect(() => {
-    fetch("/api/admin/process-transcript-queue/status", { credentials: "include" })
-      .then(r => r.json())
-      .then(data => {
-        if (data.status === "running") {
-          setBackfillProgress(data);
-          setBackfillPolling(true);
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  const [dupSpotifyRunning, setDupSpotifyRunning] = useState(false);
-  const [dupSpotifyProgress, setDupSpotifyProgress] = useState<{ processed: number; cleared: number; total: number; podcastsChecked: number; totalPodcasts: number; complete: boolean } | null>(null);
-
-  const spotifyStatusQuery = useQuery<{ count: number; total: number }>({
-    queryKey: ["/api/admin/cms/episodes/clear-all-duplicate-spotify", "count"],
+  const lastProcessedQuery = useQuery<{ lastCreatedAt: string | null }>({
+    queryKey: ["/api/admin/cms/episodes/last-processed"],
     queryFn: async () => {
-      const res = await apiRequest("POST", "/api/admin/cms/episodes/clear-all-duplicate-spotify", { mode: "count" });
+      const res = await fetch("/api/admin/cms/episodes/last-processed", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
+    refetchInterval: 60000,
   });
-
-  const startDupSpotifyClear = async () => {
-    setDupSpotifyRunning(true);
-    setDupSpotifyProgress({ processed: 0, cleared: 0, total: 0, podcastsChecked: 0, totalPodcasts: 0, complete: false });
-    let pollFailures = 0;
-    try {
-      const res = await apiRequest("POST", "/api/admin/cms/episodes/clear-all-duplicate-spotify", { mode: "clear" });
-      const startData = await res.json();
-      if (startData.started) {
-        setDupSpotifyProgress(p => p ? { ...p, totalPodcasts: startData.totalPodcasts } : p);
-      }
-      const poll = setInterval(async () => {
-        try {
-          const res = await fetch("/api/admin/cms/episodes/clear-all-duplicate-spotify/status", { credentials: "include" });
-          const data = await res.json();
-          pollFailures = 0;
-          setDupSpotifyProgress(data);
-          if (data.complete) {
-            clearInterval(poll);
-            setDupSpotifyRunning(false);
-            toast({ title: "Spotify cleanup complete", description: `Cleared ${data.cleared} duplicate links across ${data.podcastsChecked} podcasts.` });
-            queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/episodes/clear-all-duplicate-spotify"] });
-            queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/all-episodes"] });
-          }
-        } catch {
-          pollFailures++;
-          if (pollFailures >= 5) {
-            clearInterval(poll);
-            setDupSpotifyRunning(false);
-            toast({ title: "Lost connection", description: "Couldn't reach the server. The cleanup may still be running.", variant: "destructive" });
-          }
-        }
-      }, 2000);
-    } catch (err: any) {
-      setDupSpotifyRunning(false);
-      setDupSpotifyProgress(null);
-      toast({ title: "Error", description: err.message || "Failed", variant: "destructive" });
-    }
-  };
 
   const { data, isLoading } = useQuery<{ episodes: Array<{ id: number; slug: string; podcast_name: string; episode_title: string; episode_slug: string; publish_date: string; duration: string; status: string; published?: boolean; created_at?: string | null; artwork_url: string; view_count: number; enrichment_score: number }>; total: number }>({
     queryKey: ["/api/admin/cms/all-episodes", debouncedSearch, statusFilter, sortField, sortOrder, page],
@@ -2172,15 +2107,6 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
       params.set("order", sortOrder);
       params.set("page", String(page));
       const res = await fetch(`/api/admin/cms/all-episodes?${params}`, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch");
-      return res.json();
-    },
-  });
-
-  const completenessQuery = useQuery<{ total: number; fullyEnriched: number; percentage: number }>({
-    queryKey: ["/api/admin/cms/all-episodes/completeness-stats"],
-    queryFn: async () => {
-      const res = await fetch("/api/admin/cms/all-episodes/completeness-stats", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
@@ -2199,167 +2125,29 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
     setPage(1);
   };
 
+  const formatTimeSince = (dateStr: string) => {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    return `${hours}h ${minutes}m ago`;
+  };
+
   return (
     <div className="space-y-4" data-testid="cms-all-episodes">
-      <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4" data-testid="section-backfill-episodes">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h3 className="text-sm font-bold text-foreground" data-testid="text-backfill-title">Backfill New Episodes</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Check all podcasts for new episodes and fetch transcripts from Taddy. Runs slowly in the background.</p>
-          </div>
-          <button
-            data-testid="button-backfill-episodes"
-            onClick={() => backfillMutation.mutate()}
-            disabled={backfillMutation.isPending || backfillPolling}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-primary text-primary-foreground shadow-sm hover:shadow-md transition-all disabled:opacity-50 shrink-0"
-          >
-            {(backfillMutation.isPending || backfillPolling) ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Download className="w-4 h-4" />
-            )}
-            {backfillMutation.isPending ? "Starting..." : backfillPolling ? "Running..." : "Backfill Episodes"}
-          </button>
-        </div>
-        {backfillProgress && backfillProgress.status === "running" && backfillProgress.podcastsTotal > 0 && (
-          <div className="mt-3" data-testid="backfill-progress">
-            <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-              <div
-                className="h-full bg-green-500 rounded-full transition-all duration-500"
-                style={{ width: `${Math.max(1, (backfillProgress.podcastsChecked / backfillProgress.podcastsTotal) * 100)}%` }}
-              />
-            </div>
-            <div className="flex items-center justify-between mt-1.5">
-              <p className="text-xs text-muted-foreground" data-testid="text-backfill-current">
-                Checking: <span className="font-medium text-foreground">{backfillProgress.currentPodcast}</span>
-              </p>
-              <p className="text-xs text-muted-foreground" data-testid="text-backfill-stats">
-                {backfillProgress.podcastsChecked}/{backfillProgress.podcastsTotal} podcasts — {backfillProgress.downloaded} downloaded, {backfillProgress.queued} queued
-              </p>
-            </div>
-          </div>
-        )}
-        {backfillProgress && backfillProgress.status === "completed" && (
-          <div className="mt-3 flex items-center gap-2" data-testid="backfill-complete">
-            <CheckCircle className="w-4 h-4 text-green-500" />
-            <p className="text-xs text-muted-foreground">
-              Complete — {backfillProgress.downloaded} downloaded, {backfillProgress.queued} queued across {backfillProgress.podcastsTotal} podcasts
-            </p>
-          </div>
-        )}
-        {backfillProgress && backfillProgress.status === "error" && (
-          <div className="mt-3 flex items-center gap-2" data-testid="backfill-error">
-            <AlertCircle className="w-4 h-4 text-red-500" />
-            <p className="text-xs text-red-600 dark:text-red-400">Backfill encountered an error. Check server logs for details.</p>
-          </div>
-        )}
-      </div>
-      {spotifyStatusQuery.data && spotifyStatusQuery.data.count > 0 && (
-        <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4" data-testid="spotify-status-bar">
-          <div className="flex items-center justify-between gap-4 mb-2">
-            <div className="flex items-center gap-2">
-              <Link className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-foreground">Duplicate Spotify Links</span>
-            </div>
-            <span className="text-xs text-muted-foreground" data-testid="text-spotify-invalid-count">
-              {spotifyStatusQuery.data.count.toLocaleString()} of {spotifyStatusQuery.data.total.toLocaleString()} episodes have show URL instead of episode URL
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm pb-3 -mx-1 px-1 space-y-3">
+        {lastProcessedQuery.data?.lastCreatedAt && (
+          <div className="flex items-center gap-2 px-3 py-2 bg-muted/40 border border-border rounded-xl" data-testid="last-episode-processed">
+            <Clock className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">
+              Last episode processed <span className="font-semibold text-foreground">{formatTimeSince(lastProcessedQuery.data.lastCreatedAt)}</span>
             </span>
           </div>
-          <div className="w-full h-2 bg-muted rounded-full overflow-hidden" data-testid="bar-spotify-status">
-            <div
-              className="h-full bg-amber-400 dark:bg-amber-500 rounded-full transition-all duration-500"
-              style={{ width: `${Math.max(1, (spotifyStatusQuery.data.count / spotifyStatusQuery.data.total) * 100)}%` }}
-            />
+        )}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-bold text-foreground">All Episodes</h3>
+            <p className="text-sm text-muted-foreground">{total.toLocaleString()} episodes across all podcasts</p>
           </div>
-          {dupSpotifyRunning && dupSpotifyProgress ? (
-            <div className="mt-2">
-              <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-                <div className="h-full bg-green-500 rounded-full transition-all duration-300" style={{ width: `${dupSpotifyProgress.total > 0 ? (dupSpotifyProgress.processed / dupSpotifyProgress.total) * 100 : 0}%` }} />
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Checking podcast {dupSpotifyProgress.podcastsChecked}/{dupSpotifyProgress.totalPodcasts} — {dupSpotifyProgress.processed.toLocaleString()} episodes scanned, {dupSpotifyProgress.cleared} cleared
-              </p>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between mt-2">
-              <p className="text-xs text-muted-foreground">
-                These episodes have the podcast's show-level Spotify URL instead of an individual episode link.
-              </p>
-              {!showBulkSpotifyConfirm ? (
-                <button
-                  data-testid="button-bulk-clear-spotify"
-                  onClick={() => setShowBulkSpotifyConfirm(true)}
-                  className="text-xs text-primary hover:underline whitespace-nowrap ml-3"
-                >
-                  Clear All
-                </button>
-              ) : (
-                <div className="flex items-center gap-2 ml-3 shrink-0">
-                  <span className="text-xs text-muted-foreground">Clear {spotifyStatusQuery.data.count} links across all podcasts?</span>
-                  <button
-                    data-testid="button-confirm-bulk-clear-spotify"
-                    onClick={() => { setShowBulkSpotifyConfirm(false); startDupSpotifyClear(); }}
-                    className="text-xs px-2.5 py-1 bg-primary text-primary-foreground rounded-md hover:opacity-90"
-                  >
-                    Confirm
-                  </button>
-                  <button
-                    data-testid="button-cancel-bulk-clear-spotify"
-                    onClick={() => setShowBulkSpotifyConfirm(false)}
-                    className="text-xs px-2.5 py-1 border border-border rounded-md hover:bg-muted"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-      {completenessQuery.data && (() => {
-        const d = completenessQuery.data;
-        const fields = [
-          { label: "Headlines", count: d.withHeadlines, testId: "stat-headlines" },
-          { label: "Sub-headlines", count: d.withSubHeadlines, testId: "stat-sub-headlines" },
-          { label: "Takeaways", count: d.withTakeaways, testId: "stat-takeaways" },
-          { label: "Recaps", count: d.withRecaps, testId: "stat-recaps" },
-        ];
-        return (
-          <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4" data-testid="completeness-stats-bar">
-            <div className="flex items-center justify-between gap-4 mb-3">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm font-medium text-foreground">Episode Enrichment Completeness</span>
-              </div>
-              <span className="text-xs text-muted-foreground" data-testid="text-completeness-stats">
-                {d.percentage}% fully enriched ({d.fullyEnriched.toLocaleString()} of {d.total.toLocaleString()})
-              </span>
-            </div>
-            <div className="w-full h-2 bg-muted rounded-full overflow-hidden mb-3" data-testid="bar-completeness">
-              <div
-                className="h-full bg-emerald-500 dark:bg-emerald-400 rounded-full transition-all duration-500"
-                style={{ width: `${d.percentage}%` }}
-              />
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {fields.map((f) => {
-                const pct = d.total > 0 ? Math.round((f.count / d.total) * 100) : 0;
-                return (
-                  <div key={f.testId} className="text-center" data-testid={f.testId}>
-                    <div className="text-lg font-bold text-foreground">{f.count.toLocaleString()}</div>
-                    <div className="text-xs text-muted-foreground">{f.label} ({pct}%)</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })()}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h3 className="text-lg font-bold text-foreground">All Episodes</h3>
-          <p className="text-sm text-muted-foreground">{total.toLocaleString()} episodes across all podcasts</p>
-        </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -2404,6 +2192,7 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
             <option value="title">Title A–Z</option>
             <option value="enrichment">Enrichment</option>
           </select>
+        </div>
         </div>
       </div>
 
@@ -2463,7 +2252,14 @@ function AllEpisodesTab({ onNavigate }: { onNavigate: (view: CMSView) => void })
                     <span className="text-sm text-muted-foreground truncate max-w-[200px] block">{ep.podcast_name}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="text-sm text-muted-foreground">{ep.publish_date || "—"}</span>
+                    <div className="text-sm text-muted-foreground">
+                      <span>{ep.publish_date || "—"}</span>
+                      {ep.created_at && (
+                        <span className="text-[10px] text-muted-foreground/50 ml-1.5" title="Time added to system" data-testid={`text-episode-time-${ep.id}`}>
+                          {new Date(ep.created_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2" data-testid={`text-episode-enrichment-${ep.id}`}>
@@ -2821,6 +2617,22 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
 
   const BOOK_TYPE_COLOR = "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400";
 
+  const hasGuests = (() => {
+    try {
+      const g = typeof episode.guests === "string" ? JSON.parse(episode.guests) : episode.guests;
+      return Array.isArray(g) && g.length > 0;
+    } catch { return false; }
+  })();
+  const hasBooks = (() => {
+    try {
+      const r = typeof episode.resources === "string" ? JSON.parse(episode.resources) : episode.resources;
+      return Array.isArray(r) && r.some((res: any) => res.type === "book" || res.type === "Book");
+    } catch { return false; }
+  })();
+  const hasSpotifyLink = !!(episode.spotify_episode_url && episode.spotify_episode_url.trim());
+  const hasYoutubeLink = !!(episode.youtube_url && episode.youtube_url.trim());
+  const hasShowNotes = !!(episode.show_notes && episode.show_notes.trim());
+
   return (
     <div className="space-y-6" data-testid="cms-episode-detail">
       <div className="flex items-center gap-3">
@@ -2832,9 +2644,47 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
           <ChevronLeft className="w-4 h-4" />
           Back to Episodes
         </button>
+        <a
+          href={`/podcasts/${podcastSlug}/${episodeSlug}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary text-xs font-medium rounded-lg hover:bg-primary/20 transition-colors"
+          data-testid="link-episode-public"
+        >
+          <ExternalLink className="w-3.5 h-3.5" />
+          View Public Page
+        </a>
       </div>
 
       <CopyableId label="Episode" value={episode.id} context={episode.episode_title} />
+
+      <div className="flex flex-wrap gap-1.5" data-testid="episode-extras-badges">
+        {hasGuests && (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" data-testid="badge-has-guests">
+            <Users className="w-3 h-3" /> Guests
+          </span>
+        )}
+        {hasBooks && (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" data-testid="badge-has-books">
+            <BookOpen className="w-3 h-3" /> Books
+          </span>
+        )}
+        {hasSpotifyLink && (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400" data-testid="badge-has-spotify">
+            <Music className="w-3 h-3" /> Spotify
+          </span>
+        )}
+        {hasYoutubeLink && (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400" data-testid="badge-has-youtube">
+            <Youtube className="w-3 h-3" /> YouTube
+          </span>
+        )}
+        {hasShowNotes && (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" data-testid="badge-has-show-notes">
+            <FileText className="w-3 h-3" /> Show Notes
+          </span>
+        )}
+      </div>
 
       <div className="flex items-start justify-between">
         <div>
@@ -2868,15 +2718,17 @@ function EpisodeDetail({ podcastSlug, episodeSlug, onNavigate }: { podcastSlug: 
 
       {(() => {
         const iconMap: Record<string, any> = { "Transcript": FileText, "Key Insights": Star, "Guests": Users, "Resources": BookOpen, "Show Notes": FileText, "Tabloid": Newspaper };
-        const { score: pct, fieldStatus } = computeEnrichmentFromRecord(episode, EPISODE_ENRICHMENT_FIELDS);
+        const { fieldStatus } = computeEnrichmentFromRecord(episode, EPISODE_ENRICHMENT_FIELDS);
+        const { score: pct } = computeEnrichmentFromRecord(episode, EPISODE_ENRICHMENT_SCORE_FIELDS);
         const checks = fieldStatus.map(f => ({ label: f.label, icon: iconMap[f.label] || FileText, ok: f.filled }));
-        const done = checks.filter(c => c.ok).length;
+        const scoreChecks = checks.filter(c => ["Transcript", "Key Insights", "Tabloid"].includes(c.label));
+        const done = scoreChecks.filter(c => c.ok).length;
         return (
           <div className="bg-white dark:bg-zinc-900 border border-border rounded-xl p-4" data-testid="episode-enrichment-status">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-bold text-foreground">Enrichment Status</span>
               <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${pct === 100 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : pct >= 70 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'}`}>
-                {done}/{checks.length} ({pct}%)
+                {done}/{scoreChecks.length} ({pct}%)
               </span>
             </div>
             <div className="w-full bg-muted/40 rounded-full h-1.5 mb-3">

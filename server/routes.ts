@@ -7,7 +7,7 @@ import connectPgSimple from "connect-pg-simple";
 import cors from "cors";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
-import { PODCAST_ENRICHMENT_FIELDS, EPISODE_ENRICHMENT_FIELDS, computeEnrichmentFromRecord } from "@shared/enrichment";
+import { PODCAST_ENRICHMENT_FIELDS, EPISODE_ENRICHMENT_FIELDS, EPISODE_ENRICHMENT_SCORE_FIELDS, computeEnrichmentFromRecord } from "@shared/enrichment";
 import { z } from "zod";
 import { insertBookBookmarkSchema, type LandingPageRecap } from "@shared/schema";
 import { getUncachableResendClient } from "./resendClient";
@@ -10525,6 +10525,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         COALESCE((SELECT COUNT(*) FILTER (WHERE lpr2.key_insights IS NOT NULL AND array_length(lpr2.key_insights, 1) > 0) FROM landing_page_recaps lpr2 WHERE lpr2.slug = pd.slug), 0) as episodes_with_takeaways,
         COALESCE((SELECT COUNT(*) FILTER (WHERE lpr2.what_happened IS NOT NULL AND lpr2.what_happened != '') FROM landing_page_recaps lpr2 WHERE lpr2.slug = pd.slug), 0) as episodes_with_recaps,
         COALESCE((SELECT COUNT(*) FILTER (WHERE lpr2.tabloid_headline IS NOT NULL AND lpr2.tabloid_headline != '') FROM landing_page_recaps lpr2 WHERE lpr2.slug = pd.slug), 0) as episodes_with_headlines,
+        (SELECT MAX(lpr3.created_at) FROM landing_page_recaps lpr3 WHERE lpr3.slug = pd.slug) as last_episode_date,
         COALESCE((
           SELECT CASE
             WHEN COUNT(*) <= 1 THEN 0
@@ -10544,9 +10545,10 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         params.push(status);
         query += ` AND pd.status = $${params.length}`;
       }
-      const sortCol = sort === "name" ? "pd.name" : sort === "episodes" ? "episode_count" : sort === "avg_per_week" ? "avg_episodes_per_week" : sort === "date_added" ? "pd.created_at" : sort === "followers" ? "pd.name" : "pd.name";
+      const sortCol = sort === "name" ? "pd.name" : sort === "episodes" ? "episode_count" : sort === "avg_per_week" ? "avg_episodes_per_week" : sort === "date_added" ? "pd.created_at" : sort === "last_episode" ? "last_episode_date" : sort === "followers" ? "pd.name" : "pd.name";
       const sortOrder = order === "desc" ? "DESC" : "ASC";
-      query += ` ORDER BY ${sortCol} ${sortOrder}`;
+      const nullsLast = sort === "last_episode" || sort === "date_added" ? " NULLS LAST" : "";
+      query += ` ORDER BY ${sortCol} ${sortOrder}${nullsLast}`;
       const { rows } = await pool.query(query, params);
 
       const enrichedRows = rows.map((r: any) => {
@@ -10667,6 +10669,27 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         }
       } catch {}
 
+      const publishDates = episodeRows
+        .map((ep: any) => ep.publish_date)
+        .filter((d: any) => d)
+        .sort((a: string, b: string) => new Date(b).getTime() - new Date(a).getTime());
+      let avgFrequencyHours: number | null = null;
+      let earliestEpisode: string | null = null;
+      let latestEpisode: string | null = null;
+      if (publishDates.length >= 2) {
+        latestEpisode = publishDates[0];
+        earliestEpisode = publishDates[publishDates.length - 1];
+        const gaps: number[] = [];
+        for (let i = 0; i < publishDates.length - 1; i++) {
+          const gap = (new Date(publishDates[i]).getTime() - new Date(publishDates[i + 1]).getTime()) / (1000 * 60 * 60);
+          gaps.push(gap);
+        }
+        avgFrequencyHours = Math.round(gaps.reduce((a: number, b: number) => a + b, 0) / gaps.length);
+      } else if (publishDates.length === 1) {
+        latestEpisode = publishDates[0];
+        earliestEpisode = publishDates[0];
+      }
+
       res.json({
         ...podcast,
         hosts_data: hosts,
@@ -10677,6 +10700,9 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           topTopics,
           peopleMentioned: Array.from(peopleSet).slice(0, 10),
           companiesMentioned: Array.from(companySet).slice(0, 10),
+          avgFrequencyHours,
+          earliestEpisode,
+          latestEpisode,
         },
       });
     } catch (err: any) {
@@ -11708,7 +11734,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           id: r.id, slug: r.slug, podcast_name: r.podcast_name, episode_title: r.episode_title,
           episode_slug: r.episode_slug, publish_date: r.publish_date, duration: r.duration,
           status: r.status, published: r.published, created_at: r.created_at, artwork_url: r.artwork_url,
-          enrichment_score: computeEnrichmentFromRecord(enrichRecord, EPISODE_ENRICHMENT_FIELDS).score,
+          enrichment_score: computeEnrichmentFromRecord(enrichRecord, EPISODE_ENRICHMENT_SCORE_FIELDS).score,
         };
       };
 
@@ -11768,6 +11794,18 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     } catch (err: any) {
       console.error("[CMS] Completeness stats error:", err);
       res.status(500).json({ message: err?.message || "Failed to fetch completeness stats" });
+    }
+  });
+
+  app.get("/api/admin/cms/episodes/last-processed", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { rows } = await pool.query(`SELECT created_at FROM landing_page_recaps ORDER BY created_at DESC NULLS LAST LIMIT 1`);
+      const lastCreatedAt = rows[0]?.created_at || null;
+      res.json({ lastCreatedAt });
+    } catch (err: any) {
+      console.error("[CMS] Last processed error:", err);
+      res.status(500).json({ message: err?.message || "Failed" });
     }
   });
 

@@ -22,6 +22,12 @@ export const EPISODE_ENRICHMENT_FIELDS = [
   { key: "tabloid_headline", label: "Tabloid" },
 ] as const;
 
+export const EPISODE_ENRICHMENT_SCORE_FIELDS = [
+  { key: "transcript", label: "Transcript" },
+  { key: "key_insights", label: "Key Insights", isArray: true },
+  { key: "tabloid_headline", label: "Tabloid" },
+] as const;
+
 export type EnrichmentField = {
   key: string;
   label: string;
