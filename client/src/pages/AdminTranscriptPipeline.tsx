@@ -672,6 +672,18 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [airedSort, setAiredSort] = useState<"asc" | "desc" | null>(null);
   const lastCheckedIdxRef = useRef<number | null>(null);
+  const shiftPressedRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => { if (e.key === "Shift") shiftPressedRef.current = true; };
+    const onKeyUp = (e: KeyboardEvent) => { if (e.key === "Shift") shiftPressedRef.current = false; };
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+    };
+  }, []);
 
   // Fetch actual queue depth (all pending items, not just visible rows)
   const { data: queueDepth = {} } = useQuery({
@@ -1161,7 +1173,7 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
                             <input
                               type="checkbox"
                               checked={isChecked}
-                              onChange={e => toggleRow(i, !!(e.nativeEvent as any).shiftKey)}
+                              onChange={() => toggleRow(i, shiftPressedRef.current)}
                               className="w-3.5 h-3.5 rounded cursor-pointer accent-slate-600"
                               data-testid={`checkbox-episode-${i}`}
                             />
