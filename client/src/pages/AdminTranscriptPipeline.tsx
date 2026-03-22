@@ -472,6 +472,12 @@ export default function AdminTranscriptPipeline() {
       {/* Stage Distribution - NEW */}
       <StageDistribution counts={counts} />
 
+      {/* Error Queue - NEW */}
+      {counts.failed > 0 && <ErrorQueue rows={rows} />}
+
+      {/* Queue Health - NEW */}
+      <QueueHealth rows={rows} />
+
       {/* Support Prompt - Top & Prominent */}
       <SupportPrompt />
 
@@ -595,6 +601,195 @@ export default function AdminTranscriptPipeline() {
           </p>
         </>
       )}
+    </div>
+  );
+}
+
+// NEW: Error Queue Component
+interface ErrorQueueProps {
+  rows: PipelineRow[];
+}
+
+function ErrorQueue({ rows }: ErrorQueueProps) {
+  const failures = rows.filter(r => getOverallStatus(r) === 'failed').sort((a, b) => {
+    const aTime = a.recap_created_at ? new Date(a.recap_created_at).getTime() : 0;
+    const bTime = b.recap_created_at ? new Date(b.recap_created_at).getTime() : 0;
+    return bTime - aTime;
+  });
+
+  const getErrorMessage = (row: PipelineRow) => {
+    if (row.recap_status === 'generation_failed') return 'Generation timeout (4+ minutes)';
+    if (row.recap_status === 'hidden') return 'Validation failed - missing fields';
+    return 'Unknown error';
+  };
+
+  const getAgeMinutes = (dateStr: string | null) => {
+    if (!dateStr) return null;
+    return Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
+  };
+
+  return (
+    <div className="bg-white dark:bg-slate-900 border border-red-200 dark:border-red-900 rounded-xl overflow-hidden" data-testid="error-queue">
+      <div className="bg-red-50 dark:bg-red-950/30 border-b border-red-200 dark:border-red-900 px-5 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+          <h3 className="text-sm font-semibold text-red-900 dark:text-red-100">Failed Episodes</h3>
+          <span className="text-xs bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-full font-medium">
+            {failures.length}
+          </span>
+        </div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+              <th className="text-left px-5 py-2.5 font-semibold text-slate-700 dark:text-slate-300 text-xs">Episode</th>
+              <th className="text-left px-5 py-2.5 font-semibold text-slate-700 dark:text-slate-300 text-xs">Podcast</th>
+              <th className="text-left px-5 py-2.5 font-semibold text-slate-700 dark:text-slate-300 text-xs">Error</th>
+              <th className="text-center px-5 py-2.5 font-semibold text-slate-700 dark:text-slate-300 text-xs">Age</th>
+            </tr>
+          </thead>
+          <tbody>
+            {failures.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="text-center py-8 text-slate-500 dark:text-slate-400 text-xs">No failed episodes</td>
+              </tr>
+            ) : (
+              failures.slice(0, 10).map((row, i) => {
+                const ageMin = getAgeMinutes(row.recap_created_at);
+                return (
+                  <tr key={i} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                    <td className="px-5 py-3 font-medium text-slate-900 dark:text-slate-100 truncate max-w-xs">
+                      {row.episode_title}
+                    </td>
+                    <td className="px-5 py-3 text-slate-600 dark:text-slate-400 text-xs truncate">
+                      {row.podcast_name}
+                    </td>
+                    <td className="px-5 py-3 text-red-700 dark:text-red-300 text-xs">
+                      {getErrorMessage(row)}
+                    </td>
+                    <td className="px-5 py-3 text-center text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
+                      {ageMin ? `${ageMin}m ago` : '—'}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// NEW: Queue Health Component
+interface QueueHealthProps {
+  rows: PipelineRow[];
+}
+
+function QueueHealth({ rows }: QueueHealthProps) {
+  const pending = rows.filter(r => {
+    const status = getOverallStatus(r);
+    return status === 'queued' || status === 'pending_recap';
+  });
+
+  const totalQueued = pending.length;
+  const avgWaitMin = pending.length > 0
+    ? Math.round(
+        pending.reduce((sum, r) => {
+          const waitMs = r.transcript_created_at
+            ? Date.now() - new Date(r.transcript_created_at).getTime()
+            : 0;
+          return sum + waitMs;
+        }, 0) / pending.length / 60000
+      )
+    : 0;
+
+  const oldestMin = pending.length > 0
+    ? Math.round(
+        Math.max(
+          ...pending.map(r =>
+            r.transcript_created_at ? Date.now() - new Date(r.transcript_created_at).getTime() : 0
+          )
+        ) / 60000
+      )
+    : 0;
+
+  const stageCounts = {
+    queued: pending.filter(r => getOverallStatus(r) === 'queued').length,
+    pending_recap: pending.filter(r => getOverallStatus(r) === 'pending_recap').length,
+  };
+
+  const processingRate = 3; // episodes per 5 min = 0.6/min
+  const estimatedMinutes = totalQueued > 0 ? Math.ceil(totalQueued / 0.6) : 0;
+
+  return (
+    <div className="grid grid-cols-2 gap-4" data-testid="queue-health">
+      {/* Left: Queue Metrics */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5">
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-4">Queue Status</h3>
+        <div className="space-y-4">
+          <div className="border-b border-slate-200 dark:border-slate-700 pb-3">
+            <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">Total Queued</div>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white">
+              {totalQueued}
+              <span className="text-xs font-normal text-slate-500 dark:text-slate-400 ml-2">episodes</span>
+            </div>
+          </div>
+          <div className="border-b border-slate-200 dark:border-slate-700 pb-3">
+            <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">Average Wait Time</div>
+            <div className="text-xl font-bold text-amber-600 dark:text-amber-400">
+              {avgWaitMin}
+              <span className="text-xs font-normal ml-1">minutes</span>
+            </div>
+          </div>
+          <div className="border-b border-slate-200 dark:border-slate-700 pb-3">
+            <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">Oldest in Queue</div>
+            <div className="text-xl font-bold text-orange-600 dark:text-orange-400">
+              {oldestMin}
+              <span className="text-xs font-normal ml-1">minutes</span>
+            </div>
+          </div>
+          <div>
+            <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">Est. Clear Time</div>
+            <div className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
+              {estimatedMinutes}
+              <span className="text-xs font-normal ml-1">min</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right: Stage Distribution */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5">
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-4">Queue Stages</h3>
+        <div className="space-y-3">
+          {[
+            { label: 'Awaiting Recap', count: stageCounts.pending_recap, color: 'bg-amber-500', bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-300' },
+            { label: 'In Queue', count: stageCounts.queued, color: 'bg-blue-500', bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-300' },
+          ].map(stage => {
+            const pct = totalQueued > 0 ? Math.round((stage.count / totalQueued) * 100) : 0;
+            return (
+              <div key={stage.label}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className={`text-xs font-medium px-2 py-1 rounded ${stage.bg} ${stage.text}`}>
+                    {stage.label}
+                  </span>
+                  <span className="text-xs font-bold text-slate-900 dark:text-white">
+                    {stage.count} ({pct}%)
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2">
+                  <div
+                    className={`h-full ${stage.color} rounded-full transition-all duration-300`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
