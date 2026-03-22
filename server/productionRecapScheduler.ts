@@ -7,8 +7,10 @@ const INTERVAL_MS = 5 * 60 * 1000;
 const HEADLINE_CATCHUP_INTERVAL_MS = 15 * 60 * 1000;
 const BATCH_SIZE = 1;
 const PER_PODCAST = 1;
-// 1 episode × 4min timeout + buffer = ~6min, set to 10min for headroom
-const BATCH_TIMEOUT_MS = 10 * 60 * 1000;
+// How long a single episode recap generation can run before it is marked as failed and the next episode is tried
+const EPISODE_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
+// Overall batch-level watchdog — must be larger than EPISODE_TIMEOUT_MS
+const BATCH_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
 const HEADLINE_RETRY_COUNT = 2;
 const HEADLINE_RETRY_DELAY_MS = 3000;
 let batchRunning = false;
@@ -264,7 +266,7 @@ async function runBatch() {
       `WITH ranked AS (
          SELECT et.id, et.podcast_id, et.episode_guid, et.episode_title, et.transcript, et.description,
                 et.date_published, et.duration, et.audio_url, et.image_url, et.fetched_at,
-                ROW_NUMBER() OVER (PARTITION BY et.podcast_id ORDER BY et.date_published DESC) AS rn
+                ROW_NUMBER() OVER (PARTITION BY et.podcast_id ORDER BY et.fetched_at ASC NULLS LAST) AS rn
          FROM episode_transcripts et
          INNER JOIN podcast_directory pd ON pd.itunes_id = et.podcast_id AND pd.status = 'published'
          WHERE et.transcript IS NOT NULL AND et.transcript != ''
@@ -281,7 +283,7 @@ async function runBatch() {
               date_published, duration, audio_url, image_url, fetched_at
        FROM ranked
        WHERE rn <= $1
-       ORDER BY date_published DESC
+       ORDER BY fetched_at ASC NULLS LAST
        LIMIT ${BATCH_SIZE}`,
       [PER_PODCAST, cutoffTimestamp]
     );
@@ -317,22 +319,23 @@ async function runBatch() {
 
       const epTitle = ep.episode_title || "Untitled";
       const epSlug = epTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 200);
+      const timeoutMinutes = Math.round(EPISODE_TIMEOUT_MS / 60000);
       const episodeTimeout = new Promise<ProcessEpisodeResult>((resolve) => setTimeout(async () => {
         const episodeId = `${podcastSlug}/${epSlug}`;
         timeoutEpisodesThisSession.add(episodeId);
-        console.warn(`[ProdRecap] Episode timed out after 4min: "${epTitle.slice(0, 60)}" (${timeoutEpisodesThisSession.size} timeouts in session)`);
+        console.warn(`[ProdRecap] Episode timed out after ${timeoutMinutes}min: "${epTitle.slice(0, 60)}" (${timeoutEpisodesThisSession.size} timeouts in session)`);
         try {
           await pool.query(
             `INSERT INTO landing_page_recaps (user_id, podcast_slug, episode_slug, episode_title, podcast_name, source, status, recap)
              VALUES (NULL, $1, $2, $3, $4, 'production_scheduler', 'generation_failed', $5)
              ON CONFLICT DO NOTHING`,
-            [podcastSlug, epSlug, epTitle, podcastName, "Timed out after 4 minutes"]
+            [podcastSlug, epSlug, epTitle, podcastName, `Timed out after ${timeoutMinutes} minutes`]
           );
         } catch (err: any) {
           console.error(`[ProdRecap] Failed to record timeout for "${epTitle.slice(0, 60)}": ${err.message}`);
         }
         resolve({ success: false });
-      }, 4 * 60 * 1000));
+      }, EPISODE_TIMEOUT_MS));
       const result = await Promise.race([processPromise, episodeTimeout]);
       currentlyGeneratingGuid = null;
       currentlyGeneratingTitle = null;
@@ -833,7 +836,7 @@ export function startProductionRecapScheduler() {
     return;
   }
 
-  console.log(`[ProdRecap] Starting scheduler (every ${INTERVAL_MS / 60000} min, ${BATCH_SIZE} episodes/batch)`);
+  console.log(`[ProdRecap] Starting scheduler (every ${INTERVAL_MS / 60000}min, ${BATCH_SIZE} episode/batch, ${EPISODE_TIMEOUT_MS / 60000}min timeout, oldest-first)`);
   isSchedulerStarted = true;
 
   setTimeout(async () => {
