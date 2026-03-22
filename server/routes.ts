@@ -17244,7 +17244,20 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
 
             const { getEpisodeTranscript, isTaddyBudgetExhausted: isBudgetExhausted } = await import("./taddyClient");
 
+            // Only queue if this podcast has previously produced at least one transcript.
+            // Podcasts with zero transcript history (e.g. Science Friday, The Memo) will never
+            // succeed in Taddy — skipping saves 5 pointless retries per episode.
+            const { rows: [txHistoryRow] } = await pool.query(
+              `SELECT 1 FROM episode_transcripts WHERE podcast_id = $1 LIMIT 1`,
+              [podcast.itunes_id]
+            );
+            const podcastHasTranscriptHistory = !!txHistoryRow;
+
             if (isBudgetExhausted()) {
+              if (!podcastHasTranscriptHistory) {
+                console.log(`[TaddyWebhook] Budget exhausted + no transcript history for "${podcast.name}", skipping queue`);
+                return;
+              }
               console.log(`[TaddyWebhook] Budget exhausted, queuing "${epTitle.slice(0, 60)}"`);
               await storage.queueTranscriptFetch({
                 podcastId: podcast.itunes_id,
@@ -17259,6 +17272,10 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
 
             const transcript = await getEpisodeTranscript(epUuid);
             if (!transcript) {
+              if (!podcastHasTranscriptHistory) {
+                console.log(`[TaddyWebhook] No transcript + no history for "${podcast.name}", skipping queue`);
+                return;
+              }
               console.log(`[TaddyWebhook] No transcript available yet, queuing "${epTitle.slice(0, 60)}"`);
               await storage.queueTranscriptFetch({
                 podcastId: podcast.itunes_id,
