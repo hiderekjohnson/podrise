@@ -345,12 +345,12 @@ export default function Onboarding() {
   const { isLoading: authLoading } = useQuery({ queryKey: ["/api/auth/me"] });
 
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!authLoading && !user && !isPreview) {
       navigate("/register");
     }
-  }, [authLoading, user, navigate]);
+  }, [authLoading, user, navigate, isPreview]);
 
-  if (!user) {
+  if (!user && !isPreview) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F7F7FC] dark:bg-[#08080F]">
         <Loader2 className="w-6 h-6 animate-spin text-[#6366F1]" />
