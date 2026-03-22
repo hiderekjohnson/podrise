@@ -469,6 +469,9 @@ export default function AdminTranscriptPipeline() {
       {/* Health Snapshot */}
       {healthSnapshot && <HealthSnapshot data={healthSnapshot} />}
 
+      {/* Stage Distribution - NEW */}
+      <StageDistribution counts={counts} />
+
       {/* Support Prompt - Top & Prominent */}
       <SupportPrompt />
 
@@ -592,6 +595,58 @@ export default function AdminTranscriptPipeline() {
           </p>
         </>
       )}
+    </div>
+  );
+}
+
+// NEW: Stage Distribution Component
+interface StageDistributionProps {
+  counts: Record<string, number>;
+}
+
+function StageDistribution({ counts }: StageDistributionProps) {
+  const stages = [
+    { key: 'complete', label: 'Published', color: 'bg-emerald-100 dark:bg-emerald-900/30', textColor: 'text-emerald-700 dark:text-emerald-300' },
+    { key: 'queued', label: 'In Queue', color: 'bg-blue-100 dark:bg-blue-900/30', textColor: 'text-blue-700 dark:text-blue-300' },
+    { key: 'pending_recap', label: 'Awaiting Recap', color: 'bg-amber-100 dark:bg-amber-900/30', textColor: 'text-amber-700 dark:text-amber-300' },
+    { key: 'missed', label: 'Missed', color: 'bg-orange-100 dark:bg-orange-900/30', textColor: 'text-orange-700 dark:text-orange-300' },
+    { key: 'failed', label: 'Failed', color: 'bg-red-100 dark:bg-red-900/30', textColor: 'text-red-700 dark:text-red-300' },
+  ];
+
+  const total = stages.reduce((sum, s) => sum + (counts[s.key] || 0), 0);
+
+  return (
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-4" data-testid="stage-distribution">
+      <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-4">Pipeline Stage Breakdown</h3>
+      <div className="space-y-3">
+        {stages.map(stage => {
+          const count = counts[stage.key] || 0;
+          const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+          return (
+            <div key={stage.key} className="flex items-center gap-3">
+              <div className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap ${stage.color} ${stage.textColor}`}>
+                {stage.label}
+              </div>
+              <div className="flex-1 bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-300 ${
+                    stage.key === 'complete' ? 'bg-emerald-500' :
+                    stage.key === 'queued' ? 'bg-blue-500' :
+                    stage.key === 'pending_recap' ? 'bg-amber-500' :
+                    stage.key === 'missed' ? 'bg-orange-500' :
+                    'bg-red-500'
+                  }`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <div className="text-right min-w-fit">
+                <span className="text-sm font-semibold text-slate-900 dark:text-white">{count}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 ml-1">({pct}%)</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

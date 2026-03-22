@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PodRise — Pipeline Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --indigo:#6366F1;--violet:#8B5CF6;--indigo-light:#A5B4FC;--indigo-bg:#EEF2FF;
+  --bg:#F7F7FC;--card:#FFFFFF;--text:#09090B;--secondary:#52525B;
+  --muted:#71717A;--hint:#A1A1AA;--border:#F0F0F2;--border-med:#E4E4E7;
+  --green:#16A34A;--green-bg:#DCFCE7;--amber:#D97706;--amber-bg:#FEF9C3;
+  --red:#DC2626;--red-bg:#FEE2E2;--blue:#2563EB;--blue-bg:#DBEAFE;
+  --orange:#EA580C;--orange-bg:#FFEDD5;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;}
+.shell{display:flex;min-height:100vh;}
+.sidebar{width:220px;flex-shrink:0;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;}
+
+/* Sidebar */
+.slogo{display:flex;align-items:center;gap:10px;padding:18px 16px 16px;border-bottom:1px solid var(--border);}
+.logo-icon{width:30px;height:30px;background:linear-gradient(145deg,#6366F1,#8B5CF6);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo-wm{font-size:15px;font-weight:600;letter-spacing:-0.02em;}
+.logo-wm span{color:var(--indigo);font-weight:300;}
+.logo-sub{font-family:'DM Mono',monospace;font-size:9px;color:var(--hint);letter-spacing:0.08em;text-transform:uppercase;margin-top:1px;}
+.ssect{padding:14px 12px 6px;}
+.ssect-lbl{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;color:var(--hint);padding:0 4px;margin-bottom:4px;}
+.slink{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;font-size:13px;color:var(--secondary);cursor:pointer;transition:background 0.1s;margin-bottom:1px;user-select:none;}
+.slink:hover{background:var(--bg);color:var(--text);}
+.slink.on{background:var(--indigo-bg);color:var(--indigo);font-weight:500;}
+.slink .ico{width:16px;text-align:center;font-size:12px;flex-shrink:0;}
+.sbbadge{margin-left:auto;font-size:10px;font-weight:600;background:var(--red-bg);color:var(--red);padding:1px 6px;border-radius:99px;}
+.sbbadge.a{background:var(--amber-bg);color:var(--amber);}
+.sfooter{margin-top:auto;padding:12px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--hint);font-family:'DM Mono',monospace;}
+.ldot{display:inline-block;width:6px;height:6px;background:var(--green);border-radius:50%;margin-right:6px;animation:blink 2s infinite;}
+
+/* Topbar */
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:10;flex-shrink:0;}
+.topbar-title{font-size:15px;font-weight:600;letter-spacing:-0.02em;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.rtime{font-family:'DM Mono',monospace;font-size:11px;color:var(--hint);}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border-med);background:var(--card);color:var(--secondary);font-family:'DM Sans',sans-serif;transition:all 0.1s;}
+.btn:hover{background:var(--bg);border-color:var(--indigo-light);color:var(--indigo);}
+.btn.primary{background:var(--indigo);color:white;border-color:var(--indigo);}
+.btn.primary:hover{background:#4F46E5;color:white;}
+.btn.danger{background:var(--red-bg);color:var(--red);border-color:#FCA5A5;}
+.btn.danger:hover{background:var(--red);color:white;}
+.btn.sm{padding:5px 10px;font-size:12px;}
+
+/* Content */
+.content{padding:20px 24px;flex:1;}
+.tab{display:none;}
+.tab.on{display:block;}
+
+/* Stage bar */
+.stagebar{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:flex-start;overflow-x:auto;}
+.sstep{display:flex;align-items:flex-start;flex:1;min-width:80px;}
+.snode{display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0;}
+.sdot{width:30px;height:30px;border-radius:50%;border:2px solid var(--border-med);background:var(--card);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--muted);}
+.sdot.done{background:var(--green-bg);border-color:#86EFAC;color:var(--green);}
+.sdot.active{background:var(--indigo-bg);border-color:var(--indigo-light);color:var(--indigo);animation:pring 1.5s infinite;}
+.slbl{font-size:10px;color:var(--muted);text-align:center;font-family:'DM Mono',monospace;max-width:72px;line-height:1.3;}
+.slbl.done{color:var(--green);}
+.slbl.active{color:var(--indigo);font-weight:500;}
+.scnt{font-size:12px;font-weight:600;color:var(--hint);}
+.scnt.has{color:var(--indigo);}
+.sconn{flex:1;height:2px;background:var(--border);margin:13px 4px 0;min-width:8px;}
+.sconn.done{background:#86EFAC;}
+
+/* Metrics */
+.metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-bottom:16px;}
+.mcrd{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.mlbl{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--hint);margin-bottom:6px;white-space:nowrap;font-family:'DM Mono',monospace;}
+.mval{font-size:28px;font-weight:700;letter-spacing:-0.04em;color:var(--text);line-height:1;}
+.mval.red{color:var(--red);}.mval.amber{color:var(--amber);}.mval.green{color:var(--green);}.mval.indigo{color:var(--indigo);}
+.msub{font-size:11px;color:var(--hint);margin-top:4px;}
+
+/* Table card */
+.tcrd{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;}
+.tcrd-hdr{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.tcrd-title{font-size:14px;font-weight:600;}
+.frow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.fi{height:32px;padding:0 10px;border:1px solid var(--border-med);border-radius:7px;font-size:12px;color:var(--text);background:var(--card);font-family:'DM Sans',sans-serif;outline:none;}
+.fi:focus{border-color:var(--indigo);}
+
+/* Table */
+.etbl{width:100%;border-collapse:collapse;font-size:13px;}
+.etbl th{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--hint);text-align:left;padding:9px 14px;border-bottom:1px solid var(--border);background:var(--bg);white-space:nowrap;font-family:'DM Mono',monospace;}
+.etbl td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.etbl tbody tr:last-child td{border-bottom:none;}
+.etbl tbody tr{cursor:pointer;transition:background 0.08s;}
+.etbl tbody tr:hover{background:var(--bg);}
+.etbl tbody tr.sel{background:var(--indigo-bg);}
+.ep-title{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:260px;}
+.ep-title.err{color:var(--red);}
+.ep-show{color:var(--muted);font-size:12px;white-space:nowrap;}
+.mono{font-family:'DM Mono',monospace;font-size:11px;color:var(--hint);white-space:nowrap;}
+.mono.warn{color:var(--amber);font-weight:600;}.mono.danger{color:var(--red);font-weight:600;}
+.norows{padding:40px;text-align:center;color:var(--muted);font-size:13px;}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:3px 8px;border-radius:99px;white-space:nowrap;}
+.bdot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.b-pending{background:var(--amber-bg);color:var(--amber);}.b-pending .bdot{background:var(--amber);}
+.b-fetching{background:var(--blue-bg);color:var(--blue);}.b-fetching .bdot{background:var(--blue);animation:blink 1s infinite;}
+.b-queued{background:var(--indigo-bg);color:var(--indigo);}.b-queued .bdot{background:var(--indigo);}
+.b-processing{background:var(--orange-bg);color:var(--orange);}.b-processing .bdot{background:var(--orange);animation:blink 1s infinite;}
+.b-done{background:var(--green-bg);color:var(--green);}.b-done .bdot{background:var(--green);}
+.b-error{background:var(--red-bg);color:var(--red);}.b-error .bdot{background:var(--red);}
+
+/* Action buttons */
+.abtn{font-size:11px;font-weight:500;padding:4px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;border:1px solid;transition:all 0.1s;}
+.abtn-red{color:var(--red);border-color:#FCA5A5;background:var(--red-bg);}
+.abtn-red:hover{background:var(--red);color:white;}
+
+/* Detail panel */
+.dp{background:var(--card);border:1px solid var(--indigo-light);border-radius:12px;overflow:hidden;margin-bottom:16px;display:none;}
+.dp.open{display:block;}
+.dp-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:var(--indigo-bg);}
+.dp-title{font-size:14px;font-weight:600;}
+.dp-show{font-size:12px;color:var(--muted);margin-top:2px;}
+.dp-body{display:grid;grid-template-columns:1fr 260px;}
+.dp-main{padding:18px;border-right:1px solid var(--border);}
+.dp-side{padding:18px;}
+.seclbl{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;color:var(--hint);font-family:'DM Mono',monospace;margin-bottom:12px;}
+
+/* Timeline */
+.tl{display:flex;flex-direction:column;}
+.tlrow{display:flex;gap:12px;}
+.tlleft{display:flex;flex-direction:column;align-items:center;width:18px;flex-shrink:0;}
+.tldot{width:16px;height:16px;border-radius:50%;border:2px solid var(--border-med);background:var(--card);flex-shrink:0;}
+.tldot.done{background:var(--green-bg);border-color:#86EFAC;}
+.tldot.active{background:var(--indigo-bg);border-color:var(--indigo);animation:pring 1.5s infinite;}
+.tldot.errr{background:var(--red-bg);border-color:#FCA5A5;}
+.tlline{flex:1;width:2px;background:var(--border);min-height:20px;margin:3px 0;}
+.tlline.done{background:#86EFAC;}
+.tlcontent{flex:1;padding-bottom:18px;}
+.tlname{font-size:13px;font-weight:500;color:var(--text);}
+.tlname.dim{color:var(--muted);font-weight:400;}
+.tlts{font-size:11px;color:var(--hint);font-family:'DM Mono',monospace;margin-top:2px;}
+.tlerr{font-size:12px;color:var(--red);margin-top:6px;background:var(--red-bg);padding:8px 10px;border-radius:6px;border-left:3px solid var(--red);line-height:1.5;}
+
+/* Meta grid */
+.metagrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.mitem .mlb{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--hint);font-family:'DM Mono',monospace;margin-bottom:3px;}
+.mitem .mvl{font-size:13px;font-weight:500;color:var(--text);}
+
+/* Queue health */
+.h2col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.hcrd{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+.hcrd-title{font-size:14px;font-weight:600;margin-bottom:14px;}
+.sprow{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.splbl{font-size:12px;color:var(--secondary);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.spbar{flex:2;height:8px;background:var(--bg);border-radius:4px;overflow:hidden;}
+.spfill{height:100%;border-radius:4px;}
+.fi-indigo{background:var(--indigo);}.fi-green{background:var(--green);}.fi-amber{background:var(--amber);}.fi-red{background:var(--red);}
+.spval{font-family:'DM Mono',monospace;font-size:11px;color:var(--hint);min-width:24px;text-align:right;}
+
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes pring{0%{box-shadow:0 0 0 0 rgba(99,102,241,0.3)}70%{box-shadow:0 0 0 5px rgba(99,102,241,0)}100%{box-shadow:0 0 0 0 rgba(99,102,241,0)}}
+
+@media(max-width:900px){
+  .metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .dp-body{grid-template-columns:1fr}
+  .dp-side{border-top:1px solid var(--border)}
+  .h2col{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="slogo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 28 28" width="16" height="16" fill="none">
+        <rect x="1" y="11" width="3.5" height="6" rx="1.75" fill="white" opacity="0.5"/>
+        <rect x="6.5" y="7" width="3.5" height="14" rx="1.75" fill="white" opacity="0.75"/>
+        <rect x="12" y="4" width="3.5" height="20" rx="1.75" fill="white"/>
+        <rect x="17.5" y="8" width="3.5" height="12" rx="1.75" fill="white" opacity="0.85"/>
+        <rect x="23" y="5" width="3.5" height="18" rx="1.75" fill="white" opacity="0.6"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-wm">Pod<span>Rise</span></div>
+      <div class="logo-sub">Internal ops</div>
+    </div>
+  </div>
+
+  <div class="ssect">
+    <div class="ssect-lbl">Pipeline</div>
+    <div class="slink on" id="nav-pipeline" onclick="go('pipeline')"><span class="ico">⚡</span>Live monitor</div>
+    <div class="slink" id="nav-errors" onclick="go('errors')"><span class="ico">⚠</span>Errors<span class="sbbadge" id="sb-err">2</span></div>
+    <div class="slink" id="nav-queue" onclick="go('queue')"><span class="ico">⏳</span>Queue health<span class="sbbadge a" id="sb-q">4</span></div>
+  </div>
+
+  <div class="sfooter"><span class="ldot"></span>Live · auto-refresh 30s</div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <span class="topbar-title" id="ttitle">Live pipeline monitor</span>
+    <div class="topbar-right">
+      <span class="rtime" id="rtime">Refreshes in 30s</span>
+      <button class="btn sm" onclick="refreshAll()">↺ Refresh</button>
+      <button class="btn primary sm" onclick="drainQueue()">▶ Drain queue</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- TAB: PIPELINE -->
+    <div class="tab on" id="tab-pipeline">
+      <div class="stagebar" id="stagebar"></div>
+      <div class="metrics" id="metrics"></div>
+      <div class="tcrd">
+        <div class="tcrd-hdr">
+          <span class="tcrd-title">All episodes</span>
+          <div class="frow">
+            <select class="fi" id="f-stage" onchange="renderTable()">
+              <option value="">All stages</option>
+              <option value="pending">Webhook received</option>
+              <option value="fetching">Fetching</option>
+              <option value="queued">In queue</option>
+              <option value="processing">AI processing</option>
+              <option value="done">Published</option>
+              <option value="error">Error</option>
+            </select>
+            <select class="fi" id="f-show" onchange="renderTable()"><option value="">All shows</option></select>
+            <input class="fi" type="text" id="f-search" placeholder="Search…" oninput="renderTable()" style="width:150px;">
+            <button class="btn danger sm" onclick="bulkRetry()">Retry all errors</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="etbl">
+            <thead><tr>
+              <th style="width:30%">Episode</th>
+              <th style="width:16%">Show</th>
+              <th style="width:14%">Stage</th>
+              <th style="width:9%">Age</th>
+              <th style="width:10%">Queued</th>
+              <th style="width:7%">Dur.</th>
+              <th style="width:6%">Tries</th>
+              <th style="width:8%">Action</th>
+            </tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="dp" id="dp">
+        <div class="dp-hdr">
+          <div><div class="dp-title" id="dp-title"></div><div class="dp-show" id="dp-show"></div></div>
+          <button class="btn sm" onclick="closeDetail()">Close ×</button>
+        </div>
+        <div class="dp-body">
+          <div class="dp-main" id="dp-main"></div>
+          <div class="dp-side" id="dp-side"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: ERRORS -->
+    <div class="tab" id="tab-errors">
+      <div class="tcrd">
+        <div class="tcrd-hdr">
+          <span class="tcrd-title">Error queue</span>
+          <button class="btn danger sm" onclick="bulkRetry()">Retry all errors</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="etbl">
+            <thead><tr>
+              <th style="width:28%">Episode</th>
+              <th style="width:16%">Show</th>
+              <th style="width:32%">Error message</th>
+              <th style="width:8%">Tries</th>
+              <th style="width:8%">Age</th>
+              <th style="width:8%">Action</th>
+            </tr></thead>
+            <tbody id="err-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: QUEUE HEALTH -->
+    <div class="tab" id="tab-queue">
+      <div class="hcrd" style="margin-bottom:16px;">
+        <div class="hcrd-title">Stage distribution</div>
+        <div id="q-stages"></div>
+      </div>
+      <div class="tcrd">
+        <div class="tcrd-hdr">
+          <span class="tcrd-title">Queue — oldest first</span>
+          <span style="font-size:12px;color:var(--muted);" id="q-drain-est"></span>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="etbl">
+            <thead><tr>
+              <th style="width:32%">Episode</th>
+              <th style="width:20%">Show</th>
+              <th style="width:12%">Position</th>
+              <th style="width:14%">Waiting</th>
+              <th style="width:22%">Est. completion</th>
+            </tr></thead>
+            <tbody id="q-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script>
+var MOCK=[
+  {id:'ep001',title:'The AI hardware race nobody is talking about',show:'All-In',stage:'done',age:12,queued:45,duration:87,attempts:1},
+  {id:'ep002',title:'How we built a $50M company with 8 people',show:'My First Million',stage:'done',age:28,queued:62,duration:54,attempts:1},
+  {id:'ep003',title:'Ozempic, metabolic health, and what doctors get wrong',show:'Huberman Lab',stage:'processing',age:94,queued:94,duration:185,attempts:1},
+  {id:'ep004',title:'Sam Altman on AGI timelines and what he actually believes',show:'Lex Fridman',stage:'queued',age:118,queued:118,duration:212,attempts:1},
+  {id:'ep005',title:"Sequoia's Doug Leone on the fund that almost wasn't",show:'Invest Like the Best',stage:'queued',age:130,queued:130,duration:68,attempts:1},
+  {id:'ep006',title:"Why your startup's pricing is wrong",show:'20VC',stage:'queued',age:155,queued:155,duration:41,attempts:1},
+  {id:'ep007',title:'The founder who sold 3 companies and started over',show:'Acquired',stage:'fetching',age:8,queued:null,duration:null,attempts:1},
+  {id:'ep008',title:'Inside the DOD AI strategy',show:'Darknet Diaries',stage:'error',age:240,queued:240,duration:null,attempts:3,error:'Taddy API 503 timeout after 3 retries.'},
+  {id:'ep009',title:'Andrew Huberman on sleep, stress, and the 2am spiral',show:'Huberman Lab',stage:'pending',age:3,queued:null,duration:null,attempts:0},
+  {id:'ep010',title:"Jeff Bezos's letters, 1997-2023",show:'Founders',stage:'done',age:380,queued:410,duration:92,attempts:1},
+  {id:'ep011',title:'Why I turned down $40M',show:'The Tim Ferriss Show',stage:'done',age:420,queued:445,duration:74,attempts:1},
+  {id:'ep012',title:'The longevity stack: what actually works at 50',show:'Huberman Lab',stage:'error',age:310,queued:310,duration:null,attempts:2,error:'OpenAI context limit exceeded (198k tokens). Transcript too long.'},
+  {id:'ep013',title:'Naval Ravikant on wealth, leverage, and saying no',show:'The Tim Ferriss Show',stage:'queued',age:172,queued:172,duration:148,attempts:1},
+];
+
+var selId=null;
+var TABS=['pipeline','errors','queue'];
+var TITLES={pipeline:'Live pipeline monitor',errors:'Error queue',queue:'Queue health'};
+
+function go(t){
+  for(var i=0;i<TABS.length;i++){
+    var tab=TABS[i];
+    document.getElementById('tab-'+tab).className='tab'+(tab===t?' on':'');
+    document.getElementById('nav-'+tab).className='slink'+(tab===t?' on':'');
+  }
+  document.getElementById('ttitle').textContent=TITLES[t]||t;
+}
+
+function agoStr(m){
+  if(!m&&m!==0)return'—';
+  if(m<60)return m+'m ago';
+  var h=Math.floor(m/60),r=m%60;
+  return h+'h'+(r?' '+r+'m':'')+' ago';
+}
+
+function ageClass(mins,stage){
+  if(stage==='done')return'mono';
+  if(mins>180)return'mono danger';
+  if(mins>90)return'mono warn';
+  return'mono';
+}
+
+function bdg(stage){
+  var map={
+    pending:['b-pending','Webhook recv.'],
+    fetching:['b-fetching','Fetching'],
+    queued:['b-queued','In queue'],
+    processing:['b-processing','AI processing'],
+    done:['b-done','Published'],
+    error:['b-error','Error']
+  };
+  var r=map[stage]||map.pending;
+  return'<span class="badge '+r[0]+'"><span class="bdot"></span>'+r[1]+'</span>';
+}
+
+function renderStageBar(){
+  var stages=[
+    {key:'pending',lbl:'Webhook'},
+    {key:'fetching',lbl:'Taddy fetch'},
+    {key:'queued',lbl:'In queue'},
+    {key:'processing',lbl:'AI recap'},
+    {key:'done',lbl:'Published'}
+  ];
+  var counts={};
+  stages.forEach(function(s){counts[s.key]=MOCK.filter(function(e){return e.stage===s.key;}).length;});
+  var h='';
+  stages.forEach(function(s,i){
+    var n=counts[s.key];
+    var dc=n>0?(s.key==='done'?'done':'active'):'';
+    h+='<div class="sstep">'
+      +'<div class="snode">'
+      +'<div class="sdot '+dc+'">'+(i+1)+'</div>'
+      +'<div class="slbl '+dc+'">'+s.lbl+'</div>'
+      +'<div class="scnt'+(n>0?' has':'')+'">'+( n||'')+'</div>'
+      +'</div>';
+    if(i<stages.length-1)h+='<div class="sconn'+(s.key==='done'?' done':'')+'"></div>';
+    h+='</div>';
+  });
+  document.getElementById('stagebar').innerHTML=h;
+}
+
+function renderMetrics(){
+  var c={pending:0,fetching:0,queued:0,processing:0,done:0,error:0};
+  MOCK.forEach(function(e){if(c[e.stage]!==undefined)c[e.stage]++;});
+  document.getElementById('metrics').innerHTML=
+    '<div class="mcrd"><div class="mlbl">Queue depth</div><div class="mval'+(c.queued>5?' amber':'')+'">'+c.queued+'</div><div class="msub">episodes waiting</div></div>'+
+    '<div class="mcrd"><div class="mlbl">Processing</div><div class="mval indigo">'+c.processing+'</div><div class="msub">AI recap active</div></div>'+
+    '<div class="mcrd"><div class="mlbl">Errors</div><div class="mval'+(c.error>0?' red':'')+'">'+c.error+'</div><div class="msub">need attention</div></div>'+
+    '<div class="mcrd"><div class="mlbl">Published today</div><div class="mval green">'+c.done+'</div><div class="msub">episodes live</div></div>'+
+    '<div class="mcrd"><div class="mlbl">Fetching</div><div class="mval">'+c.fetching+'</div><div class="msub">from Taddy</div></div>'+
+    '<div class="mcrd"><div class="mlbl">Pending</div><div class="mval">'+c.pending+'</div><div class="msub">webhook only</div></div>';
+  document.getElementById('sb-err').textContent=c.error;
+  document.getElementById('sb-q').textContent=c.queued;
+}
+
+function renderTable(){
+  var sf=document.getElementById('f-stage').value;
+  var shf=document.getElementById('f-show').value;
+  var sch=document.getElementById('f-search').value.toLowerCase();
+  var data=MOCK.filter(function(ep){
+    if(sf&&ep.stage!==sf)return false;
+    if(shf&&ep.show!==shf)return false;
+    if(sch&&ep.title.toLowerCase().indexOf(sch)===-1&&ep.show.toLowerCase().indexOf(sch)===-1)return false;
+    return true;
+  });
+  var tbody=document.getElementById('tbody');
+  if(!data.length){tbody.innerHTML='<tr><td colspan="8" class="norows">No episodes match these filters.</td></tr>';return;}
+  tbody.innerHTML=data.map(function(ep){
+    var ac=ageClass(ep.age,ep.stage);
+    var isErr=ep.stage==='error';
+    var isSel=selId===ep.id;
+    var action=isErr?'<button class="abtn abtn-red" onclick="event.stopPropagation();retryEp(\''+ep.id+'\')">Retry</button>':'';
+    return'<tr class="'+(isSel?'sel':'')+'" onclick="openDetail(\''+ep.id+'\')">'
+      +'<td><div class="ep-title'+(isErr?' err':'')+'" title="'+ep.title+'">'+ep.title+'</div></td>'
+      +'<td><div class="ep-show">'+ep.show+'</div></td>'
+      +'<td>'+bdg(ep.stage)+'</td>'
+      +'<td><span class="'+ac+'">'+agoStr(ep.age)+'</span></td>'
+      +'<td><span class="mono">'+agoStr(ep.queued)+'</span></td>'
+      +'<td><span class="mono">'+(ep.duration?ep.duration+'m':'—')+'</span></td>'
+      +'<td><span class="mono">'+ep.attempts+'</span></td>'
+      +'<td>'+action+'</td>'
+      +'</tr>';
+  }).join('');
+}
+
+function openDetail(id){
+  selId=id;
+  var ep=null;
+  for(var i=0;i<MOCK.length;i++){if(MOCK[i].id===id){ep=MOCK[i];break;}}
+  if(!ep)return;
+  document.getElementById('dp-title').textContent=ep.title;
+  document.getElementById('dp-show').textContent=ep.show;
+  var stages=[
+    {key:'pending',lbl:'Webhook received'},
+    {key:'fetching',lbl:'Transcript requested from Taddy'},
+    {key:'queued',lbl:'Transcript received — in queue'},
+    {key:'processing',lbl:'AI recap processing'},
+    {key:'done',lbl:'Published'}
+  ];
+  var order=['pending','fetching','queued','processing','done'];
+  var ci=ep.stage==='error'?3:order.indexOf(ep.stage);
+  var tl='';
+  stages.forEach(function(s,i){
+    var isDone=i<ci,isActive=i===ci,isErr=ep.stage==='error'&&i===ci,notLast=i<stages.length-1;
+    var dc=isErr?'errr':isDone?'done':isActive?'active':'';
+    var lc=isDone?'done':'';
+    var ts=i===0?'('+agoStr(ep.age)+')':isDone?'('+agoStr(Math.max(1,ep.age-i*3))+')':'';
+    var eb=(isErr&&ep.error)?'<div class="tlerr">'+ep.error+'<br><button class="abtn abtn-red" style="margin-top:8px;" onclick="retryEp(\''+ep.id+'\')">Retry now</button></div>':'';
+    tl+='<div class="tlrow">'
+      +'<div class="tlleft"><div class="tldot '+dc+'"></div>'+(notLast?'<div class="tlline '+lc+'"></div>':'')+'</div>'
+      +'<div class="tlcontent"><div class="tlname'+(!isDone&&!isActive?' dim':'')+'">'+s.lbl+'</div>'+(ts?'<div class="tlts">'+ts+'</div>':'')+eb+'</div>'
+      +'</div>';
+  });
+  document.getElementById('dp-main').innerHTML='<div class="seclbl">Timeline</div><div class="tl">'+tl+'</div>';
+
+  var side='<div class="seclbl">Episode details</div><div class="metagrid">'
+    +'<div class="mitem"><div class="mlb">Episode ID</div><div class="mvl" style="font-family:\'DM Mono\',monospace;font-size:12px;">'+ep.id+'</div></div>'
+    +'<div class="mitem"><div class="mlb">Show</div><div class="mvl">'+ep.show+'</div></div>'
+    +'<div class="mitem"><div class="mlb">Stage</div><div class="mvl">'+bdg(ep.stage)+'</div></div>'
+    +'<div class="mitem"><div class="mlb">Attempts</div><div class="mvl">'+ep.attempts+'</div></div>'
+    +(ep.duration?'<div class="mitem"><div class="mlb">Runtime</div><div class="mvl">'+ep.duration+' min</div></div>':'')
+    +'<div class="mitem"><div class="mlb">Age</div><div class="mvl">'+agoStr(ep.age)+'</div></div>'
+    +'</div>';
+  if(ep.stage==='error'){
+    side+='<button class="abtn abtn-red" style="margin-top:10px;width:100%;display:block;text-align:center;" onclick="retryEp(\''+ep.id+'\')">Retry this episode</button>';
+  }
+  document.getElementById('dp-side').innerHTML=side;
+  document.getElementById('dp').className='dp open';
+  renderTable();
+  document.getElementById('dp').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function closeDetail(){
+  selId=null;
+  document.getElementById('dp').className='dp';
+  renderTable();
+}
+
+function retryEp(id){
+  var ep=null;
+  for(var i=0;i<MOCK.length;i++){if(MOCK[i].id===id){ep=MOCK[i];break;}}
+  if(!ep)return;
+  ep.stage='fetching';ep.attempts++;ep.age=1;
+  refreshAll();
+  if(selId===id)openDetail(id);
+  setTimeout(function(){
+    ep.stage='queued';ep.age=2;
+    refreshAll();
+    if(selId===id)openDetail(id);
+  },2500);
+}
+
+function bulkRetry(){
+  MOCK.filter(function(e){return e.stage==='error';}).forEach(function(ep){retryEp(ep.id);});
+}
+
+function drainQueue(){
+  MOCK.filter(function(e){return e.stage==='queued';}).forEach(function(ep){ep.stage='processing';});
+  refreshAll();
+}
+
+function renderErrors(){
+  var errs=MOCK.filter(function(e){return e.stage==='error';});
+  document.getElementById('err-tbody').innerHTML=errs.length
+    ?errs.map(function(ep){
+      return'<tr>'
+        +'<td><div class="ep-title err" title="'+ep.title+'">'+ep.title+'</div></td>'
+        +'<td><div class="ep-show">'+ep.show+'</div></td>'
+        +'<td style="font-size:12px;color:var(--red);">'+(ep.error||'Unknown')+'</td>'
+        +'<td class="mono">'+ep.attempts+'</td>'
+        +'<td class="mono danger">'+agoStr(ep.age)+'</td>'
+        +'<td><button class="abtn abtn-red" onclick="retryEp(\''+ep.id+'\');go(\'pipeline\')">Retry</button></td>'
+        +'</tr>';
+    }).join('')
+    :'<tr><td colspan="6" class="norows">&#10003; No errors — pipeline is clean.</td></tr>';
+}
+
+function renderQueue(){
+  var sdist=[
+    {s:'pending',   c:MOCK.filter(function(e){return e.stage==='pending';}).length,   col:'fi-amber'},
+    {s:'fetching',  c:MOCK.filter(function(e){return e.stage==='fetching';}).length,  col:'fi-indigo'},
+    {s:'queued',    c:MOCK.filter(function(e){return e.stage==='queued';}).length,     col:'fi-indigo'},
+    {s:'processing',c:MOCK.filter(function(e){return e.stage==='processing';}).length, col:'fi-amber'},
+    {s:'done',      c:MOCK.filter(function(e){return e.stage==='done';}).length,       col:'fi-green'},
+    {s:'error',     c:MOCK.filter(function(e){return e.stage==='error';}).length,      col:'fi-red'},
+  ];
+  var maxS=Math.max.apply(null,sdist.map(function(x){return x.c;}).concat([1]));
+  document.getElementById('q-stages').innerHTML=sdist.map(function(x){
+    return'<div class="sprow">'
+      +'<span class="splbl" style="text-transform:capitalize;">'+(x.s==='done'?'Published':x.s)+'</span>'
+      +'<div class="spbar"><div class="spfill '+x.col+'" style="width:'+Math.round(x.c/maxS*100)+'%"></div></div>'
+      +'<span class="spval">'+x.c+'</span>'
+      +'</div>';
+  }).join('');
+
+  var qEps=MOCK.filter(function(e){return e.stage==='queued';}).sort(function(a,b){return b.age-a.age;});
+  document.getElementById('q-drain-est').textContent=qEps.length?'Est. drain: ~'+(qEps.length*6)+'min':'';
+  document.getElementById('q-tbody').innerHTML=qEps.length
+    ?qEps.map(function(ep,i){
+      return'<tr style="cursor:pointer;" onclick="openDetail(\''+ep.id+'\');go(\'pipeline\')">'
+        +'<td><div class="ep-title" title="'+ep.title+'">'+ep.title+'</div></td>'
+        +'<td><div class="ep-show">'+ep.show+'</div></td>'
+        +'<td class="mono">#'+(i+1)+'</td>'
+        +'<td class="mono '+(ep.age>120?'danger':ep.age>60?'warn':'')+'">'+agoStr(ep.age)+'</td>'
+        +'<td class="mono">~'+((i+1)*6)+'min</td>'
+        +'</tr>';
+    }).join('')
+    :'<tr><td colspan="5" class="norows">Queue is empty.</td></tr>';
+}
+
+function populateShows(){
+  var shows=[];
+  MOCK.forEach(function(e){if(shows.indexOf(e.show)===-1)shows.push(e.show);});
+  shows.sort();
+  var sel=document.getElementById('f-show');
+  shows.forEach(function(s){var o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o);});
+}
+
+var _secs=30;
+function refreshAll(){
+  renderStageBar();
+  renderMetrics();
+  renderTable();
+  renderErrors();
+  renderQueue();
+}
+
+function startTimer(){
+  setInterval(function(){
+    _secs--;
+    if(_secs<=0){_secs=30;refreshAll();}
+    document.getElementById('rtime').textContent='Refreshes in '+_secs+'s';
+  },1000);
+}
+
+populateShows();
+refreshAll();
+startTimer();
+</script>
+</body>
+</html>
