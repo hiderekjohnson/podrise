@@ -8,7 +8,7 @@ import { Loader2, Search, Podcast, X } from "lucide-react";
 import { SiSpotify } from "react-icons/si";
 import { motion, AnimatePresence } from "framer-motion";
 import { hiResArtwork } from "@/lib/utils";
-import logoTransparent from "@assets/Transparent-square_1773866360595.png";
+
 
 interface SearchResult {
   id: string;
@@ -453,11 +453,8 @@ export default function Onboarding() {
       <div className="flex-1 min-h-0 overflow-hidden flex flex-col items-center px-4 sm:px-6 pb-0 md:pb-6">
 
         <div className="w-full max-w-[860px] py-3 flex-shrink-0">
-          <a href="/" className="flex items-center gap-2 no-underline w-fit">
-            <img src={logoTransparent} alt="" className="w-[26px] h-[26px] rounded-[22%] object-contain" />
-            <span className="text-[15px] font-semibold tracking-[-0.03em] text-[#09090B] dark:text-white">
-              Pod<em className="not-italic text-[#6366F1] font-light">Rise</em>
-            </span>
+          <a href="/" className="block w-fit no-underline">
+            <img src="/logo-transparent.svg" alt="PodRise" className="h-9 w-auto object-contain" />
           </a>
         </div>
 
