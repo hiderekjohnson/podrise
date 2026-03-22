@@ -1,0 +1,36 @@
+
+Only showing the latest 20 tasks
+Library
+Search
+Other
+Documents
+#310 - Daily Email Engagement Overhaul
+What & Why
+Multiple improvements to the daily podcast recap email to increase click-throughs to the logged-in site, remove an outdated feature, and add new sections that tease shop books, surface missed episodes, and promote the Pod Squad referral program.
+
+Done looks like
+Every content link in the email (episode recap pages, podcast pages, full recap buttons) routes through /login?redirect=<destination> — users who aren't logged in are prompted to sign in before landing on the page, users who are already logged in are taken straight there
+The "Mentioned in this Episode" / books section no longer appears in recap emails
+A "From the Pod Shop" teaser block appears somewhere between episode recaps (never at the top, before the first recap). It shows 2–3 books that podcasters mentioned this week, with copy that teases what was said about each book (e.g. "Hear what podcasters are saying about this book — log in to find out"). Each book links to its shop page via the login redirect
+A "You Might Have Missed" block also appears between episode recaps (never at the top). It shows 2–3 episodes from podcasts the user doesn't follow, leading with each episode's tabloid headline to spark curiosity. Each item links to the episode recap via login redirect
+The Pod Squad section at the bottom of every email is redesigned to look more like Morning Brew's referral block: bold "REFERRALS GET REWARDED" style header, the user's current referral count, how many more they need to unlock the next reward, and a prominent "Click to Share" button. The share link goes to https://podrise.com/login?redirect=/pod-squad so they arrive logged in
+Out of scope
+Changes to how recaps are generated or approved
+Any changes to the Pod Squad reward tiers or referral logic
+Building a new login redirect endpoint — use existing /login?redirect= URL pattern
+Personalisation of shop or missed episodes beyond what's available from existing DB data
+Tasks
+Login-redirect all email links — In emailTemplate.ts, update every href in buildEpisodeCard (podcast URL, episode recap URL, artwork link) to route through /login?redirect=<destination>. Do the same for the Pod Squad share link. Also update the podrise.com/login footer links that say "Manage podcasts" and "Email preferences" to already go to /login (they already do, confirm no other plain links remain). In the login page (client/src/pages/Login.tsx or equivalent), ensure that after successful login the ?redirect query param is honoured and the user is sent there.
+
+Remove "mentioned in this episode" from emails — Audit recapGenerator.ts and emailTemplate.ts to confirm no books/resources section is currently being rendered in the email HTML. Remove any parsing, rendering, or markdown assembly code that produces a "mentioned in this episode", "Books Mentioned", or resources block in the email output. Strip any such content from the AI prompt output before it reaches the email template if it's surfacing via whatHappened text.
+
+"From the Pod Shop" teaser section — In emailScheduler.ts, after building the recap but before rendering, query the DB for 2–3 shop books that have the most podcast episode mentions in the past 7 days (using book_episode_mentions or similar), excluding any with missing covers. Pass this as new shopBooks data to markdownToEmailHtml. In emailTemplate.ts, add a buildShopSection(books) function that renders a visually distinct block showing each book's cover, title, and teaser copy (e.g. "Podcasters are buzzing about this one — log in to see what they're saying"). Each book links to /login?redirect=/shop/<bookSlug>. Inject this block after one of the middle episode cards (not before the first recap card).
+
+"You Might Have Missed" section — In emailScheduler.ts, query the DB for 2–3 recently published episodes from podcasts the user does NOT follow, preferring those with a tabloid headline, sorted by how many PodRise followers those podcasts have (i.e. popular podcasts first). Pass as missedEpisodes data. In emailTemplate.ts, add a buildMissedEpisodesSection(episodes) function that renders each item with the tabloid headline as the hook, the podcast name as a label, and a "Read the Recap" CTA linking to /login?redirect=/podcasts/<slug>/<epSlug>. Inject this block after another middle episode card (different position from the shop section).
+
+Pod Squad section redesign — Rewrite the Pod Squad referral block in emailTemplate.ts to match the Morning Brew style from the attached reference image: a bold header (e.g. "THE POD SQUAD — REFERRALS GET REWARDED"), a short pitch ("Share PodRise, watch your referral count climb, and unlock brag-worthy swag"), the user's current referral count in bold, the next milestone called out ("X more to unlock [Reward]"), a prominent "Click to Share" CTA button, and optionally a copyable referral link shown below. The "Click to Share" button links to /login?redirect=/pod-squad (not to the raw referral URL). The section is always shown at the bottom of the email (before the sign-off), never hidden.
+
+Relevant files
+server/emailTemplate.ts
+server/emailScheduler.ts
+server/recapGenerator.ts
