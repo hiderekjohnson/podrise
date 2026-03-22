@@ -177,11 +177,12 @@ export default function Onboarding() {
     document.title = "Set Up Your Feed | PodRise";
   }, []);
 
+  const isPreview = new URLSearchParams(window.location.search).has("preview");
   useEffect(() => {
-    if (user && user.onboardingCompleted) {
+    if (user && user.onboardingCompleted && !isPreview) {
       navigate("/dashboard");
     }
-  }, [user, navigate]);
+  }, [user, navigate, isPreview]);
 
   const completeMutation = useMutation({
     mutationFn: async () => {
