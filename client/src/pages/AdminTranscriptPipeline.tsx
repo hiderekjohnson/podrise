@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Loader2, CheckCircle2, Clock, AlertTriangle, XCircle,
@@ -662,6 +663,7 @@ interface PipelineTableProps {
 }
 
 function PipelineTable({ rows, counts }: PipelineTableProps) {
+  const { toast } = useToast();
   const [stageFilter, setStageFilter] = useState<string>("all");
   const [showFilter, setShowFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
@@ -747,11 +749,17 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
   const deleteSelectedMutation = useMutation({
     mutationFn: (episodes: { episode_guid: string | null; podcast_id: string; episode_title: string }[]) =>
       apiRequest("POST", "/api/admin/pipeline/delete-episodes", { episodes }),
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       setSelectedIds(new Set());
       lastCheckedIdxRef.current = null;
       queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline-monitor"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline/queue-depth"] });
+      const deleted = (data?.transcripts_cleared ?? 0) + (data?.queue_cleared ?? 0);
+      toast({
+        title: deleted > 0 ? `Deleted ${data.transcripts_cleared} transcript(s), ${data.queue_cleared} queue item(s)` : "Nothing deleted",
+        description: deleted === 0 ? "No matching rows were found — they may have already been removed." : undefined,
+        variant: deleted > 0 ? "default" : "destructive",
+      });
     },
   });
 

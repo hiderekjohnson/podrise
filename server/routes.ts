@@ -9621,9 +9621,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           );
           queueCleared += q.length;
           const { rows: t } = await pool.query(
-            `DELETE FROM episode_transcripts WHERE podcast_id = $1 AND episode_guid = $2
-             AND NOT EXISTS (SELECT 1 FROM landing_page_recaps lpr WHERE lpr.itunes_id = $1 AND lower(trim(lpr.episode_title)) = lower(trim(episode_title)))
-             RETURNING id`,
+            `DELETE FROM episode_transcripts WHERE podcast_id = $1 AND episode_guid = $2 RETURNING id`,
             [podcast_id, episode_guid]
           );
           transcriptsCleared += t.length;
@@ -9634,9 +9632,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           );
           queueCleared += q.length;
           const { rows: t } = await pool.query(
-            `DELETE FROM episode_transcripts WHERE podcast_id = $1 AND lower(trim(episode_title)) = lower(trim($2))
-             AND NOT EXISTS (SELECT 1 FROM landing_page_recaps lpr WHERE lpr.itunes_id = $1 AND lower(trim(lpr.episode_title)) = lower(trim($2)))
-             RETURNING id`,
+            `DELETE FROM episode_transcripts WHERE podcast_id = $1 AND lower(trim(episode_title)) = lower(trim($2)) RETURNING id`,
             [podcast_id, episode_title]
           );
           transcriptsCleared += t.length;
