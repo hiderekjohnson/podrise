@@ -13,8 +13,8 @@ let lastBudgetSyncAt = 0;
 const BUDGET_SYNC_INTERVAL_MS = 5 * 60 * 1000;
 
 // --- Per-minute sliding-window rate limiter ---
-// Taddy allows 250 req/min. We self-limit to 180 to stay well clear.
-const PER_MINUTE_LIMIT = 180;
+// Taddy allows 250 req/min. We self-limit to 60 to stay well clear (24% of their limit).
+const PER_MINUTE_LIMIT = 60;
 const requestTimestamps: number[] = [];
 
 function perMinuteSlotAvailable(): boolean {
