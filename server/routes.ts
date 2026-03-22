@@ -9565,8 +9565,14 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   app.post("/api/admin/pipeline/clean-old-transcripts", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     try {
-      const maxAgeDays = typeof req.body.maxAgeDays === "number" ? req.body.maxAgeDays : 5;
-      const cutoff = Math.floor((Date.now() - maxAgeDays * 86400 * 1000) / 1000);
+      // Accept either an explicit unix-second cutoff or a maxAgeDays offset from now
+      let cutoff: number;
+      if (typeof req.body.beforeTimestamp === "number") {
+        cutoff = req.body.beforeTimestamp;
+      } else {
+        const maxAgeDays = typeof req.body.maxAgeDays === "number" ? req.body.maxAgeDays : 5;
+        cutoff = Math.floor((Date.now() - maxAgeDays * 86400 * 1000) / 1000);
+      }
 
       // Also clear any pending queue entries for episodes older than the cutoff
       const { rows: queueRows } = await pool.query(`
@@ -9590,8 +9596,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         RETURNING id
       `, [cutoff]);
 
-      console.log(`[CleanOldTranscripts] Removed ${transcriptRows.length} old transcripts (>${maxAgeDays}d), ${queueRows.length} queue entries`);
-      res.json({ transcripts_deleted: transcriptRows.length, queue_deleted: queueRows.length, max_age_days: maxAgeDays });
+      console.log(`[CleanOldTranscripts] Removed ${transcriptRows.length} old transcripts (cutoff=${cutoff}), ${queueRows.length} queue entries`);
+      res.json({ transcripts_deleted: transcriptRows.length, queue_deleted: queueRows.length, cutoff });
     } catch (err: any) {
       res.status(500).json({ message: err.message });
     }

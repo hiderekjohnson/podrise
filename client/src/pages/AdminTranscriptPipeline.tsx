@@ -669,6 +669,7 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
 
   const [clearConfirm, setClearConfirm] = useState(false);
   const [purgeConfirm, setPurgeConfirm] = useState(false);
+  const [purgePre0320Confirm, setPurgePre0320Confirm] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [airedSort, setAiredSort] = useState<"asc" | "desc" | null>(null);
   const lastCheckedIdxRef = useRef<number | null>(null);
@@ -727,6 +728,17 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
   const cleanOldTranscriptsMutation = useMutation({
     mutationFn: () => apiRequest("POST", "/api/admin/pipeline/clean-old-transcripts", { maxAgeDays: 5 }),
     onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline-monitor"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline/queue-depth"] });
+    },
+  });
+
+  // March 20 2026 00:00:00 UTC in unix seconds
+  const MAR_20_2026_UTC = 1773964800;
+  const purgePre0320Mutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/pipeline/clean-old-transcripts", { beforeTimestamp: MAR_20_2026_UTC }),
+    onSuccess: () => {
+      setPurgePre0320Confirm(false);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline-monitor"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline/queue-depth"] });
     },
@@ -1068,6 +1080,36 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
               {cleanOldTranscriptsMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3 h-3" />}
               Delete old (&gt;5d)
             </button>
+            {/* One-off: purge all unrecapped episodes aired before March 20 2026 */}
+            {purgePre0320Confirm ? (
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-slate-600 dark:text-slate-400">Delete all unrecapped episodes before <strong>Mar 20, 2026</strong>?</span>
+                <button
+                  onClick={() => purgePre0320Mutation.mutate()}
+                  disabled={purgePre0320Mutation.isPending}
+                  className="text-xs px-2.5 py-1.5 rounded-lg border border-red-400 text-white bg-red-500 hover:bg-red-600 font-medium disabled:opacity-50 transition-colors flex items-center gap-1"
+                  data-testid="button-confirm-purge-pre0320"
+                >
+                  {purgePre0320Mutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Yes, purge"}
+                </button>
+                <button
+                  onClick={() => setPurgePre0320Confirm(false)}
+                  className="text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setPurgePre0320Confirm(true)}
+                className="text-xs px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 font-medium transition-colors flex items-center gap-1.5"
+                data-testid="button-purge-pre0320"
+                title="Permanently delete all unrecapped episode transcripts aired before March 20, 2026"
+              >
+                <XCircle className="w-3 h-3" />
+                Purge pre-Mar 20
+              </button>
+            )}
           </div>
         </div>
 
