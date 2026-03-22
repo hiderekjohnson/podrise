@@ -1,1 +1,0 @@
-ALTER TABLE "landing_page_recaps" ADD COLUMN "youtube_url" text;

@@ -1,3 +1,10 @@
+CREATE TABLE "ad_events" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"ad_id" integer NOT NULL,
+	"event_type" text NOT NULL,
+	"created_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
 CREATE TABLE "admin_settings" (
 	"key" text PRIMARY KEY NOT NULL,
 	"value" text NOT NULL,
@@ -27,6 +34,7 @@ CREATE TABLE "affiliate_clicks" (
 	"product_id" integer,
 	"destination_url" text NOT NULL,
 	"referrer_page" text,
+	"user_id" integer,
 	"clicked_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
@@ -39,7 +47,42 @@ CREATE TABLE "api_usage_logs" (
 	"total_tokens" integer DEFAULT 0,
 	"estimated_cost" real DEFAULT 0,
 	"metadata" jsonb,
+	"service" text DEFAULT 'openai',
+	"podcast_slug" text,
+	"episode_slug" text,
 	"created_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
+CREATE TABLE "audio_playback_events" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"podcast_slug" text NOT NULL,
+	"episode_slug" text NOT NULL,
+	"event_type" text NOT NULL,
+	"percentage_reached" real DEFAULT 0,
+	"session_id" text,
+	"user_id" integer,
+	"created_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
+CREATE TABLE "backfill_jobs" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"key" text NOT NULL,
+	"status" text DEFAULT 'idle' NOT NULL,
+	"total_records" integer,
+	"processed_count" integer DEFAULT 0 NOT NULL,
+	"updated_count" integer DEFAULT 0 NOT NULL,
+	"error_message" text,
+	"last_run_at" timestamp,
+	"created_at" timestamp DEFAULT now(),
+	CONSTRAINT "backfill_jobs_key_unique" UNIQUE("key")
+);
+--> statement-breakpoint
+CREATE TABLE "book_bookmarks" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"user_id" integer NOT NULL,
+	"book_slug" text NOT NULL,
+	"created_at" timestamp DEFAULT now(),
+	CONSTRAINT "book_bookmarks_user_id_book_slug_unique" UNIQUE("user_id","book_slug")
 );
 --> statement-breakpoint
 CREATE TABLE "bookmarks" (
@@ -226,6 +269,24 @@ CREATE TABLE "extracted_products" (
 	"reviewed_at" timestamp
 );
 --> statement-breakpoint
+CREATE TABLE "feature_events" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"user_id" integer,
+	"feature" text NOT NULL,
+	"metadata" jsonb DEFAULT '{}'::jsonb,
+	"created_at" timestamp DEFAULT now(),
+	CONSTRAINT "feature_events_feature_check" CHECK ("feature_events"."feature" IN ('ai_chat', 'episode_link', 'spotify_import'))
+);
+--> statement-breakpoint
+CREATE TABLE "feature_flags" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"key" text NOT NULL,
+	"description" text,
+	"enabled" boolean DEFAULT false NOT NULL,
+	"created_at" timestamp DEFAULT now(),
+	CONSTRAINT "feature_flags_key_unique" UNIQUE("key")
+);
+--> statement-breakpoint
 CREATE TABLE "feed_ad_settings" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"key" text NOT NULL,
@@ -241,6 +302,13 @@ CREATE TABLE "feed_ads" (
 	"image_url" text NOT NULL,
 	"destination_url" text DEFAULT '',
 	"podcast_slug" text,
+	"episode_slug" text,
+	"episode_title" text,
+	"episode_tldl" text,
+	"episode_key_insights" text[],
+	"episode_quote" text,
+	"episode_quote_attribution" text,
+	"podcast_name" text,
 	"weight" integer DEFAULT 1 NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp DEFAULT now()
@@ -265,6 +333,7 @@ CREATE TABLE "landing_page_recaps" (
 	"apple_episode_url" text,
 	"spotify_episode_url" text,
 	"audio_url" text,
+	"youtube_url" text,
 	"key_topics" text[],
 	"topic_contexts" text,
 	"top_questions" text,
@@ -279,6 +348,22 @@ CREATE TABLE "landing_page_recaps" (
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
+CREATE TABLE "landing_page_visits" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"page_slug" text NOT NULL,
+	"session_id" text,
+	"utm_source" text,
+	"utm_medium" text,
+	"utm_campaign" text,
+	"utm_content" text,
+	"utm_term" text,
+	"ip_address" text,
+	"user_agent" text,
+	"device_type" text,
+	"user_id" integer,
+	"visited_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
 CREATE TABLE "magic_links" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"email" text NOT NULL,
@@ -287,6 +372,15 @@ CREATE TABLE "magic_links" (
 	"used_at" timestamp,
 	"created_at" timestamp DEFAULT now(),
 	CONSTRAINT "magic_links_token_unique" UNIQUE("token")
+);
+--> statement-breakpoint
+CREATE TABLE "mturk_workers" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" text NOT NULL,
+	"token" text NOT NULL,
+	"active" boolean DEFAULT true NOT NULL,
+	"created_at" timestamp DEFAULT now(),
+	CONSTRAINT "mturk_workers_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
 CREATE TABLE "pending_emails" (
@@ -308,6 +402,34 @@ CREATE TABLE "pending_emails" (
 	"email_opened_at" timestamp,
 	"first_clicked_at" timestamp,
 	"created_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
+CREATE TABLE "pending_transcript_queue" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"podcast_id" text NOT NULL,
+	"podcast_name" text NOT NULL,
+	"episode_guid" text NOT NULL,
+	"episode_title" text NOT NULL,
+	"taddy_uuid" text,
+	"priority" integer DEFAULT 50 NOT NULL,
+	"status" text DEFAULT 'pending' NOT NULL,
+	"attempts" integer DEFAULT 0 NOT NULL,
+	"last_attempt_at" timestamp,
+	"error_message" text,
+	"created_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
+CREATE TABLE "podcast_categories" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" text NOT NULL,
+	"slug" text NOT NULL,
+	"description" text,
+	"icon" text,
+	"keywords" text[] DEFAULT '{}' NOT NULL,
+	"sort_order" integer DEFAULT 0 NOT NULL,
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now(),
+	CONSTRAINT "podcast_categories_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
 CREATE TABLE "podcast_directory" (
@@ -341,11 +463,13 @@ CREATE TABLE "podcast_directory" (
 	"host_bios" jsonb,
 	"related_slugs" text[],
 	"about_podcast" text,
+	"feed_url" text,
 	"taddy_uuid" text,
 	"apple_rating" text,
 	"apple_rating_count" integer,
 	"has_landing_page" boolean DEFAULT false,
 	"status" text DEFAULT 'published' NOT NULL,
+	"is_protected" boolean DEFAULT false,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	CONSTRAINT "podcast_directory_itunes_id_unique" UNIQUE("itunes_id"),
@@ -380,19 +504,6 @@ CREATE TABLE "podcast_hosts" (
 	"instagram_handle" text,
 	"website_url" text,
 	"sort_order" integer DEFAULT 0
-);
---> statement-breakpoint
-CREATE TABLE "podcast_lists" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"name" text NOT NULL,
-	"slug" text NOT NULL,
-	"description" text,
-	"podcast_slugs" text[] DEFAULT '{}' NOT NULL,
-	"category" text,
-	"sort_order" integer DEFAULT 0 NOT NULL,
-	"created_at" timestamp DEFAULT now(),
-	"updated_at" timestamp DEFAULT now(),
-	CONSTRAINT "podcast_lists_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
 CREATE TABLE "podcast_top_questions" (
@@ -433,6 +544,25 @@ CREATE TABLE "pulse_subscriptions" (
 	"topic_slug" text NOT NULL,
 	"subscribed_at" timestamp DEFAULT now(),
 	CONSTRAINT "pulse_subscriptions_user_topic_unique" UNIQUE("user_id","topic_slug")
+);
+--> statement-breakpoint
+CREATE TABLE "recap_audio" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"podcast_slug" text NOT NULL,
+	"episode_slug" text NOT NULL,
+	"audio_url" text,
+	"elevenlabs_request_id" text,
+	"voice_id" text,
+	"character_count" integer DEFAULT 0,
+	"audio_duration" real DEFAULT 0,
+	"openai_script_cost" real DEFAULT 0,
+	"elevenlabs_cost" real DEFAULT 0,
+	"total_cost" real DEFAULT 0,
+	"narration_script" text,
+	"status" text DEFAULT 'not_generated' NOT NULL,
+	"error_message" text,
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE "recaps" (
@@ -492,6 +622,14 @@ CREATE TABLE "rss_feeds" (
 	CONSTRAINT "rss_feeds_slug_key_unique" UNIQUE("slug_key")
 );
 --> statement-breakpoint
+CREATE TABLE "site_settings" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"key" text NOT NULL,
+	"value" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"updated_at" timestamp DEFAULT now(),
+	CONSTRAINT "site_settings_key_unique" UNIQUE("key")
+);
+--> statement-breakpoint
 CREATE TABLE "support_articles" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"title" text NOT NULL,
@@ -501,6 +639,15 @@ CREATE TABLE "support_articles" (
 	"active" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
+CREATE TABLE "taddy_api_usage" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"month_key" text NOT NULL,
+	"call_count" integer DEFAULT 0 NOT NULL,
+	"last_reset_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now(),
+	CONSTRAINT "taddy_api_usage_month_key_unique" UNIQUE("month_key")
 );
 --> statement-breakpoint
 CREATE TABLE "topic_pulses" (
@@ -544,6 +691,15 @@ CREATE TABLE "transcript_segments" (
 	"anchor_id" text NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "user_feature_overrides" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"user_id" integer NOT NULL,
+	"flag_key" text NOT NULL,
+	"enabled" boolean NOT NULL,
+	"created_at" timestamp DEFAULT now(),
+	CONSTRAINT "user_feature_overrides_user_flag_unique" UNIQUE("user_id","flag_key")
+);
+--> statement-breakpoint
 CREATE TABLE "users" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"email" text NOT NULL,
@@ -561,6 +717,12 @@ CREATE TABLE "users" (
 	"email_verified" boolean DEFAULT false NOT NULL,
 	"signup_source" text,
 	"signup_source_detail" text,
+	"channel" text,
+	"utm_source" text,
+	"utm_medium" text,
+	"utm_campaign" text,
+	"utm_content" text,
+	"utm_term" text,
 	"ip_address" text,
 	"user_agent" text,
 	"device_type" text,
@@ -573,7 +735,21 @@ CREATE TABLE "users" (
 	"language" text,
 	"referral_code" text,
 	"referred_by" integer,
+	"spotify_access_token" text,
+	"spotify_refresh_token" text,
+	"spotify_token_expires_at" text,
 	"created_at" timestamp DEFAULT now(),
+	"last_login_at" timestamp,
 	CONSTRAINT "users_email_unique" UNIQUE("email"),
 	CONSTRAINT "users_referral_code_unique" UNIQUE("referral_code")
+);
+--> statement-breakpoint
+CREATE TABLE "youtube_review_log" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"episode_id" integer NOT NULL,
+	"worker_id" integer NOT NULL,
+	"action" text NOT NULL,
+	"youtube_url" text,
+	"spotify_url" text,
+	"created_at" timestamp DEFAULT now()
 );

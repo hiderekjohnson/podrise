@@ -1,1 +1,0 @@
-ALTER TABLE "podcast_directory" ADD COLUMN "feed_url" text;
