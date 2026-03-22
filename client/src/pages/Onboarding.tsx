@@ -74,7 +74,7 @@ function CtaButton({ count, isPending, onClick, testId }: { count: number; isPen
           <Loader2 className="w-4 h-4 animate-spin mr-2" />
           Setting up…
         </>
-      ) : isReady ? "Build my feed →" : "Build my feed"}
+      ) : isReady ? "Build my Recap →" : "Build my Recap"}
     </button>
   );
 }
@@ -481,7 +481,7 @@ export default function Onboarding() {
               What podcasts do you listen to?
             </h1>
             <p className="text-[14px] text-[#71717A] dark:text-[#A1A1AA] mb-4 leading-[1.5] flex-shrink-0" data-testid="onboarding-subheading">
-              Add your shows and we'll build your personalized feed and daily briefing.
+              Add your shows and we'll build you the ultimate daily recap.
             </p>
 
             <div ref={searchAreaRef} className="flex-shrink-0 relative z-10 mb-4">
@@ -678,7 +678,7 @@ export default function Onboarding() {
               >
                 {completeMutation.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
-                ) : isReady ? "Build my feed →" : `${MIN_PICKS - count} more`}
+                ) : isReady ? "Build my Recap →" : `${MIN_PICKS - count} more`}
               </button>
             </div>
           </div>
