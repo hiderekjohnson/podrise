@@ -850,14 +850,19 @@ const SUPPORT_PROMPT = `The episode recap pipeline seems broken. Please diagnose
 
 The pipeline flow is: Taddy webhook → transcript received → OpenAI recap → published
 
+⚠️ IMPORTANT: You are diagnosing PRODUCTION — use the production database ONLY
+—do NOT start with the dev database. Use the fetch_deployment_logs tool to check 
+production logs and query the production database via the /api/admin/sql endpoint.
+
 Check these things in order:
-1. Query the production database for recent recap activity (last 24h published count, latest 5 recaps, any generation_failed records)
-2. Check deployment logs for [ProdRecap], [RecapGenerator], [RecapValidator], and [TaddyWebhook] entries
-3. Look for errors in deployment logs
-4. Tell me what you find and what's broken
+1. Query the PRODUCTION database for recent recap activity (last 24h published count, latest 5 recaps, any generation_failed records)
+2. Check PRODUCTION deployment logs for [ProdRecap], [RecapGenerator], [RecapValidator], and [TaddyWebhook] entries
+3. Look for errors in PRODUCTION deployment logs (timeouts, crashes, API failures)
+4. Tell me what you find and what's broken in production
 
 The key table is landing_page_recaps (status can be: published, hidden, generation_failed).
-The scheduler runs every 5 min and processes 3 episodes per batch in production only.`;
+The scheduler runs every 5 min and processes 3 episodes per batch in production only.
+Last known issue: scheduler timed out on March 19 after "Adult Screen-Time Risks" episode.`;
 
 interface HealthSnapshotProps {
   data: {
