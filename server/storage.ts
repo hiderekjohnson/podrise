@@ -1254,6 +1254,21 @@ export class DatabaseStorage implements IStorage {
       return existing[0];
     }
 
+    // Hard cap: max 20 pending items per podcast — backstop against queue floods
+    const MAX_PENDING_PER_PODCAST = 20;
+    const [depthRow] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(pendingTranscriptQueue)
+      .where(and(
+        eq(pendingTranscriptQueue.podcastId, data.podcastId),
+        eq(pendingTranscriptQueue.status, "pending"),
+      ));
+    const pendingCount = depthRow?.count ?? 0;
+    if (pendingCount >= MAX_PENDING_PER_PODCAST) {
+      console.warn(`[QueueFlood] Blocked insertion for "${data.podcastName}" — already has ${pendingCount} pending items (cap: ${MAX_PENDING_PER_PODCAST})`);
+      throw new Error(`Queue flood protection: "${data.podcastName}" already has ${pendingCount} pending queue items. No more will be added until the backlog clears.`);
+    }
+
     const [item] = await db
       .insert(pendingTranscriptQueue)
       .values({

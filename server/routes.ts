@@ -17640,6 +17640,11 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
     }
   });
 
+  // Per-podcast webhook flood protection: max 10 events per podcast per 60s
+  const _webhookRateLimiter = new Map<string, { count: number; windowStart: number }>();
+  const WEBHOOK_RATE_LIMIT = 10;
+  const WEBHOOK_RATE_WINDOW_MS = 60_000;
+
   app.get("/api/webhooks/taddy", (_req, res) => {
     res.status(200).json({ status: "ok", message: "Taddy webhook endpoint active. Use POST to deliver events." });
   });
@@ -17707,6 +17712,33 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
           if (ageDays > MAX_EPISODE_AGE_DAYS) {
             console.log(`[TaddyWebhook] Episode too old (${Math.round(ageDays)}d), skipping: "${podcast.name}" - "${epTitle.slice(0, 60)}"`);
             return res.status(200).json({ success: true, skipped: "too_old" });
+          }
+        }
+
+        // Per-podcast rate limiter: max 10 webhook events per 60 seconds per podcast
+        {
+          const now = Date.now();
+          const rlKey = podcast.itunes_id;
+          const rlEntry = _webhookRateLimiter.get(rlKey);
+          if (!rlEntry || now - rlEntry.windowStart > WEBHOOK_RATE_WINDOW_MS) {
+            _webhookRateLimiter.set(rlKey, { count: 1, windowStart: now });
+          } else {
+            rlEntry.count += 1;
+            if (rlEntry.count > WEBHOOK_RATE_LIMIT) {
+              console.warn(`[TaddyWebhook] FLOOD DETECTED — "${podcast.name}" sent ${rlEntry.count} webhooks in 60s, dropping`);
+              if (rlEntry.count === WEBHOOK_RATE_LIMIT + 1) {
+                import("./adminAlertService").then(({ sendCriticalApiAlert }) =>
+                  sendCriticalApiAlert({
+                    apiName: "TaddyWebhook",
+                    errorType: "webhook_flood",
+                    severity: "critical",
+                    errorMessage: `Webhook flood detected for podcast "${podcast.name}" (iTunes ID: ${podcast.itunes_id}). ${rlEntry!.count}+ webhook events received within 60 seconds. All excess events are being dropped automatically. This may indicate Taddy re-sending back-catalog episodes. Check the pipeline admin page.`,
+                    adminPath: "/admin/pipeline",
+                  })
+                ).catch(() => {});
+              }
+              return res.status(200).json({ success: true, skipped: "rate_limited" });
+            }
           }
         }
 
