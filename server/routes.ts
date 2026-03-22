@@ -7756,11 +7756,10 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   app.get("/api/onboarding/suggestions", async (req, res) => {
     try {
       const onbUserId = getAuthUserId(req);
-      if (!onbUserId) {
-        return res.status(401).json({ message: "Not authenticated" });
+      let user: any = null;
+      if (onbUserId) {
+        user = await storage.getUserById(onbUserId);
       }
-      const user = await storage.getUserById(onbUserId);
-      if (!user) return res.status(404).json({ message: "User not found" });
 
       const contextRaw = (req.query.context as string) || req.session?.signupContext || "";
       const [contextType, contextSlug] = contextRaw.includes(":") ? contextRaw.split(":", 2) : ["", ""];
@@ -7803,7 +7802,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       if (suggestedPodcasts.length < 8) {
         const existingSlugs = suggestedPodcasts.map((p: any) => p.slug);
         const userPodcastSlugs: string[] = [];
-        if (user.podcasts && user.podcasts.length > 0) {
+        if (user?.podcasts && user.podcasts.length > 0) {
           const itunesIds = user.podcasts.map((p: string) => {
             try { const parsed = JSON.parse(p); return parsed.id || p; } catch { return p; }
           });
@@ -7838,7 +7837,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       }));
 
       const userFollowedSlugs: string[] = [];
-      if (user.podcasts && user.podcasts.length > 0) {
+      if (user?.podcasts && user.podcasts.length > 0) {
         const itunesIds = user.podcasts.map((p: string) => {
           try { const parsed = JSON.parse(p); return parsed.id || p; } catch { return p; }
         });
@@ -7855,12 +7854,12 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         podcasts,
         followedSlugs: userFollowedSlugs,
         followedTopics: {
-          industries: user.industries || [],
-          interests: user.interests || [],
-          roles: user.roles || [],
+          industries: user?.industries || [],
+          interests: user?.interests || [],
+          roles: user?.roles || [],
         },
         context: contextRaw,
-        needsOnboarding: !user.onboardingCompleted,
+        needsOnboarding: user ? !user.onboardingCompleted : true,
       });
     } catch (err) {
       console.error("Onboarding suggestions error:", err);

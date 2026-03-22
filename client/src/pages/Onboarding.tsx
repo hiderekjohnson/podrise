@@ -189,7 +189,6 @@ export default function Onboarding() {
 
   const { data: staffPicksData, isLoading: staffPicksLoading } = useQuery<{ podcasts: StaffPick[] }>({
     queryKey: ["/api/onboarding/suggestions"],
-    enabled: !isPreview,
   });
 
   const allStaffPicks = staffPicksData?.podcasts?.slice(0, 20) || [];
@@ -578,8 +577,6 @@ export default function Onboarding() {
                     />
                   ))}
                 </div>
-              ) : isPreview ? (
-                <div className="text-center py-8 text-[14px] text-[#A1A1AA]">Staff picks load for logged-in users</div>
               ) : (
                 <div className="text-center py-8 text-[14px] text-[#A1A1AA]">Search above or import from Spotify to get started</div>
               )}
