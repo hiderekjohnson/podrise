@@ -9494,12 +9494,14 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   app.get("/api/admin/pipeline/queue-depth", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     try {
-      const podcustPodcastId = req.query.podcast_id as string;
+      const podcastName = req.query.podcast_name as string;
       const { rows } = await pool.query(
-        podcustPodcastId && podcustPodcastId !== "all"
-          ? `SELECT COUNT(*) as count FROM pending_transcript_queue WHERE podcast_id = $1 AND status = 'pending'`
+        podcastName && podcastName !== "all"
+          ? `SELECT COUNT(*) as count FROM pending_transcript_queue ptq 
+             WHERE ptq.podcast_id = (SELECT itunes_id FROM podcast_directory WHERE name = $1 LIMIT 1) 
+             AND ptq.status = 'pending'`
           : `SELECT COUNT(*) as count FROM pending_transcript_queue WHERE status = 'pending'`,
-        podcustPodcastId && podcustPodcastId !== "all" ? [podcustPodcastId] : []
+        podcastName && podcastName !== "all" ? [podcastName] : []
       );
       res.json({ count: parseInt(rows[0].count, 10) });
     } catch (err: any) {
@@ -9510,12 +9512,14 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   app.post("/api/admin/pipeline/clear-queue", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     try {
-      const { podcast_id } = req.body;
+      const { podcast_name } = req.body;
       const { rows } = await pool.query(
-        podcast_id
-          ? `DELETE FROM pending_transcript_queue WHERE podcast_id = $1 AND status = 'pending' RETURNING id`
+        podcast_name
+          ? `DELETE FROM pending_transcript_queue 
+             WHERE podcast_id = (SELECT itunes_id FROM podcast_directory WHERE name = $1 LIMIT 1) 
+             AND status = 'pending' RETURNING id`
           : `DELETE FROM pending_transcript_queue WHERE status = 'pending' RETURNING id`,
-        podcast_id ? [podcast_id] : []
+        podcast_name ? [podcast_name] : []
       );
       res.json({ cleared: rows.length });
     } catch (err: any) {

@@ -650,16 +650,16 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
   const { data: queueDepth = {} } = useQuery({
     queryKey: ["/api/admin/pipeline/queue-depth", showFilter],
     queryFn: async () => {
-      const res = await fetch("/api/admin/pipeline/queue-depth?podcast_id=" + (showFilter !== "all" ? encodeURIComponent(showFilter) : "all"));
+      const podcastName = showFilter !== "all" ? showFilter : "all";
+      const res = await fetch("/api/admin/pipeline/queue-depth?podcast_name=" + encodeURIComponent(podcastName));
       return res.json();
     },
-    enabled: !!showFilter,
     refetchInterval: 10000, // refresh every 10s
   });
 
   const clearQueueMutation = useMutation({
-    mutationFn: (podcast_id: string | null) =>
-      apiRequest("POST", "/api/admin/pipeline/clear-queue", podcast_id ? { podcast_id } : {}),
+    mutationFn: (podcastName: string | null) =>
+      apiRequest("POST", "/api/admin/pipeline/clear-queue", podcastName ? { podcast_name: podcastName } : {}),
     onSuccess: () => {
       setClearConfirm(false);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline-monitor"] });
@@ -843,9 +843,7 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
             {(() => {
               const queueCount = queueDepth?.count ?? 0;
               if (queueCount === 0) return null;
-              const targetPodcastId = showFilter !== "all"
-                ? (rows.find(r => r.podcast_name === showFilter)?.podcast_id ?? null)
-                : null;
+              const targetPodcastName = showFilter !== "all" ? showFilter : null;
               const label = showFilter !== "all"
                 ? `Clear ${showFilter} queue (${queueCount})`
                 : `Clear all queued (${queueCount})`;
@@ -853,7 +851,7 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs text-slate-600 dark:text-slate-400">Sure?</span>
                   <button
-                    onClick={() => clearQueueMutation.mutate(targetPodcastId)}
+                    onClick={() => clearQueueMutation.mutate(targetPodcastName)}
                     disabled={clearQueueMutation.isPending}
                     className="text-xs px-2.5 py-1.5 rounded-lg border border-red-400 text-white bg-red-500 hover:bg-red-600 font-medium disabled:opacity-50 transition-colors flex items-center gap-1"
                     data-testid="button-confirm-clear-queue"
@@ -907,7 +905,7 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
               </tr>
             </thead>
             <tbody>
-              {filtered.slice(0, 50).map((row, i) => {
+              {filtered.map((row, i) => {
                 const status = getOverallStatus(row);
                 const isError = status === "failed";
                 const ageMins = ageMinutes(row.transcript_at || row.queued_at);
