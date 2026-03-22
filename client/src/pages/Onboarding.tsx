@@ -32,22 +32,25 @@ interface StaffPick {
 
 const MIN_PICKS = 5;
 
-const MICROCOPY: Record<number, { text: string; positive: boolean }> = {
-  0: { text: "Add 5 podcasts to unlock your feed", positive: false },
-  1: { text: "Good start — <strong>4 more</strong> to go", positive: false },
-  2: { text: "Nice. <strong>3 more</strong> and your feed unlocks", positive: false },
-  3: { text: "Almost halfway — <strong>2 more</strong>", positive: false },
-  4: { text: "One more and you're in", positive: false },
-  5: { text: "Your feed is ready — or keep going for better recommendations", positive: true },
-  6: { text: "Getting better — more podcasts = smarter briefings", positive: true },
-  7: { text: "Your briefing is shaping up nicely", positive: true },
-  8: { text: "This is a seriously good feed", positive: true },
-  9: { text: "Almost a perfect starting feed", positive: true },
-  10: { text: "A great feed. You can always add more later.", positive: true },
-};
+function getMicrocopy(n: number): { text: string; positive: boolean } {
+  if (n === 0) return { text: "Add 5 podcasts to unlock your feed", positive: false };
+  if (n === 1) return { text: "Good start — <strong>4 more</strong> to go", positive: false };
+  if (n === 2) return { text: "Nice. <strong>3 more</strong> and your feed unlocks", positive: false };
+  if (n === 3) return { text: "Almost halfway — <strong>2 more</strong>", positive: false };
+  if (n === 4) return { text: "One more and you're in", positive: false };
+  if (n <= 7) return { text: "Keep going — more shows = smarter briefings", positive: true };
+  if (n <= 9) return { text: "Your briefing is shaping up nicely", positive: true };
+  if (n <= 12) return { text: "This is a seriously good feed", positive: true };
+  if (n <= 15) return { text: "Almost a perfect starting feed", positive: true };
+  return { text: "A great feed. You can always add more later.", positive: true };
+}
+
+function getProgressPercent(n: number): number {
+  if (n === 0) return 0;
+  return Math.min(96, 100 * (1 - Math.exp(-n / 8)));
+}
 
 function PodcastRow({
-  slug,
   name,
   artworkUrl,
   meta,
@@ -55,7 +58,6 @@ function PodcastRow({
   onToggle,
   testId,
 }: {
-  slug: string;
   name: string;
   artworkUrl: string;
   meta: string;
@@ -66,25 +68,25 @@ function PodcastRow({
   return (
     <div
       onClick={onToggle}
-      className="flex items-center gap-[10px] py-[7px] px-[9px] rounded-lg cursor-pointer transition-colors hover:bg-[#F7F7FC] dark:hover:bg-[#18181B] select-none"
+      className="flex items-center gap-3 py-2 px-2.5 rounded-lg cursor-pointer transition-colors hover:bg-[#F7F7FC] dark:hover:bg-[#18181B] select-none"
       data-testid={testId}
     >
-      <div className="w-[38px] h-[38px] rounded-lg overflow-hidden flex-shrink-0 bg-[#F7F7FC] dark:bg-[#1C1C22]">
+      <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-[#F7F7FC] dark:bg-[#1C1C22]">
         {artworkUrl ? (
           <img src={hiResArtwork(artworkUrl)} alt={name} className="w-full h-full object-cover" loading="lazy" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Podcast className="w-4 h-4 text-[#6366F1]" />
+            <Podcast className="w-5 h-5 text-[#6366F1]" />
           </div>
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-medium text-[#09090B] dark:text-white truncate mb-[1px]">{name}</p>
-        <p className="text-[11px] text-[#A1A1AA] dark:text-[#71717A] truncate">{meta}</p>
+        <p className="text-[15px] font-medium text-[#09090B] dark:text-white truncate mb-[1px] leading-snug">{name}</p>
+        <p className="text-[12px] text-[#A1A1AA] dark:text-[#71717A] truncate">{meta}</p>
       </div>
       <button
         onClick={(e) => { e.stopPropagation(); onToggle(); }}
-        className={`flex-shrink-0 h-[27px] px-[13px] rounded-md text-[11px] font-semibold tracking-[0.04em] transition-all border ${
+        className={`flex-shrink-0 h-[30px] px-4 rounded-md text-[12px] font-semibold tracking-[0.03em] transition-all border ${
           isSelected
             ? "bg-[#F0FDF4] text-[#15803d] border-[#BBF7D0] cursor-default"
             : "bg-[#EEF2FF] text-[#6366F1] border-[#6366F1]/20 hover:bg-[#6366F1] hover:text-white hover:border-[#6366F1]"
@@ -112,16 +114,16 @@ function SelectedSlot({
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: -4 }}
       transition={{ duration: 0.2, ease: [0.34, 1.56, 0.64, 1] }}
-      className="group flex items-center gap-2 px-[11px] py-2 bg-white dark:bg-[#1C1C22] border border-[#6366F1]/15 dark:border-[#6366F1]/25 rounded-[9px] min-h-[44px] flex-shrink-0"
+      className="group flex items-center gap-2 px-2.5 py-2 bg-white dark:bg-[#1C1C22] border border-[#6366F1]/15 dark:border-[#6366F1]/25 rounded-[9px] min-h-[44px] flex-shrink-0"
     >
-      <div className="w-7 h-7 rounded-md overflow-hidden flex-shrink-0 bg-[#EEF2FF] dark:bg-[#1e1b4b] flex items-center justify-center">
+      <div className="w-8 h-8 rounded-md overflow-hidden flex-shrink-0 bg-[#EEF2FF] dark:bg-[#1e1b4b] flex items-center justify-center">
         {artworkUrl ? (
           <img src={hiResArtwork(artworkUrl)} alt={name} className="w-full h-full object-cover" />
         ) : (
-          <Podcast className="w-3 h-3 text-[#6366F1]" />
+          <Podcast className="w-3.5 h-3.5 text-[#6366F1]" />
         )}
       </div>
-      <span className="flex-1 text-[12px] font-medium text-[#09090B] dark:text-white truncate">{name}</span>
+      <span className="flex-1 text-[13px] font-medium text-[#09090B] dark:text-white truncate">{name}</span>
       <button
         onClick={onRemove}
         className="flex-shrink-0 w-[18px] h-[18px] rounded flex items-center justify-center text-[#A1A1AA] opacity-0 group-hover:opacity-100 hover:bg-[#FEE2E2] hover:text-[#DC2626] transition-all"
@@ -137,10 +139,23 @@ function EmptySlot({ onClick }: { onClick: () => void }) {
   return (
     <div
       onClick={onClick}
-      className="flex items-center gap-2 px-[11px] py-2 border-[1.5px] border-dashed border-[#E4E4E7] dark:border-[#3F3F46] rounded-[9px] min-h-[44px] flex-shrink-0 cursor-pointer hover:border-[#A5B4FC] dark:hover:border-[#6366F1]/40 hover:bg-[#6366F1]/[0.02] transition-colors"
+      className="flex items-center gap-2 px-2.5 py-2 border-[1.5px] border-dashed border-[#E4E4E7] dark:border-[#3F3F46] rounded-[9px] min-h-[44px] flex-shrink-0 cursor-pointer hover:border-[#A5B4FC] dark:hover:border-[#6366F1]/40 hover:bg-[#6366F1]/[0.02] transition-colors"
     >
-      <div className="w-7 h-7 rounded-md bg-[#F0F0F2] dark:bg-[#27272A] flex-shrink-0" />
+      <div className="w-8 h-8 rounded-md bg-[#F0F0F2] dark:bg-[#27272A] flex-shrink-0" />
       <span className="text-[12px] text-[#A1A1AA] italic">Add another…</span>
+    </div>
+  );
+}
+
+function ProgressBar({ percent }: { percent: number }) {
+  return (
+    <div className="w-full h-[6px] bg-[#E4E4E7] dark:bg-[#27272A] rounded-full overflow-hidden">
+      <motion.div
+        className="h-full rounded-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6]"
+        initial={{ width: 0 }}
+        animate={{ width: `${percent}%` }}
+        transition={{ type: "spring", damping: 20, stiffness: 200 }}
+      />
     </div>
   );
 }
@@ -163,21 +178,28 @@ export default function Onboarding() {
   const selectedListRef = useRef<HTMLDivElement>(null);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
+  const isPreview = new URLSearchParams(window.location.search).has("preview");
+
   const { data: spotifyStatus } = useQuery<{ configured: boolean; connected: boolean }>({
     queryKey: ["/api/spotify/status"],
+    enabled: !isPreview,
   });
+
+  const showSpotify = isPreview || spotifyStatus?.configured;
 
   const { data: staffPicksData, isLoading: staffPicksLoading } = useQuery<{ podcasts: StaffPick[] }>({
     queryKey: ["/api/onboarding/suggestions"],
+    enabled: !isPreview,
   });
 
-  const staffPicks = staffPicksData?.podcasts?.slice(0, 12) || [];
+  const allStaffPicks = staffPicksData?.podcasts?.slice(0, 20) || [];
+
+  const visiblePicks = allStaffPicks.filter(p => !selectedPodcasts.has(p.slug));
 
   useEffect(() => {
     document.title = "Set Up Your Feed | PodRise";
   }, []);
 
-  const isPreview = new URLSearchParams(window.location.search).has("preview");
   useEffect(() => {
     if (user && user.onboardingCompleted && !isPreview) {
       navigate("/dashboard");
@@ -302,6 +324,12 @@ export default function Onboarding() {
     }
   }, [searchPodcasts]);
 
+  const clearSearch = useCallback(() => {
+    setSearchQuery("");
+    setSearchResults([]);
+    setShowSearchOverlay(false);
+  }, []);
+
   const toggleSelected = useCallback((slug: string, name: string, artworkUrl: string) => {
     setSelectedPodcasts(prev => {
       const next = new Map(prev);
@@ -360,22 +388,18 @@ export default function Onboarding() {
 
   const count = selectedPodcasts.size;
   const isReady = count >= MIN_PICKS;
-  const mc = MICROCOPY[Math.min(count, 10)];
-  const ctaText = isReady ? "Build my feed →" : "Build my feed";
-  const ctaSubText = isReady
-    ? (count < 10 ? `${10 - count} more = smarter briefings` : "Your feed is ready")
-    : `${MIN_PICKS - count} more podcast${MIN_PICKS - count !== 1 ? "s" : ""} to continue`;
-
+  const mc = getMicrocopy(count);
+  const progressPercent = getProgressPercent(count);
   const isSearchActive = searchQuery.trim().length >= 2;
 
   const rightPanel = (
     <>
-      <div className="flex items-baseline justify-between mb-[10px] flex-shrink-0">
+      <div className="flex items-baseline justify-between mb-2.5 flex-shrink-0">
         <span className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[#A1A1AA]">Your Feed</span>
-        <span className="text-[11px] font-semibold text-[#6366F1] tabular-nums" data-testid="text-feed-count">{count} added</span>
+        <span className="text-[12px] font-semibold text-[#6366F1] tabular-nums" data-testid="text-feed-count">{count} added</span>
       </div>
 
-      <div ref={selectedListRef} className="flex-1 min-h-0 overflow-y-auto space-y-1 mb-[14px] scrollbar-thin scrollbar-thumb-[#E4E4E7] dark:scrollbar-thumb-[#3F3F46]">
+      <div ref={selectedListRef} className="flex-1 min-h-0 overflow-y-auto space-y-1 mb-3 scrollbar-thin scrollbar-thumb-[#E4E4E7] dark:scrollbar-thumb-[#3F3F46]">
         <AnimatePresence mode="popLayout">
           {Array.from(selectedPodcasts.entries()).map(([slug, info]) => (
             <SelectedSlot
@@ -389,11 +413,14 @@ export default function Onboarding() {
         <EmptySlot onClick={() => searchInputRef.current?.focus()} />
       </div>
 
-      <p
-        className={`flex-shrink-0 text-[11px] leading-[1.4] mb-3 min-h-[16px] transition-colors ${mc.positive ? "text-[#6366F1]" : "text-[#A1A1AA]"}`}
-        dangerouslySetInnerHTML={{ __html: mc.text }}
-        data-testid="text-microcopy"
-      />
+      <div className="flex-shrink-0 space-y-2.5 mb-3">
+        <ProgressBar percent={progressPercent} />
+        <p
+          className={`text-[11px] leading-[1.4] min-h-[16px] transition-colors ${mc.positive ? "text-[#6366F1]" : "text-[#A1A1AA]"}`}
+          dangerouslySetInnerHTML={{ __html: mc.text }}
+          data-testid="text-microcopy"
+        />
+      </div>
 
       <button
         onClick={() => completeMutation.mutate()}
@@ -410,18 +437,22 @@ export default function Onboarding() {
             <Loader2 className="w-4 h-4 animate-spin mr-2" />
             Setting up…
           </>
-        ) : ctaText}
+        ) : isReady ? "Build my feed →" : "Build my feed"}
       </button>
-      <p className="text-center text-[10px] text-[#A1A1AA] mt-[7px] flex-shrink-0 min-h-[14px]" data-testid="text-cta-sub">{ctaSubText}</p>
+      <p className="text-center text-[10px] text-[#A1A1AA] mt-[7px] flex-shrink-0 min-h-[14px]" data-testid="text-cta-sub">
+        {isReady
+          ? "Or keep adding for smarter briefings"
+          : `Add ${MIN_PICKS - count} more to continue`}
+      </p>
     </>
   );
 
   return (
     <div className="h-screen flex flex-col bg-[#F7F7FC] dark:bg-[#08080F] overflow-hidden" data-testid="onboarding-page">
 
-      <div className="flex-1 min-h-0 overflow-hidden flex flex-col items-center px-4 sm:px-6 pb-4 sm:pb-6">
+      <div className="flex-1 min-h-0 overflow-hidden flex flex-col items-center px-4 sm:px-6 pb-0 md:pb-6">
 
-        <div className="w-full max-w-[860px] py-[14px] flex-shrink-0">
+        <div className="w-full max-w-[860px] py-3 flex-shrink-0">
           <a href="/" className="flex items-center gap-2 no-underline w-fit">
             <img src={logoTransparent} alt="" className="w-[26px] h-[26px] rounded-[22%] object-contain" />
             <span className="text-[15px] font-semibold tracking-[-0.03em] text-[#09090B] dark:text-white">
@@ -432,15 +463,15 @@ export default function Onboarding() {
 
         <div className="w-full max-w-[860px] flex-1 min-h-0 overflow-hidden border border-[#F0F0F2] dark:border-[#27272A] rounded-xl grid grid-cols-1 md:grid-cols-[1fr_280px]">
 
-          <div className="flex flex-col px-5 sm:px-7 pt-6 sm:pt-7 pb-5 overflow-hidden border-r-0 md:border-r border-[#F0F0F2] dark:border-[#27272A] bg-white dark:bg-[#111114] rounded-xl md:rounded-r-none">
-            <h1 className="text-[21px] font-bold tracking-[-0.03em] text-[#09090B] dark:text-white mb-[3px] flex-shrink-0" data-testid="onboarding-search-heading">
+          <div className="flex flex-col px-5 sm:px-7 pt-6 sm:pt-7 pb-4 overflow-hidden md:border-r border-[#F0F0F2] dark:border-[#27272A] bg-white dark:bg-[#111114] rounded-t-xl md:rounded-tr-none md:rounded-l-xl">
+            <h1 className="text-[22px] font-bold tracking-[-0.03em] text-[#09090B] dark:text-white mb-1 flex-shrink-0" data-testid="onboarding-search-heading">
               What podcasts do you listen to?
             </h1>
-            <p className="text-[13px] text-[#71717A] dark:text-[#A1A1AA] mb-4 leading-[1.5] flex-shrink-0" data-testid="onboarding-subheading">
+            <p className="text-[14px] text-[#71717A] dark:text-[#A1A1AA] mb-5 leading-[1.5] flex-shrink-0" data-testid="onboarding-subheading">
               Add your shows and we'll build your personalized feed and daily briefing.
             </p>
 
-            <div ref={searchAreaRef} className="flex-shrink-0 relative z-10 mb-[14px]">
+            <div ref={searchAreaRef} className="flex-shrink-0 relative z-10 mb-4">
               <div className="flex gap-2 items-center">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-[14px] h-[14px] text-[#A1A1AA] pointer-events-none" />
@@ -457,7 +488,7 @@ export default function Onboarding() {
                   />
                   {searchQuery && (
                     <button
-                      onClick={() => { setSearchQuery(""); setSearchResults([]); setShowSearchOverlay(false); }}
+                      onClick={clearSearch}
                       className="absolute right-[10px] top-1/2 -translate-y-1/2 w-[17px] h-[17px] rounded-full bg-[#A1A1AA] hover:bg-[#52525B] text-white flex items-center justify-center text-[9px] transition-colors"
                       aria-label="Clear search"
                       data-testid="onboarding-clear-search"
@@ -466,11 +497,11 @@ export default function Onboarding() {
                     </button>
                   )}
                 </div>
-                {spotifyStatus?.configured && (
+                {showSpotify && (
                   <button
                     onClick={() => { window.location.href = "/api/auth/spotify?return_to=/onboarding"; }}
                     disabled={importingSpotify}
-                    className="flex items-center gap-[6px] h-10 px-[14px] bg-white dark:bg-[#1C1C22] border-[1.5px] border-[#E4E4E7] dark:border-[#27272A] rounded-[9px] text-[12px] font-medium text-[#52525B] dark:text-[#A1A1AA] whitespace-nowrap transition-colors hover:border-[#1DB954] hover:bg-[#f0faf2] dark:hover:bg-[#1DB954]/10 hover:text-[#15803d] disabled:opacity-50 flex-shrink-0"
+                    className="flex items-center gap-[6px] h-10 px-3.5 bg-white dark:bg-[#1C1C22] border-[1.5px] border-[#E4E4E7] dark:border-[#27272A] rounded-[9px] text-[12px] font-medium text-[#52525B] dark:text-[#A1A1AA] whitespace-nowrap transition-colors hover:border-[#1DB954] hover:bg-[#f0faf2] dark:hover:bg-[#1DB954]/10 hover:text-[#15803d] disabled:opacity-50 flex-shrink-0"
                     data-testid="onboarding-spotify-import"
                   >
                     {importingSpotify ? (
@@ -505,7 +536,6 @@ export default function Onboarding() {
                     return (
                       <PodcastRow
                         key={result.id}
-                        slug={resultSlug}
                         name={result.name}
                         artworkUrl={result.artworkUrl}
                         meta={result.artistName || result.genre || ""}
@@ -513,6 +543,7 @@ export default function Onboarding() {
                         onToggle={() => {
                           toggleSelected(resultSlug, result.name, result.artworkUrl);
                           followExternalPodcast(result);
+                          clearSearch();
                         }}
                         testId={`onboarding-search-result-${result.id}`}
                       />
@@ -522,7 +553,7 @@ export default function Onboarding() {
               )}
             </div>
 
-            <div className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[#A1A1AA] mb-[2px] flex-shrink-0" data-testid="text-staff-picks">
+            <div className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[#A1A1AA] mb-1 flex-shrink-0" data-testid="text-staff-picks">
               {count > 0 ? "Suggested for you" : "Staff Picks"}
             </div>
             {count > 0 && (
@@ -532,28 +563,26 @@ export default function Onboarding() {
             )}
 
             <div className="flex-1 min-h-0 overflow-y-auto">
-              {staffPicksLoading || importingSpotify ? (
+              {(staffPicksLoading && !isPreview) || importingSpotify ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="w-5 h-5 animate-spin text-[#6366F1]" />
                 </div>
-              ) : staffPicks.length > 0 ? (
+              ) : visiblePicks.length > 0 ? (
                 <div className="flex flex-col gap-[1px]" data-testid="staff-picks-list">
-                  {staffPicks.map((pick) => {
-                    const isSelected = selectedPodcasts.has(pick.slug);
-                    return (
-                      <PodcastRow
-                        key={pick.slug}
-                        slug={pick.slug}
-                        name={pick.name}
-                        artworkUrl={pick.artworkUrl}
-                        meta={pick.category || ""}
-                        isSelected={isSelected}
-                        onToggle={() => toggleSelected(pick.slug, pick.name, pick.artworkUrl)}
-                        testId={`onboarding-staff-pick-${pick.slug}`}
-                      />
-                    );
-                  })}
+                  {visiblePicks.map((pick) => (
+                    <PodcastRow
+                      key={pick.slug}
+                      name={pick.name}
+                      artworkUrl={pick.artworkUrl}
+                      meta={pick.category || ""}
+                      isSelected={false}
+                      onToggle={() => toggleSelected(pick.slug, pick.name, pick.artworkUrl)}
+                      testId={`onboarding-staff-pick-${pick.slug}`}
+                    />
+                  ))}
                 </div>
+              ) : isPreview ? (
+                <div className="text-center py-8 text-[14px] text-[#A1A1AA]">Staff picks load for logged-in users</div>
               ) : (
                 <div className="text-center py-8 text-[14px] text-[#A1A1AA]">Search above or import from Spotify to get started</div>
               )}
@@ -592,6 +621,9 @@ export default function Onboarding() {
 
         {!mobileDrawerOpen && (
           <div className="bg-white/95 dark:bg-[#09090B]/95 backdrop-blur-md border-t border-[#F0F0F2] dark:border-[#1C1C22] px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))]">
+            <div className="mb-2.5">
+              <ProgressBar percent={progressPercent} />
+            </div>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setMobileDrawerOpen(true)}

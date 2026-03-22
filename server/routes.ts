@@ -7823,7 +7823,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
              AND slug != ALL($1)
            ORDER BY followers DESC NULLS LAST
            LIMIT $2`,
-          [excludeSlugs, 12 - suggestedPodcasts.length]
+          [excludeSlugs, 20 - suggestedPodcasts.length]
         );
         suggestedPodcasts = [...suggestedPodcasts, ...popularResult.rows];
       }
