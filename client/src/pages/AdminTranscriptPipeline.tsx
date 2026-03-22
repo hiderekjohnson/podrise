@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Loader2, CheckCircle2, Clock, AlertTriangle, XCircle,
   ExternalLink, Zap, Radio, ArrowDown, Activity,
+  Copy, Check, ChevronDown, ChevronUp, Wrench,
 } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
 
@@ -545,6 +546,70 @@ export default function AdminTranscriptPipeline() {
             Showing {visible.length} of {counts.all} episodes · auto-refreshes every 60s
           </p>
         </>
+      )}
+
+      <SupportPrompt />
+    </div>
+  );
+}
+
+const SUPPORT_PROMPT = `The episode recap pipeline seems broken. Please diagnose it.
+
+The pipeline flow is: Taddy webhook → transcript received → OpenAI recap → published
+
+Check these things in order:
+1. Query the production database for recent recap activity (last 24h published count, latest 5 recaps, any generation_failed records)
+2. Check deployment logs for [ProdRecap], [RecapGenerator], [RecapValidator], and [TaddyWebhook] entries
+3. Look for errors in deployment logs
+4. Tell me what you find and what's broken
+
+The key table is landing_page_recaps (status can be: published, hidden, generation_failed).
+The scheduler runs every 5 min and processes 3 episodes per batch in production only.`;
+
+function SupportPrompt() {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(SUPPORT_PROMPT);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="border-t pt-5 mt-6" data-testid="support-prompt-section">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full"
+        data-testid="button-toggle-support-prompt"
+      >
+        <Wrench className="w-4 h-4" />
+        <span className="font-semibold">See an issue? Here's what to tell Replit Agent</span>
+        {open ? <ChevronUp className="w-4 h-4 ml-auto" /> : <ChevronDown className="w-4 h-4 ml-auto" />}
+      </button>
+
+      {open && (
+        <div className="mt-3 space-y-3">
+          <p className="text-xs text-muted-foreground">
+            Copy this prompt and paste it into Replit Agent chat. It will automatically run the right diagnostic checks.
+          </p>
+          <div className="relative">
+            <pre className="bg-gray-50 dark:bg-zinc-900 border rounded-xl p-4 text-xs text-foreground whitespace-pre-wrap leading-relaxed font-mono">
+              {SUPPORT_PROMPT}
+            </pre>
+            <button
+              onClick={handleCopy}
+              className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-800 border rounded-lg text-xs font-semibold hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors shadow-sm"
+              data-testid="button-copy-support-prompt"
+            >
+              {copied ? (
+                <><Check className="w-3.5 h-3.5 text-emerald-500" /> Copied!</>
+              ) : (
+                <><Copy className="w-3.5 h-3.5" /> Copy Prompt</>
+              )}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
