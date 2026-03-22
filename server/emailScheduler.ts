@@ -392,17 +392,17 @@ export async function fetchShopBooks(): Promise<ShopBookForEmail[]> {
   try {
     const { rows } = await pool.query(`
       SELECT be.slug, be.book_title, be.author,
-             CASE WHEN be.has_cover AND be.cover_approved THEN '/covers/' || be.slug || '.jpg' ELSE NULL END as cover_url
+             CASE WHEN be.has_cover AND be.cover_approved THEN '/covers/' || be.slug || '.jpg' ELSE NULL END as cover_url,
+             (SELECT COUNT(*) FROM book_insights bi WHERE bi.book_key = be.book_key) as mention_count
       FROM book_enrichments be
       WHERE be.slug IS NOT NULL
         AND be.has_cover = true
         AND be.cover_approved = true
         AND EXISTS (
           SELECT 1 FROM book_insights bi WHERE bi.book_key = be.book_key
-            AND bi.created_at >= NOW() - INTERVAL '7 days'
         )
-      GROUP BY be.slug, be.book_title, be.author, be.has_cover, be.cover_approved
-      ORDER BY (SELECT COUNT(*) FROM book_insights bi WHERE bi.book_key = be.book_key AND bi.created_at >= NOW() - INTERVAL '7 days') DESC
+      GROUP BY be.slug, be.book_title, be.author, be.has_cover, be.cover_approved, be.book_key
+      ORDER BY mention_count DESC
       LIMIT 3
     `);
     return rows.map((r: any) => ({
@@ -437,15 +437,16 @@ export async function fetchMissedEpisodes(user: any): Promise<MissedEpisodeForEm
     const { rows } = await pool.query(`
       SELECT lpr.slug as podcast_slug, lpr.episode_slug, lpr.podcast_name,
              lpr.tabloid_headline, lpr.episode_title,
-             pd.follower_count
+             pd.followers
       FROM landing_page_recaps lpr
       LEFT JOIN podcast_directory pd ON pd.slug = lpr.slug
       WHERE lpr.tabloid_headline IS NOT NULL
         AND lpr.tabloid_headline != ''
         AND lpr.episode_slug IS NOT NULL
-        AND lpr.publish_date >= NOW() - INTERVAL '7 days'
+        AND lpr.status = 'published'
+        AND lpr.publish_date >= to_char(NOW() - INTERVAL '7 days', 'YYYY-MM-DD')
         ${excludeClause}
-      ORDER BY COALESCE(pd.follower_count, 0) DESC, lpr.publish_date DESC
+      ORDER BY COALESCE(pd.followers, 0) DESC, lpr.publish_date DESC
       LIMIT 3
     `, params);
 
