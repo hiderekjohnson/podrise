@@ -442,10 +442,10 @@ export default function Onboarding() {
         <EmptySlot onClick={() => searchInputRef.current?.focus()} />
       </div>
 
-      <div className="flex-shrink-0 space-y-2.5 mb-3">
+      <div className="flex-shrink-0 space-y-1.5 mb-2">
         <ProgressBar percent={progressPercent} />
         <p
-          className={`text-[11px] leading-[1.4] min-h-[16px] transition-colors ${mc.positive ? "text-[#6366F1]" : "text-[#A1A1AA]"}`}
+          className={`text-[11px] leading-[1.4] min-h-[14px] transition-colors ${mc.positive ? "text-[#6366F1]" : "text-[#A1A1AA]"}`}
           dangerouslySetInnerHTML={{ __html: mc.text }}
           data-testid="text-microcopy"
         />
@@ -457,7 +457,7 @@ export default function Onboarding() {
         onClick={() => completeMutation.mutate()}
         testId="onboarding-finish"
       />
-      <p className="text-center text-[10px] text-[#A1A1AA] mt-[7px] flex-shrink-0 min-h-[14px]" data-testid="text-cta-sub">
+      <p className="text-center text-[10px] text-[#A1A1AA] mt-1 flex-shrink-0 min-h-[14px]" data-testid="text-cta-sub">
         {isReady
           ? "Or keep adding for smarter briefings"
           : `Add ${MIN_PICKS - count} more to continue`}
@@ -468,25 +468,25 @@ export default function Onboarding() {
   return (
     <div className="h-screen flex flex-col bg-[#F7F7FC] dark:bg-[#08080F] overflow-hidden" data-testid="onboarding-page">
 
-      <div className="flex-shrink-0 px-5 sm:px-8 py-4">
+      <div className="flex-shrink-0 px-5 sm:px-8 py-2.5">
         <a href="/" className="block w-fit no-underline">
           <img src="/logo-transparent.svg" alt="PodRise" className="h-10 w-auto object-contain" />
         </a>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-hidden flex flex-col items-center px-4 sm:px-6 pb-0 md:pb-4">
+      <div className="flex-1 min-h-0 overflow-hidden flex flex-col items-center px-4 sm:px-6 pb-0 md:pb-2">
 
         <div className="w-full max-w-[860px] flex-1 min-h-0 overflow-hidden border border-[#F0F0F2] dark:border-[#27272A] rounded-xl grid grid-cols-1 md:grid-cols-[1fr_280px]">
 
-          <div className="flex flex-col px-5 sm:px-7 pt-5 sm:pt-6 pb-4 overflow-hidden md:border-r border-[#F0F0F2] dark:border-[#27272A] bg-white dark:bg-[#111114] rounded-t-xl md:rounded-tr-none md:rounded-l-xl">
-            <h1 className="text-[22px] font-bold tracking-[-0.03em] text-[#09090B] dark:text-white mb-1 flex-shrink-0" data-testid="onboarding-search-heading">
+          <div className="flex flex-col px-5 sm:px-7 pt-4 sm:pt-5 pb-3 overflow-hidden md:border-r border-[#F0F0F2] dark:border-[#27272A] bg-white dark:bg-[#111114] rounded-t-xl md:rounded-tr-none md:rounded-l-xl">
+            <h1 className="text-[22px] font-bold tracking-[-0.03em] text-[#09090B] dark:text-white mb-0.5 flex-shrink-0" data-testid="onboarding-search-heading">
               What podcasts do you listen to?
             </h1>
-            <p className="text-[14px] text-[#71717A] dark:text-[#A1A1AA] mb-4 leading-[1.5] flex-shrink-0" data-testid="onboarding-subheading">
+            <p className="text-[14px] text-[#71717A] dark:text-[#A1A1AA] mb-3 leading-[1.5] flex-shrink-0" data-testid="onboarding-subheading">
               Add your shows and we'll build you the ultimate daily recap.
             </p>
 
-            <div ref={searchAreaRef} className="flex-shrink-0 relative z-10 mb-4">
+            <div ref={searchAreaRef} className="flex-shrink-0 relative z-10 mb-3">
               <div className="flex gap-2 items-center">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-[14px] h-[14px] text-[#A1A1AA] pointer-events-none" />
@@ -602,7 +602,7 @@ export default function Onboarding() {
             </div>
           </div>
 
-          <div className="hidden md:flex flex-col px-5 pt-7 pb-5 bg-[#F7F7FC] dark:bg-[#0C0C12] overflow-hidden rounded-r-xl">
+          <div className="hidden md:flex flex-col px-5 pt-5 pb-3 bg-[#F7F7FC] dark:bg-[#0C0C12] overflow-hidden rounded-r-xl">
             {rightPanel}
           </div>
         </div>
