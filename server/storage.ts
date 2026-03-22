@@ -1246,7 +1246,7 @@ export class DatabaseStorage implements IStorage {
       if (existing[0].status === "failed") {
         const [revived] = await db
           .update(pendingTranscriptQueue)
-          .set({ status: "pending", attempts: 0, errorMessage: null })
+          .set({ status: "queued", attempts: 0, errorMessage: null })
           .where(eq(pendingTranscriptQueue.id, existing[0].id))
           .returning();
         return revived;
@@ -1261,7 +1261,7 @@ export class DatabaseStorage implements IStorage {
       .from(pendingTranscriptQueue)
       .where(and(
         eq(pendingTranscriptQueue.podcastId, data.podcastId),
-        eq(pendingTranscriptQueue.status, "pending"),
+        inArray(pendingTranscriptQueue.status, ["pending", "queued"]),
       ));
     const pendingCount = depthRow?.count ?? 0;
     if (pendingCount >= MAX_PENDING_PER_PODCAST) {
@@ -1278,7 +1278,7 @@ export class DatabaseStorage implements IStorage {
         episodeTitle: data.episodeTitle,
         taddyUuid: data.taddyUuid || null,
         priority: data.priority || 50,
-        status: "pending",
+        status: "queued",
         attempts: 0,
       })
       .returning();

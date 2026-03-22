@@ -374,13 +374,230 @@ function StatCard({
   );
 }
 
+interface PipelineStatusData {
+  pipeline: {
+    isSchedulerStarted: boolean;
+    transcriptFetcher: {
+      busy: boolean;
+      lastRunAt: number;
+      nextRunAt: number;
+      currentEpisode: { guid: string; title: string; podcastName: string } | null;
+      intervalMs: number;
+    };
+    recapGenerator: {
+      busy: boolean;
+      lastRunAt: number;
+      nextRunAt: number;
+      currentEpisode: { guid: string; title: string; podcastName: string } | null;
+      intervalMs: number;
+    };
+  };
+  stageCounts: Record<string, number>;
+  queue: Array<{
+    id: number;
+    podcast_id: string;
+    podcast_name: string;
+    episode_guid: string;
+    episode_title: string;
+    status: string;
+    attempts: number;
+    last_attempt_at: string | null;
+    error_message: string | null;
+    created_at: string;
+    priority: number;
+  }>;
+  recentCompleted: Array<{
+    id: number;
+    podcast_name: string;
+    episode_title: string;
+    status: string;
+    last_attempt_at: string | null;
+    created_at: string;
+  }>;
+}
+
+const STAGE_LABELS: Record<string, { label: string; color: string; icon: React.FC<{ className?: string }> }> = {
+  queued:           { label: "Queued",              color: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",      icon: Clock },
+  fetching:         { label: "Fetching Transcript", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",      icon: Loader2 },
+  transcript_ready: { label: "Transcript Ready",    color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400", icon: CheckCircle2 },
+  generating_recap: { label: "Generating Recap",    color: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400", icon: Zap },
+  completed:        { label: "Published",           color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400", icon: CheckCircle2 },
+  failed:           { label: "Failed",              color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",          icon: XCircle },
+};
+
+function CountdownTimer({ targetMs, label, busy, currentEpisode }: {
+  targetMs: number;
+  label: string;
+  busy: boolean;
+  currentEpisode: { title: string; podcastName: string } | null;
+}) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  if (busy && currentEpisode) {
+    return (
+      <div className="flex items-center gap-2 text-xs" data-testid={`timer-${label}`}>
+        <Loader2 className="w-3.5 h-3.5 animate-spin text-violet-500" />
+        <span className="font-semibold text-violet-600 dark:text-violet-400">Processing:</span>
+        <span className="truncate max-w-[250px]" title={currentEpisode.title}>
+          {currentEpisode.title.slice(0, 50)}
+        </span>
+        <span className="text-muted-foreground">({currentEpisode.podcastName})</span>
+      </div>
+    );
+  }
+
+  const remaining = Math.max(0, Math.floor((targetMs - now) / 1000));
+  const mins = Math.floor(remaining / 60);
+  const secs = remaining % 60;
+
+  return (
+    <div className="flex items-center gap-2 text-xs" data-testid={`timer-${label}`}>
+      <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+      <span className="text-muted-foreground">{label}:</span>
+      <span className="font-mono font-semibold tabular-nums text-foreground">
+        {remaining > 0 ? `${mins}:${String(secs).padStart(2, "0")}` : "now"}
+      </span>
+    </div>
+  );
+}
+
+function PipelineDashboard() {
+  const { data, isLoading } = useQuery<PipelineStatusData>({
+    queryKey: ["/api/admin/pipeline/status"],
+    queryFn: () => fetch("/api/admin/pipeline/status").then(r => r.json()),
+    refetchInterval: 5_000,
+  });
+
+  if (isLoading || !data) {
+    return (
+      <div className="border rounded-xl p-6 bg-card" data-testid="pipeline-dashboard">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span className="text-sm">Loading pipeline status...</span>
+        </div>
+      </div>
+    );
+  }
+
+  const { pipeline, stageCounts, queue, recentCompleted } = data;
+  const totalActive = Object.values(stageCounts).reduce((sum, c) => sum + c, 0);
+
+  const stages = ["queued", "fetching", "transcript_ready", "generating_recap", "failed"];
+
+  return (
+    <div className="space-y-4" data-testid="pipeline-dashboard">
+      <div className="border rounded-xl p-4 bg-card space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-emerald-500" />
+            <span className="font-bold text-sm">Pipeline Status</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+              pipeline.isSchedulerStarted
+                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+            }`}>
+              {pipeline.isSchedulerStarted ? "ACTIVE" : "STOPPED"}
+            </span>
+          </div>
+          <span className="text-xs text-muted-foreground">{totalActive} episode{totalActive !== 1 ? "s" : ""} in pipeline</span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="border rounded-lg p-3 bg-background space-y-2">
+            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Transcript Fetcher</div>
+            <CountdownTimer
+              targetMs={pipeline.transcriptFetcher.nextRunAt}
+              label="Next fetch"
+              busy={pipeline.transcriptFetcher.busy}
+              currentEpisode={pipeline.transcriptFetcher.currentEpisode}
+            />
+            <div className="text-[10px] text-muted-foreground">
+              Interval: {Math.round(pipeline.transcriptFetcher.intervalMs / 1000)}s
+            </div>
+          </div>
+          <div className="border rounded-lg p-3 bg-background space-y-2">
+            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Recap Generator</div>
+            <CountdownTimer
+              targetMs={pipeline.recapGenerator.nextRunAt}
+              label="Next recap"
+              busy={pipeline.recapGenerator.busy}
+              currentEpisode={pipeline.recapGenerator.currentEpisode}
+            />
+            <div className="text-[10px] text-muted-foreground">
+              Interval: {Math.round(pipeline.recapGenerator.intervalMs / 60000)}min
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-2 flex-wrap">
+          {stages.map(stage => {
+            const count = stageCounts[stage] || 0;
+            const cfg = STAGE_LABELS[stage] || { label: stage, color: "bg-slate-100 text-slate-600", icon: HelpCircle };
+            const Icon = cfg.icon;
+            return (
+              <div key={stage} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold ${cfg.color}`} data-testid={`stage-count-${stage}`}>
+                <Icon className={`w-3.5 h-3.5 ${stage === "fetching" || stage === "generating_recap" ? "animate-spin" : ""}`} />
+                {cfg.label}: {count}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {queue.length > 0 && (
+        <div className="border rounded-xl p-4 bg-card space-y-3">
+          <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Episodes in Pipeline</div>
+          <div className="space-y-1">
+            {queue.map(item => {
+              const cfg = STAGE_LABELS[item.status] || { label: item.status, color: "bg-slate-100 text-slate-600", icon: HelpCircle };
+              const Icon = cfg.icon;
+              return (
+                <div key={item.id} className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-muted/50 text-xs" data-testid={`pipeline-item-${item.id}`}>
+                  <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold shrink-0 ${cfg.color}`}>
+                    <Icon className={`w-3 h-3 ${item.status === "fetching" || item.status === "generating_recap" ? "animate-spin" : ""}`} />
+                    {cfg.label}
+                  </div>
+                  <span className="truncate font-medium max-w-[300px]" title={item.episode_title}>{item.episode_title}</span>
+                  <span className="text-muted-foreground shrink-0">({item.podcast_name})</span>
+                  {item.attempts > 0 && <span className="text-muted-foreground/60 shrink-0">· {item.attempts} tries</span>}
+                  {item.error_message && <span className="text-red-400 truncate max-w-[200px]" title={item.error_message}>{item.error_message}</span>}
+                  <span className="ml-auto text-muted-foreground/60 shrink-0">{timeAgo(item.created_at)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {recentCompleted.length > 0 && (
+        <div className="border rounded-xl p-4 bg-card space-y-3">
+          <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Recently Published</div>
+          <div className="space-y-1">
+            {recentCompleted.map(item => (
+              <div key={item.id} className="flex items-center gap-2 py-1.5 px-2 rounded-lg text-xs" data-testid={`completed-item-${item.id}`}>
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                <span className="truncate font-medium max-w-[300px]" title={item.episode_title}>{item.episode_title}</span>
+                <span className="text-muted-foreground shrink-0">({item.podcast_name})</span>
+                <span className="ml-auto text-muted-foreground/60 shrink-0">{timeAgo(item.last_attempt_at || item.created_at)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminTranscriptPipeline() {
   const [days, setDays] = useState(7);
   const [filter, setFilter] = useState<FilterType>("all");
   const [now, setNow] = useState(Date.now());
   const isLiveMode = filter === "pending_recap";
 
-  // Tick every second for live elapsed timers
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
@@ -522,6 +739,9 @@ export default function AdminTranscriptPipeline() {
           <option value={14}>14 days</option>
         </select>
       </div>
+
+      {/* Pipeline Dashboard */}
+      <PipelineDashboard />
 
       {/* Generating Banner */}
       {currentlyGeneratingGuid && (() => {

@@ -20,7 +20,7 @@ import { readFileSync, writeFileSync, mkdirSync, copyFileSync, unlinkSync, exist
 import multer from "multer";
 import path from "path";
 import { authenticateRequest, getAuthUserId } from "./jwt";
-import { triggerRecapBatch, getSchedulerStatus } from "./productionRecapScheduler";
+import { triggerRecapBatch, getSchedulerStatus, getPipelineStatus } from "./productionRecapScheduler";
 
 declare module "express-session" {
   interface SessionData {
@@ -10010,6 +10010,59 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/admin/pipeline/status", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const pipelineState = getPipelineStatus();
+
+      const { rows: stageCounts } = await pool.query(`
+        SELECT status, COUNT(*)::int as count
+        FROM pending_transcript_queue
+        WHERE status NOT IN ('completed')
+        GROUP BY status
+        ORDER BY status
+      `);
+
+      const { rows: queueItems } = await pool.query(`
+        SELECT id, podcast_id, podcast_name, episode_guid, episode_title, status,
+               attempts, last_attempt_at, error_message, created_at, priority
+        FROM pending_transcript_queue
+        WHERE status NOT IN ('completed')
+        ORDER BY
+          CASE status
+            WHEN 'generating_recap' THEN 1
+            WHEN 'fetching' THEN 2
+            WHEN 'transcript_ready' THEN 3
+            WHEN 'queued' THEN 4
+            WHEN 'failed' THEN 5
+            ELSE 6
+          END,
+          priority ASC, created_at ASC
+        LIMIT 50
+      `);
+
+      const { rows: recentCompleted } = await pool.query(`
+        SELECT id, podcast_name, episode_title, status, last_attempt_at, created_at
+        FROM pending_transcript_queue
+        WHERE status = 'completed'
+        ORDER BY last_attempt_at DESC
+        LIMIT 10
+      `);
+
+      res.json({
+        pipeline: pipelineState,
+        stageCounts: stageCounts.reduce((acc: any, r: any) => { acc[r.status] = r.count; return acc; }, {}),
+        queue: queueItems,
+        recentCompleted,
+      });
+    } catch (err: any) {
+      console.error("[PipelineStatus] Error:", err.message);
+      res.status(500).json({ message: "Failed to fetch pipeline status" });
+    }
+  });
+
   app.get("/api/admin/transcripts/:id", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });
@@ -18133,200 +18186,32 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
 
         console.log(`[TaddyWebhook] New episode: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
 
-        res.status(200).json({ success: true, podcast: podcast.name, episode: epTitle.slice(0, 60) });
+        const { rows: existing } = await pool.query(
+          `SELECT id FROM episode_transcripts WHERE podcast_id = $1 AND (episode_guid = $2 OR ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$3')}) LIMIT 1`,
+          [podcast.itunes_id, epUuid, epTitle]
+        );
 
-        (async () => {
-          try {
-            const { rows: existing } = await pool.query(
-              `SELECT id FROM episode_transcripts WHERE podcast_id = $1 AND (episode_guid = $2 OR ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$3')}) LIMIT 1`,
-              [podcast.itunes_id, epUuid, epTitle]
-            );
-            if (existing.length > 0) {
-              console.log(`[TaddyWebhook] Episode already exists, skipping: "${epTitle.slice(0, 60)}"`);
-              return;
-            }
+        const { rows: recapCheck } = await pool.query(
+          `SELECT 1 FROM landing_page_recaps WHERE itunes_id = $1 AND ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$2')} LIMIT 1`,
+          [podcast.itunes_id, epTitle]
+        );
 
-            // Skip if a published recap already exists — prevents pipeline clutter
-            const { rows: recapCheck } = await pool.query(
-              `SELECT 1 FROM landing_page_recaps WHERE itunes_id = $1 AND ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$2')} LIMIT 1`,
-              [podcast.itunes_id, epTitle]
-            );
-            if (recapCheck.length > 0) {
-              console.log(`[TaddyWebhook] Recap already published, skipping: "${epTitle.slice(0, 60)}"`);
-              return;
-            }
+        if (existing.length > 0 || recapCheck.length > 0) {
+          console.log(`[TaddyWebhook] Episode already processed, skipping: "${epTitle.slice(0, 60)}"`);
+          return res.status(200).json({ success: true, skipped: "already_exists" });
+        }
 
-            const { getEpisodeTranscript, isTaddyBudgetExhausted: isBudgetExhausted } = await import("./taddyClient");
+        await storage.queueTranscriptFetch({
+          podcastId: podcast.itunes_id,
+          podcastName: podcast.name,
+          episodeGuid: epUuid,
+          episodeTitle: epTitle,
+          taddyUuid: podcast.taddy_uuid || seriesUuid || undefined,
+          priority: 10,
+        });
 
-            // Only queue if this podcast has previously produced at least one transcript.
-            // Podcasts with zero transcript history (e.g. Science Friday, The Memo) will never
-            // succeed in Taddy — skipping saves 5 pointless retries per episode.
-            const { rows: [txHistoryRow] } = await pool.query(
-              `SELECT 1 FROM episode_transcripts WHERE podcast_id = $1 LIMIT 1`,
-              [podcast.itunes_id]
-            );
-            const podcastHasTranscriptHistory = !!txHistoryRow;
-
-            if (isBudgetExhausted()) {
-              if (!podcastHasTranscriptHistory) {
-                console.log(`[TaddyWebhook] Budget exhausted + no transcript history for "${podcast.name}", skipping queue`);
-                return;
-              }
-              console.log(`[TaddyWebhook] Budget exhausted, queuing "${epTitle.slice(0, 60)}"`);
-              await storage.queueTranscriptFetch({
-                podcastId: podcast.itunes_id,
-                podcastName: podcast.name,
-                episodeGuid: epUuid,
-                episodeTitle: epTitle,
-                taddyUuid: podcast.taddy_uuid || seriesUuid || undefined,
-                priority: 10,
-              });
-              return;
-            }
-
-            const transcript = await getEpisodeTranscript(epUuid);
-            if (!transcript) {
-              if (!podcastHasTranscriptHistory) {
-                console.log(`[TaddyWebhook] No transcript + no history for "${podcast.name}", skipping queue`);
-                return;
-              }
-              console.log(`[TaddyWebhook] No transcript available yet, queuing "${epTitle.slice(0, 60)}"`);
-              await storage.queueTranscriptFetch({
-                podcastId: podcast.itunes_id,
-                podcastName: podcast.name,
-                episodeGuid: epUuid,
-                episodeTitle: epTitle,
-                taddyUuid: podcast.taddy_uuid || seriesUuid || undefined,
-                priority: 10,
-              });
-              return;
-            }
-
-            const isComplete = !!(epData.description && epData.datePublished && epData.duration && epData.audioUrl);
-            await storage.saveTranscript({
-              podcastId: podcast.itunes_id,
-              episodeGuid: epUuid,
-              episodeTitle: epTitle,
-              transcript,
-              description: epData.description || undefined,
-              subtitle: epData.subtitle || undefined,
-              datePublished: epData.datePublished || undefined,
-              duration: epData.duration || undefined,
-              audioUrl: epData.audioUrl || undefined,
-              imageUrl: epData.imageUrl || undefined,
-              seasonNumber: epData.seasonNumber || undefined,
-              episodeNumber: epData.episodeNumber || undefined,
-              episodeType: epData.episodeType || undefined,
-            });
-            console.log(`[TaddyWebhook] Saved transcript: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
-
-            const { generateRecapFromTranscript } = await import("./recapGenerator");
-            const { slugifyEpisodeTitle } = await import("./emailScheduler");
-            const epSlug = slugifyEpisodeTitle(epTitle);
-
-            const existingRecap = await storage.getLandingPageRecapBySlug(podcast.slug, epSlug);
-            if (existingRecap) {
-              console.log(`[TaddyWebhook] Recap already exists for "${epTitle.slice(0, 60)}"`);
-              return;
-            }
-
-            const recap = await generateRecapFromTranscript(transcript, podcast.name, epTitle, epData.description || null);
-            if (!recap) {
-              console.log(`[TaddyWebhook] Failed to generate recap for "${epTitle.slice(0, 60)}"`);
-              return;
-            }
-
-            const durationSec = epData.duration || 0;
-            const durationMin = Math.round(durationSec / 60);
-            const durationStr = durationMin >= 60
-              ? `${Math.floor(durationMin / 60)} hr ${durationMin % 60} min`
-              : `${durationMin} min`;
-            const publishDate = epData.datePublished
-              ? new Date(epData.datePublished * 1000).toISOString().split("T")[0]
-              : new Date().toISOString().split("T")[0];
-
-            let webhookGuests: string;
-            const aiWebhookGuests = recap.guests && recap.guests.length > 0 ? recap.guests : null;
-            if (aiWebhookGuests) {
-              webhookGuests = JSON.stringify(aiWebhookGuests);
-            } else if (existingRecap) {
-              const existingGuestsRaw = existingRecap.guests;
-              let hasExisting = false;
-              if (existingGuestsRaw) {
-                try {
-                  const parsed = typeof existingGuestsRaw === 'string' ? JSON.parse(existingGuestsRaw) : existingGuestsRaw;
-                  hasExisting = Array.isArray(parsed) && parsed.length > 0;
-                } catch {}
-              }
-              if (hasExisting) {
-                webhookGuests = typeof existingGuestsRaw === 'string' ? existingGuestsRaw : JSON.stringify(existingGuestsRaw);
-                console.log(`[TaddyWebhook] AI returned empty guests, preserving existing guest data for "${epTitle.slice(0, 60)}"`);
-              } else {
-                webhookGuests = "[]";
-              }
-            } else {
-              webhookGuests = "[]";
-            }
-
-            const webhookSpotifyUrl = "";
-            const webhookUpserted = await storage.upsertLandingPageRecap({
-              slug: podcast.slug,
-              itunesId: podcast.itunes_id,
-              podcastName: podcast.name,
-              episodeTitle: epTitle,
-              episodeSlug: epSlug,
-              publishDate,
-              duration: durationStr,
-              artworkUrl: epData.imageUrl || podcast.artwork_url || "",
-              hosts: podcast.hosts || "",
-              tldl: "",
-              whatHappened: recap.whatHappened,
-              keyInsights: recap.keyInsights,
-              quote: "",
-              quoteAttribution: "",
-              keyTopics: [],
-              topQuestions: null,
-              audioUrl: epData.audioUrl || "",
-              sponsors: "[]",
-              guests: webhookGuests,
-              resources: recap.resources ? JSON.stringify(recap.resources) : "[]",
-              spotifyEpisodeUrl: webhookSpotifyUrl,
-              topicContexts: null,
-              published: true,
-            });
-            const webhookCanonicalSlug = webhookUpserted.episodeSlug;
-            podcastRecapsCache.invalidateByPrefix(podcast.slug);
-            entityLinksCache.invalidateByPrefix(podcast.slug);
-            console.log(`[TaddyWebhook] Generated recap: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
-
-
-            try {
-              const { rows: recapIdRows } = await pool.query(
-                `SELECT id FROM landing_page_recaps WHERE slug = $1 AND episode_slug = $2 LIMIT 1`,
-                [podcast.slug, webhookCanonicalSlug]
-              );
-              await postProcessRecap({
-                transcript: fullTranscript,
-                podcastSlug: podcast.slug,
-                episodeSlug: webhookCanonicalSlug,
-                podcastName: podcast.name,
-                episodeTitle: epTitle,
-                itunesId: podcast.itunes_id,
-                hosts: podcast.hosts || "",
-                guests: recap.guests || null,
-                resources: recap.resources || null,
-                recapId: recapIdRows[0]?.id,
-              });
-              console.log(`[TaddyWebhook] Post-processed: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
-            } catch (ppErr) {
-              console.error(`[TaddyWebhook] Post-process error:`, ppErr);
-            }
-          } catch (err) {
-            console.error(`[TaddyWebhook] Background error for "${epTitle.slice(0, 60)}":`, err);
-          }
-        })();
-
-        return;
+        console.log(`[TaddyWebhook] Queued for pipeline: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
+        return res.status(200).json({ success: true, queued: true, podcast: podcast.name, episode: epTitle.slice(0, 60) });
       }
 
       if (taddyType === "podcastepisode" && action === "updated") {

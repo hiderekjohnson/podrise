@@ -3,28 +3,30 @@ import { storage } from "./storage";
 import { generateRecapFromFullTranscript } from "./recapGenerator";
 import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 
-const INTERVAL_MS = 5 * 60 * 1000;
+const TRANSCRIPT_FETCH_INTERVAL_MS = 90 * 1000;
+const RECAP_GENERATION_INTERVAL_MS = 5 * 60 * 1000;
 const HEADLINE_CATCHUP_INTERVAL_MS = 15 * 60 * 1000;
-const BATCH_SIZE = 1;
-const PER_PODCAST = 1;
-// How long a single episode recap attempt can run before being killed
-const EPISODE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes — generous to handle long transcripts
-// How many times to retry a failed episode before giving up
-const EPISODE_MAX_RETRIES = 1; // 1 retry = 2 total attempts
-// Pause between retry attempts
-const EPISODE_RETRY_DELAY_MS = 30_000; // 30 seconds
-// Overall batch-level watchdog — must be larger than EPISODE_TIMEOUT_MS × (1 + retries)
-const BATCH_TIMEOUT_MS = 45 * 60 * 1000; // 45 minutes
+const EPISODE_TIMEOUT_MS = 15 * 60 * 1000;
 const HEADLINE_RETRY_COUNT = 2;
 const HEADLINE_RETRY_DELAY_MS = 3000;
-let batchRunning = false;
-let batchStartedAt = 0;
-let lastSuccessfulBatchAt = Date.now();
-let catchUpRunning = false;
-let timeoutEpisodesThisSession = new Set<string>();
+const PER_PODCAST = 1;
+
 let isSchedulerStarted = false;
+
+let transcriptFetcherBusy = false;
+let transcriptFetcherLastRunAt = 0;
+let transcriptFetcherNextRunAt = 0;
+let currentlyFetchingEpisode: { guid: string; title: string; podcastName: string } | null = null;
+
+let recapGeneratorBusy = false;
+let recapGeneratorLastRunAt = 0;
+let recapGeneratorNextRunAt = 0;
+let currentlyGeneratingEpisode: { guid: string; title: string; podcastName: string } | null = null;
+
 let currentlyGeneratingGuid: string | null = null;
 let currentlyGeneratingTitle: string | null = null;
+
+let catchUpRunning = false;
 
 async function getPodcastInfo(itunesId: string) {
   const { rows } = await pool.query(
@@ -36,6 +38,298 @@ async function getPodcastInfo(itunesId: string) {
 
 function makeEpisodeSlug(title: string): string {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
+}
+
+async function fetchOneTranscript() {
+  if (transcriptFetcherBusy) return;
+  transcriptFetcherBusy = true;
+  transcriptFetcherLastRunAt = Date.now();
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, podcast_id, podcast_name, episode_guid, episode_title, taddy_uuid, attempts
+       FROM pending_transcript_queue
+       WHERE status IN ('queued', 'pending')
+       ORDER BY priority ASC, created_at ASC
+       LIMIT 1`
+    );
+
+    if (rows.length === 0) return;
+
+    const item = rows[0];
+    console.log(`[Pipeline] Fetching transcript: "${item.episode_title?.slice(0, 60)}" (${item.podcast_name})`);
+
+    currentlyFetchingEpisode = {
+      guid: item.episode_guid,
+      title: item.episode_title,
+      podcastName: item.podcast_name,
+    };
+
+    await pool.query(
+      `UPDATE pending_transcript_queue SET status = 'fetching', last_attempt_at = NOW() WHERE id = $1`,
+      [item.id]
+    );
+
+    const { getEpisodeTranscript, isTaddyBudgetExhausted } = await import("./taddyClient");
+
+    if (isTaddyBudgetExhausted()) {
+      console.log(`[Pipeline] Taddy budget exhausted, keeping "${item.episode_title?.slice(0, 60)}" in queue`);
+      await pool.query(
+        `UPDATE pending_transcript_queue SET status = 'queued' WHERE id = $1`,
+        [item.id]
+      );
+      return;
+    }
+
+    const transcript = await getEpisodeTranscript(item.episode_guid);
+
+    if (!transcript) {
+      const newAttempts = (item.attempts || 0) + 1;
+      if (newAttempts >= 5) {
+        await pool.query(
+          `UPDATE pending_transcript_queue SET status = 'failed', attempts = $2, error_message = 'No transcript available after 5 attempts' WHERE id = $1`,
+          [item.id, newAttempts]
+        );
+        console.log(`[Pipeline] No transcript after ${newAttempts} attempts: "${item.episode_title?.slice(0, 60)}"`);
+      } else {
+        await pool.query(
+          `UPDATE pending_transcript_queue SET status = 'queued', attempts = $2 WHERE id = $1`,
+          [item.id, newAttempts]
+        );
+        console.log(`[Pipeline] No transcript yet (attempt ${newAttempts}/5): "${item.episode_title?.slice(0, 60)}"`);
+      }
+      return;
+    }
+
+    const { rows: epRows } = await pool.query(
+      `SELECT id FROM episode_transcripts WHERE episode_guid = $1 LIMIT 1`,
+      [item.episode_guid]
+    );
+
+    const podcast = await getPodcastInfo(item.podcast_id);
+
+    if (epRows.length === 0) {
+      let datePublished: number | null = null;
+      try {
+        const { getEpisodesByItunesId } = await import("./taddyClient");
+        const episodes = await getEpisodesByItunesId(item.podcast_id, 5, item.podcast_name);
+        const match = episodes?.find((e: any) => e.uuid === item.episode_guid);
+        if (match?.datePublished) {
+          datePublished = Math.floor(match.datePublished);
+        }
+      } catch {}
+
+      await pool.query(
+        `INSERT INTO episode_transcripts (podcast_id, episode_guid, episode_title, transcript, fetched_at, date_published)
+         VALUES ($1, $2, $3, $4, NOW(), $5)
+         ON CONFLICT (episode_guid) DO UPDATE SET transcript = EXCLUDED.transcript, fetched_at = NOW()`,
+        [item.podcast_id, item.episode_guid, item.episode_title, transcript, datePublished]
+      );
+    } else {
+      await pool.query(
+        `UPDATE episode_transcripts SET transcript = $1, fetched_at = NOW() WHERE episode_guid = $2`,
+        [transcript, item.episode_guid]
+      );
+    }
+
+    await pool.query(
+      `UPDATE pending_transcript_queue SET status = 'transcript_ready', attempts = attempts + 1, last_attempt_at = NOW() WHERE id = $1`,
+      [item.id]
+    );
+
+    console.log(`[Pipeline] Transcript saved: "${item.episode_title?.slice(0, 60)}" (${item.podcast_name})`);
+  } catch (err: any) {
+    console.error(`[Pipeline] Transcript fetch error: ${err.message}`);
+  } finally {
+    transcriptFetcherBusy = false;
+    currentlyFetchingEpisode = null;
+    transcriptFetcherNextRunAt = Date.now() + TRANSCRIPT_FETCH_INTERVAL_MS;
+  }
+}
+
+async function generateOneRecap() {
+  if (recapGeneratorBusy) return;
+  recapGeneratorBusy = true;
+  recapGeneratorLastRunAt = Date.now();
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT ptq.id, ptq.podcast_id, ptq.podcast_name, ptq.episode_guid, ptq.episode_title,
+              et.transcript, et.description, et.date_published, et.duration, et.audio_url, et.image_url
+       FROM pending_transcript_queue ptq
+       INNER JOIN episode_transcripts et ON et.episode_guid = ptq.episode_guid
+       WHERE ptq.status = 'transcript_ready'
+         AND et.transcript IS NOT NULL AND et.transcript != ''
+       ORDER BY ptq.priority ASC, ptq.created_at ASC
+       LIMIT 1`
+    );
+
+    if (rows.length === 0) return;
+
+    const item = rows[0];
+    const podcast = await getPodcastInfo(item.podcast_id);
+    if (!podcast) {
+      console.log(`[Pipeline] No podcast info for itunesId=${item.podcast_id}, skipping`);
+      await pool.query(
+        `UPDATE pending_transcript_queue SET status = 'failed', error_message = 'Podcast not found in directory' WHERE id = $1`,
+        [item.id]
+      );
+      return;
+    }
+
+    const podcastSlug = ITUNES_ID_TO_SLUG[item.podcast_id] || podcast.slug || podcast.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 80);
+    const epTitle = item.episode_title || "Untitled";
+    const epSlug = makeEpisodeSlug(epTitle);
+
+    const { rows: existingRows } = await pool.query(
+      `SELECT id FROM landing_page_recaps WHERE itunes_id = $1 AND lower(trim(episode_title)) = lower(trim($2)) LIMIT 1`,
+      [item.podcast_id, epTitle]
+    );
+    if (existingRows.length > 0) {
+      console.log(`[Pipeline] Recap already exists: "${epTitle.slice(0, 60)}"`);
+      await pool.query(
+        `UPDATE pending_transcript_queue SET status = 'completed' WHERE id = $1`,
+        [item.id]
+      );
+      return;
+    }
+
+    console.log(`[Pipeline] Generating recap: "${epTitle.slice(0, 60)}" (${podcast.name})`);
+    currentlyGeneratingEpisode = { guid: item.episode_guid, title: epTitle, podcastName: podcast.name };
+    currentlyGeneratingGuid = item.episode_guid;
+    currentlyGeneratingTitle = epTitle;
+
+    await pool.query(
+      `UPDATE pending_transcript_queue SET status = 'generating_recap', last_attempt_at = NOW() WHERE id = $1`,
+      [item.id]
+    );
+
+    const recapPromise = generateRecapFromFullTranscript(
+      item.transcript, podcast.name, epTitle, item.description || null
+    );
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), EPISODE_TIMEOUT_MS));
+    const recap = await Promise.race([recapPromise, timeoutPromise]);
+
+    if (!recap) {
+      console.log(`[Pipeline] Recap generation failed/timed out: "${epTitle.slice(0, 60)}"`);
+      await pool.query(
+        `UPDATE pending_transcript_queue SET status = 'failed', error_message = 'Recap generation failed or timed out' WHERE id = $1`,
+        [item.id]
+      );
+      return;
+    }
+
+    const publishDate = item.date_published
+      ? new Date(item.date_published * 1000).toISOString().slice(0, 10)
+      : new Date().toISOString().slice(0, 10);
+
+    let tabloidHeadline: string | null = null;
+    let tabloidSubHeadline: string | null = null;
+    try {
+      const { generateTabloidHeadline } = await import("./emailScheduler");
+      for (let attempt = 1; attempt <= HEADLINE_RETRY_COUNT + 1; attempt++) {
+        try {
+          const headlinePromise = generateTabloidHeadline(epTitle, podcast.name, "", recap.whatHappened, recap.keyInsights || []);
+          const headlineTimeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 30_000));
+          const result = await Promise.race([headlinePromise, headlineTimeout]);
+          if (result) {
+            tabloidHeadline = result.tabloidHeadline;
+            tabloidSubHeadline = result.tabloidSubHeadline;
+            break;
+          }
+        } catch (headlineErr: any) {
+          console.warn(`[Pipeline] Headline attempt ${attempt} failed: ${headlineErr.message}`);
+        }
+        if (attempt <= HEADLINE_RETRY_COUNT) await new Promise(r => setTimeout(r, HEADLINE_RETRY_DELAY_MS));
+      }
+    } catch {}
+
+    const upsertedRecap = await storage.upsertLandingPageRecap({
+      slug: podcastSlug,
+      itunesId: item.podcast_id,
+      podcastName: podcast.name,
+      episodeTitle: epTitle,
+      episodeSlug: epSlug,
+      publishDate,
+      duration: item.duration ? String(item.duration) : null,
+      artworkUrl: podcast.artwork_url || "",
+      hosts: podcast.hosts || "",
+      tldl: "",
+      whatHappened: recap.whatHappened,
+      keyInsights: recap.keyInsights || [],
+      quote: "",
+      quoteAttribution: "",
+      keyTopics: [],
+      guests: JSON.stringify(recap.guests || []),
+      resources: JSON.stringify(recap.resources || []),
+      tabloidHeadline,
+      tabloidSubHeadline,
+      showNotes: item.description || null,
+      published: true,
+    });
+
+    if (upsertedRecap?.id) {
+      try {
+        const { validateAndEnrichRecap } = await import("./recapValidator");
+        await validateAndEnrichRecap(
+          upsertedRecap.id, podcastSlug, upsertedRecap.episodeSlug, podcast.name,
+          epTitle, item.podcast_id, item.transcript || null, podcast.hosts || null
+        );
+      } catch (valErr) {
+        console.warn(`[Pipeline] Validation failed for "${epTitle.slice(0, 50)}":`, valErr);
+      }
+    }
+
+    await pool.query(
+      `UPDATE pending_transcript_queue SET status = 'completed', last_attempt_at = NOW() WHERE id = $1`,
+      [item.id]
+    );
+
+    console.log(`[Pipeline] Published: "${epTitle.slice(0, 60)}" (${podcast.name})`);
+  } catch (err: any) {
+    console.error(`[Pipeline] Recap generation error: ${err.message}`);
+  } finally {
+    recapGeneratorBusy = false;
+    currentlyGeneratingEpisode = null;
+    currentlyGeneratingGuid = null;
+    currentlyGeneratingTitle = null;
+    recapGeneratorNextRunAt = Date.now() + RECAP_GENERATION_INTERVAL_MS;
+  }
+}
+
+export function getSchedulerStatus() {
+  return {
+    isSchedulerStarted,
+    batchRunning: recapGeneratorBusy,
+    batchStartedAt: recapGeneratorLastRunAt,
+    lastSuccessfulBatchAt: recapGeneratorLastRunAt,
+    currentlyGeneratingGuid,
+    currentlyGeneratingTitle,
+  };
+}
+
+export function getPipelineStatus() {
+  return {
+    isSchedulerStarted,
+    transcriptFetcher: {
+      busy: transcriptFetcherBusy,
+      lastRunAt: transcriptFetcherLastRunAt,
+      nextRunAt: transcriptFetcherNextRunAt,
+      currentEpisode: currentlyFetchingEpisode,
+      intervalMs: TRANSCRIPT_FETCH_INTERVAL_MS,
+    },
+    recapGenerator: {
+      busy: recapGeneratorBusy,
+      lastRunAt: recapGeneratorLastRunAt,
+      nextRunAt: recapGeneratorNextRunAt,
+      currentEpisode: currentlyGeneratingEpisode,
+      intervalMs: RECAP_GENERATION_INTERVAL_MS,
+    },
+  };
+}
+
+export async function triggerRecapBatch() {
+  return generateOneRecap();
 }
 
 async function generateTabloidHeadlineWithRetry(
@@ -56,26 +350,20 @@ async function generateTabloidHeadlineWithRetry(
           `UPDATE landing_page_recaps SET tabloid_headline = $1, tabloid_sub_headline = $2 WHERE id = $3`,
           [headlineResult.tabloidHeadline, headlineResult.tabloidSubHeadline, recapId]
         );
-        console.log(`[ProdRecap] Generated tabloid headline for "${epTitle?.slice(0, 50)}" (attempt ${attempt})`);
         return true;
       }
-      console.warn(`[ProdRecap] Tabloid headline returned null for "${epTitle?.slice(0, 50)}" (attempt ${attempt}/${HEADLINE_RETRY_COUNT + 1})`);
     } catch (headlineErr: any) {
-      console.error(`[ProdRecap] Tabloid headline generation error for "${epTitle?.slice(0, 50)}" (attempt ${attempt}/${HEADLINE_RETRY_COUNT + 1}): ${headlineErr.message}`, headlineErr.stack);
+      console.error(`[Pipeline] Tabloid headline error (attempt ${attempt}): ${headlineErr.message}`);
     }
     if (attempt <= HEADLINE_RETRY_COUNT) {
       await new Promise(r => setTimeout(r, HEADLINE_RETRY_DELAY_MS));
     }
   }
-  console.error(`[ProdRecap] Tabloid headline generation failed after ${HEADLINE_RETRY_COUNT + 1} attempts for "${epTitle?.slice(0, 50)}"`);
   return false;
 }
 
 async function catchUpMissingHeadlines() {
-  if (catchUpRunning) {
-    console.log(`[ProdRecap] Headline catch-up already running, skipping`);
-    return;
-  }
+  if (catchUpRunning) return;
   catchUpRunning = true;
   try {
     const { rows } = await pool.query(`
@@ -88,297 +376,21 @@ async function catchUpMissingHeadlines() {
       LIMIT 50
     `);
 
-    if (rows.length === 0) {
-      return;
-    }
+    if (rows.length === 0) return;
 
-    console.log(`[ProdRecap] Headline catch-up: found ${rows.length} recap(s) missing tabloid headlines`);
-
+    console.log(`[Pipeline] Headline catch-up: ${rows.length} recap(s) missing headlines`);
     let success = 0;
-    let failed = 0;
     for (const row of rows) {
       const keyInsights = Array.isArray(row.key_insights) ? row.key_insights : [];
-      const result = await generateTabloidHeadlineWithRetry(
-        row.id,
-        row.episode_title,
-        row.podcast_name,
-        row.what_happened,
-        keyInsights,
-      );
+      const result = await generateTabloidHeadlineWithRetry(row.id, row.episode_title, row.podcast_name, row.what_happened, keyInsights);
       if (result) success++;
-      else failed++;
       await new Promise(r => setTimeout(r, 2000));
     }
-
-    console.log(`[ProdRecap] Headline catch-up complete: ${success} generated, ${failed} failed`);
+    console.log(`[Pipeline] Headline catch-up: ${success}/${rows.length} generated`);
   } catch (err: any) {
-    console.error(`[ProdRecap] Headline catch-up error: ${err.message}`, err.stack);
+    console.error(`[Pipeline] Headline catch-up error: ${err.message}`);
   } finally {
     catchUpRunning = false;
-  }
-}
-
-interface ProcessEpisodeResult {
-  success: boolean;
-}
-
-async function processEpisode(ep: any, podcastSlug: string, podcastName: string, itunesId: string, hosts: string, artwork: string): Promise<ProcessEpisodeResult> {
-  const epSlug = makeEpisodeSlug(ep.episode_title);
-  const epTitle = ep.episode_title;
-
-  try {
-    const recap = await generateRecapFromFullTranscript(
-      ep.transcript,
-      podcastName,
-      epTitle,
-      ep.description || null,
-    );
-
-    if (!recap) return { success: false };
-
-    const publishDate = ep.date_published
-      ? new Date(ep.date_published * 1000).toISOString().slice(0, 10)
-      : new Date().toISOString().slice(0, 10);
-
-    const { rows: existingRows } = await pool.query(
-      `SELECT id FROM landing_page_recaps WHERE itunes_id = $1 AND lower(trim(episode_title)) = lower(trim($2)) LIMIT 1`,
-      [itunesId, epTitle]
-    );
-    if (existingRows.length > 0) {
-      console.log(`[ProdRecap] Skip duplicate: "${epTitle?.slice(0, 60)}" already exists (id=${existingRows[0].id})`);
-      return { success: true };
-    }
-
-    let tabloidHeadline: string | null = null;
-    let tabloidSubHeadline: string | null = null;
-    try {
-      const { generateTabloidHeadline } = await import("./emailScheduler");
-      const headlineTimeout = 30_000;
-      for (let attempt = 1; attempt <= HEADLINE_RETRY_COUNT + 1; attempt++) {
-        try {
-          const headlinePromise = generateTabloidHeadline(epTitle, podcastName, "", recap.whatHappened, recap.keyInsights || []);
-          const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), headlineTimeout));
-          const result = await Promise.race([headlinePromise, timeoutPromise]);
-          if (result) {
-            tabloidHeadline = result.tabloidHeadline;
-            tabloidSubHeadline = result.tabloidSubHeadline;
-            console.log(`[ProdRecap] Generated tabloid headline for "${epTitle?.slice(0, 50)}" (attempt ${attempt})`);
-            break;
-          }
-          console.warn(`[ProdRecap] Tabloid headline returned null/timeout for "${epTitle?.slice(0, 50)}" (attempt ${attempt}/${HEADLINE_RETRY_COUNT + 1})`);
-
-        } catch (headlineErr: any) {
-          console.error(`[ProdRecap] Tabloid headline error for "${epTitle?.slice(0, 50)}" (attempt ${attempt}/${HEADLINE_RETRY_COUNT + 1}): ${headlineErr.message}`);
-        }
-        if (attempt <= HEADLINE_RETRY_COUNT) await new Promise(r => setTimeout(r, HEADLINE_RETRY_DELAY_MS));
-      }
-    } catch (headlineErr: any) {
-      console.warn(`[ProdRecap] Inline headline generation failed for "${epTitle?.slice(0, 50)}": ${headlineErr.message}`);
-    }
-
-    const upsertedRecap = await storage.upsertLandingPageRecap({
-      slug: podcastSlug,
-      itunesId,
-      podcastName,
-      episodeTitle: epTitle,
-      episodeSlug: epSlug,
-      publishDate,
-      duration: ep.duration ? String(ep.duration) : null,
-      artworkUrl: artwork,
-      hosts: hosts || "",
-      tldl: "",
-      whatHappened: recap.whatHappened,
-      keyInsights: recap.keyInsights || [],
-      quote: "",
-      quoteAttribution: "",
-      keyTopics: [],
-      guests: JSON.stringify(recap.guests || []),
-      resources: JSON.stringify(recap.resources || []),
-      tabloidHeadline,
-      tabloidSubHeadline,
-      showNotes: ep.description || null,
-      published: true,
-    });
-    const canonicalSlug = upsertedRecap.episodeSlug;
-
-    if (upsertedRecap?.id) {
-      try {
-        const { validateAndEnrichRecap } = await import("./recapValidator");
-        await validateAndEnrichRecap(
-          upsertedRecap.id, podcastSlug, canonicalSlug, podcastName,
-          epTitle, itunesId, ep.transcript || null, hosts || null
-        );
-      } catch (valErr) {
-        console.warn(`[ProdRecap] Validation failed for "${epTitle?.slice(0, 50)}":`, valErr);
-      }
-    }
-
-    return { success: true };
-  } catch (err: any) {
-    console.error(`[ProdRecap] Error processing "${epTitle?.slice(0, 50)}": ${err.message}`);
-    try {
-      await pool.query(
-        `INSERT INTO recap_processing_failures (recap_id, podcast_slug, episode_slug, episode_title, podcast_name, source, failure_type, details)
-         VALUES (NULL, $1, $2, $3, $4, 'production_scheduler', 'generation_failed', $5)`,
-        [podcastSlug, epSlug, epTitle, podcastName, err.message?.slice(0, 500)]
-      );
-    } catch {}
-    return { success: false };
-  }
-}
-
-export async function triggerRecapBatch() {
-  return runBatch();
-}
-
-export function getSchedulerStatus() {
-  return {
-    isSchedulerStarted,
-    batchRunning,
-    batchStartedAt,
-    lastSuccessfulBatchAt,
-    currentlyGeneratingGuid,
-    currentlyGeneratingTitle,
-  };
-}
-
-async function runBatch() {
-  // Watchdog: if no successful batch in 30 minutes, force reset (safety valve)
-  const timeSinceLastSuccess = Date.now() - lastSuccessfulBatchAt;
-  if (timeSinceLastSuccess > 30 * 60 * 1000 && batchRunning) {
-    console.error(`[ProdRecap] WATCHDOG: Batch stuck for ${Math.round(timeSinceLastSuccess / 60000)}min — forcing emergency reset`);
-    batchRunning = false;
-  }
-
-  if (batchRunning) {
-    const elapsed = Date.now() - batchStartedAt;
-    if (elapsed > BATCH_TIMEOUT_MS) {
-      console.warn(`[ProdRecap] Batch stuck for ${Math.round(elapsed / 60000)}min — forcing reset`);
-      batchRunning = false;
-    } else {
-      console.log(`[ProdRecap] Previous batch still running (${Math.round(elapsed / 1000)}s), skipping`);
-      return;
-    }
-  }
-  batchRunning = true;
-  batchStartedAt = Date.now();
-  try {
-    const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
-    const cutoffTimestamp = Math.floor(fiveDaysAgo.getTime() / 1000);
-
-    const { rows: episodes } = await pool.query(
-      `WITH ranked AS (
-         SELECT et.id, et.podcast_id, et.episode_guid, et.episode_title, et.transcript, et.description,
-                et.date_published, et.duration, et.audio_url, et.image_url, et.fetched_at,
-                ROW_NUMBER() OVER (PARTITION BY et.podcast_id ORDER BY et.fetched_at ASC NULLS LAST) AS rn
-         FROM episode_transcripts et
-         INNER JOIN podcast_directory pd ON pd.itunes_id = et.podcast_id AND pd.status = 'published'
-         WHERE et.transcript IS NOT NULL AND et.transcript != ''
-           AND et.date_published IS NOT NULL
-           AND et.date_published >= $2
-           AND NOT EXISTS (
-             SELECT 1 FROM landing_page_recaps lpr
-             WHERE lpr.itunes_id = et.podcast_id
-               AND (lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
-                 OR lpr.episode_slug = lower(regexp_replace(trim(et.episode_title), '[^a-zA-Z0-9]+', '-', 'g')))
-           )
-       )
-       SELECT id, podcast_id, episode_guid, episode_title, transcript, description,
-              date_published, duration, audio_url, image_url, fetched_at
-       FROM ranked
-       WHERE rn <= $1
-       ORDER BY fetched_at ASC NULLS LAST
-       LIMIT ${BATCH_SIZE}`,
-      [PER_PODCAST, cutoffTimestamp]
-    );
-
-    if (episodes.length === 0) {
-      return;
-    }
-
-    console.log(`[ProdRecap] Processing ${episodes.length} episodes...`);
-
-    let generated = 0;
-    let failed = 0;
-
-    for (const ep of episodes) {
-      const info = await getPodcastInfo(ep.podcast_id);
-      if (!info) {
-        console.log(`[ProdRecap] Skip: no podcast info for itunesId=${ep.podcast_id}`);
-        continue;
-      }
-
-      const podcastSlug = ITUNES_ID_TO_SLUG[ep.podcast_id] || info.slug || info.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 80);
-      const podcastName = info.name;
-      const hosts = info.hosts || "";
-      const artwork = info.artwork_url || "";
-
-      const epTitle = ep.episode_title || "Untitled";
-      const epSlug = epTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 200);
-      const timeoutMinutes = Math.round(EPISODE_TIMEOUT_MS / 60000);
-
-      let succeeded = false;
-      for (let attempt = 1; attempt <= EPISODE_MAX_RETRIES + 1; attempt++) {
-        const attemptLabel = attempt > 1 ? ` (retry ${attempt - 1}/${EPISODE_MAX_RETRIES})` : "";
-        console.log(`[ProdRecap] Processing${attemptLabel}: "${epTitle.slice(0, 60)}" (${podcastName})`);
-
-        currentlyGeneratingGuid = ep.episode_guid || null;
-        currentlyGeneratingTitle = ep.episode_title || null;
-
-        const processPromise = processEpisode(ep, podcastSlug, podcastName, ep.podcast_id, hosts, artwork);
-        const episodeTimeout = new Promise<ProcessEpisodeResult>((resolve) => setTimeout(() => {
-          console.warn(`[ProdRecap] Attempt ${attempt} timed out after ${timeoutMinutes}min: "${epTitle.slice(0, 60)}"`);
-          resolve({ success: false });
-        }, EPISODE_TIMEOUT_MS));
-
-        const result = await Promise.race([processPromise, episodeTimeout]);
-        currentlyGeneratingGuid = null;
-        currentlyGeneratingTitle = null;
-
-        if (result.success) {
-          succeeded = true;
-          break;
-        }
-
-        if (attempt <= EPISODE_MAX_RETRIES) {
-          console.log(`[ProdRecap] Will retry "${epTitle.slice(0, 60)}" in ${EPISODE_RETRY_DELAY_MS / 1000}s...`);
-          await new Promise(r => setTimeout(r, EPISODE_RETRY_DELAY_MS));
-        }
-      }
-
-      if (succeeded) {
-        generated++;
-      } else {
-        failed++;
-        const episodeId = `${podcastSlug}/${epSlug}`;
-        timeoutEpisodesThisSession.add(episodeId);
-        try {
-          await pool.query(
-            `INSERT INTO landing_page_recaps (user_id, podcast_slug, episode_slug, episode_title, podcast_name, source, status, recap)
-             VALUES (NULL, $1, $2, $3, $4, 'production_scheduler', 'generation_failed', $5)
-             ON CONFLICT DO NOTHING`,
-            [podcastSlug, epSlug, epTitle, podcastName, `Failed after ${EPISODE_MAX_RETRIES + 1} attempts (${timeoutMinutes}min timeout each)`]
-          );
-        } catch (err: any) {
-          console.error(`[ProdRecap] Failed to record failure for "${epTitle.slice(0, 60)}": ${err.message}`);
-        }
-      }
-
-      if (episodes.indexOf(ep) < episodes.length - 1) {
-        await new Promise(r => setTimeout(r, 30_000));
-      }
-    }
-
-    if (generated > 0 || failed > 0) {
-      console.log(`[ProdRecap] Batch done: ${generated} generated, ${failed} failed`);
-      if (generated > 0) {
-        lastSuccessfulBatchAt = Date.now();
-      }
-    }
-  } catch (err: any) {
-    console.error("[ProdRecap] Batch error:", err.message, err.stack);
-  } finally {
-    batchRunning = false;
   }
 }
 
@@ -399,51 +411,25 @@ async function cleanupDuplicateRecaps() {
       RETURNING id, episode_title
     `);
     if (rows.length > 0) {
-      console.log(`[ProdRecap] Cleaned up ${rows.length} recent duplicate recap(s)`);
-    } else {
-      console.log(`[ProdRecap] No recent duplicates found`);
+      console.log(`[Pipeline] Cleaned up ${rows.length} duplicate recap(s)`);
     }
   } catch (err: any) {
-    console.error(`[ProdRecap] Duplicate cleanup error: ${err.message}`);
-  }
-
-  try {
-    const { rows: nullDateRows } = await pool.query(`
-      DELETE FROM landing_page_recaps
-      WHERE id IN (
-        SELECT lpr.id FROM landing_page_recaps lpr
-        WHERE lpr.created_at >= NOW() - INTERVAL '7 days'
-          AND EXISTS (
-            SELECT 1 FROM episode_transcripts et
-            WHERE et.podcast_id = lpr.itunes_id
-              AND lower(trim(et.episode_title)) = lower(trim(lpr.episode_title))
-              AND et.date_published IS NULL
-          )
-          AND NOT EXISTS (
-            SELECT 1 FROM episode_transcripts et2
-            WHERE et2.podcast_id = lpr.itunes_id
-              AND lower(trim(et2.episode_title)) = lower(trim(lpr.episode_title))
-              AND et2.date_published IS NOT NULL
-          )
-      )
-      RETURNING id, episode_title
-    `);
-    if (nullDateRows.length > 0) {
-      console.log(`[ProdRecap] Removed ${nullDateRows.length} recap(s) created from episodes with no real publish date`);
-    } else {
-      console.log(`[ProdRecap] No null-date recaps to clean`);
-    }
-  } catch (err: any) {
-    console.error(`[ProdRecap] Null-date cleanup error: ${err.message}`);
+    console.error(`[Pipeline] Duplicate cleanup error: ${err.message}`);
   }
 }
 
-// ── Active Episode Catch-Up Scanner ─────────────────────────────────────────
-// Runs every 2 hours. For every published podcast that hasn't received a new
-// transcript in the last 3 hours, we proactively ask Taddy for its most recent
-// episodes and save any transcripts that are missing from our DB.
-// This is the primary safety net against Taddy webhook delays or drops —
-// we NEVER rely solely on incoming webhooks for critical content.
+async function cleanupCompletedQueueItems() {
+  try {
+    const { rows } = await pool.query(`
+      DELETE FROM pending_transcript_queue
+      WHERE status = 'completed' AND created_at < NOW() - INTERVAL '7 days'
+      RETURNING id
+    `);
+    if (rows.length > 0) {
+      console.log(`[Pipeline] Cleaned up ${rows.length} completed queue item(s)`);
+    }
+  } catch {}
+}
 
 const CATCHUP_SCAN_INTERVAL_MS = 2 * 60 * 60 * 1000;
 const CATCHUP_SCAN_STALENESS_HOURS = 3;
@@ -485,13 +471,12 @@ async function runCatchupScan() {
     );
 
     if (stalePodcasts.length === 0) {
-      console.log("[CatchupScan] All podcasts are current, no catch-up needed");
+      console.log("[CatchupScan] All podcasts are current");
       return;
     }
 
     console.log(`[CatchupScan] Checking ${stalePodcasts.length} podcast(s) for missed episodes`);
-    let recovered = 0;
-    let apiErrors = 0;
+    let queued = 0;
 
     for (const podcast of stalePodcasts) {
       if (isTaddyBudgetExhausted()) {
@@ -500,12 +485,7 @@ async function runCatchupScan() {
       }
 
       try {
-        const episodes = await getEpisodesByItunesId(
-          podcast.itunes_id,
-          CATCHUP_SCAN_EPISODE_LIMIT,
-          podcast.name
-        );
-
+        const episodes = await getEpisodesByItunesId(podcast.itunes_id, CATCHUP_SCAN_EPISODE_LIMIT, podcast.name);
         if (!episodes || episodes.length === 0) continue;
 
         for (const ep of episodes) {
@@ -517,66 +497,35 @@ async function runCatchupScan() {
           );
           if (existing.length > 0) continue;
 
-          if (isTaddyBudgetExhausted()) break;
-
-          const transcript = await getEpisodeTranscript(ep.uuid);
-          if (!transcript) continue;
-
-          const datePublished = ep.datePublished
-            ? Math.floor(ep.datePublished)
-            : null;
-
-          // Skip episodes older than the age limit — prevents back-catalog floods
-          if (datePublished !== null) {
-            const ageDays = (Date.now() / 1000 - datePublished) / 86400;
-            if (ageDays > CATCHUP_MAX_EPISODE_AGE_DAYS) {
-              console.log(`[CatchupScan] Skipping old episode (${Math.round(ageDays)}d): "${ep.name?.slice(0, 50)}"`);
-              continue;
-            }
+          if (ep.datePublished) {
+            const ageDays = (Date.now() / 1000 - ep.datePublished) / 86400;
+            if (ageDays > CATCHUP_MAX_EPISODE_AGE_DAYS) continue;
           }
 
-          await pool.query(
-            `INSERT INTO episode_transcripts
-               (podcast_id, episode_guid, episode_title, transcript, audio_url, date_published, fetched_at)
-             VALUES ($1, $2, $3, $4, $5, $6, NOW())
-             ON CONFLICT (episode_guid) DO NOTHING`,
-            [podcast.itunes_id, ep.uuid, ep.name, transcript, ep.audioUrl || null, datePublished]
-          );
-
-          recovered++;
-          console.log(`[CatchupScan] Recovered missed episode: "${ep.name?.slice(0, 60)}" (${podcast.name})`);
+          await storage.queueTranscriptFetch({
+            podcastId: podcast.itunes_id,
+            podcastName: podcast.name,
+            episodeGuid: ep.uuid,
+            episodeTitle: ep.name,
+            priority: 20,
+          });
+          queued++;
+          console.log(`[CatchupScan] Queued missed episode: "${ep.name?.slice(0, 60)}" (${podcast.name})`);
         }
 
         await new Promise(r => setTimeout(r, CATCHUP_INTER_PODCAST_DELAY_MS));
       } catch (err: any) {
         console.error(`[CatchupScan] Error checking "${podcast.name}": ${err.message}`);
-        apiErrors++;
       }
     }
 
-    const summary = `${recovered} episode(s) recovered, ${apiErrors} error(s)`;
-    console.log(`[CatchupScan] Complete — ${summary}`);
-
-    if (recovered > 0) {
-      console.log("[CatchupScan] Triggering recap batch for recovered episodes");
-      runBatch().catch((e: any) => console.error("[CatchupScan] Post-recovery batch error:", e.message));
-    }
+    console.log(`[CatchupScan] Complete — ${queued} episode(s) queued`);
   } catch (err: any) {
     console.error(`[CatchupScan] Fatal error: ${err.message}`, err.stack);
   } finally {
     catchupScanRunning = false;
   }
 }
-
-// ── Recap Pipeline Health Monitor ───────────────────────────────────────────
-// Runs every 30 minutes. Two alert modes:
-//
-//   CRITICAL — transcripts are in the DB but the recap scheduler isn't
-//              processing them. Something is broken in our own code.
-//
-//   WARNING  — no new recaps in 5+ hours during active hours (8am–11pm UTC),
-//              and no pending transcripts. Likely means Taddy hasn't delivered
-//              today's episodes yet (or the catch-up scanner is still running).
 
 const RECAP_HEALTH_INTERVAL_MS = 30 * 60 * 1000;
 const RECAP_STALL_WARNING_HOURS = 5;
@@ -590,48 +539,9 @@ async function checkRecapPipelineHealth() {
     const latestRecapAt = latestRow?.latest ? new Date(latestRow.latest).getTime() : 0;
     const hoursSinceLastRecap = (Date.now() - latestRecapAt) / 3600000;
 
-    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString();
-    const processingGracePeriod = new Date(Date.now() - 30 * 60 * 1000).toISOString();
-
-    const { rows: [pendingRow] } = await pool.query(
-      `SELECT COUNT(*) as cnt, MIN(et.fetched_at) as oldest
-       FROM episode_transcripts et
-       INNER JOIN podcast_directory pd ON pd.itunes_id = et.podcast_id AND pd.status = 'published'
-       WHERE et.transcript IS NOT NULL AND et.transcript != ''
-         AND et.date_published IS NOT NULL
-         AND et.date_published >= EXTRACT(EPOCH FROM $1::timestamptz)::int
-         AND et.fetched_at < $2
-         AND NOT EXISTS (
-           SELECT 1 FROM landing_page_recaps lpr
-           WHERE lpr.itunes_id = et.podcast_id
-             AND lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
-         )`,
-      [threeDaysAgo, processingGracePeriod]
-    );
-
-    const pendingCount = parseInt(pendingRow?.cnt || "0", 10);
-    const oldestPending = pendingRow?.oldest;
-
-    if (pendingCount > 0 && hoursSinceLastRecap >= 1) {
-      const oldestAgeMin = oldestPending
-        ? Math.round((Date.now() - new Date(oldestPending).getTime()) / 60000)
-        : 0;
-
-      if (!recapStallAlertSent) {
-        const { sendCriticalApiAlert } = await import("./adminAlertService");
-        const sent = await sendCriticalApiAlert({
-          apiName: "Recap Pipeline Monitor",
-          errorType: "Transcripts Not Being Processed",
-          errorMessage: `${pendingCount} episode transcript(s) have been in the database for 30+ minutes but no recap has been generated in ${Math.round(hoursSinceLastRecap * 10) / 10} hours. The oldest pending transcript is ${oldestAgeMin} minutes old. The recap scheduler may be stuck or failing silently. Last successful recap: ${latestRecapAt ? new Date(latestRecapAt).toUTCString() : "never"}.`,
-          severity: "critical",
-          adminPath: "/admin",
-          footerText: "This alert will reset automatically once a new recap is generated.",
-        });
-        if (sent) {
-          recapStallAlertSent = true;
-          console.log(`[RecapHealth] CRITICAL alert sent — ${pendingCount} transcripts pending, ${Math.round(hoursSinceLastRecap * 10) / 10}h since last recap`);
-        }
-      }
+    if (recapStallAlertSent && hoursSinceLastRecap < 1) {
+      console.log("[RecapHealth] Pipeline recovered — resetting alert flag");
+      recapStallAlertSent = false;
       return;
     }
 
@@ -643,235 +553,49 @@ async function checkRecapPipelineHealth() {
       const sent = await sendCriticalApiAlert({
         apiName: "Recap Pipeline Monitor",
         errorType: "Recap Generation Stall",
-        errorMessage: `No new recaps have been generated in ${Math.round(hoursSinceLastRecap * 10) / 10} hours (since ${latestRecapAt ? new Date(latestRecapAt).toUTCString() : "startup"}). There are currently no ready-to-process transcripts in the database, which means Taddy has not yet delivered transcripts for today's episodes. The catch-up scanner runs every 2 hours and will proactively fetch any missed episodes. If this persists beyond 8 hours, check Taddy webhook delivery.`,
+        errorMessage: `No new recaps in ${Math.round(hoursSinceLastRecap * 10) / 10} hours. Last recap: ${latestRecapAt ? new Date(latestRecapAt).toUTCString() : "never"}.`,
         severity: "warning",
         adminPath: "/admin",
         footerText: "This alert will reset automatically once a new recap is generated.",
       });
       if (sent) {
         recapStallAlertSent = true;
-        console.log(`[RecapHealth] Warning sent — ${Math.round(hoursSinceLastRecap * 10) / 10}h stall, no pending transcripts`);
+        console.log(`[RecapHealth] Warning sent — ${Math.round(hoursSinceLastRecap * 10) / 10}h stall`);
       }
-      return;
-    }
-
-    if (recapStallAlertSent && hoursSinceLastRecap < 1) {
-      console.log("[RecapHealth] Pipeline recovered — resetting alert flag");
-      recapStallAlertSent = false;
     }
   } catch (err: any) {
-    console.error(`[RecapHealth] Check error: ${err.message}`, err.stack);
-  }
-}
-
-const STALL_CHECK_INTERVAL_MS = 30 * 60 * 1000;
-
-// ── NPR News Now ingestion monitor ──────────────────────────────────────────
-const NPR_NEWS_NOW_ITUNES_ID = "121493675";
-const NPR_INGESTION_THRESHOLD_MINUTES = 90;
-const NPR_GRACE_PERIOD_MINUTES = 120;
-
-let nprIngestionAlertSent = false;
-
-async function checkNprNewsNowIngestion() {
-  try {
-    const { rows: pdRows } = await pool.query(
-      `SELECT status, has_landing_page, updated_at FROM podcast_directory WHERE itunes_id = $1 LIMIT 1`,
-      [NPR_NEWS_NOW_ITUNES_ID]
-    );
-    const pd = pdRows[0];
-    if (!pd || pd.status !== "published") return;
-
-    const minutesSincePublished = pd.updated_at
-      ? (Date.now() - new Date(pd.updated_at).getTime()) / 60000
-      : Infinity;
-    if (minutesSincePublished < NPR_GRACE_PERIOD_MINUTES) {
-      console.log(`[NPRMonitor] Podcast recently published (${Math.round(minutesSincePublished)}m ago), skipping check`);
-      return;
-    }
-
-    const { rows } = await pool.query(
-      `SELECT et.episode_title, et.date_published, et.fetched_at,
-              lpr.id AS recap_id, lpr.created_at AS recap_created_at
-       FROM episode_transcripts et
-       LEFT JOIN landing_page_recaps lpr
-         ON lpr.itunes_id = et.podcast_id
-        AND (lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
-          OR lpr.episode_slug = lower(regexp_replace(trim(et.episode_title), '[^a-zA-Z0-9]+', '-', 'g')))
-       WHERE et.podcast_id = $1
-       ORDER BY et.fetched_at DESC
-       LIMIT 1`,
-      [NPR_NEWS_NOW_ITUNES_ID]
-    );
-
-    if (rows.length === 0) {
-      if (nprIngestionAlertSent) {
-        console.log("[NPRMonitor] Still no transcripts for NPR News Now");
-        return;
-      }
-      const { sendCriticalApiAlert } = await import("./adminAlertService");
-      const sent = await sendCriticalApiAlert({
-        apiName: "NPR News Now Monitor",
-        errorType: "No Episodes Ingested",
-        errorMessage: `NPR News Now (publishes every hour) has been live for ${Math.round(minutesSincePublished)} minutes but has zero transcripts in our system. The Taddy webhook may not be delivering episodes for this podcast. Check the webhook logs and confirm Taddy is tracking iTunes ID ${NPR_NEWS_NOW_ITUNES_ID}.`,
-        severity: "critical",
-        adminPath: "/podcast/npr-news-now",
-        footerText: "You will not receive another alert until a new episode is detected.",
-      });
-      if (sent) {
-        nprIngestionAlertSent = true;
-        console.log("[NPRMonitor] No-transcripts alert sent for NPR News Now");
-      }
-      return;
-    }
-
-    const latest = rows[0];
-    const latestFetchedAt = new Date(latest.fetched_at).getTime();
-    const minutesSinceLastEpisode = (Date.now() - latestFetchedAt) / 60000;
-
-    if (minutesSinceLastEpisode <= NPR_INGESTION_THRESHOLD_MINUTES) {
-      if (nprIngestionAlertSent) {
-        console.log("[NPRMonitor] NPR News Now ingestion recovered — resetting alert flag");
-      }
-      nprIngestionAlertSent = false;
-      return;
-    }
-
-    if (nprIngestionAlertSent) {
-      console.log(`[NPRMonitor] Stall persists — ${Math.round(minutesSinceLastEpisode)}m since last NPR News Now episode`);
-      return;
-    }
-
-    const lastTitle = latest.episode_title || "Unknown";
-    const lastFetchedStr = new Date(latest.fetched_at).toUTCString();
-    const hasRecap = !!latest.recap_id;
-    const recapStr = hasRecap
-      ? `Recap was generated at ${new Date(latest.recap_created_at).toUTCString()}.`
-      : "No recap has been generated for the last episode yet.";
-
-    const { sendCriticalApiAlert } = await import("./adminAlertService");
-    const sent = await sendCriticalApiAlert({
-      apiName: "NPR News Now Monitor",
-      errorType: "Episode Ingestion Stall",
-      errorMessage: `NPR News Now (publishes every hour) has not delivered a new episode in ${Math.round(minutesSinceLastEpisode)} minutes — we should have seen at least ${Math.floor(minutesSinceLastEpisode / 60)} new episode(s) by now.\n\nLast episode ingested: "${lastTitle}" at ${lastFetchedStr}.\n${recapStr}\n\nPossible causes: Taddy webhook not firing, transcript fetch failure, or NPR changed their publish schedule.`,
-      severity: "critical",
-      adminPath: "/podcast/npr-news-now",
-      footerText: "You will not receive another alert until a new episode is detected.",
-    });
-    if (sent) {
-      nprIngestionAlertSent = true;
-      console.log(`[NPRMonitor] Ingestion stall alert sent — ${Math.round(minutesSinceLastEpisode)}m since last episode`);
-    } else {
-      console.warn("[NPRMonitor] Failed to send ingestion stall alert — will retry next interval");
-    }
-  } catch (err) {
-    console.error("[NPRMonitor] Check error:", err);
-  }
-}
-
-async function runMissedEpisodeCatchup() {
-  console.log("[MissedCatchup] Starting one-time 7-day backfill scan...");
-  try {
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const cutoffTimestamp = Math.floor(sevenDaysAgo.getTime() / 1000);
-
-    const { rows: episodes } = await pool.query(
-      `WITH ranked AS (
-         SELECT et.id, et.podcast_id, et.episode_title, et.transcript, et.description,
-                et.date_published, et.duration, et.audio_url, et.image_url, et.fetched_at,
-                ROW_NUMBER() OVER (PARTITION BY et.podcast_id ORDER BY et.date_published DESC) AS rn
-         FROM episode_transcripts et
-         INNER JOIN podcast_directory pd ON pd.itunes_id = et.podcast_id AND pd.status = 'published'
-         WHERE et.transcript IS NOT NULL AND et.transcript != ''
-           AND et.date_published IS NOT NULL
-           AND et.date_published >= $1
-           AND NOT EXISTS (
-             SELECT 1 FROM landing_page_recaps lpr
-             WHERE lpr.itunes_id = et.podcast_id
-               AND (lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
-                 OR lpr.episode_slug = lower(regexp_replace(trim(et.episode_title), '[^a-zA-Z0-9]+', '-', 'g')))
-           )
-       )
-       SELECT id, podcast_id, episode_title, transcript, description,
-              date_published, duration, audio_url, image_url, fetched_at
-       FROM ranked
-       WHERE rn <= $2
-       ORDER BY date_published DESC`,
-      [cutoffTimestamp, PER_PODCAST]
-    );
-
-    if (episodes.length === 0) {
-      console.log("[MissedCatchup] No missed episodes found — all clear.");
-      return;
-    }
-
-    console.log(`[MissedCatchup] Found ${episodes.length} missed episode(s) to backfill.`);
-    let generated = 0;
-    let failed = 0;
-
-    for (const ep of episodes) {
-      const info = await getPodcastInfo(ep.podcast_id);
-      if (!info) {
-        console.log(`[MissedCatchup] Skip: no podcast info for itunesId=${ep.podcast_id}`);
-        failed++;
-        continue;
-      }
-
-      const podcastSlug = ITUNES_ID_TO_SLUG[ep.podcast_id] || info.slug || info.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 80);
-
-      console.log(`[MissedCatchup] Processing: "${ep.episode_title?.slice(0, 60)}" (${info.name})`);
-
-      const processPromise = processEpisode(ep, podcastSlug, info.name, ep.podcast_id, info.hosts || "", info.artwork_url || "");
-      const mcEpTitle = ep.episode_title || "Untitled";
-      const mcEpSlug = mcEpTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 200);
-      const episodeTimeout = new Promise<ProcessEpisodeResult>((resolve) => setTimeout(async () => {
-        console.warn(`[MissedCatchup] Episode timed out after 4min: "${mcEpTitle.slice(0, 60)}"`);
-        try {
-          await pool.query(
-            `INSERT INTO landing_page_recaps (user_id, podcast_slug, episode_slug, episode_title, podcast_name, source, status, recap)
-             VALUES (NULL, $1, $2, $3, $4, 'production_scheduler', 'generation_failed', $5)
-             ON CONFLICT DO NOTHING`,
-            [podcastSlug, mcEpSlug, mcEpTitle, info.name, "Timed out after 4 minutes"]
-          );
-        } catch {}
-        resolve({ success: false });
-      }, 4 * 60 * 1000));
-      const result = await Promise.race([processPromise, episodeTimeout]);
-
-      if (result.success) generated++;
-      else failed++;
-
-      if (episodes.indexOf(ep) < episodes.length - 1) {
-        await new Promise(r => setTimeout(r, 30_000));
-      }
-    }
-
-    console.log(`[MissedCatchup] Done: ${generated} generated, ${failed} failed`);
-  } catch (err: any) {
-    console.error("[MissedCatchup] Error:", err.message);
+    console.error(`[RecapHealth] Check error: ${err.message}`);
   }
 }
 
 export function startProductionRecapScheduler() {
   if (process.env.NODE_ENV !== "production") {
-    console.log("[ProdRecap] Not in production, skipping scheduler");
+    console.log("[Pipeline] Not in production, skipping scheduler");
     return;
   }
 
-  console.log(`[ProdRecap] Starting scheduler (every ${INTERVAL_MS / 60000}min, ${BATCH_SIZE} episode/batch, ${EPISODE_TIMEOUT_MS / 60000}min timeout, oldest-first)`);
+  console.log(`[Pipeline] Starting scheduler — transcript fetch every ${TRANSCRIPT_FETCH_INTERVAL_MS / 1000}s, recap generation every ${RECAP_GENERATION_INTERVAL_MS / 60000}min`);
   isSchedulerStarted = true;
+
+  transcriptFetcherNextRunAt = Date.now() + 30_000;
+  recapGeneratorNextRunAt = Date.now() + 60_000;
 
   setTimeout(async () => {
     await cleanupDuplicateRecaps();
+    await cleanupCompletedQueueItems();
 
-    runBatch();
-    setInterval(runBatch, INTERVAL_MS);
+    await pool.query(
+      `UPDATE pending_transcript_queue SET status = 'queued' WHERE status IN ('fetching', 'generating_recap', 'pending')`
+    ).catch(() => {});
+
+    fetchOneTranscript();
+    setInterval(fetchOneTranscript, TRANSCRIPT_FETCH_INTERVAL_MS);
+
+    generateOneRecap();
+    setInterval(generateOneRecap, RECAP_GENERATION_INTERVAL_MS);
 
     catchUpMissingHeadlines();
     setInterval(catchUpMissingHeadlines, HEADLINE_CATCHUP_INTERVAL_MS);
-
-    checkNprNewsNowIngestion();
-    setInterval(checkNprNewsNowIngestion, STALL_CHECK_INTERVAL_MS);
 
     checkRecapPipelineHealth();
     setInterval(checkRecapPipelineHealth, RECAP_HEALTH_INTERVAL_MS);
@@ -880,9 +604,5 @@ export function startProductionRecapScheduler() {
       runCatchupScan();
       setInterval(runCatchupScan, CATCHUP_SCAN_INTERVAL_MS);
     }, 10 * 60 * 1000);
-
-    setTimeout(() => {
-      runMissedEpisodeCatchup();
-    }, 3 * 60 * 1000);
-  }, 120_000);
+  }, 30_000);
 }
