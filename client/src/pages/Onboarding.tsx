@@ -468,9 +468,9 @@ export default function Onboarding() {
   return (
     <div className="h-screen flex flex-col bg-[#F7F7FC] dark:bg-[#08080F] overflow-hidden" data-testid="onboarding-page">
 
-      <div className="flex-shrink-0 px-5 sm:px-8 py-3">
+      <div className="flex-shrink-0 px-5 sm:px-8 py-4">
         <a href="/" className="block w-fit no-underline">
-          <img src="/logo-transparent.svg" alt="PodRise" className="h-8 w-auto object-contain" />
+          <img src="/logo-transparent.svg" alt="PodRise" className="h-10 w-auto object-contain" />
         </a>
       </div>
 
