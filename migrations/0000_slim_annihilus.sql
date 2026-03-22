@@ -1,17 +1,17 @@
-CREATE TABLE "ad_events" (
+CREATE TABLE IF NOT EXISTS "ad_events" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"ad_id" integer NOT NULL,
 	"event_type" text NOT NULL,
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "admin_settings" (
+CREATE TABLE IF NOT EXISTS "admin_settings" (
 	"key" text PRIMARY KEY NOT NULL,
 	"value" text NOT NULL,
 	"updated_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "admin_users" (
+CREATE TABLE IF NOT EXISTS "admin_users" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"email" text NOT NULL,
 	"name" text,
@@ -20,14 +20,14 @@ CREATE TABLE "admin_users" (
 	CONSTRAINT "admin_users_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
-CREATE TABLE "advertisers" (
+CREATE TABLE IF NOT EXISTS "advertisers" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"message" text NOT NULL,
 	"link" text DEFAULT '',
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "affiliate_clicks" (
+CREATE TABLE IF NOT EXISTS "affiliate_clicks" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"product_type" text NOT NULL,
 	"product_name" text NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE "affiliate_clicks" (
 	"clicked_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "api_usage_logs" (
+CREATE TABLE IF NOT EXISTS "api_usage_logs" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"model" text NOT NULL,
 	"feature" text NOT NULL,
@@ -53,7 +53,7 @@ CREATE TABLE "api_usage_logs" (
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "audio_playback_events" (
+CREATE TABLE IF NOT EXISTS "audio_playback_events" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"podcast_slug" text NOT NULL,
 	"episode_slug" text NOT NULL,
@@ -64,7 +64,7 @@ CREATE TABLE "audio_playback_events" (
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "backfill_jobs" (
+CREATE TABLE IF NOT EXISTS "backfill_jobs" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"key" text NOT NULL,
 	"status" text DEFAULT 'idle' NOT NULL,
@@ -77,7 +77,7 @@ CREATE TABLE "backfill_jobs" (
 	CONSTRAINT "backfill_jobs_key_unique" UNIQUE("key")
 );
 --> statement-breakpoint
-CREATE TABLE "book_bookmarks" (
+CREATE TABLE IF NOT EXISTS "book_bookmarks" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
 	"book_slug" text NOT NULL,
@@ -85,7 +85,7 @@ CREATE TABLE "book_bookmarks" (
 	CONSTRAINT "book_bookmarks_user_id_book_slug_unique" UNIQUE("user_id","book_slug")
 );
 --> statement-breakpoint
-CREATE TABLE "bookmarks" (
+CREATE TABLE IF NOT EXISTS "bookmarks" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
 	"episode_slug" text NOT NULL,
@@ -93,7 +93,7 @@ CREATE TABLE "bookmarks" (
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "daily_drop_editions" (
+CREATE TABLE IF NOT EXISTS "daily_drop_editions" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"date" text NOT NULL,
 	"headline" text NOT NULL,
@@ -104,7 +104,7 @@ CREATE TABLE "daily_drop_editions" (
 	CONSTRAINT "daily_drop_editions_date_unique" UNIQUE("date")
 );
 --> statement-breakpoint
-CREATE TABLE "device_tokens" (
+CREATE TABLE IF NOT EXISTS "device_tokens" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
 	"device_token" text NOT NULL,
@@ -113,14 +113,14 @@ CREATE TABLE "device_tokens" (
 	CONSTRAINT "device_tokens_device_token_unique" UNIQUE("device_token")
 );
 --> statement-breakpoint
-CREATE TABLE "email_clicks" (
+CREATE TABLE IF NOT EXISTS "email_clicks" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"email_id" integer NOT NULL,
 	"url" text NOT NULL,
 	"clicked_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "email_logs" (
+CREATE TABLE IF NOT EXISTS "email_logs" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
 	"recipient_email" text NOT NULL,
@@ -130,14 +130,14 @@ CREATE TABLE "email_logs" (
 	"sent_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "email_template_settings" (
+CREATE TABLE IF NOT EXISTS "email_template_settings" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"key" text NOT NULL,
 	"value" text NOT NULL,
 	CONSTRAINT "email_template_settings_key_unique" UNIQUE("key")
 );
 --> statement-breakpoint
-CREATE TABLE "email_verification_tokens" (
+CREATE TABLE IF NOT EXISTS "email_verification_tokens" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
 	"token" text NOT NULL,
@@ -147,7 +147,7 @@ CREATE TABLE "email_verification_tokens" (
 	CONSTRAINT "email_verification_tokens_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
-CREATE TABLE "entity_companies" (
+CREATE TABLE IF NOT EXISTS "entity_companies" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"slug" text NOT NULL,
 	"name" text NOT NULL,
@@ -165,7 +165,7 @@ CREATE TABLE "entity_companies" (
 	CONSTRAINT "entity_companies_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
-CREATE TABLE "entity_episode_mentions" (
+CREATE TABLE IF NOT EXISTS "entity_episode_mentions" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"entity_type" text NOT NULL,
 	"entity_slug" text NOT NULL,
@@ -178,7 +178,7 @@ CREATE TABLE "entity_episode_mentions" (
 	CONSTRAINT "entity_episode_unique" UNIQUE("entity_type","entity_slug","recap_id")
 );
 --> statement-breakpoint
-CREATE TABLE "entity_people" (
+CREATE TABLE IF NOT EXISTS "entity_people" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"slug" text NOT NULL,
 	"name" text NOT NULL,
@@ -198,7 +198,7 @@ CREATE TABLE "entity_people" (
 	CONSTRAINT "entity_people_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
-CREATE TABLE "episode_quotes" (
+CREATE TABLE IF NOT EXISTS "episode_quotes" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"podcast_slug" text NOT NULL,
 	"episode_slug" text NOT NULL,
@@ -211,7 +211,7 @@ CREATE TABLE "episode_quotes" (
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "episode_transcripts" (
+CREATE TABLE IF NOT EXISTS "episode_transcripts" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"podcast_id" text NOT NULL,
 	"episode_guid" text NOT NULL,
@@ -231,7 +231,7 @@ CREATE TABLE "episode_transcripts" (
 	CONSTRAINT "episode_transcripts_episode_guid_unique" UNIQUE("episode_guid")
 );
 --> statement-breakpoint
-CREATE TABLE "error_logs" (
+CREATE TABLE IF NOT EXISTS "error_logs" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"endpoint" text NOT NULL,
 	"http_status" integer DEFAULT 500 NOT NULL,
@@ -246,7 +246,7 @@ CREATE TABLE "error_logs" (
 	"last_occurred_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "extracted_products" (
+CREATE TABLE IF NOT EXISTS "extracted_products" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
 	"company" text,
@@ -269,7 +269,7 @@ CREATE TABLE "extracted_products" (
 	"reviewed_at" timestamp
 );
 --> statement-breakpoint
-CREATE TABLE "feature_events" (
+CREATE TABLE IF NOT EXISTS "feature_events" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer,
 	"feature" text NOT NULL,
@@ -278,7 +278,7 @@ CREATE TABLE "feature_events" (
 	CONSTRAINT "feature_events_feature_check" CHECK ("feature_events"."feature" IN ('ai_chat', 'episode_link', 'spotify_import'))
 );
 --> statement-breakpoint
-CREATE TABLE "feature_flags" (
+CREATE TABLE IF NOT EXISTS "feature_flags" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"key" text NOT NULL,
 	"description" text,
@@ -287,14 +287,14 @@ CREATE TABLE "feature_flags" (
 	CONSTRAINT "feature_flags_key_unique" UNIQUE("key")
 );
 --> statement-breakpoint
-CREATE TABLE "feed_ad_settings" (
+CREATE TABLE IF NOT EXISTS "feed_ad_settings" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"key" text NOT NULL,
 	"value" text NOT NULL,
 	CONSTRAINT "feed_ad_settings_key_unique" UNIQUE("key")
 );
 --> statement-breakpoint
-CREATE TABLE "feed_ads" (
+CREATE TABLE IF NOT EXISTS "feed_ads" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"type" text NOT NULL,
 	"title" text NOT NULL,
@@ -314,7 +314,7 @@ CREATE TABLE "feed_ads" (
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "landing_page_recaps" (
+CREATE TABLE IF NOT EXISTS "landing_page_recaps" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"slug" text NOT NULL,
 	"itunes_id" text,
@@ -348,7 +348,7 @@ CREATE TABLE "landing_page_recaps" (
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "landing_page_visits" (
+CREATE TABLE IF NOT EXISTS "landing_page_visits" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"page_slug" text NOT NULL,
 	"session_id" text,
@@ -364,7 +364,7 @@ CREATE TABLE "landing_page_visits" (
 	"visited_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "magic_links" (
+CREATE TABLE IF NOT EXISTS "magic_links" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"email" text NOT NULL,
 	"token" text NOT NULL,
@@ -374,7 +374,7 @@ CREATE TABLE "magic_links" (
 	CONSTRAINT "magic_links_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
-CREATE TABLE "mturk_workers" (
+CREATE TABLE IF NOT EXISTS "mturk_workers" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
 	"token" text NOT NULL,
@@ -383,7 +383,7 @@ CREATE TABLE "mturk_workers" (
 	CONSTRAINT "mturk_workers_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
-CREATE TABLE "pending_emails" (
+CREATE TABLE IF NOT EXISTS "pending_emails" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
 	"recipient_email" text NOT NULL,
@@ -404,7 +404,7 @@ CREATE TABLE "pending_emails" (
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "pending_transcript_queue" (
+CREATE TABLE IF NOT EXISTS "pending_transcript_queue" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"podcast_id" text NOT NULL,
 	"podcast_name" text NOT NULL,
@@ -419,7 +419,7 @@ CREATE TABLE "pending_transcript_queue" (
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "podcast_categories" (
+CREATE TABLE IF NOT EXISTS "podcast_categories" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
 	"slug" text NOT NULL,
@@ -432,7 +432,7 @@ CREATE TABLE "podcast_categories" (
 	CONSTRAINT "podcast_categories_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
-CREATE TABLE "podcast_directory" (
+CREATE TABLE IF NOT EXISTS "podcast_directory" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"itunes_id" text NOT NULL,
 	"slug" text,
@@ -476,7 +476,7 @@ CREATE TABLE "podcast_directory" (
 	CONSTRAINT "podcast_directory_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
-CREATE TABLE "podcast_example_recaps" (
+CREATE TABLE IF NOT EXISTS "podcast_example_recaps" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"slug" text NOT NULL,
 	"podcast_name" text NOT NULL,
@@ -493,7 +493,7 @@ CREATE TABLE "podcast_example_recaps" (
 	CONSTRAINT "podcast_example_recaps_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
-CREATE TABLE "podcast_hosts" (
+CREATE TABLE IF NOT EXISTS "podcast_hosts" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"podcast_slug" text NOT NULL,
 	"name" text NOT NULL,
@@ -506,7 +506,7 @@ CREATE TABLE "podcast_hosts" (
 	"sort_order" integer DEFAULT 0
 );
 --> statement-breakpoint
-CREATE TABLE "podcast_top_questions" (
+CREATE TABLE IF NOT EXISTS "podcast_top_questions" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"slug" text NOT NULL,
 	"questions" text NOT NULL,
@@ -514,7 +514,7 @@ CREATE TABLE "podcast_top_questions" (
 	CONSTRAINT "podcast_top_questions_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
-CREATE TABLE "podcaster_claims" (
+CREATE TABLE IF NOT EXISTS "podcaster_claims" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"podcast_slug" text NOT NULL,
 	"email" text NOT NULL,
@@ -528,7 +528,7 @@ CREATE TABLE "podcaster_claims" (
 	CONSTRAINT "podcaster_claims_podcast_slug_unique" UNIQUE("podcast_slug")
 );
 --> statement-breakpoint
-CREATE TABLE "product_podcast_buzz" (
+CREATE TABLE IF NOT EXISTS "product_podcast_buzz" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"product_key" text NOT NULL,
 	"product_name" text NOT NULL,
@@ -538,7 +538,7 @@ CREATE TABLE "product_podcast_buzz" (
 	CONSTRAINT "product_podcast_buzz_product_key_unique" UNIQUE("product_key")
 );
 --> statement-breakpoint
-CREATE TABLE "pulse_subscriptions" (
+CREATE TABLE IF NOT EXISTS "pulse_subscriptions" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
 	"topic_slug" text NOT NULL,
@@ -546,7 +546,7 @@ CREATE TABLE "pulse_subscriptions" (
 	CONSTRAINT "pulse_subscriptions_user_topic_unique" UNIQUE("user_id","topic_slug")
 );
 --> statement-breakpoint
-CREATE TABLE "recap_audio" (
+CREATE TABLE IF NOT EXISTS "recap_audio" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"podcast_slug" text NOT NULL,
 	"episode_slug" text NOT NULL,
@@ -565,7 +565,7 @@ CREATE TABLE "recap_audio" (
 	"updated_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "recaps" (
+CREATE TABLE IF NOT EXISTS "recaps" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
 	"recap_date" date NOT NULL,
@@ -574,7 +574,7 @@ CREATE TABLE "recaps" (
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "referral_fulfillments" (
+CREATE TABLE IF NOT EXISTS "referral_fulfillments" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
 	"tier_id" integer NOT NULL,
@@ -584,7 +584,7 @@ CREATE TABLE "referral_fulfillments" (
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "referral_tiers" (
+CREATE TABLE IF NOT EXISTS "referral_tiers" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"threshold" integer NOT NULL,
 	"reward_name" text NOT NULL,
@@ -594,7 +594,7 @@ CREATE TABLE "referral_tiers" (
 	"active" boolean DEFAULT true NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "referrals" (
+CREATE TABLE IF NOT EXISTS "referrals" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"referrer_id" integer NOT NULL,
 	"referred_user_id" integer NOT NULL,
@@ -603,7 +603,7 @@ CREATE TABLE "referrals" (
 	"verified_at" timestamp
 );
 --> statement-breakpoint
-CREATE TABLE "refresh_tokens" (
+CREATE TABLE IF NOT EXISTS "refresh_tokens" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
 	"token" text NOT NULL,
@@ -613,7 +613,7 @@ CREATE TABLE "refresh_tokens" (
 	CONSTRAINT "refresh_tokens_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
-CREATE TABLE "rss_feeds" (
+CREATE TABLE IF NOT EXISTS "rss_feeds" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
 	"slug_key" text NOT NULL,
@@ -622,7 +622,7 @@ CREATE TABLE "rss_feeds" (
 	CONSTRAINT "rss_feeds_slug_key_unique" UNIQUE("slug_key")
 );
 --> statement-breakpoint
-CREATE TABLE "site_settings" (
+CREATE TABLE IF NOT EXISTS "site_settings" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"key" text NOT NULL,
 	"value" jsonb DEFAULT '{}'::jsonb NOT NULL,
@@ -630,7 +630,7 @@ CREATE TABLE "site_settings" (
 	CONSTRAINT "site_settings_key_unique" UNIQUE("key")
 );
 --> statement-breakpoint
-CREATE TABLE "support_articles" (
+CREATE TABLE IF NOT EXISTS "support_articles" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"title" text NOT NULL,
 	"category" text NOT NULL,
@@ -641,7 +641,7 @@ CREATE TABLE "support_articles" (
 	"updated_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "taddy_api_usage" (
+CREATE TABLE IF NOT EXISTS "taddy_api_usage" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"month_key" text NOT NULL,
 	"call_count" integer DEFAULT 0 NOT NULL,
@@ -650,7 +650,7 @@ CREATE TABLE "taddy_api_usage" (
 	CONSTRAINT "taddy_api_usage_month_key_unique" UNIQUE("month_key")
 );
 --> statement-breakpoint
-CREATE TABLE "topic_pulses" (
+CREATE TABLE IF NOT EXISTS "topic_pulses" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"topic_slug" text NOT NULL,
 	"publish_date" text NOT NULL,
@@ -663,7 +663,7 @@ CREATE TABLE "topic_pulses" (
 	"generated_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "transcript_logs" (
+CREATE TABLE IF NOT EXISTS "transcript_logs" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer,
 	"podcast_name" text NOT NULL,
@@ -677,7 +677,7 @@ CREATE TABLE "transcript_logs" (
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-CREATE TABLE "transcript_segments" (
+CREATE TABLE IF NOT EXISTS "transcript_segments" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"transcript_id" integer,
 	"episode_guid" text NOT NULL,
@@ -691,7 +691,7 @@ CREATE TABLE "transcript_segments" (
 	"anchor_id" text NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "user_feature_overrides" (
+CREATE TABLE IF NOT EXISTS "user_feature_overrides" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
 	"flag_key" text NOT NULL,
@@ -700,7 +700,7 @@ CREATE TABLE "user_feature_overrides" (
 	CONSTRAINT "user_feature_overrides_user_flag_unique" UNIQUE("user_id","flag_key")
 );
 --> statement-breakpoint
-CREATE TABLE "users" (
+CREATE TABLE IF NOT EXISTS "users" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"email" text NOT NULL,
 	"podcasts" text[] NOT NULL,
@@ -744,7 +744,7 @@ CREATE TABLE "users" (
 	CONSTRAINT "users_referral_code_unique" UNIQUE("referral_code")
 );
 --> statement-breakpoint
-CREATE TABLE "youtube_review_log" (
+CREATE TABLE IF NOT EXISTS "youtube_review_log" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"episode_id" integer NOT NULL,
 	"worker_id" integer NOT NULL,
