@@ -9423,7 +9423,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
             OR lower(trim(ptq.episode_title)) = lower(trim(et.episode_title)))
         LEFT JOIN landing_page_recaps lpr
           ON lpr.itunes_id = et.podcast_id
-          AND lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
+          AND ${SQL_NORMALIZE_TITLE('lpr.episode_title')} = ${SQL_NORMALIZE_TITLE('et.episode_title')}
         WHERE et.fetched_at > NOW() - INTERVAL '${interval}'
         ORDER BY et.fetched_at DESC
         LIMIT 250
@@ -9522,6 +9522,39 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         podcast_name ? [podcast_name] : []
       );
       res.json({ cleared: rows.length });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // Remove transcripts and queue entries that already have a published recap
+  app.post("/api/admin/pipeline/remove-published", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      // Delete queue entries where a recap already exists
+      const { rows: queueRows } = await pool.query(`
+        DELETE FROM pending_transcript_queue ptq
+        WHERE EXISTS (
+          SELECT 1 FROM landing_page_recaps lpr
+          WHERE lpr.itunes_id = ptq.podcast_id
+            AND ${SQL_NORMALIZE_TITLE('lpr.episode_title')} = ${SQL_NORMALIZE_TITLE('ptq.episode_title')}
+        )
+        RETURNING id
+      `);
+
+      // Delete transcripts where a recap already exists
+      const { rows: transcriptRows } = await pool.query(`
+        DELETE FROM episode_transcripts et
+        WHERE EXISTS (
+          SELECT 1 FROM landing_page_recaps lpr
+          WHERE lpr.itunes_id = et.podcast_id
+            AND ${SQL_NORMALIZE_TITLE('lpr.episode_title')} = ${SQL_NORMALIZE_TITLE('et.episode_title')}
+        )
+        RETURNING id
+      `);
+
+      console.log(`[RemovePublished] Cleared ${queueRows.length} queue items, ${transcriptRows.length} transcripts that already had recaps`);
+      res.json({ queue_cleared: queueRows.length, transcripts_cleared: transcriptRows.length });
     } catch (err: any) {
       res.status(500).json({ message: err.message });
     }
@@ -17840,6 +17873,16 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
             );
             if (existing.length > 0) {
               console.log(`[TaddyWebhook] Episode already exists, skipping: "${epTitle.slice(0, 60)}"`);
+              return;
+            }
+
+            // Skip if a published recap already exists — prevents pipeline clutter
+            const { rows: recapCheck } = await pool.query(
+              `SELECT 1 FROM landing_page_recaps WHERE itunes_id = $1 AND ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$2')} LIMIT 1`,
+              [podcast.itunes_id, epTitle]
+            );
+            if (recapCheck.length > 0) {
+              console.log(`[TaddyWebhook] Recap already published, skipping: "${epTitle.slice(0, 60)}"`);
               return;
             }
 

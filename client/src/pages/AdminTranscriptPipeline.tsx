@@ -680,6 +680,14 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
     },
   });
 
+  const removePublishedMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/pipeline/remove-published", {}),
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline-monitor"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline/queue-depth"] });
+    },
+  });
+
   const deleteSelectedMutation = useMutation({
     mutationFn: (episodes: { episode_guid: string | null; podcast_id: string; episode_title: string }[]) =>
       apiRequest("POST", "/api/admin/pipeline/delete-episodes", { episodes }),
@@ -959,6 +967,17 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
             >
               {retryAllMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
               Retry all errors
+            </button>
+            {/* Remove already-published episodes */}
+            <button
+              onClick={() => removePublishedMutation.mutate()}
+              disabled={removePublishedMutation.isPending}
+              className="text-xs px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium disabled:opacity-40 transition-colors flex items-center gap-1.5"
+              data-testid="button-remove-published"
+              title="Remove transcripts from pipeline that already have published recaps"
+            >
+              {removePublishedMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+              Remove published
             </button>
           </div>
         </div>
