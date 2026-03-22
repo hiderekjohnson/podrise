@@ -382,6 +382,9 @@ export default function AdminTranscriptPipeline() {
 
   const { data: schedulerHealth } = useQuery<{
     isRunning: boolean;
+    devMode: boolean;
+    batchRunning: boolean;
+    batchStuck: boolean;
     lastRecapTime: string | null;
     minutesSinceLastRun: number | null;
     taddyRateUsed: number;
@@ -444,15 +447,30 @@ export default function AdminTranscriptPipeline() {
             {schedulerHealth && (
               <>
                 <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${
-                  schedulerHealth.isRunning
-                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400"
-                    : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                  schedulerHealth.devMode
+                    ? "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                    : schedulerHealth.batchStuck
+                      ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400"
+                      : schedulerHealth.isRunning
+                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400"
+                        : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
                 }`}
                 data-testid="scheduler-status">
-                  <span className={`w-2 h-2 rounded-full ${schedulerHealth.isRunning ? "bg-emerald-500" : "bg-red-500"}`} />
-                  {schedulerHealth.isRunning ? "✓ Running" : "✗ Stopped"}
-                  {schedulerHealth.minutesSinceLastRun !== null && (
-                    <span className="text-[10px] text-muted-foreground ml-1">({schedulerHealth.minutesSinceLastRun}m ago)</span>
+                  <span className={`w-2 h-2 rounded-full ${
+                    schedulerHealth.devMode ? "bg-slate-400"
+                    : schedulerHealth.batchStuck ? "bg-orange-500"
+                    : schedulerHealth.isRunning ? "bg-emerald-500"
+                    : "bg-red-500"
+                  }`} />
+                  {schedulerHealth.devMode
+                    ? "Scheduler (prod only)"
+                    : schedulerHealth.batchStuck
+                      ? "⚠ Batch stuck"
+                      : schedulerHealth.isRunning
+                        ? schedulerHealth.batchRunning ? "⚙ Processing" : "✓ Running"
+                        : "✗ Stopped"}
+                  {!schedulerHealth.devMode && schedulerHealth.minutesSinceLastRun !== null && (
+                    <span className="text-[10px] opacity-70 ml-1">({schedulerHealth.minutesSinceLastRun}m ago)</span>
                   )}
                 </div>
                 {schedulerHealth.taddyRateLimit > 0 && (() => {

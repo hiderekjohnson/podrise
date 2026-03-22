@@ -18,6 +18,7 @@ let batchStartedAt = 0;
 let lastSuccessfulBatchAt = Date.now();
 let catchUpRunning = false;
 let timeoutEpisodesThisSession = new Set<string>();
+let isSchedulerStarted = false;
 
 async function getPodcastInfo(itunesId: string) {
   const { rows } = await pool.query(
@@ -222,6 +223,15 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
 
 export async function triggerRecapBatch() {
   return runBatch();
+}
+
+export function getSchedulerStatus() {
+  return {
+    isSchedulerStarted,
+    batchRunning,
+    batchStartedAt,
+    lastSuccessfulBatchAt,
+  };
 }
 
 async function runBatch() {
@@ -830,6 +840,7 @@ export function startProductionRecapScheduler() {
   }
 
   console.log(`[ProdRecap] Starting scheduler (every ${INTERVAL_MS / 60000} min, ${BATCH_SIZE} episodes/batch)`);
+  isSchedulerStarted = true;
 
   setTimeout(async () => {
     await cleanupDuplicateRecaps();

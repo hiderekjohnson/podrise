@@ -20,7 +20,7 @@ import { readFileSync, writeFileSync, mkdirSync, copyFileSync, unlinkSync, exist
 import multer from "multer";
 import path from "path";
 import { authenticateRequest, getAuthUserId } from "./jwt";
-import { triggerRecapBatch } from "./productionRecapScheduler";
+import { triggerRecapBatch, getSchedulerStatus } from "./productionRecapScheduler";
 
 declare module "express-session" {
   interface SessionData {
@@ -9793,25 +9793,37 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       return res.status(401).json({ message: "Not authenticated as admin" });
     }
     try {
+      const schedulerStatus = getSchedulerStatus();
+      const now = Date.now();
+      const isProduction = process.env.NODE_ENV === "production";
+
+      // In-memory signals: scheduler started + last success within 35 min + no stuck batch
+      const msSinceLastSuccess = now - schedulerStatus.lastSuccessfulBatchAt;
+      const batchElapsed = schedulerStatus.batchRunning ? now - schedulerStatus.batchStartedAt : 0;
+      const batchStuck = schedulerStatus.batchRunning && batchElapsed > 35 * 60 * 1000;
+      const recentlySucceeded = msSinceLastSuccess < 35 * 60 * 1000;
+      const isRunning = isProduction && schedulerStatus.isSchedulerStarted && (schedulerStatus.batchRunning || recentlySucceeded) && !batchStuck;
+
+      // Secondary: when was the last recap actually published? (fallback info)
       const { rows } = await pool.query(`
         SELECT MAX(created_at) as last_recap_time
         FROM landing_page_recaps
         WHERE status IN ('published', 'hidden')
-          AND created_at > NOW() - INTERVAL '1 hour'
+          AND created_at > NOW() - INTERVAL '2 hours'
       `);
-      
       const lastRecapTime = rows[0]?.last_recap_time ? new Date(rows[0].last_recap_time) : null;
-      const now = new Date();
-      const isRunning = lastRecapTime && (now.getTime() - lastRecapTime.getTime()) < 15 * 60 * 1000; // 15 min threshold
-      const minutesSinceLastRun = lastRecapTime ? Math.floor((now.getTime() - lastRecapTime.getTime()) / 60000) : null;
-      
+      const minutesSinceLastRun = lastRecapTime ? Math.floor((now - lastRecapTime.getTime()) / 60000) : null;
+
       const { getTaddyPerMinuteStatus } = await import("./taddyClient");
       const taddyRate = getTaddyPerMinuteStatus();
 
       res.json({
-        isRunning: isRunning ?? false,
+        isRunning,
+        devMode: !isProduction,
+        batchRunning: schedulerStatus.batchRunning,
+        batchStuck,
         lastRecapTime: lastRecapTime?.toISOString() || null,
-        minutesSinceLastRun: minutesSinceLastRun,
+        minutesSinceLastRun,
         taddyRateUsed: taddyRate.used,
         taddyRateLimit: taddyRate.limit,
       });
