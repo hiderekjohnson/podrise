@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Loader2, CheckCircle2, Clock, AlertTriangle, XCircle,
   ExternalLink, Zap, Radio, ArrowDown, Activity,
-  Copy, Check, ChevronDown, ChevronUp, Wrench,
+  Copy, Check, ChevronDown, ChevronUp, Wrench, HelpCircle,
 } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
 
@@ -385,6 +385,23 @@ export default function AdminTranscriptPipeline() {
     refetchInterval: 30_000,
   });
 
+  const { data: healthSnapshot } = useQuery<{
+    webhooksLastFiveMin: number;
+    transcriptsCompleted: number;
+    transcriptsFailed: number;
+    generationCompleted: number;
+    generationTimedOut: number;
+    validationFailed: number;
+    lastBatchTime: string | null;
+    lastBatchSuccess: number;
+    lastBatchTimeout: number;
+    lastBatchValidation: number;
+  }>({
+    queryKey: ["/api/admin/pipeline-health-snapshot"],
+    queryFn: () => fetch("/api/admin/pipeline-health-snapshot").then(r => r.json()),
+    refetchInterval: 30_000,
+  });
+
   const { data: rows = [], isLoading } = useQuery<PipelineRow[]>({
     queryKey: ["/api/admin/pipeline-monitor", days],
     queryFn: () => fetch(`/api/admin/pipeline-monitor?days=${days}`).then(r => r.json()),
@@ -448,6 +465,9 @@ export default function AdminTranscriptPipeline() {
           <option value={14}>14 days</option>
         </select>
       </div>
+
+      {/* Health Snapshot */}
+      {healthSnapshot && <HealthSnapshot data={healthSnapshot} />}
 
       {/* Support Prompt - Top & Prominent */}
       <SupportPrompt />
@@ -588,6 +608,139 @@ Check these things in order:
 
 The key table is landing_page_recaps (status can be: published, hidden, generation_failed).
 The scheduler runs every 5 min and processes 3 episodes per batch in production only.`;
+
+interface HealthSnapshotProps {
+  data: {
+    webhooksLastFiveMin: number;
+    transcriptsCompleted: number;
+    transcriptsFailed: number;
+    generationCompleted: number;
+    generationTimedOut: number;
+    validationFailed: number;
+    lastBatchTime: string | null;
+    lastBatchSuccess: number;
+    lastBatchTimeout: number;
+    lastBatchValidation: number;
+  };
+}
+
+function Tooltip({ text, children }: { text: string; children: React.ReactNode }) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div className="relative inline-block">
+      <button
+        onMouseEnter={() => setVisible(true)}
+        onMouseLeave={() => setVisible(false)}
+        onClick={() => setVisible(!visible)}
+        className="inline-flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+        data-testid="tooltip-trigger"
+      >
+        <HelpCircle className="w-4 h-4" />
+      </button>
+      {visible && (
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-xs rounded-lg whitespace-nowrap z-10 pointer-events-none shadow-lg">
+          {text}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900 dark:border-t-slate-100" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HealthSnapshot({ data }: HealthSnapshotProps) {
+  const lastBatchTime = data.lastBatchTime ? new Date(data.lastBatchTime) : null;
+  const timeSinceLastBatch = lastBatchTime
+    ? Math.floor((Date.now() - lastBatchTime.getTime()) / 1000 / 60)
+    : null;
+
+  return (
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5 space-y-4" data-testid="health-snapshot">
+      <h3 className="font-semibold text-sm text-slate-900 dark:text-white">Pipeline Health</h3>
+
+      {/* Three-column grid */}
+      <div className="grid grid-cols-3 gap-3">
+        {/* Webhooks */}
+        <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-3">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-medium text-slate-600 dark:text-slate-300">Webhooks (5m)</span>
+            <Tooltip text="New episodes arriving from the podcast platform right now" />
+          </div>
+          <div className={`text-2xl font-bold ${data.webhooksLastFiveMin > 0 ? "text-green-600 dark:text-green-400" : "text-slate-400"}`}>
+            {data.webhooksLastFiveMin}
+          </div>
+        </div>
+
+        {/* Transcripts */}
+        <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-3">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-medium text-slate-600 dark:text-slate-300">Transcripts (24h)</span>
+            <Tooltip text="Episodes where we successfully downloaded the audio transcript" />
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-green-600 dark:text-green-400">{data.transcriptsCompleted}</span>
+            {data.transcriptsFailed > 0 && (
+              <span className="text-xs text-red-600 dark:text-red-400 font-semibold">{data.transcriptsFailed} failed</span>
+            )}
+          </div>
+        </div>
+
+        {/* Generation */}
+        <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-3">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-medium text-slate-600 dark:text-slate-300">Generated (24h)</span>
+            <Tooltip text="AI-generated recaps that were successfully created" />
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-green-600 dark:text-green-400">{data.generationCompleted}</span>
+            {data.generationTimedOut > 0 && (
+              <span className="text-xs text-red-600 dark:text-red-400 font-semibold">{data.generationTimedOut} timeouts</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Issues Row */}
+      {(data.validationFailed > 0) && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400" />
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-red-900 dark:text-red-100">Issues (24h)</span>
+                <Tooltip text="Recaps that failed validation (missing podcast URL, Spotify link, etc.)" />
+              </div>
+              <div className="text-sm text-red-700 dark:text-red-300 mt-0.5">
+                {data.validationFailed} validation {data.validationFailed === 1 ? "failure" : "failures"}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Last Batch Summary */}
+      {lastBatchTime && (
+        <div className="border-t border-slate-200 dark:border-slate-700 pt-3 mt-3">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xs font-medium text-slate-600 dark:text-slate-300">Last Batch</span>
+            <Tooltip text="Results from the most recent 5-minute processing cycle" />
+          </div>
+          <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1">
+            <div>{timeSinceLastBatch !== null && `${timeSinceLastBatch}m ago`}</div>
+            <div className="flex gap-3">
+              <span className="text-green-600 dark:text-green-400 font-medium">✓ {data.lastBatchSuccess} published</span>
+              {data.lastBatchTimeout > 0 && (
+                <span className="text-red-600 dark:text-red-400 font-medium">✗ {data.lastBatchTimeout} timed out</span>
+              )}
+              {data.lastBatchValidation > 0 && (
+                <span className="text-amber-600 dark:text-amber-400 font-medium">⚠ {data.lastBatchValidation} validation</span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function SupportPrompt() {
   const [open, setOpen] = useState(true);

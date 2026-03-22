@@ -9618,6 +9618,84 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  // Pipeline health snapshot — comprehensive status for support team diagnostics
+  app.get("/api/admin/pipeline-health-snapshot", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      // Webhooks in last 5 min (from transcript queue creation time)
+      const { rows: webhookRows } = await pool.query(`
+        SELECT COUNT(*)::int as count FROM pending_transcript_queue 
+        WHERE created_at > NOW() - INTERVAL '5 minutes'
+      `);
+      const webhooksLastFiveMin = webhookRows[0]?.count || 0;
+
+      // Transcript fetch stats (last 24h)
+      const { rows: transcriptRows } = await pool.query(`
+        SELECT 
+          COUNT(*) FILTER (WHERE status = 'completed')::int as completed,
+          COUNT(*) FILTER (WHERE status = 'failed')::int as failed
+        FROM pending_transcript_queue
+        WHERE created_at > NOW() - INTERVAL '24 hours'
+      `);
+      const transcriptsCompleted = transcriptRows[0]?.completed || 0;
+      const transcriptsFailed = transcriptRows[0]?.failed || 0;
+
+      // Generation stats (last 24h from landing_page_recaps)
+      const { rows: generationRows } = await pool.query(`
+        SELECT 
+          COUNT(*) FILTER (WHERE status = 'published')::int as published,
+          COUNT(*) FILTER (WHERE status = 'generation_failed')::int as timed_out
+        FROM landing_page_recaps
+        WHERE created_at > NOW() - INTERVAL '24 hours'
+      `);
+      const generationCompleted = generationRows[0]?.published || 0;
+      const generationTimedOut = generationRows[0]?.timed_out || 0;
+
+      // Validation failures (hidden status, last 24h)
+      const { rows: validationRows } = await pool.query(`
+        SELECT COUNT(*)::int as count FROM landing_page_recaps
+        WHERE status = 'hidden' AND created_at > NOW() - INTERVAL '24 hours'
+      `);
+      const validationFailed = validationRows[0]?.count || 0;
+
+      // Last batch info (most recent successful or failed batch)
+      const { rows: batchRows } = await pool.query(`
+        SELECT 
+          MAX(created_at) as last_batch_time,
+          COUNT(*) FILTER (WHERE status = 'published')::int as last_batch_success_count,
+          COUNT(*) FILTER (WHERE status = 'generation_failed')::int as last_batch_timeout_count,
+          COUNT(*) FILTER (WHERE status = 'hidden')::int as last_batch_validation_count
+        FROM landing_page_recaps
+        WHERE created_at > NOW() - INTERVAL '1 hour'
+        GROUP BY DATE(created_at)
+        ORDER BY MAX(created_at) DESC
+        LIMIT 1
+      `);
+      const lastBatchTime = batchRows[0]?.last_batch_time ? new Date(batchRows[0].last_batch_time) : null;
+      const lastBatchSuccess = batchRows[0]?.last_batch_success_count || 0;
+      const lastBatchTimeout = batchRows[0]?.last_batch_timeout_count || 0;
+      const lastBatchValidation = batchRows[0]?.last_batch_validation_count || 0;
+
+      res.json({
+        webhooksLastFiveMin,
+        transcriptsCompleted,
+        transcriptsFailed,
+        generationCompleted,
+        generationTimedOut,
+        validationFailed,
+        lastBatchTime: lastBatchTime?.toISOString() || null,
+        lastBatchSuccess,
+        lastBatchTimeout,
+        lastBatchValidation,
+      });
+    } catch (err: any) {
+      console.error("[PipelineHealthSnapshot] Error:", err.message);
+      res.status(500).json({ message: "Failed to fetch health snapshot" });
+    }
+  });
+
   // Live monitoring endpoint — recently completed + pending queue sorted oldest-first (scheduler order)
   app.get("/api/admin/pipeline-live", async (req, res) => {
     if (!req.session.isAdmin) {
