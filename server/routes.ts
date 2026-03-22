@@ -9491,6 +9491,22 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.post("/api/admin/pipeline/clear-queue", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { podcast_id } = req.body;
+      const { rows } = await pool.query(
+        podcast_id
+          ? `DELETE FROM pending_transcript_queue WHERE podcast_id = $1 AND status = 'pending' RETURNING id`
+          : `DELETE FROM pending_transcript_queue WHERE status = 'pending' RETURNING id`,
+        podcast_id ? [podcast_id] : []
+      );
+      res.json({ cleared: rows.length });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   app.post("/api/admin/pipeline/retry-all", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     try {

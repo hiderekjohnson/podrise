@@ -644,6 +644,17 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
   const [search, setSearch] = useState("");
   const [retryingId, setRetryingId] = useState<string | null>(null);
 
+  const [clearConfirm, setClearConfirm] = useState(false);
+
+  const clearQueueMutation = useMutation({
+    mutationFn: (podcast_id: string | null) =>
+      apiRequest("POST", "/api/admin/pipeline/clear-queue", podcast_id ? { podcast_id } : {}),
+    onSuccess: () => {
+      setClearConfirm(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline-monitor"] });
+    },
+  });
+
   const retryAllMutation = useMutation({
     mutationFn: () => apiRequest("POST", "/api/admin/pipeline/retry-all", {}),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline-monitor"] }),
@@ -816,6 +827,45 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
                 data-testid="input-search-episodes"
               />
             </div>
+            {/* Clear queue */}
+            {(() => {
+              const queuedInFilter = filtered.filter(r => getOverallStatus(r) === "queued");
+              if (queuedInFilter.length === 0) return null;
+              const targetPodcastId = showFilter !== "all"
+                ? (rows.find(r => r.podcast_name === showFilter)?.podcast_id ?? null)
+                : null;
+              const label = showFilter !== "all"
+                ? `Clear ${showFilter} queue (${queuedInFilter.length})`
+                : `Clear all queued (${queuedInFilter.length})`;
+              return clearConfirm ? (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-slate-600 dark:text-slate-400">Sure?</span>
+                  <button
+                    onClick={() => clearQueueMutation.mutate(targetPodcastId)}
+                    disabled={clearQueueMutation.isPending}
+                    className="text-xs px-2.5 py-1.5 rounded-lg border border-red-400 text-white bg-red-500 hover:bg-red-600 font-medium disabled:opacity-50 transition-colors flex items-center gap-1"
+                    data-testid="button-confirm-clear-queue"
+                  >
+                    {clearQueueMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Yes, clear"}
+                  </button>
+                  <button
+                    onClick={() => setClearConfirm(false)}
+                    className="text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setClearConfirm(true)}
+                  className="text-xs px-3 py-1.5 rounded-lg border border-orange-200 dark:border-orange-800 text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/40 font-medium transition-colors flex items-center gap-1.5"
+                  data-testid="button-clear-queue"
+                >
+                  <XCircle className="w-3 h-3" />
+                  {label}
+                </button>
+              );
+            })()}
             {/* Retry all errors */}
             <button
               onClick={() => retryAllMutation.mutate()}
