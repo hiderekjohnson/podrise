@@ -640,15 +640,15 @@ ${episodeCardsHtml}
   <div style="height:1px;background:#F0F0F2;margin:24px 0 0;"></div>
 </td></tr>
 <tr><td style="padding:24px 28px;background:#ffffff;">
-  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:linear-gradient(145deg,#0f172a,#1e1b4b);border-radius:14px;overflow:hidden;">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#F0EFFF;border-radius:14px;overflow:hidden;border:1px solid #E0DFFE;">
     <tr><td style="padding:28px 28px 24px;text-align:center;">
-      <p style="font-size:11px;font-weight:800;color:rgba(255,255,255,0.5);letter-spacing:0.18em;text-transform:uppercase;margin:0 0 8px;">THE POD SQUAD</p>
-      <p style="font-size:22px;font-weight:800;color:#ffffff;letter-spacing:-0.01em;margin:0 0 8px;line-height:1.2;">REFERRALS GET REWARDED</p>
-      <p style="font-size:14px;color:rgba(255,255,255,0.75);margin:0 0 20px;line-height:1.6;max-width:340px;margin-left:auto;margin-right:auto;">Share PodRise, watch your referral count climb, and unlock brag-worthy swag.</p>
-      ${referralData ? `<p style="font-size:32px;font-weight:800;color:#ffffff;margin:0 0 4px;letter-spacing:-0.02em;">${referralData.referralCount}</p>
-      <p style="font-size:13px;color:rgba(255,255,255,0.6);margin:0 0 ${referralData.nextTierName ? "6" : "20"}px;">referral${referralData.referralCount !== 1 ? "s" : ""} so far</p>
-      ${referralData.nextTierName ? `<p style="font-size:13px;color:#A5B4FC;margin:0 0 20px;font-weight:600;">${referralData.nextTierThreshold! - referralData.referralCount} more to unlock <strong style="color:#ffffff;">${escapeHtml(referralData.nextTierName)}</strong></p>` : ""}` : ""}
-      <a href="https://podrise.com/login?redirect=%2Fpod-squad" style="display:inline-block;background:#6366F1;color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:10px;font-size:15px;font-weight:700;letter-spacing:0.01em;box-shadow:0 4px 16px rgba(99,102,241,0.4);">Click to Share</a>
+      <p style="font-size:11px;font-weight:800;color:#6366F1;letter-spacing:0.18em;text-transform:uppercase;margin:0 0 8px;">THE POD SQUAD</p>
+      <p style="font-size:22px;font-weight:800;color:#1e1b4b;letter-spacing:-0.01em;margin:0 0 8px;line-height:1.2;">REFERRALS GET REWARDED</p>
+      <p style="font-size:14px;color:#4B5563;margin:0 0 20px;line-height:1.6;max-width:340px;margin-left:auto;margin-right:auto;">Share PodRise, watch your referral count climb, and unlock brag-worthy swag.</p>
+      ${referralData ? `<p style="font-size:32px;font-weight:800;color:#1e1b4b;margin:0 0 4px;letter-spacing:-0.02em;">${referralData.referralCount}</p>
+      <p style="font-size:13px;color:#6B7280;margin:0 0 ${referralData.nextTierName ? "6" : "20"}px;">referral${referralData.referralCount !== 1 ? "s" : ""} so far</p>
+      ${referralData.nextTierName ? `<p style="font-size:13px;color:#6366F1;margin:0 0 20px;font-weight:600;">${referralData.nextTierThreshold! - referralData.referralCount} more to unlock <strong style="color:#1e1b4b;">${escapeHtml(referralData.nextTierName)}</strong></p>` : ""}` : ""}
+      <a href="https://podrise.com/login?redirect=%2Fpod-squad" style="display:inline-block;background:#6366F1;color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:10px;font-size:15px;font-weight:700;letter-spacing:0.01em;">Click to Share</a>
     </td></tr>
   </table>
 </td></tr>
