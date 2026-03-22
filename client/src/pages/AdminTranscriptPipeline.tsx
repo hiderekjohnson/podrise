@@ -68,13 +68,18 @@ interface PipelineRow {
   recap_id: number | null;
   episode_slug: string | null;
   recap_published: boolean | null;
+  recap_status: string | null;
   recap_at: string | null;
 }
 
-type OverallStatus = "complete" | "pending_recap" | "missed" | "queued" | "failed";
+type OverallStatus = "complete" | "generating" | "pending_recap" | "missed" | "queued" | "failed";
 
-function getOverallStatus(row: PipelineRow): OverallStatus {
-  if (row.recap_id) return "complete";
+function getOverallStatus(row: PipelineRow, currentlyGeneratingGuid?: string | null): OverallStatus {
+  if (row.recap_id) {
+    if (row.recap_status === "generation_failed") return "failed";
+    return "complete";
+  }
+  if (currentlyGeneratingGuid && row.episode_guid && row.episode_guid === currentlyGeneratingGuid) return "generating";
   if (row.transcript_at) {
     // If the episode aired more than 5 days ago the recap scheduler won't pick it up
     if (row.date_published) {
@@ -126,11 +131,12 @@ function formatKB(chars: number | null): string {
 }
 
 const STATUS_CONFIG: Record<OverallStatus, { label: string; color: string; icon: React.FC<{ className?: string }> }> = {
-  complete:      { label: "Complete", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400", icon: CheckCircle2 },
-  pending_recap: { label: "Pending",  color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",            icon: Clock },
-  missed:        { label: "Missed",   color: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",         icon: AlertTriangle },
-  queued:        { label: "Queued",   color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",    icon: Radio },
-  failed:        { label: "Failed",   color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",                icon: XCircle },
+  complete:      { label: "Complete",   color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400", icon: CheckCircle2 },
+  generating:    { label: "Generating", color: "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400",    icon: Zap },
+  pending_recap: { label: "Pending",    color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",            icon: Clock },
+  missed:        { label: "Missed",     color: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",        icon: AlertTriangle },
+  queued:        { label: "Queued",     color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",   icon: Radio },
+  failed:        { label: "Failed",     color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",               icon: XCircle },
 };
 
 type FilterType = "all" | OverallStatus;
@@ -418,11 +424,13 @@ export default function AdminTranscriptPipeline() {
     refetchInterval: 30_000,
   });
 
-  const { data: rows = [], isLoading } = useQuery<PipelineRow[]>({
+  const { data: monitorData, isLoading } = useQuery<{ rows: PipelineRow[]; currentlyGeneratingGuid: string | null }>({
     queryKey: ["/api/admin/pipeline-monitor", days],
     queryFn: () => fetch(`/api/admin/pipeline-monitor?days=${days}`).then(r => r.json()),
-    refetchInterval: 60_000,
+    refetchInterval: 15_000,
   });
+  const rows = monitorData?.rows ?? [];
+  const currentlyGeneratingGuid = monitorData?.currentlyGeneratingGuid ?? null;
 
   const { data: liveData, isFetching: isLiveFetching } = useQuery<LiveData>({
     queryKey: ["/api/admin/pipeline-live"],
@@ -431,10 +439,11 @@ export default function AdminTranscriptPipeline() {
     enabled: isLiveMode,
   });
 
-  const withStatus = rows.map(r => ({ ...r, status: getOverallStatus(r) }));
+  const withStatus = rows.map(r => ({ ...r, status: getOverallStatus(r, currentlyGeneratingGuid) }));
   const counts: Record<OverallStatus | "all", number> = {
     all: withStatus.length,
     complete: withStatus.filter(r => r.status === "complete").length,
+    generating: withStatus.filter(r => r.status === "generating").length,
     pending_recap: withStatus.filter(r => r.status === "pending_recap").length,
     missed: withStatus.filter(r => r.status === "missed").length,
     queued: withStatus.filter(r => r.status === "queued").length,
@@ -514,6 +523,22 @@ export default function AdminTranscriptPipeline() {
         </select>
       </div>
 
+      {/* Generating Banner */}
+      {currentlyGeneratingGuid && (() => {
+        const genRow = rows.find(r => r.episode_guid === currentlyGeneratingGuid);
+        return (
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-700/40" data-testid="generating-banner">
+            <Zap className="w-4 h-4 text-violet-600 dark:text-violet-400 flex-shrink-0 animate-pulse" />
+            <div className="min-w-0">
+              <span className="text-xs font-semibold text-violet-700 dark:text-violet-300">AI is generating a recap right now</span>
+              {genRow && (
+                <span className="block text-xs text-violet-600/80 dark:text-violet-400/80 truncate">{genRow.episode_title}</span>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Health Snapshot */}
       {healthSnapshot && <HealthSnapshot data={healthSnapshot} />}
 
@@ -527,7 +552,7 @@ export default function AdminTranscriptPipeline() {
       <QueueHealth rows={rows} />
 
       {/* Comprehensive Pipeline Table - NEW */}
-      <PipelineTable rows={rows} counts={counts} />
+      <PipelineTable rows={rows} counts={counts} currentlyGeneratingGuid={currentlyGeneratingGuid} />
 
       {/* Support Prompt - Top & Prominent */}
       <SupportPrompt />
@@ -595,10 +620,10 @@ export default function AdminTranscriptPipeline() {
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
-          {(["all", "complete", "pending_recap", "missed", "queued", "failed"] as FilterType[]).map(s => {
+          {(["all", "complete", "generating", "pending_recap", "missed", "queued", "failed"] as FilterType[]).map(s => {
             const cfg = s === "all" ? null : STATUS_CONFIG[s as OverallStatus];
             const isActive = filter === s;
-            const label = s === "all" ? "All" : s === "pending_recap" ? "Pending" : cfg!.label;
+            const label = s === "all" ? "All" : cfg!.label;
             return (
               <button
                 key={s}
@@ -660,9 +685,10 @@ export default function AdminTranscriptPipeline() {
 interface PipelineTableProps {
   rows: PipelineRow[];
   counts: Record<string, number>;
+  currentlyGeneratingGuid: string | null;
 }
 
-function PipelineTable({ rows, counts }: PipelineTableProps) {
+function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableProps) {
   const { toast } = useToast();
   const [stageFilter, setStageFilter] = useState<string>("all");
   const [showFilter, setShowFilter] = useState<string>("all");
@@ -791,28 +817,28 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
   });
 
   // Compute stage counts from actual data
-  const webhookCount = rows.filter(r => r.source === "queue_only" && r.queue_status === "pending").length;
-  const fetchingCount = rows.filter(r => r.source === "queue_only" && r.queue_status === "fetching").length;
-  const inQueueCount = rows.filter(r => getOverallStatus(r) === "pending_recap").length;
-  const aiRecapCount = rows.filter(r => r.queue_status === "running").length;
-  const publishedCount = rows.filter(r => getOverallStatus(r) === "complete").length;
+  const webhookCount    = rows.filter(r => r.source === "queue_only" && r.queue_status === "pending").length;
+  const fetchingCount   = rows.filter(r => r.source === "queue_only" && r.queue_status === "fetching").length;
+  const inQueueCount    = rows.filter(r => getOverallStatus(r, currentlyGeneratingGuid) === "pending_recap").length;
+  const generatingCount = rows.filter(r => getOverallStatus(r, currentlyGeneratingGuid) === "generating").length;
+  const publishedCount  = rows.filter(r => getOverallStatus(r, currentlyGeneratingGuid) === "complete").length;
 
   const stages = [
-    { name: "Webhook",     count: webhookCount,   num: "1", circleClass: "border-2 border-indigo-300 text-indigo-700 dark:text-indigo-300 bg-white dark:bg-slate-900" },
-    { name: "Taddy fetch", count: fetchingCount,  num: "2", circleClass: "border-2 border-blue-300 text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-900" },
-    { name: "In queue",    count: inQueueCount,   num: "3", circleClass: "border-2 border-amber-300 text-amber-700 dark:text-amber-300 bg-white dark:bg-slate-900" },
-    { name: "AI recap",    count: aiRecapCount,   num: "4", circleClass: "border-2 border-orange-300 text-orange-700 dark:text-orange-300 bg-white dark:bg-slate-900" },
-    { name: "Published",   count: publishedCount, num: "5", circleClass: "border-2 border-emerald-400 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20" },
+    { name: "Webhook",        count: webhookCount,    num: "1", circleClass: "border-2 border-indigo-300 text-indigo-700 dark:text-indigo-300 bg-white dark:bg-slate-900" },
+    { name: "Taddy fetch",    count: fetchingCount,   num: "2", circleClass: "border-2 border-blue-300 text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-900" },
+    { name: "In recap queue", count: inQueueCount,    num: "3", circleClass: "border-2 border-amber-300 text-amber-700 dark:text-amber-300 bg-white dark:bg-slate-900" },
+    { name: "Generating",     count: generatingCount, num: "4", circleClass: generatingCount > 0 ? "border-2 border-violet-400 text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/20 animate-pulse" : "border-2 border-violet-300 text-violet-700 dark:text-violet-300 bg-white dark:bg-slate-900" },
+    { name: "Published",      count: publishedCount,  num: "5", circleClass: "border-2 border-emerald-400 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20" },
   ];
 
-  const errorCount  = rows.filter(r => getOverallStatus(r) === "failed").length;
+  const errorCount  = rows.filter(r => getOverallStatus(r, currentlyGeneratingGuid) === "failed").length;
   const metricCards = [
-    { label: "Queue depth",     value: inQueueCount,             sub: "episodes waiting",  valClass: "text-slate-900 dark:text-white" },
-    { label: "Processing",      value: aiRecapCount,             sub: "AI recap active",   valClass: "text-indigo-600 dark:text-indigo-400" },
-    { label: "Errors",          value: errorCount,               sub: "need attention",    valClass: "text-red-600 dark:text-red-400" },
-    { label: "Published today", value: publishedCount,           sub: "episodes live",     valClass: "text-emerald-600 dark:text-emerald-400" },
-    { label: "Fetching",        value: fetchingCount,            sub: "from Taddy",        valClass: "text-slate-600 dark:text-slate-400" },
-    { label: "Pending",         value: webhookCount,             sub: "webhook only",      valClass: "text-slate-600 dark:text-slate-400" },
+    { label: "In recap queue", value: inQueueCount,    sub: "waiting for AI",   valClass: "text-slate-900 dark:text-white" },
+    { label: "Generating",     value: generatingCount, sub: "AI writing now",   valClass: "text-violet-600 dark:text-violet-400" },
+    { label: "Errors",         value: errorCount,      sub: "need attention",   valClass: "text-red-600 dark:text-red-400" },
+    { label: "Published today",value: publishedCount,  sub: "episodes live",    valClass: "text-emerald-600 dark:text-emerald-400" },
+    { label: "Fetching",       value: fetchingCount,   sub: "from Taddy",       valClass: "text-slate-600 dark:text-slate-400" },
+    { label: "Pending",        value: webhookCount,    sub: "webhook only",     valClass: "text-slate-600 dark:text-slate-400" },
   ];
 
   // Helpers
@@ -834,17 +860,18 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
   };
 
   const stageBadge = (status: OverallStatus) => {
-    const cfg: Record<OverallStatus, { dot: string; label: string; cls: string }> = {
-      complete:      { dot: "bg-emerald-500", label: "Published",     cls: "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20" },
-      pending_recap: { dot: "bg-amber-500",   label: "Awaiting recap", cls: "text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20" },
-      queued:        { dot: "bg-blue-500",    label: "In queue",      cls: "text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20" },
-      missed:        { dot: "bg-cyan-500",    label: "Fetching",      cls: "text-cyan-700 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-900/20" },
-      failed:        { dot: "bg-red-500",     label: "Error",         cls: "text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20" },
+    const cfg: Record<OverallStatus, { dot: string; label: string; cls: string; pulse?: boolean }> = {
+      complete:      { dot: "bg-emerald-500", label: "Published",       cls: "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20" },
+      generating:    { dot: "bg-violet-500",  label: "Generating",      cls: "text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/20", pulse: true },
+      pending_recap: { dot: "bg-amber-500",   label: "In recap queue",  cls: "text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20" },
+      queued:        { dot: "bg-blue-500",    label: "In queue",        cls: "text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20" },
+      missed:        { dot: "bg-cyan-500",    label: "Fetching",        cls: "text-cyan-700 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-900/20" },
+      failed:        { dot: "bg-red-500",     label: "Error",           cls: "text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20" },
     };
     const c = cfg[status];
     return (
       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium ${c.cls}`}>
-        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${c.dot}`} />
+        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${c.dot}${c.pulse ? " animate-pulse" : ""}`} />
         {c.label}
       </span>
     );
@@ -855,9 +882,9 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
 
   // Filtered rows
   const filtered = rows.filter(r => {
-    const status = getOverallStatus(r);
+    const status = getOverallStatus(r, currentlyGeneratingGuid);
     const stageMap: Record<string, OverallStatus> = {
-      published: "complete", processing: "pending_recap",
+      published: "complete", generating: "generating", processing: "pending_recap",
       "in-queue": "queued", fetching: "missed", error: "failed",
     };
     if (stageFilter !== "all" && status !== stageMap[stageFilter]) return false;
@@ -925,7 +952,8 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
             >
               <option value="all">All stages</option>
               <option value="published">Published</option>
-              <option value="processing">Awaiting recap</option>
+              <option value="generating">Generating</option>
+              <option value="processing">In recap queue</option>
               <option value="in-queue">In queue</option>
               <option value="fetching">Fetching</option>
               <option value="error">Error</option>
@@ -1207,7 +1235,7 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
                   </thead>
                   <tbody>
                     {displayRows.map((row, i) => {
-                      const status = getOverallStatus(row);
+                      const status = getOverallStatus(row, currentlyGeneratingGuid);
                       const isError = status === "failed";
                       const ageMins = ageMinutes(row.transcript_at || row.queued_at);
                       const queuedMins = ageMinutes(row.queued_at);
@@ -1503,8 +1531,9 @@ interface StageDistributionProps {
 function StageDistribution({ counts }: StageDistributionProps) {
   const stages = [
     { key: 'complete', label: 'Published', color: 'bg-emerald-100 dark:bg-emerald-900/30', textColor: 'text-emerald-700 dark:text-emerald-300' },
+    { key: 'generating', label: 'Generating', color: 'bg-violet-100 dark:bg-violet-900/30', textColor: 'text-violet-700 dark:text-violet-300' },
     { key: 'queued', label: 'In Queue', color: 'bg-blue-100 dark:bg-blue-900/30', textColor: 'text-blue-700 dark:text-blue-300' },
-    { key: 'pending_recap', label: 'Awaiting Recap', color: 'bg-amber-100 dark:bg-amber-900/30', textColor: 'text-amber-700 dark:text-amber-300' },
+    { key: 'pending_recap', label: 'In Recap Queue', color: 'bg-amber-100 dark:bg-amber-900/30', textColor: 'text-amber-700 dark:text-amber-300' },
     { key: 'missed', label: 'Missed', color: 'bg-orange-100 dark:bg-orange-900/30', textColor: 'text-orange-700 dark:text-orange-300' },
     { key: 'failed', label: 'Failed', color: 'bg-red-100 dark:bg-red-900/30', textColor: 'text-red-700 dark:text-red-300' },
   ];

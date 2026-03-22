@@ -9414,6 +9414,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           lpr.id AS recap_id,
           lpr.episode_slug,
           lpr.published AS recap_published,
+          lpr.status AS recap_status,
           lpr.created_at AS recap_at
         FROM episode_transcripts et
         INNER JOIN podcast_directory pd
@@ -9468,7 +9469,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         (a, b) => new Date(b.transcript_at || b.queued_at).getTime() - new Date(a.transcript_at || a.queued_at).getTime()
       );
 
-      res.json(allRows);
+      const schedulerStatus = getSchedulerStatus();
+      res.json({ rows: allRows, currentlyGeneratingGuid: schedulerStatus.currentlyGeneratingGuid });
     } catch (err: any) {
       console.error("[PipelineMonitor] Error:", err.message);
       res.status(500).json({ message: "Failed to fetch pipeline data" });

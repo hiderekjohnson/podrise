@@ -5,12 +5,10 @@ import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 
 const INTERVAL_MS = 5 * 60 * 1000;
 const HEADLINE_CATCHUP_INTERVAL_MS = 15 * 60 * 1000;
-const BATCH_SIZE = 3;
-const BATCH_SIZE_CATCHUP = 10;
-const CATCHUP_BACKLOG_THRESHOLD = 10;
-const PER_PODCAST = 3;
-// 3 episodes × 4min timeout + 30s delays + buffer = ~14min minimum, set to 20min for headroom
-const BATCH_TIMEOUT_MS = 20 * 60 * 1000;
+const BATCH_SIZE = 1;
+const PER_PODCAST = 1;
+// 1 episode × 4min timeout + buffer = ~6min, set to 10min for headroom
+const BATCH_TIMEOUT_MS = 10 * 60 * 1000;
 const HEADLINE_RETRY_COUNT = 2;
 const HEADLINE_RETRY_DELAY_MS = 3000;
 let batchRunning = false;
@@ -19,6 +17,8 @@ let lastSuccessfulBatchAt = Date.now();
 let catchUpRunning = false;
 let timeoutEpisodesThisSession = new Set<string>();
 let isSchedulerStarted = false;
+let currentlyGeneratingGuid: string | null = null;
+let currentlyGeneratingTitle: string | null = null;
 
 async function getPodcastInfo(itunesId: string) {
   const { rows } = await pool.query(
@@ -231,6 +231,8 @@ export function getSchedulerStatus() {
     batchRunning,
     batchStartedAt,
     lastSuccessfulBatchAt,
+    currentlyGeneratingGuid,
+    currentlyGeneratingTitle,
   };
 }
 
@@ -258,40 +260,16 @@ async function runBatch() {
     const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
     const cutoffTimestamp = Math.floor(fiveDaysAgo.getTime() / 1000);
 
-    // Check how many transcripts are awaiting recap so we can adapt batch size
-    const { rows: backlogRows } = await pool.query(
-      `SELECT COUNT(*) AS cnt
-       FROM episode_transcripts et
-       INNER JOIN podcast_directory pd ON pd.itunes_id = et.podcast_id AND pd.status = 'published'
-       WHERE et.transcript IS NOT NULL AND et.transcript != ''
-         AND et.date_published IS NOT NULL
-         AND et.date_published >= $1
-         AND NOT EXISTS (
-           SELECT 1 FROM landing_page_recaps lpr
-           WHERE lpr.itunes_id = et.podcast_id
-             AND (lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
-               OR lpr.episode_slug = lower(regexp_replace(trim(et.episode_title), '[^a-zA-Z0-9]+', '-', 'g')))
-         )`,
-      [cutoffTimestamp]
-    );
-    const backlogCount = parseInt(backlogRows[0]?.cnt ?? "0", 10);
-    const isCatchup = backlogCount >= CATCHUP_BACKLOG_THRESHOLD;
-    const effectiveBatchSize = isCatchup ? BATCH_SIZE_CATCHUP : BATCH_SIZE;
-    const interEpisodeDelayMs = isCatchup ? 5_000 : 30_000;
-    if (isCatchup) {
-      console.log(`[ProdRecap] Catchup mode: ${backlogCount} awaiting recap — using batch size ${effectiveBatchSize} with ${interEpisodeDelayMs / 1000}s delays`);
-    }
-
     const { rows: episodes } = await pool.query(
       `WITH ranked AS (
-         SELECT et.id, et.podcast_id, et.episode_title, et.transcript, et.description,
+         SELECT et.id, et.podcast_id, et.episode_guid, et.episode_title, et.transcript, et.description,
                 et.date_published, et.duration, et.audio_url, et.image_url, et.fetched_at,
                 ROW_NUMBER() OVER (PARTITION BY et.podcast_id ORDER BY et.date_published DESC) AS rn
          FROM episode_transcripts et
          INNER JOIN podcast_directory pd ON pd.itunes_id = et.podcast_id AND pd.status = 'published'
          WHERE et.transcript IS NOT NULL AND et.transcript != ''
            AND et.date_published IS NOT NULL
-           AND et.date_published >= $3
+           AND et.date_published >= $2
            AND NOT EXISTS (
              SELECT 1 FROM landing_page_recaps lpr
              WHERE lpr.itunes_id = et.podcast_id
@@ -299,13 +277,13 @@ async function runBatch() {
                  OR lpr.episode_slug = lower(regexp_replace(trim(et.episode_title), '[^a-zA-Z0-9]+', '-', 'g')))
            )
        )
-       SELECT id, podcast_id, episode_title, transcript, description,
+       SELECT id, podcast_id, episode_guid, episode_title, transcript, description,
               date_published, duration, audio_url, image_url, fetched_at
        FROM ranked
        WHERE rn <= $1
        ORDER BY date_published DESC
-       LIMIT $2`,
-      [PER_PODCAST, effectiveBatchSize, cutoffTimestamp]
+       LIMIT ${BATCH_SIZE}`,
+      [PER_PODCAST, cutoffTimestamp]
     );
 
     if (episodes.length === 0) {
@@ -331,6 +309,10 @@ async function runBatch() {
 
       console.log(`[ProdRecap] Processing: "${ep.episode_title?.slice(0, 60)}" (${podcastName})`);
 
+      // Mark this episode as actively generating so the pipeline monitor can show it
+      currentlyGeneratingGuid = ep.episode_guid || null;
+      currentlyGeneratingTitle = ep.episode_title || null;
+
       const processPromise = processEpisode(ep, podcastSlug, podcastName, ep.podcast_id, hosts, artwork);
 
       const epTitle = ep.episode_title || "Untitled";
@@ -352,11 +334,13 @@ async function runBatch() {
         resolve({ success: false });
       }, 4 * 60 * 1000));
       const result = await Promise.race([processPromise, episodeTimeout]);
+      currentlyGeneratingGuid = null;
+      currentlyGeneratingTitle = null;
       if (result.success) generated++;
       else failed++;
 
       if (episodes.indexOf(ep) < episodes.length - 1) {
-        await new Promise(r => setTimeout(r, interEpisodeDelayMs));
+        await new Promise(r => setTimeout(r, 30_000));
       }
     }
 
