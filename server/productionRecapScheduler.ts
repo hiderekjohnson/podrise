@@ -282,8 +282,18 @@ async function runBatch() {
 
       const processPromise = processEpisode(ep, podcastSlug, podcastName, ep.podcast_id, hosts, artwork);
 
-      const episodeTimeout = new Promise<ProcessEpisodeResult>((resolve) => setTimeout(() => {
-        console.warn(`[ProdRecap] Episode timed out after 4min: "${ep.episode_title?.slice(0, 60)}"`);
+      const epTitle = ep.episode_title || "Untitled";
+      const epSlug = epTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 200);
+      const episodeTimeout = new Promise<ProcessEpisodeResult>((resolve) => setTimeout(async () => {
+        console.warn(`[ProdRecap] Episode timed out after 4min: "${epTitle.slice(0, 60)}"`);
+        try {
+          await pool.query(
+            `INSERT INTO landing_page_recaps (user_id, podcast_slug, episode_slug, episode_title, podcast_name, source, status, recap)
+             VALUES (NULL, $1, $2, $3, $4, 'production_scheduler', 'generation_failed', $5)
+             ON CONFLICT DO NOTHING`,
+            [podcastSlug, epSlug, epTitle, podcastName, "Timed out after 4 minutes"]
+          );
+        } catch {}
         resolve({ success: false });
       }, 4 * 60 * 1000));
       const result = await Promise.race([processPromise, episodeTimeout]);
@@ -735,8 +745,18 @@ async function runMissedEpisodeCatchup() {
       console.log(`[MissedCatchup] Processing: "${ep.episode_title?.slice(0, 60)}" (${info.name})`);
 
       const processPromise = processEpisode(ep, podcastSlug, info.name, ep.podcast_id, info.hosts || "", info.artwork_url || "");
-      const episodeTimeout = new Promise<ProcessEpisodeResult>((resolve) => setTimeout(() => {
-        console.warn(`[MissedCatchup] Episode timed out after 4min: "${ep.episode_title?.slice(0, 60)}"`);
+      const mcEpTitle = ep.episode_title || "Untitled";
+      const mcEpSlug = mcEpTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 200);
+      const episodeTimeout = new Promise<ProcessEpisodeResult>((resolve) => setTimeout(async () => {
+        console.warn(`[MissedCatchup] Episode timed out after 4min: "${mcEpTitle.slice(0, 60)}"`);
+        try {
+          await pool.query(
+            `INSERT INTO landing_page_recaps (user_id, podcast_slug, episode_slug, episode_title, podcast_name, source, status, recap)
+             VALUES (NULL, $1, $2, $3, $4, 'production_scheduler', 'generation_failed', $5)
+             ON CONFLICT DO NOTHING`,
+            [podcastSlug, mcEpSlug, mcEpTitle, info.name, "Timed out after 4 minutes"]
+          );
+        } catch {}
         resolve({ success: false });
       }, 4 * 60 * 1000));
       const result = await Promise.race([processPromise, episodeTimeout]);
