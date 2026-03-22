@@ -1,7 +1,7 @@
 import { storage } from "./storage";
 import { pool } from "./db";
 import { getUncachableResendClient } from "./resendClient";
-import { markdownToEmailHtml, recapHasContent, type EpisodeMetaForEmail } from "./emailTemplate";
+import { markdownToEmailHtml, recapHasContent, type EpisodeMetaForEmail, type ShopBookForEmail, type MissedEpisodeForEmail } from "./emailTemplate";
 import { generateRecap, generateRecapFromTranscript, type ParsedEpisode } from "./recapGenerator";
 import { searchPodcastByItunesId, getRecentEpisodesWithTranscripts, getEpisodeTranscript, getEpisodeTranscriptSegments, getEpisodesByItunesId, searchEpisodeByName, isTaddyBudgetExhausted, isTaddyBudgetWarning, getTaddyBudgetStatus, markTaddyRateLimited } from "./taddyClient";
 import { parseRawTaddySegments, parseTranscriptToSegments } from "./transcriptParser";
@@ -388,6 +388,80 @@ function isUserOnVacation(user: any): boolean {
   return userLocalDate < user.vacationUntil;
 }
 
+export async function fetchShopBooks(): Promise<ShopBookForEmail[]> {
+  try {
+    const { rows } = await pool.query(`
+      SELECT be.slug, be.book_title, be.author,
+             CASE WHEN be.has_cover AND be.cover_approved THEN '/covers/' || be.slug || '.jpg' ELSE NULL END as cover_url
+      FROM book_enrichments be
+      WHERE be.slug IS NOT NULL
+        AND be.has_cover = true
+        AND be.cover_approved = true
+        AND EXISTS (
+          SELECT 1 FROM book_insights bi WHERE bi.book_key = be.book_key
+            AND bi.created_at >= NOW() - INTERVAL '7 days'
+        )
+      GROUP BY be.slug, be.book_title, be.author, be.has_cover, be.cover_approved
+      ORDER BY (SELECT COUNT(*) FROM book_insights bi WHERE bi.book_key = be.book_key AND bi.created_at >= NOW() - INTERVAL '7 days') DESC
+      LIMIT 3
+    `);
+    return rows.map((r: any) => ({
+      slug: r.slug,
+      bookTitle: r.book_title,
+      author: r.author || null,
+      coverUrl: r.cover_url ? `https://podrise.com${r.cover_url}` : null,
+    }));
+  } catch (err) {
+    console.warn("[EmailScheduler] Failed to fetch shop books:", err);
+    return [];
+  }
+}
+
+export async function fetchMissedEpisodes(user: any): Promise<MissedEpisodeForEmail[]> {
+  try {
+    const followedSlugs: string[] = [];
+    if (user.podcasts && Array.isArray(user.podcasts)) {
+      for (const raw of user.podcasts) {
+        try {
+          const p = JSON.parse(raw);
+          if (p.id && ITUNES_ID_TO_SLUG[p.id]) followedSlugs.push(ITUNES_ID_TO_SLUG[p.id]);
+        } catch {}
+      }
+    }
+
+    const excludeClause = followedSlugs.length > 0
+      ? `AND lpr.slug != ALL($1::text[])`
+      : "";
+    const params: any[] = followedSlugs.length > 0 ? [followedSlugs] : [];
+
+    const { rows } = await pool.query(`
+      SELECT lpr.slug as podcast_slug, lpr.episode_slug, lpr.podcast_name,
+             lpr.tabloid_headline, lpr.episode_title,
+             pd.follower_count
+      FROM landing_page_recaps lpr
+      LEFT JOIN podcast_directory pd ON pd.slug = lpr.slug
+      WHERE lpr.tabloid_headline IS NOT NULL
+        AND lpr.tabloid_headline != ''
+        AND lpr.episode_slug IS NOT NULL
+        AND lpr.publish_date >= NOW() - INTERVAL '7 days'
+        ${excludeClause}
+      ORDER BY COALESCE(pd.follower_count, 0) DESC, lpr.publish_date DESC
+      LIMIT 3
+    `, params);
+
+    return rows.map((r: any) => ({
+      podcastName: r.podcast_name,
+      podcastSlug: r.podcast_slug,
+      episodeSlug: r.episode_slug,
+      tabloidHeadline: r.tabloid_headline,
+      episodeTitle: r.episode_title,
+    }));
+  } catch (err) {
+    console.warn("[EmailScheduler] Failed to fetch missed episodes:", err);
+    return [];
+  }
+}
+
 async function generateForUser(user: any, force: boolean, recapPrompt?: string): Promise<"generated" | "skipped" | "failed"> {
   if (!user.podcasts || user.podcasts.length === 0 || !user.email) {
     return "skipped";
@@ -495,7 +569,12 @@ async function generateForUser(user: any, force: boolean, recapPrompt?: string):
       console.error("[EmailScheduler] Failed to fetch referral data:", e);
     }
 
-    const emailHtml = markdownToEmailHtml(reorderedSummary, user.email, episodeMeta, emailCopy, referralData);
+    const [shopBooks, missedEpisodes] = await Promise.all([
+      fetchShopBooks(),
+      fetchMissedEpisodes(user),
+    ]);
+
+    const emailHtml = markdownToEmailHtml(reorderedSummary, user.email, episodeMeta, emailCopy, referralData, shopBooks, missedEpisodes);
 
     const deliveryTime = user.deliveryTime || "07:00";
     const subject = emailCopy.subject;
@@ -662,7 +741,45 @@ export async function sendHeldEmail(pendingId: number): Promise<void> {
   }
 
   const reorderedSummary = reorderMarkdownLeadFirst(pending.summary, emailCopy.leadEpisodePodcast);
-  const freshHtml = markdownToEmailHtml(reorderedSummary, pending.recipientEmail, episodeMeta, emailCopy);
+
+  let sendHeldUser: any = null;
+  try {
+    sendHeldUser = await storage.getUserById(pending.userId);
+  } catch {}
+
+  let sendHeldReferralData: { referralCode: string; referralCount: number; nextTierName?: string; nextTierThreshold?: number } | undefined;
+  if (sendHeldUser) {
+    try {
+      let code = sendHeldUser.referralCode;
+      if (!code) {
+        const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+        let generated = "";
+        for (let i = 0; i < 8; i++) generated += chars[Math.floor(Math.random() * chars.length)];
+        await pool.query(`UPDATE users SET referral_code = $1 WHERE id = $2 AND referral_code IS NULL`, [generated, sendHeldUser.id]);
+        const refreshed = await storage.getUserById(sendHeldUser.id);
+        code = refreshed?.referralCode || generated;
+      }
+      const referralCount = await storage.getReferralCount(sendHeldUser.id);
+      const tiers = await storage.getReferralTiers();
+      const activeTiers = tiers.filter((t: any) => t.active);
+      const nextTier = activeTiers.find((t: any) => referralCount < t.threshold);
+      sendHeldReferralData = {
+        referralCode: code,
+        referralCount,
+        nextTierName: nextTier?.rewardName,
+        nextTierThreshold: nextTier?.threshold,
+      };
+    } catch (e) {
+      console.error("[EmailScheduler] sendHeldEmail: Failed to fetch referral data:", e);
+    }
+  }
+
+  const [sendHeldShopBooks, sendHeldMissedEpisodes] = await Promise.all([
+    fetchShopBooks(),
+    fetchMissedEpisodes(sendHeldUser || {}),
+  ]);
+
+  const freshHtml = markdownToEmailHtml(reorderedSummary, pending.recipientEmail, episodeMeta, emailCopy, sendHeldReferralData, sendHeldShopBooks, sendHeldMissedEpisodes);
 
   const baseUrl = process.env.REPLIT_DEV_DOMAIN
     ? `https://${process.env.REPLIT_DEV_DOMAIN}`

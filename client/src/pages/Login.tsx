@@ -16,8 +16,11 @@ export default function Login() {
   const [emailSent, setEmailSent] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const redirectParam = new URLSearchParams(window.location.search).get("redirect");
+  const safeRedirect = redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//") ? redirectParam : null;
+
   const loginMutation = useMutation({
-    mutationFn: (email: string) => apiRequest("POST", "/api/auth/login", { email }),
+    mutationFn: (email: string) => apiRequest("POST", "/api/auth/login", { email, redirect: safeRedirect }),
     onSuccess: () => {
       setEmailSent(true);
     },
@@ -47,7 +50,11 @@ export default function Login() {
   }, []);
 
   if (user) {
-    navigate(user.onboardingCompleted === false ? "/onboarding" : "/dashboard");
+    if (safeRedirect && user.onboardingCompleted !== false) {
+      navigate(safeRedirect);
+    } else {
+      navigate(user.onboardingCompleted === false ? "/onboarding" : "/dashboard");
+    }
     return null;
   }
 
@@ -124,7 +131,7 @@ export default function Login() {
 
       <div className="w-full max-w-sm glass-panel rounded-2xl p-6 sm:p-8">
         <a
-          href={getGoogleOAuthUrl()}
+          href={getGoogleOAuthUrl(safeRedirect)}
           data-testid="button-google-login"
           className="w-full h-12 flex items-center justify-center gap-3 rounded-xl font-semibold text-[15px] bg-white dark:bg-zinc-900 border border-[#D4D4D8] dark:border-white/[0.15] text-foreground hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-all"
         >

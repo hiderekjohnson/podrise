@@ -27,6 +27,21 @@ export interface EpisodeMetaForEmail {
   episodeDate?: string;
 }
 
+export interface ShopBookForEmail {
+  slug: string;
+  bookTitle: string;
+  author?: string | null;
+  coverUrl?: string | null;
+}
+
+export interface MissedEpisodeForEmail {
+  podcastName: string;
+  podcastSlug: string;
+  episodeSlug: string;
+  tabloidHeadline: string;
+  episodeTitle: string;
+}
+
 function isEpisodeSection(title: string, body: string): boolean {
   if (/big ideas|conversation ammo/i.test(title)) return false;
   return /\*?\*?TLDL\*?\*?[:\s]|\*?\*?TL;?DR\*?\*?[:\s]|\*?\*?Key (Insights|Takeaways)\*?\*?/i.test(body) || /^\*\*.+\*\*$/m.test(body) || /What Happened/i.test(body);
@@ -338,9 +353,16 @@ function buildKeyTakeaways(insights: string[], accentColor: string): string {
   </table>`;
 }
 
+function stripMentionedInEpisode(text: string): string {
+  const mentionHeaders = /\*?\*?(?:Books? Mentioned|Mentioned in [Tt]his Episode|Resources?|Recommended Resources?|Book Recommendations?):?\*?\*?\s*\n[\s\S]*/i;
+  const stripped = text.replace(mentionHeaders, "").trim();
+  return stripped;
+}
+
 function buildRecapText(whatHappened: string): string {
   if (!whatHappened) return "";
-  const paragraphs = whatHappened.split(/\n\n+/).filter(p => p.trim());
+  const sanitized = stripMentionedInEpisode(whatHappened);
+  const paragraphs = sanitized.split(/\n\n+/).filter(p => p.trim());
   return paragraphs.map((p, idx) => {
     const marginBottom = idx < paragraphs.length - 1 ? "14px" : "20px";
     return `<p class="body-text" style="font-size:17px;color:#52525B;line-height:1.8;margin:0 0 ${marginBottom};">${renderInlineMarkdown(escapeHtml(p.trim()))}</p>`;
@@ -355,7 +377,8 @@ function buildEpisodeCard(episode: ParsedEpisode, index: number, meta?: EpisodeM
   const duration = parseDuration(episode.metaLine);
   const epDate = parseEpisodeDate(episode.metaLine);
   const metaStr = [duration, epDate].filter(Boolean).join(" \u00a0\u00b7\u00a0 ");
-  const podcastUrl = `https://podrise.com/podcasts/${slug}`;
+  const podcastPath = `/podcasts/${slug}`;
+  const podcastUrl = `https://podrise.com/login?redirect=${encodeURIComponent(podcastPath)}`;
   const epSlug = episode.episodeTitle
     .toLowerCase()
     .replace(/['']/g, "")
@@ -366,7 +389,8 @@ function buildEpisodeCard(episode: ParsedEpisode, index: number, meta?: EpisodeM
     .split("-")
     .slice(0, 8)
     .join("-");
-  const recapUrl = `https://podrise.com/podcasts/${slug}/${epSlug}`;
+  const recapPath = `/podcasts/${slug}/${epSlug}`;
+  const recapUrl = `https://podrise.com/login?redirect=${encodeURIComponent(recapPath)}`;
 
   let artworkUrl = meta?.artworkUrl;
   if (artworkUrl && artworkUrl.startsWith("/")) {
@@ -423,7 +447,62 @@ export function recapHasContent(markdown: string): boolean {
   return parsed.episodes.length > 0;
 }
 
-export function markdownToEmailHtml(markdown: string, recipientEmail: string, episodeMeta?: Record<string, EpisodeMetaForEmail>, emailCopy?: { previewText?: string; leadHeadline?: string; supportingDetail?: string; coverlines?: string }, referralData?: { referralCode: string; referralCount: number; nextTierName?: string; nextTierThreshold?: number }): string {
+function buildShopSection(books: ShopBookForEmail[]): string {
+  if (!books || books.length === 0) return "";
+  const bookItems = books.map(book => {
+    const shopPath = `/shop/${book.slug}`;
+    const shopUrl = `https://podrise.com/login?redirect=${encodeURIComponent(shopPath)}`;
+    const coverHtml = book.coverUrl
+      ? `<img src="${escapeHtml(book.coverUrl)}" alt="${escapeHtml(book.bookTitle)}" width="52" height="72" style="width:52px;height:72px;border-radius:6px;display:block;object-fit:cover;box-shadow:0 2px 8px rgba(0,0,0,0.15);" />`
+      : `<div style="width:52px;height:72px;background:linear-gradient(145deg,#312e81,#6366F1);border-radius:6px;"></div>`;
+    return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:14px;"><tr>
+      <td width="60" valign="top">${coverHtml}</td>
+      <td style="padding-left:12px;" valign="top">
+        <a href="${escapeHtml(shopUrl)}" style="text-decoration:none;">
+          <p style="font-size:15px;font-weight:700;color:#09090B;margin:0 0 2px;line-height:1.3;">${escapeHtml(book.bookTitle)}</p>
+        </a>
+        ${book.author ? `<p style="font-size:13px;color:#71717A;margin:0 0 6px;">by ${escapeHtml(book.author)}</p>` : ""}
+        <p style="font-size:13px;color:#52525B;margin:0 0 8px;line-height:1.5;font-style:italic;">Podcasters are buzzing about this one — log in to see what they're saying</p>
+        <a href="${escapeHtml(shopUrl)}" style="font-size:13px;font-weight:600;color:#6366F1;text-decoration:none;">View in Shop &rarr;</a>
+      </td>
+    </tr></table>`;
+  }).join("");
+
+  return `<tr><td style="padding:0 28px 4px;background:#ffffff;">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#F7F7FC;border-radius:14px;border:1px solid #E4E4E7;overflow:hidden;">
+    <tr><td style="padding:20px 22px 6px;">
+      <p style="font-size:11px;font-weight:700;color:#6366F1;letter-spacing:0.14em;text-transform:uppercase;margin:0 0 4px;">FROM THE POD SHOP</p>
+      <p style="font-size:17px;font-weight:700;color:#09090B;margin:0 0 16px;line-height:1.3;">Books podcasters are talking about this week</p>
+      ${bookItems}
+    </td></tr>
+  </table>
+</td></tr>`;
+}
+
+function buildMissedEpisodesSection(episodes: MissedEpisodeForEmail[]): string {
+  if (!episodes || episodes.length === 0) return "";
+  const episodeItems = episodes.map(ep => {
+    const recapPath = `/podcasts/${ep.podcastSlug}/${ep.episodeSlug}`;
+    const recapUrl = `https://podrise.com/login?redirect=${encodeURIComponent(recapPath)}`;
+    return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:14px;border-bottom:1px solid #E4E4E7;padding-bottom:14px;"><tr><td>
+      <p style="font-size:11px;font-weight:700;color:#A1A1AA;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 4px;">${escapeHtml(ep.podcastName)}</p>
+      <p style="font-size:16px;font-weight:700;color:#09090B;margin:0 0 8px;line-height:1.35;">${escapeHtml(ep.tabloidHeadline || ep.episodeTitle)}</p>
+      <a href="${escapeHtml(recapUrl)}" style="font-size:13px;font-weight:600;color:#6366F1;text-decoration:none;">Read the Recap &rarr;</a>
+    </td></tr></table>`;
+  }).join("");
+
+  return `<tr><td style="padding:0 28px 4px;background:#ffffff;">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;border-radius:14px;border:1px solid #E4E4E7;overflow:hidden;">
+    <tr><td style="padding:20px 22px 6px;">
+      <p style="font-size:11px;font-weight:700;color:#8B5CF6;letter-spacing:0.14em;text-transform:uppercase;margin:0 0 4px;">YOU MIGHT HAVE MISSED</p>
+      <p style="font-size:17px;font-weight:700;color:#09090B;margin:0 0 16px;line-height:1.3;">Big stories from podcasts you don't follow</p>
+      ${episodeItems}
+    </td></tr>
+  </table>
+</td></tr>`;
+}
+
+export function markdownToEmailHtml(markdown: string, recipientEmail: string, episodeMeta?: Record<string, EpisodeMetaForEmail>, emailCopy?: { previewText?: string; leadHeadline?: string; supportingDetail?: string; coverlines?: string }, referralData?: { referralCode: string; referralCount: number; nextTierName?: string; nextTierThreshold?: number }, shopBooks?: ShopBookForEmail[], missedEpisodes?: MissedEpisodeForEmail[]): string {
   const parsed = parseDigestMarkdown(markdown);
 
   const episodeCount = parsed.episodes.length;
@@ -434,11 +513,42 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
 
   const previewText = emailCopy?.previewText || `${episodeCount} of your followed podcasts dropped new episodes - ${parsed.episodes.map(e => e.podcastName).join(", ")}.`;
 
-  const episodeCardsHtml = parsed.episodes.map((ep, idx) => {
+  const episodeCards = parsed.episodes.map((ep, idx) => {
     const derivedSlug = podcastNameToSlug(ep.podcastName);
     const meta = episodeMeta?.[derivedSlug];
     return buildEpisodeCard(ep, idx, meta);
-  }).join("\n");
+  });
+
+  const shopSectionHtml = buildShopSection(shopBooks || []);
+  const missedSectionHtml = buildMissedEpisodesSection(missedEpisodes || []);
+
+  let episodeCardsHtml = "";
+  if (episodeCards.length <= 1) {
+    episodeCardsHtml = episodeCards.join("\n");
+    if (shopSectionHtml) episodeCardsHtml += "\n" + shopSectionHtml;
+    if (missedSectionHtml) episodeCardsHtml += "\n" + missedSectionHtml;
+  } else {
+    const shopInsertAfter = Math.min(1, episodeCards.length - 1);
+    const missedInsertAfter = Math.min(2, episodeCards.length - 1);
+    const parts: string[] = [];
+    for (let i = 0; i < episodeCards.length; i++) {
+      parts.push(episodeCards[i]);
+      if (i === shopInsertAfter && shopSectionHtml) parts.push(shopSectionHtml);
+      if (i === missedInsertAfter && missedSectionHtml && missedInsertAfter !== shopInsertAfter) parts.push(missedSectionHtml);
+    }
+    if (missedSectionHtml && missedInsertAfter === shopInsertAfter && episodeCards.length > 1) {
+      const insertAt = Math.min(shopInsertAfter + 1, episodeCards.length - 1);
+      const extraParts: string[] = [];
+      for (let i = 0; i < episodeCards.length; i++) {
+        extraParts.push(episodeCards[i]);
+        if (i === shopInsertAfter && shopSectionHtml) extraParts.push(shopSectionHtml);
+        if (i === insertAt && missedSectionHtml) extraParts.push(missedSectionHtml);
+      }
+      episodeCardsHtml = extraParts.join("\n");
+    } else {
+      episodeCardsHtml = parts.join("\n");
+    }
+  }
 
   const leadHeadline = emailCopy?.leadHeadline || "";
   const supportingDetail = emailCopy?.supportingDetail || "";
@@ -526,21 +636,22 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
 ${episodeCardsHtml}
 
 <!-- POD SQUAD REFERRAL SECTION -->
-${referralData ? `
 <tr><td style="padding:0 28px;background:#ffffff;">
   <div style="height:1px;background:#F0F0F2;margin:24px 0 0;"></div>
 </td></tr>
 <tr><td style="padding:24px 28px;background:#ffffff;">
-  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:linear-gradient(145deg,#6366F1,#8B5CF6);border-radius:12px;overflow:hidden;">
-    <tr><td style="padding:24px 24px 20px;text-align:center;">
-      <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);letter-spacing:0.12em;text-transform:uppercase;margin:0 0 6px;">THE POD SQUAD</p>
-      <p style="font-size:20px;font-weight:800;color:#ffffff;margin:0 0 4px;">Share the knowledge</p>
-      <p style="font-size:14px;color:rgba(255,255,255,0.8);margin:0 0 16px;">You have <strong style="color:#ffffff;">${referralData.referralCount}</strong> referral${referralData.referralCount !== 1 ? "s" : ""}${referralData.nextTierName ? `. ${referralData.nextTierThreshold! - referralData.referralCount} more to unlock <strong style="color:#ffffff;">${escapeHtml(referralData.nextTierName)}</strong>` : ""}.</p>
-      <a href="https://podrise.com/r/${escapeHtml(referralData.referralCode)}" style="display:inline-block;background:#ffffff;color:#6366F1;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:700;">Share Your Link</a>
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:linear-gradient(145deg,#0f172a,#1e1b4b);border-radius:14px;overflow:hidden;">
+    <tr><td style="padding:28px 28px 24px;text-align:center;">
+      <p style="font-size:11px;font-weight:800;color:rgba(255,255,255,0.5);letter-spacing:0.18em;text-transform:uppercase;margin:0 0 8px;">THE POD SQUAD</p>
+      <p style="font-size:22px;font-weight:800;color:#ffffff;letter-spacing:-0.01em;margin:0 0 8px;line-height:1.2;">REFERRALS GET REWARDED</p>
+      <p style="font-size:14px;color:rgba(255,255,255,0.75);margin:0 0 20px;line-height:1.6;max-width:340px;margin-left:auto;margin-right:auto;">Share PodRise, watch your referral count climb, and unlock brag-worthy swag.</p>
+      ${referralData ? `<p style="font-size:32px;font-weight:800;color:#ffffff;margin:0 0 4px;letter-spacing:-0.02em;">${referralData.referralCount}</p>
+      <p style="font-size:13px;color:rgba(255,255,255,0.6);margin:0 0 ${referralData.nextTierName ? "6" : "20"}px;">referral${referralData.referralCount !== 1 ? "s" : ""} so far</p>
+      ${referralData.nextTierName ? `<p style="font-size:13px;color:#A5B4FC;margin:0 0 20px;font-weight:600;">${referralData.nextTierThreshold! - referralData.referralCount} more to unlock <strong style="color:#ffffff;">${escapeHtml(referralData.nextTierName)}</strong></p>` : ""}` : ""}
+      <a href="https://podrise.com/login?redirect=%2Fpod-squad" style="display:inline-block;background:#6366F1;color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:10px;font-size:15px;font-weight:700;letter-spacing:0.01em;box-shadow:0 4px 16px rgba(99,102,241,0.4);">Click to Share</a>
     </td></tr>
   </table>
 </td></tr>
-` : ""}
 
 <!-- SIGN-OFF -->
 <tr><td style="padding:0 28px;background:#ffffff;">

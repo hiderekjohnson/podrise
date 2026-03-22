@@ -25,15 +25,19 @@ export function captureUtmParams(): void {
   }
 }
 
-export function getGoogleOAuthUrl(): string {
+export function getGoogleOAuthUrl(redirectPath?: string | null): string {
   const base = "/api/auth/google";
   try {
     const raw = sessionStorage.getItem(UTM_STORAGE_KEY);
-    if (!raw) return base;
-    const data = JSON.parse(raw);
     const params = new URLSearchParams();
-    for (const key of UTM_KEYS) {
-      if (data[key]) params.set(key, data[key]);
+    if (raw) {
+      const data = JSON.parse(raw);
+      for (const key of UTM_KEYS) {
+        if (data[key]) params.set(key, data[key]);
+      }
+    }
+    if (redirectPath && redirectPath.startsWith("/") && !redirectPath.startsWith("//")) {
+      params.set("redirect", redirectPath);
     }
     const qs = params.toString();
     return qs ? `${base}?${qs}` : base;

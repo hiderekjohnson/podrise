@@ -2369,7 +2369,10 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       await storage.createMagicLink(user.email, token, expiresAt);
 
       const baseUrl = `${req.protocol}://${req.get("host")}`;
-      const magicUrl = `${baseUrl}/api/auth/magic?token=${token}`;
+      const redirectPath = req.body.redirect && typeof req.body.redirect === "string" && req.body.redirect.startsWith("/") && !req.body.redirect.startsWith("//") ? req.body.redirect : null;
+      const magicUrl = redirectPath
+        ? `${baseUrl}/api/auth/magic?token=${token}&redirect=${encodeURIComponent(redirectPath)}`
+        : `${baseUrl}/api/auth/magic?token=${token}`;
 
       const loginCode = crypto.randomBytes(2).toString("hex").toUpperCase();
 
@@ -2469,7 +2472,13 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
     }
 
     req.session.save(() => {
-      res.redirect(user.onboardingCompleted ? "/dashboard" : "/onboarding");
+      const redirectParam = req.query.redirect as string | undefined;
+      const safeRedirect = redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//") ? redirectParam : null;
+      if (safeRedirect && user.onboardingCompleted) {
+        res.redirect(safeRedirect);
+      } else {
+        res.redirect(user.onboardingCompleted ? "/dashboard" : "/onboarding");
+      }
     });
     } catch (err: any) {
       console.error("[MagicLink] Auth error:", err);
@@ -9529,14 +9538,20 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       return res.status(404).json({ message: "Pending email not found" });
     }
     const epMeta = await buildEpisodeMetaFromSummary(pending.summary);
-    const { generateEmailSubjectAndPreview } = await import("./emailScheduler");
+    const { generateEmailSubjectAndPreview, fetchShopBooks, fetchMissedEpisodes } = await import("./emailScheduler");
     const { parseDigestMarkdown } = await import("./emailTemplate");
     const parsedForPreview = parseDigestMarkdown(pending.summary);
     const epCountPreview = parsedForPreview.episodes.length || 1;
     const emailCopyPreview = await generateEmailSubjectAndPreview(pending.summary, epCountPreview);
     const { reorderMarkdownLeadFirst } = await import("./emailScheduler");
     const reorderedPreview = reorderMarkdownLeadFirst(pending.summary, emailCopyPreview.leadEpisodePodcast);
-    const freshHtml = markdownToEmailHtml(reorderedPreview, pending.recipientEmail, epMeta, emailCopyPreview);
+    let previewUser: any = null;
+    try { previewUser = await storage.getUserById(pending.userId); } catch {}
+    const [previewShopBooks, previewMissedEpisodes] = await Promise.all([
+      fetchShopBooks(),
+      fetchMissedEpisodes(previewUser || {}),
+    ]);
+    const freshHtml = markdownToEmailHtml(reorderedPreview, pending.recipientEmail, epMeta, emailCopyPreview, undefined, previewShopBooks, previewMissedEpisodes);
     res.json({ html: freshHtml });
   });
 
