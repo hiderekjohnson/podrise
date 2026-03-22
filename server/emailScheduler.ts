@@ -391,7 +391,7 @@ function isUserOnVacation(user: any): boolean {
 export async function fetchShopBooks(): Promise<ShopBookForEmail[]> {
   try {
     const { rows } = await pool.query(`
-      SELECT be.slug, be.book_title, be.author, be.gb_image_links,
+      SELECT be.slug, be.book_title, be.author,
              (SELECT COUNT(*) FROM book_insights bi WHERE bi.book_key = be.book_key) as mention_count
       FROM book_enrichments be
       WHERE be.slug IS NOT NULL
@@ -400,23 +400,16 @@ export async function fetchShopBooks(): Promise<ShopBookForEmail[]> {
         AND EXISTS (
           SELECT 1 FROM book_insights bi WHERE bi.book_key = be.book_key
         )
-      GROUP BY be.slug, be.book_title, be.author, be.gb_image_links, be.book_key
+      GROUP BY be.slug, be.book_title, be.author, be.book_key
       ORDER BY mention_count DESC
       LIMIT 3
     `);
-    return rows.map((r: any) => {
-      let coverUrl = null;
-      if (r.gb_image_links && typeof r.gb_image_links === 'object') {
-        // Use thumbnail from Google Books
-        coverUrl = r.gb_image_links.thumbnail || r.gb_image_links.smallThumbnail;
-      }
-      return {
-        slug: r.slug,
-        bookTitle: r.book_title,
-        author: r.author || null,
-        coverUrl: coverUrl,
-      };
-    });
+    return rows.map((r: any) => ({
+      slug: r.slug,
+      bookTitle: r.book_title,
+      author: r.author || null,
+      coverUrl: `https://podrise.com/books/${r.slug}.jpg`,
+    }));
   } catch (err) {
     console.warn("[EmailScheduler] Failed to fetch shop books:", err);
     return [];
