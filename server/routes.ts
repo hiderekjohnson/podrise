@@ -9589,6 +9589,35 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  // Scheduler health endpoint — checks if ProdRecap scheduler is running
+  app.get("/api/admin/scheduler-health", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { rows } = await pool.query(`
+        SELECT MAX(created_at) as last_recap_time
+        FROM landing_page_recaps
+        WHERE status IN ('published', 'hidden')
+          AND created_at > NOW() - INTERVAL '1 hour'
+      `);
+      
+      const lastRecapTime = rows[0]?.last_recap_time ? new Date(rows[0].last_recap_time) : null;
+      const now = new Date();
+      const isRunning = lastRecapTime && (now.getTime() - lastRecapTime.getTime()) < 15 * 60 * 1000; // 15 min threshold
+      const minutesSinceLastRun = lastRecapTime ? Math.floor((now.getTime() - lastRecapTime.getTime()) / 60000) : null;
+      
+      res.json({
+        isRunning: isRunning ?? false,
+        lastRecapTime: lastRecapTime?.toISOString() || null,
+        minutesSinceLastRun: minutesSinceLastRun,
+      });
+    } catch (err: any) {
+      console.error("[SchedulerHealth] Error:", err.message);
+      res.status(500).json({ message: "Failed to check scheduler health" });
+    }
+  });
+
   // Live monitoring endpoint — recently completed + pending queue sorted oldest-first (scheduler order)
   app.get("/api/admin/pipeline-live", async (req, res) => {
     if (!req.session.isAdmin) {

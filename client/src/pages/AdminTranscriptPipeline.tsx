@@ -379,6 +379,12 @@ export default function AdminTranscriptPipeline() {
     refetchInterval: 60_000,
   });
 
+  const { data: schedulerHealth } = useQuery<{ isRunning: boolean; lastRecapTime: string | null; minutesSinceLastRun: number | null }>({
+    queryKey: ["/api/admin/scheduler-health"],
+    queryFn: () => fetch("/api/admin/scheduler-health").then(r => r.json()),
+    refetchInterval: 30_000,
+  });
+
   const { data: rows = [], isLoading } = useQuery<PipelineRow[]>({
     queryKey: ["/api/admin/pipeline-monitor", days],
     queryFn: () => fetch(`/api/admin/pipeline-monitor?days=${days}`).then(r => r.json()),
@@ -409,7 +415,23 @@ export default function AdminTranscriptPipeline() {
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="text-lg font-bold">Episode Pipeline</h2>
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-lg font-bold">Episode Pipeline</h2>
+            {schedulerHealth && (
+              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${
+                schedulerHealth.isRunning
+                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400"
+                  : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+              }`}
+              data-testid="scheduler-status">
+                <span className={`w-2 h-2 rounded-full ${schedulerHealth.isRunning ? "bg-emerald-500" : "bg-red-500"} ${schedulerHealth.isRunning ? "" : ""}`} />
+                {schedulerHealth.isRunning ? "✓ Running" : "✗ Stopped"}
+                {schedulerHealth.minutesSinceLastRun !== null && (
+                  <span className="text-[10px] text-muted-foreground ml-1">({schedulerHealth.minutesSinceLastRun}m ago)</span>
+                )}
+              </div>
+            )}
+          </div>
           <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
             Taddy webhook → transcript received → OpenAI recap → published
           </p>
