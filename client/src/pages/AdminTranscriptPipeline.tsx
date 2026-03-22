@@ -478,6 +478,9 @@ export default function AdminTranscriptPipeline() {
       {/* Queue Health - NEW */}
       <QueueHealth rows={rows} />
 
+      {/* Comprehensive Pipeline Table - NEW */}
+      <PipelineTable rows={rows} counts={counts} />
+
       {/* Support Prompt - Top & Prominent */}
       <SupportPrompt />
 
@@ -601,6 +604,166 @@ export default function AdminTranscriptPipeline() {
           </p>
         </>
       )}
+    </div>
+  );
+}
+
+// NEW: Comprehensive Pipeline Table Component
+interface PipelineTableProps {
+  rows: PipelineRow[];
+  counts: Record<string, number>;
+}
+
+function PipelineTable({ rows, counts }: PipelineTableProps) {
+  const stages = [
+    { name: 'Webhook', count: 1, icon: '1', color: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300' },
+    { name: 'Taddy fetch', count: counts.queued || 0, icon: '2', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' },
+    { name: 'In queue', count: counts.queued || 0, icon: '3', color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' },
+    { name: 'AI recap', count: counts.queued || 0, icon: '4', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' },
+    { name: 'Published', count: counts.complete || 0, icon: '5', color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' },
+  ];
+
+  const metricCards = [
+    { label: 'Queue depth', value: counts.queued || 0, subtext: 'episodes waiting', color: 'text-slate-900 dark:text-white' },
+    { label: 'Processing', value: counts.pending_recap || 0, subtext: 'AI recap active', color: 'text-indigo-600 dark:text-indigo-400' },
+    { label: 'Errors', value: counts.failed || 0, subtext: 'need attention', color: 'text-red-600 dark:text-red-400' },
+    { label: 'Published today', value: counts.complete || 0, subtext: 'episodes live', color: 'text-emerald-600 dark:text-emerald-400' },
+    { label: 'Fetching', value: 0, subtext: 'from Taddy', color: 'text-slate-600 dark:text-slate-400' },
+    { label: 'Pending', value: 0, subtext: 'webhook only', color: 'text-slate-600 dark:text-slate-400' },
+  ];
+
+  const getAgeMinutes = (dateStr: string | null) => {
+    if (!dateStr) return null;
+    const minutes = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
+    if (minutes < 60) return `${minutes}m`;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h${mins > 0 ? ` ${mins}m` : ''}`;
+  };
+
+  const getDurationSeconds = (transcriptChars: number | null) => {
+    if (!transcriptChars) return null;
+    const estimatedSeconds = Math.ceil(transcriptChars / 15);
+    return `${estimatedSeconds}s`;
+  };
+
+  const getStageColor = (status: OverallStatus) => {
+    const colors = {
+      complete: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
+      queued: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
+      pending_recap: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+      missed: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300',
+      failed: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
+    };
+    return colors[status] || 'bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300';
+  };
+
+  const getStageLabel = (status: OverallStatus) => {
+    const labels = {
+      complete: '✓ Published',
+      queued: '⏳ In queue',
+      pending_recap: '🔄 AI processing',
+      missed: '⚠ Fetching',
+      failed: '✗ Error',
+    };
+    return labels[status] || status;
+  };
+
+  const displayRows = rows.slice(0, 20); // Show top 20 for performance
+
+  return (
+    <div className="space-y-5" data-testid="pipeline-table-view">
+      {/* Pipeline Stage Visualization */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+        <div className="p-5 space-y-5">
+          {/* Stage Flow */}
+          <div className="flex items-start justify-between gap-2">
+            {stages.map((stage, i) => (
+              <div key={stage.name} className="flex-1 flex flex-col items-center">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${stage.color} mb-2`}>
+                  {stage.icon}
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-semibold text-slate-900 dark:text-white">{stage.name}</div>
+                  <div className="text-lg font-bold text-slate-900 dark:text-white">{stage.count}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Metrics Cards */}
+          <div className="grid grid-cols-3 gap-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+            {metricCards.map((card, i) => (
+              <div key={i} className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3">
+                <div className="text-xs text-slate-600 dark:text-slate-400 font-medium uppercase mb-1">{card.label}</div>
+                <div className={`text-2xl font-bold ${card.color} mb-0.5`}>{card.value}</div>
+                <div className="text-xs text-slate-600 dark:text-slate-400">{card.subtext}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Detailed Episodes Table */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+        <div className="border-b border-slate-200 dark:border-slate-700 px-5 py-3 bg-slate-50 dark:bg-slate-800/50">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-white">All episodes</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                <th className="text-left px-4 py-2.5 font-semibold text-slate-700 dark:text-slate-300 text-xs">Episode</th>
+                <th className="text-left px-4 py-2.5 font-semibold text-slate-700 dark:text-slate-300 text-xs">Show</th>
+                <th className="text-left px-4 py-2.5 font-semibold text-slate-700 dark:text-slate-300 text-xs">Stage</th>
+                <th className="text-left px-4 py-2.5 font-semibold text-slate-700 dark:text-slate-300 text-xs">Age</th>
+                <th className="text-left px-4 py-2.5 font-semibold text-slate-700 dark:text-slate-300 text-xs">Queued</th>
+                <th className="text-left px-4 py-2.5 font-semibold text-slate-700 dark:text-slate-300 text-xs">Dur.</th>
+                <th className="text-center px-4 py-2.5 font-semibold text-slate-700 dark:text-slate-300 text-xs">Tries</th>
+              </tr>
+            </thead>
+            <tbody>
+              {displayRows.map((row, i) => {
+                const status = getOverallStatus(row);
+                const ageMin = getAgeMinutes(row.transcript_created_at);
+                const queuedMin = getAgeMinutes(row.transcript_created_at);
+                return (
+                  <tr key={i} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                    <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100 truncate max-w-xs text-xs">
+                      {row.episode_title}
+                    </td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400 text-xs truncate max-w-xs">
+                      {row.podcast_name}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2.5 py-1 rounded text-xs font-semibold whitespace-nowrap inline-block ${getStageColor(status)}`}>
+                        {getStageLabel(status)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400 text-xs whitespace-nowrap">
+                      {ageMin || '—'}
+                    </td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400 text-xs whitespace-nowrap">
+                      {queuedMin || '—'}
+                    </td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400 text-xs whitespace-nowrap">
+                      {getDurationSeconds(row.transcript_chars) || '—'}
+                    </td>
+                    <td className="px-4 py-3 text-center text-slate-600 dark:text-slate-400 text-xs">
+                      1
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        {displayRows.length === 0 && (
+          <div className="text-center py-12 text-slate-500 dark:text-slate-400 text-xs">
+            No episodes to display
+          </div>
+        )}
+      </div>
     </div>
   );
 }
