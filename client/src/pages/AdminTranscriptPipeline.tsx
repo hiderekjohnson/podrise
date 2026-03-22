@@ -905,7 +905,11 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((row, i) => {
+              {(() => {
+                // Show all queued/processing items, but limit published to 50
+                const isPublishedView = stageFilter === "published" || stageFilter === "all";
+                const displayRows = isPublishedView ? filtered.slice(0, 50) : filtered;
+                return displayRows.map((row, i) => {
                 const status = getOverallStatus(row);
                 const isError = status === "failed";
                 const ageMins = ageMinutes(row.transcript_at || row.queued_at);
@@ -959,7 +963,8 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
                     </td>
                   </tr>
                 );
-              })}
+              });
+              })()}
             </tbody>
           </table>
         </div>
@@ -968,11 +973,14 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
             No episodes match your filters
           </div>
         )}
-        {filtered.length > 50 && (
-          <div className="text-center py-3 text-xs text-slate-400 border-t border-slate-100 dark:border-slate-800">
-            Showing 50 of {filtered.length} episodes
-          </div>
-        )}
+        {(() => {
+          const isPublishedView = stageFilter === "published" || stageFilter === "all";
+          return isPublishedView && filtered.length > 50 ? (
+            <div className="text-center py-3 text-xs text-slate-400 border-t border-slate-100 dark:border-slate-800">
+              Showing 50 of {filtered.length} episodes
+            </div>
+          ) : null;
+        })()}
       </div>
     </div>
   );
