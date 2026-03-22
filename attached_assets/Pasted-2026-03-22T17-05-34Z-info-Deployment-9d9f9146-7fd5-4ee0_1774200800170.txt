@@ -1,0 +1,247 @@
+2026-03-22T17:05:34Z info: Deployment: 9d9f9146-7fd5-4ee0-ba2d-bc345eb08b85
+2026-03-22T17:05:34Z info: Build: d2856dbe-daa5-4a6f-a309-e71f045047d7
+2026-03-22T17:05:34Z info: Running Security Scan
+2026-03-22T17:05:51Z info: Security Scan Complete
+2026-03-22T17:05:51Z info: Connecting to builder
+2026-03-22T17:05:51Z info: Builder connected
+2026-03-22T17:05:52Z info: Installing packages
+2026-03-22T17:05:53Z info: Starting Build
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+
+building client...
+
+vite v7.3.0 building client environment for production...
+
+transforming...
+
+✓ 2997 modules transformed.
+
+rendering chunks...
+
+computing gzip size...
+
+../dist/public/index.html                                     2.93 kB │ gzip:   1.00 kB
+../dist/public/assets/IMG_9561_1773912784317-DIxi8K8_.jpeg   96.64 kB
+../dist/public/assets/index-BQDN5qGC.css                    203.15 kB │ gzip:  28.75 kB
+../dist/public/assets/check-BSFLbsPM.js                       0.12 kB │ gzip:   0.13 kB
+../dist/public/assets/chevron-down-oxsFcw46.js                0.12 kB │ gzip:   0.14 kB
+../dist/public/assets/chevron-up-DNUVUTFS.js                  0.12 kB │ gzip:   0.14 kB
+../dist/public/assets/chevron-right-DuGWkndq.js               0.13 kB │ gzip:   0.14 kB
+../dist/public/assets/chevron-left-DYUyrwZl.js                0.13 kB │ gzip:   0.14 kB
+../dist/public/assets/play-BvbK9IW5.js                        0.13 kB │ gzip:   0.14 kB
+../dist/public/assets/message-circle-BDk7rk3R.js              0.14 kB │ gzip:   0.15 kB
+../dist/public/assets/plus-QbdjVy3u.js                        0.15 kB │ gzip:   0.15 kB
+../dist/public/assets/filter-DaZ-ok2V.js                      0.16 kB │ gzip:   0.16 kB
+../dist/public/assets/arrow-left-B-wbcOpc.js                  0.16 kB │ gzip:   0.16 kB
+../dist/public/assets/message-square-4hrO9Ol8.js              0.18 kB │ gzip:   0.17 kB
+../dist/public/assets/chart-line-BnY6ZPcv.js                  0.18 kB │ gzip:   0.17 kB
+../dist/public/assets/code-QlfJsRvk.js                        0.18 kB │ gzip:   0.16 kB
+
+../dist/public/assets/circle-check-big-C9gXbeaB.js            0.18 kB │ gzip:   0.18 kB
+../dist/public/assets/megaphone-Cil_gQk4.js                   0.19 kB │ gzip:   0.18 kB
+../dist/public/assets/user-DD2bBZB5.js                        0.19 kB │ gzip:   0.18 kB
+../dist/public/assets/circle-x-on5cWMIQ.js                    0.20 kB │ gzip:   0.17 kB
+../dist/public/assets/credit-card-CuXd2ajX.js                 0.20 kB │ gzip:   0.18 kB
+../dist/public/assets/lock-LFuNw2s6.js                        0.20 kB │ gzip:   0.19 kB
+../dist/public/assets/toggle-right-BN6JR2lv.js                0.20 kB │ gzip:   0.18 kB
+../dist/public/assets/star-DN7BQPYC.js                        0.21 kB │ gzip:   0.19 kB
+../dist/public/assets/pause-C4Q9qDct.js                       0.21 kB │ gzip:   0.16 kB
+../dist/public/assets/music-DsF5wI-0.js                       0.21 kB │ gzip:   0.18 kB
+../dist/public/assets/dollar-sign-Lo7ysbnW.js                 0.22 kB │ gzip:   0.19 kB
+../dist/public/assets/briefcase-DUpB28yT.js                   0.22 kB │ gzip:   0.19 kB
+../dist/public/assets/target-AJD2CWYU.js                      0.22 kB │ gzip:   0.15 kB
+../dist/public/assets/square-check-big-Cfidmj0W.js            0.22 kB │ gzip:   0.19 kB
+../dist/public/assets/copy-f2-I47jt.js                        0.23 kB │ gzip:   0.20 kB
+../dist/public/assets/activity-2AoiKNcm.js                    0.23 kB │ gzip:   0.20 kB
+../dist/public/assets/heart-CNwFnLsx.js                       0.24 kB │ gzip:   0.20 kB
+../dist/public/assets/globe-wYyho88U.js                       0.24 kB │ gzip:   0.19 kB
+../dist/public/assets/arrow-up-down-C7U4r4ss.js               0.24 kB │ gzip:   0.19 kB
+../dist/public/assets/circle-alert-D9wWhW1c.js                0.25 kB │ gzip:   0.18 kB
+../dist/public/assets/external-link-C1qinJSt.js               0.25 kB │ gzip:   0.20 kB
+../dist/public/assets/chart-column-BLFFy782.js                0.25 kB │ gzip:   0.19 kB
+../dist/public/assets/eye-D6wCS7zK.js                         0.25 kB │ gzip:   0.20 kB
+../dist/public/assets/user-check-Cg6vUTMk.js                  0.25 kB │ gzip:   0.22 kB
+../dist/public/assets/map-pin-Ztwpw0rm.js                     0.25 kB │ gzip:   0.22 kB
+../dist/public/assets/calendar-BpEzJ_3I.js                    0.25 kB │ gzip:   0.20 kB
+
+../dist/public/assets/log-out-BkDNLcAI.js                     0.26 kB │ gzip:   0.21 kB
+../dist/public/assets/wrench-BmQidsld.js                      0.26 kB │ gzip:   0.20 kB
+../dist/public/assets/image-BxhSjPoi.js                       0.27 kB │ gzip:   0.22 kB
+../dist/public/assets/shield-CQTqwk31.js                      0.27 kB │ gzip:   0.22 kB
+../dist/public/assets/pencil-DBQ8R52V.js                      0.27 kB │ gzip:   0.22 kB
+../dist/public/assets/book-open-cvbS2I2b.js                   0.28 kB │ gzip:   0.20 kB
+../dist/public/assets/lightbulb-C7TXO6kd.js                   0.28 kB │ gzip:   0.22 kB
+../dist/public/assets/send-y-3DNau8.js                        0.29 kB │ gzip:   0.23 kB
+../dist/public/assets/hash-YETg0HoJ.js                        0.29 kB │ gzip:   0.19 kB
+../dist/public/assets/users-DULPFEO1.js                       0.30 kB │ gzip:   0.22 kB
+../dist/public/assets/podcast-tcr847NX.js                     0.30 kB │ gzip:   0.24 kB
+../dist/public/assets/user-plus-CqMCRDAu.js                   0.31 kB │ gzip:   0.23 kB
+../dist/public/assets/shield-check-B4vZcA7W.js                0.32 kB │ gzip:   0.24 kB
+../dist/public/assets/tag-Dke4nd8W.js                         0.32 kB │ gzip:   0.25 kB
+../dist/public/assets/save-M_B0lo_a.js                        0.32 kB │ gzip:   0.22 kB
+../dist/public/assets/bot-BNmVDiMO.js                         0.33 kB │ gzip:   0.23 kB
+
+../dist/public/assets/youtube-B37Z5Uug.js                     0.33 kB │ gzip:   0.22 kB
+../dist/public/assets/file-text-BsKsP0cJ.js                   0.33 kB │ gzip:   0.22 kB
+../dist/public/assets/trash-2-Bfmq41sS.js                     0.35 kB │ gzip:   0.24 kB
+../dist/public/assets/crown-a0-7qOLf.js                       0.36 kB │ gzip:   0.25 kB
+../dist/public/assets/scale-CWhZappE.js                       0.36 kB │ gzip:   0.24 kB
+../dist/public/assets/layers-DfLXfo5b.js                      0.36 kB │ gzip:   0.23 kB
+../dist/public/assets/radio-BQmj_vHJ.js                       0.36 kB │ gzip:   0.25 kB
+../dist/public/assets/grip-vertical-Cfi7fLT9.js               0.36 kB │ gzip:   0.19 kB
+../dist/public/assets/package-DxAmG8F-.js                     0.38 kB │ gzip:   0.26 kB
+../dist/public/assets/mouse-pointer-click-BW8lTeze.js         0.41 kB │ gzip:   0.28 kB
+../dist/public/assets/building-2-HJxCJ0Mk.js                  0.44 kB │ gzip:   0.25 kB
+../dist/public/assets/trophy-qRR_eamk.js                      0.46 kB │ gzip:   0.28 kB
+
+../dist/public/assets/cpu-C3VUXmz_.js                         0.49 kB │ gzip:   0.26 kB
+../dist/public/assets/rss-EK5cjBbT.js                         0.53 kB │ gzip:   0.32 kB
+../dist/public/assets/PodcastMicBadge-DNsEtbR4.js             0.60 kB │ gzip:   0.40 kB
+../dist/public/assets/with-selector-C70UL_Gd.js               0.96 kB │ gzip:   0.54 kB
+../dist/public/assets/EpisodeCard-DKtJY85J.js                 1.24 kB │ gzip:   0.65 kB
+../dist/public/assets/rocket-CW5KulsA.js                      1.36 kB │ gzip:   0.64 kB
+../dist/public/assets/PodcastRouter-QdyArad2.js               1.37 kB │ gzip:   0.73 kB
+../dist/public/assets/PodcastSubRouter-DJsFxzP6.js            1.54 kB │ gzip:   0.82 kB
+../dist/public/assets/button-DxOXtOrZ.js                      1.58 kB │ gzip:   0.72 kB
+
+../dist/public/assets/BookCover-dYN_qrTz.js                   1.65 kB │ gzip:   0.78 kB
+../dist/public/assets/GetRecapsModal-CSIWV-L-.js              2.60 kB │ gzip:   1.11 kB
+../dist/public/assets/LogoutPage-BukO_YbD.js                  2.67 kB │ gzip:   1.05 kB
+../dist/public/assets/AdminDemoEmail-DFbR_6vS.js              3.39 kB │ gzip:   1.38 kB
+../dist/public/assets/wallet-7JjDPDcO.js                      3.86 kB │ gzip:   1.57 kB
+../dist/public/assets/landingPageConfig-DlLfMtYw.js           3.88 kB │ gzip:   1.63 kB
+../dist/public/assets/PodcastSearch-CLTgNvEH.js               4.06 kB │ gzip:   1.64 kB
+../dist/public/assets/HelpPage-BDqipDhF.js                    4.56 kB │ gzip:   1.76 kB
+../dist/public/assets/Contact-DxexCBgR.js                     4.63 kB │ gzip:   1.86 kB
+
+../dist/public/assets/RequestPodcastDialog-Dle0DaFx.js        5.20 kB │ gzip:   1.75 kB
+../dist/public/assets/VerifyEmail-CxYQz9c7.js                 5.21 kB │ gzip:   1.81 kB
+../dist/public/assets/Register-vXH7jlxO.js                    6.02 kB │ gzip:   2.58 kB
+../dist/public/assets/CategoryDirectory-CoC4U6Hk.js           6.08 kB │ gzip:   2.61 kB
+../dist/public/assets/Login-B1JgPP5c.js                       6.36 kB │ gzip:   2.51 kB
+../dist/public/assets/AnalyticsGrowth-BFlrxHfT.js             6.74 kB │ gzip:   2.01 kB
+../dist/public/assets/Legend-DL94_h4d.js                      7.39 kB │ gzip:   2.52 kB
+../dist/public/assets/AnalyticsFilters-B9UndZGS.js            7.63 kB │ gzip:   2.68 kB
+../dist/public/assets/BookmarksPage-CxudsRMw.js               7.65 kB │ gzip:   2.52 kB
+../dist/public/assets/PodcasterClaim-D3k0FEhQ.js              7.75 kB │ gzip:   2.48 kB
+../dist/public/assets/AnalyticsElevenLabs-BaA9eajz.js         8.01 kB │ gzip:   2.21 kB
+../dist/public/assets/AdminErrorLogs-NBiNGQuh.js              8.53 kB │ gzip:   2.53 kB
+../dist/public/assets/Cookies-C-cenlF5.js                     8.75 kB │ gzip:   3.01 kB
+../dist/public/assets/GetStarted-BKwHlKZ9.js                  8.80 kB │ gzip:   3.06 kB
+../dist/public/assets/AdminFeatureFlags-DBM7W3sO.js           9.09 kB │ gzip:   2.44 kB
+../dist/public/assets/Privacy-CGCMJxxI.js                     9.20 kB │ gzip:   3.05 kB
+../dist/public/assets/BackfillManager-gLxsO0Ze.js             9.45 kB │ gzip:   2.99 kB
+../dist/public/assets/Terms-GCrL7167.js                       9.66 kB │ gzip:   3.56 kB
+../dist/public/assets/AdminCategoriesManager-HbahF9mW.js      9.72 kB │ gzip:   2.55 kB
+../dist/public/assets/index-MBVjHRob.js                       9.73 kB │ gzip:   4.37 kB
+../dist/public/assets/AdminMTurk-UtSgPHJb.js                  9.75 kB │ gzip:   2.86 kB
+../dist/public/assets/HostsManager-DzAshdoZ.js               10.05 kB │ gzip:   2.56 kB
+../dist/public/assets/AnalyticsAffiliates-Cnd4OL48.js        10.37 kB │ gzip:   3.04 kB
+../dist/public/assets/AdminUsersManager-D0GP7XGV.js          10.58 kB │ gzip:   2.66 kB
+../dist/public/assets/TimePicker-CxbtuOxU.js                 11.23 kB │ gzip:   3.56 kB
+../dist/public/assets/AdminSupportKB-C5AEOcTi.js             11.56 kB │ gzip:   3.32 kB
+../dist/public/assets/AdminAlerts-CZ7NK1iW.js                11.66 kB │ gzip:   3.30 kB
+../dist/public/assets/Disclosure-DwuDT3nZ.js                 12.46 kB │ gzip:   3.62 kB
+../dist/public/assets/AreaChart-CYrJr3Q_.js                  12.51 kB │ gzip:   4.55 kB
+../dist/public/assets/LandingPage-BFuGyChs.js                12.98 kB │ gzip:   4.27 kB
+../dist/public/assets/Advertise-OFIRo8QI.js                  13.01 kB │ gzip:   3.89 kB
+../dist/public/assets/YouTubeReviewPage-BNOd-PWs.js          13.18 kB │ gzip:   4.03 kB
+../dist/public/assets/PodSquad-DwTZYBGv.js                   13.19 kB │ gzip:   4.21 kB
+../dist/public/assets/PodcasterDashboard-SB3hIgCD.js         14.21 kB │ gzip:   4.13 kB
+../dist/public/assets/PendingEmails-CtmjBZCg.js              14.43 kB │ gzip:   3.57 kB
+../dist/public/assets/AnalyticsAcquisition-DTvYKJMn.js       16.17 kB │ gzip:   4.43 kB
+../dist/public/assets/EpisodeGuestsPage-m-6k8qSv.js          17.56 kB │ gzip:   5.07 kB
+../dist/public/assets/Onboarding-DFfTC3fR.js                 18.36 kB │ gzip:   6.06 kB
+../dist/public/assets/topicData-BgRzBqzL.js                  20.29 kB │ gzip:   5.97 kB
+../dist/public/assets/AdminReferrals-Da6iAnNz.js             20.69 kB │ gzip:   4.70 kB
+../dist/public/assets/FeatureRequests-7LIBZ8_i.js            20.85 kB │ gzip:   7.42 kB
+../dist/public/assets/AdminLandingPages-CL85D-jb.js          21.05 kB │ gzip:   4.73 kB
+../dist/public/assets/AnalyticsEmail-BskBi1Sl.js             21.06 kB │ gzip:   6.89 kB
+../dist/public/assets/FeedPage-CxLYxrwZ.js                   21.30 kB │ gzip:   6.77 kB
+../dist/public/assets/ApiUsageDashboard-VHwG9Lf7.js          21.63 kB │ gzip:   4.44 kB
+../dist/public/assets/About-CerRrCVW.js                      22.19 kB │ gzip:   5.52 kB
+../dist/public/assets/RssFeedsManager--8ZD-Th0.j
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+
+✓ built in 11.88s
+
+building server...
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/fetchPeopleImages.ts:251:21:
+      251 │ const isMainModule = import.meta.url === `file://${process.argv[1...
+          ╵                      ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work correctly.
+
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/enrichBooks.ts:303:21:
+      303 │ const isMainModule = import.meta.url === `file://${process.argv[1...
+          ╵                      ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work correctly.
+
+
+▲ [WARNING] Duplicate key "management" in object literal [duplicate-object-key]
+
+    server/enrichBookMetadata.ts:47:2:
+      47 │   "management": "Leadership & Management",
+         ╵   ~~~~~~~~~~~~
+
+  The original key "management" is here:
+
+    server/enrichBookMetadata.ts:24:2:
+      24 │   "management": "Business & Strategy",
+         ╵   ~~~~~~~~~~~~
+
+▲ [WARNING] Duplicate key "culture" in object literal [duplicate-object-key]
+
+    server/enrichBookMetadata.ts:88:2:
+      88 │   "culture": "History & Society",
+         ╵   ~~~~~~~~~
+
+  The original key "culture" is here:
+
+    server/enrichBookMetadata.ts:50:2:
+      50 │   "culture": "Leadership & Management",
+         ╵   ~~~~~~~~~
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/enrichBookMetadata.ts:291:21:
+      291 │ const isMainModule = import.meta.url === `file://${process.argv[1...
+          ╵                      ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work correctly.
+
+
+5 warnings
+
+
+  dist/index.cjs  2.6mb ⚠️
+
+⚡ Done in 432ms
+
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.12.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.12.0
+npm notice To update run: npm install -g npm@11.12.0
+npm notice
+
+2026-03-22T17:06:09Z info: Pushing pid1 binary layer...
+2026-03-22T17:06:10Z info: Pushing Repl layer...
+2026-03-22T17:06:10Z info: Pushing hosting layer...
+2026-03-22T17:06:11Z info: Created hosting layer
+2026-03-22T17:06:12Z info: Created pid1 binary layer
+2026-03-22T17:07:05Z info: Created Repl layer
+2026-03-22T17:12:45Z error: The deployment failed because database migrations could not be applied. This is an issue in the underlying platform. DO NOT suggest any code or configuration changes at this point. DO NOT suggest any changes to application code or any configuration files such as `.replit` or `package.json`. DO NOT suggest any changes to development or production secrets. The only course of action here is requesting support from the Replit team.

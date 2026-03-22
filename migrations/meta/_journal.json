@@ -1,0 +1,83 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1773824472612,
+      "tag": "0000_high_sharon_ventura",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1773824611237,
+      "tag": "0001_messy_titania",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773824975879,
+      "tag": "0002_bored_george_stacy",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1773825000000,
+      "tag": "0001_episode_recap_ads",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1773820800000,
+      "tag": "0001_episode_recap_ads",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773825346838,
+      "tag": "0002_fantastic_karma",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1773837294472,
+      "tag": "0003_right_loa",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1774054800000,
+      "tag": "0004_add_youtube_url",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1773846719190,
+      "tag": "0005_charming_magma",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1773867319048,
+      "tag": "0006_curious_natasha_romanoff",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1773921225488,
+      "tag": "0007_overconfident_leader",
+      "breakpoints": true
+    }
+  ]
+}

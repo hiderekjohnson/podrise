@@ -1,0 +1,128 @@
+2026-03-22 02:46:13.80
+85c5561e
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-03-22 02:46:13.81
+85c5561e
+User
+at /home/runner/workspace/dist/index.cjs:2735:3811
+2026-03-22 02:46:13.81
+85c5561e
+User
+[TaddyWebhook] Background error for "Science Goes To The Movies: First Man, Driverless Car Ethics": TypeError: x is not a function
+2026-03-22 02:49:00.89
+85c5561e
+User
+[ProdRecap] Episode timed out after 4min: "438: AI Liability: The Landmines Under Your SaaS"
+2026-03-22 02:59:00.75
+85c5561e
+User
+[ProdRecap] Episode timed out after 4min: "3604 - Israel Escalates; How Cuba Endures; Tracking Anti-Tra"
+2026-03-22 02:59:58.95
+85c5561e
+User
+[ProdRecap] Episode timed out after 4min: "Democracy Now! 2026-03-19 Thursday"
+2026-03-22 03:07:29.12
+85c5561e
+User
+[TaddyWebhook] Background error for "Building the Real-World Infrastructure for AI, with Google, ": TypeError: x is not a function
+2026-03-22 03:07:29.12
+85c5561e
+User
+at /home/runner/workspace/dist/index.cjs:2735:3811
+2026-03-22 03:21:58.65
+85c5561e
+User
+at /home/runner/workspace/dist/index.cjs:2735:3811
+2026-03-22 03:21:58.65
+85c5561e
+User
+[TaddyWebhook] Background error for "From Scans To Office Visits: How Will AI Shape Medicine?": TypeError: x is not a function
+2026-03-22 03:21:58.65
+85c5561e
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-03-22 03:21:58.67
+85c5561e
+User
+[TaddyWebhook] Background error for "A Nobel Prize For Chemistry Work ‘Totally Separate From Biol": TypeError: x is not a function
+2026-03-22 03:21:58.67
+85c5561e
+User
+at /home/runner/workspace/dist/index.cjs:2735:3811
+2026-03-22 03:21:58.67
+85c5561e
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-03-22 03:21:58.70
+85c5561e
+User
+at /home/runner/workspace/dist/index.cjs:2735:3811
+2026-03-22 03:21:58.70
+85c5561e
+User
+[TaddyWebhook] Background error for "NASA’s Europa Clipper Heads To Jupiter’s Icy Moon Europa": TypeError: x is not a function
+2026-03-22 03:22:18.87
+85c5561e
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-03-22 03:22:18.87
+85c5561e
+User
+[TaddyWebhook] Background error for "Ralph Nader On 55 Years Of Car Safety, Spinal Cord Research,": TypeError: x is not a function
+2026-03-22 03:22:18.87
+85c5561e
+User
+at /home/runner/workspace/dist/index.cjs:2735:3811
+2026-03-22 03:24:38.71
+85c5561e
+User
+[TaddyWebhook] Background error for "Even Nobel Prize Winners Deal With Imposter Syndrome": TypeError: x is not a function
+2026-03-22 03:24:38.71
+85c5561e
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-03-22 03:24:44.01
+85c5561e
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-03-22 03:24:44.01
+85c5561e
+User
+at /home/runner/workspace/dist/index.cjs:2735:3811
+2026-03-22 03:24:44.01
+85c5561e
+User
+[TaddyWebhook] Background error for "Study Finds COVID mRNA Vaccines Boost Cancer Treatment": TypeError: x is not a function
+2026-03-22 03:24:44.11
+85c5561e
+User
+[TaddyWebhook] Background error for "How Gut Microbes Are Linked To Stress Resilience": TypeError: x is not a function
+2026-03-22 03:25:03.72
+85c5561e
+User
+[TaddyWebhook] Background error for "SciFri Extra: After 20 Years, The ‘Cosmic Crisp’ Has Landed": TypeError: x is not a function
+2026-03-22 03:25:13.71
+85c5561e
+User
+[TaddyWebhook] Background error for "2018 Scifri Year In Review. Dec 28, 2018, Part 1": TypeError: x is not a function
+2026-03-22 03:25:13.71
+85c5561e
+User
+at /home/runner/workspace/dist/index.cjs:2735:3811
+2026-03-22 03:25:13.71
+85c5561e
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-03-22 03:25:13.71
+85c5561e
+User
+at /home/runner/workspace/dist/index.cjs:2735:3811
+2026-03-22 03:25:13.71
+85c5561e
+User
+[TaddyWebhook] Background error for "Space Junk, Chronobiology, Mistletoe. Dec 20, 2019, Part 2": TypeError: x is not a function
+2026-03-22 03:25:13.71
+85c5561e
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
