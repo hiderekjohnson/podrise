@@ -850,19 +850,31 @@ const SUPPORT_PROMPT = `The episode recap pipeline seems broken. Please diagnose
 
 The pipeline flow is: Taddy webhook → transcript received → OpenAI recap → published
 
-⚠️ IMPORTANT: You are diagnosing PRODUCTION — use the production database ONLY
-—do NOT start with the dev database. Use the fetch_deployment_logs tool to check 
-production logs and query the production database via the /api/admin/sql endpoint.
+⚠️ IMPORTANT: You are diagnosing PRODUCTION ONLY
+—do NOT start with dev database ($DATABASE_URL). Use fetch_deployment_logs for production 
+logs and /api/admin/sql endpoint for production database queries.
 
-Check these things in order:
-1. Query the PRODUCTION database for recent recap activity (last 24h published count, latest 5 recaps, any generation_failed records)
-2. Check PRODUCTION deployment logs for [ProdRecap], [RecapGenerator], [RecapValidator], and [TaddyWebhook] entries
-3. Look for errors in PRODUCTION deployment logs (timeouts, crashes, API failures)
-4. Tell me what you find and what's broken in production
+CONTEXT FOR YOU:
+- Scheduler runs every 5 min, processes 3 episodes/batch (production only)
+- Individual episode timeout: 4 minutes (marked as generation_failed)
+- Batch timeout: 20 minutes (watchdog resets if hung > 30 min)
+- Key table: landing_page_recaps (published, hidden, generation_failed, running)
+- Webhook source: Taddy (podcap.io)
 
-The key table is landing_page_recaps (status can be: published, hidden, generation_failed).
-The scheduler runs every 5 min and processes 3 episodes per batch in production only.
-Last known issue: scheduler timed out on March 19 after "Adult Screen-Time Risks" episode.`;
+WHAT TO CHECK (in order):
+1. Scheduler status: Is it running? Last recap published when? (check scheduler-health endpoint via browser network tab or ask user for screenshot)
+2. Database queries to run FIRST:
+   - SELECT COUNT(*) FILTER (WHERE status = 'published') as published_24h, COUNT(*) FILTER (WHERE status = 'generation_failed') as timeouts_24h, MAX(created_at) as latest_recap FROM landing_page_recaps WHERE created_at > NOW() - INTERVAL '24 hours'
+   - SELECT MAX(created_at) as most_recent FROM landing_page_recaps (compare to current time—if gap > 15min, scheduler likely stuck)
+3. Deployment logs: Search for [ProdRecap], [WATCHDOG], [TaddyWebhook] errors (timeouts, crashes, API 503s)
+4. Determine root cause: (a) Scheduler crashed, (b) Taddy webhooks stopped, (c) Episodes timing out, (d) OpenAI/validation issues
+
+TELL ME:
+- How long has it been broken?
+- Current scheduler status (Running/Stopped)?
+- What you observe in the UI (no new episodes, errors, etc.)
+- Recent deployments or changes?`;
+
 
 interface HealthSnapshotProps {
   data: {
