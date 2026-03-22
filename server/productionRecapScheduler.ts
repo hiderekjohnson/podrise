@@ -7,10 +7,14 @@ const INTERVAL_MS = 5 * 60 * 1000;
 const HEADLINE_CATCHUP_INTERVAL_MS = 15 * 60 * 1000;
 const BATCH_SIZE = 1;
 const PER_PODCAST = 1;
-// How long a single episode recap generation can run before it is marked as failed and the next episode is tried
-const EPISODE_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
-// Overall batch-level watchdog — must be larger than EPISODE_TIMEOUT_MS
-const BATCH_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
+// How long a single episode recap attempt can run before being killed
+const EPISODE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes — generous to handle long transcripts
+// How many times to retry a failed episode before giving up
+const EPISODE_MAX_RETRIES = 1; // 1 retry = 2 total attempts
+// Pause between retry attempts
+const EPISODE_RETRY_DELAY_MS = 30_000; // 30 seconds
+// Overall batch-level watchdog — must be larger than EPISODE_TIMEOUT_MS × (1 + retries)
+const BATCH_TIMEOUT_MS = 45 * 60 * 1000; // 45 minutes
 const HEADLINE_RETRY_COUNT = 2;
 const HEADLINE_RETRY_DELAY_MS = 3000;
 let batchRunning = false;
@@ -309,38 +313,56 @@ async function runBatch() {
       const hosts = info.hosts || "";
       const artwork = info.artwork_url || "";
 
-      console.log(`[ProdRecap] Processing: "${ep.episode_title?.slice(0, 60)}" (${podcastName})`);
-
-      // Mark this episode as actively generating so the pipeline monitor can show it
-      currentlyGeneratingGuid = ep.episode_guid || null;
-      currentlyGeneratingTitle = ep.episode_title || null;
-
-      const processPromise = processEpisode(ep, podcastSlug, podcastName, ep.podcast_id, hosts, artwork);
-
       const epTitle = ep.episode_title || "Untitled";
       const epSlug = epTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 200);
       const timeoutMinutes = Math.round(EPISODE_TIMEOUT_MS / 60000);
-      const episodeTimeout = new Promise<ProcessEpisodeResult>((resolve) => setTimeout(async () => {
+
+      let succeeded = false;
+      for (let attempt = 1; attempt <= EPISODE_MAX_RETRIES + 1; attempt++) {
+        const attemptLabel = attempt > 1 ? ` (retry ${attempt - 1}/${EPISODE_MAX_RETRIES})` : "";
+        console.log(`[ProdRecap] Processing${attemptLabel}: "${epTitle.slice(0, 60)}" (${podcastName})`);
+
+        currentlyGeneratingGuid = ep.episode_guid || null;
+        currentlyGeneratingTitle = ep.episode_title || null;
+
+        const processPromise = processEpisode(ep, podcastSlug, podcastName, ep.podcast_id, hosts, artwork);
+        const episodeTimeout = new Promise<ProcessEpisodeResult>((resolve) => setTimeout(() => {
+          console.warn(`[ProdRecap] Attempt ${attempt} timed out after ${timeoutMinutes}min: "${epTitle.slice(0, 60)}"`);
+          resolve({ success: false });
+        }, EPISODE_TIMEOUT_MS));
+
+        const result = await Promise.race([processPromise, episodeTimeout]);
+        currentlyGeneratingGuid = null;
+        currentlyGeneratingTitle = null;
+
+        if (result.success) {
+          succeeded = true;
+          break;
+        }
+
+        if (attempt <= EPISODE_MAX_RETRIES) {
+          console.log(`[ProdRecap] Will retry "${epTitle.slice(0, 60)}" in ${EPISODE_RETRY_DELAY_MS / 1000}s...`);
+          await new Promise(r => setTimeout(r, EPISODE_RETRY_DELAY_MS));
+        }
+      }
+
+      if (succeeded) {
+        generated++;
+      } else {
+        failed++;
         const episodeId = `${podcastSlug}/${epSlug}`;
         timeoutEpisodesThisSession.add(episodeId);
-        console.warn(`[ProdRecap] Episode timed out after ${timeoutMinutes}min: "${epTitle.slice(0, 60)}" (${timeoutEpisodesThisSession.size} timeouts in session)`);
         try {
           await pool.query(
             `INSERT INTO landing_page_recaps (user_id, podcast_slug, episode_slug, episode_title, podcast_name, source, status, recap)
              VALUES (NULL, $1, $2, $3, $4, 'production_scheduler', 'generation_failed', $5)
              ON CONFLICT DO NOTHING`,
-            [podcastSlug, epSlug, epTitle, podcastName, `Timed out after ${timeoutMinutes} minutes`]
+            [podcastSlug, epSlug, epTitle, podcastName, `Failed after ${EPISODE_MAX_RETRIES + 1} attempts (${timeoutMinutes}min timeout each)`]
           );
         } catch (err: any) {
-          console.error(`[ProdRecap] Failed to record timeout for "${epTitle.slice(0, 60)}": ${err.message}`);
+          console.error(`[ProdRecap] Failed to record failure for "${epTitle.slice(0, 60)}": ${err.message}`);
         }
-        resolve({ success: false });
-      }, EPISODE_TIMEOUT_MS));
-      const result = await Promise.race([processPromise, episodeTimeout]);
-      currentlyGeneratingGuid = null;
-      currentlyGeneratingTitle = null;
-      if (result.success) generated++;
-      else failed++;
+      }
 
       if (episodes.indexOf(ep) < episodes.length - 1) {
         await new Promise(r => setTimeout(r, 30_000));
