@@ -9380,10 +9380,12 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     try {
       const { rows: transcriptRows } = await pool.query(`
         SELECT
-          COUNT(*) FILTER (WHERE fetched_at > NOW() - INTERVAL '24 hours') AS transcripts_24h,
-          COUNT(*) FILTER (WHERE fetched_at > NOW() - INTERVAL '1 hour') AS transcripts_1h,
-          ARRAY_AGG(fetched_at ORDER BY fetched_at ASC) FILTER (WHERE fetched_at > NOW() - INTERVAL '1 hour') AS transcript_times_1h
-        FROM episode_transcripts
+          COUNT(*) FILTER (WHERE et.fetched_at > NOW() - INTERVAL '24 hours') AS transcripts_24h,
+          COUNT(*) FILTER (WHERE et.fetched_at > NOW() - INTERVAL '1 hour') AS transcripts_1h,
+          ARRAY_AGG(et.fetched_at ORDER BY et.fetched_at ASC) FILTER (WHERE et.fetched_at > NOW() - INTERVAL '1 hour') AS transcript_times_1h
+        FROM episode_transcripts et
+        INNER JOIN podcast_directory pd
+          ON pd.itunes_id = et.podcast_id AND pd.status = 'published'
       `);
 
       const { rows: recapRows } = await pool.query(`
