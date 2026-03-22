@@ -9393,38 +9393,37 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           AND published = true
       `);
 
-      // Currently pending = queue-only items (no transcript yet) with status queued/pending
-      //                    + transcript items within 3-day window without a recap (pending_recap)
-      // Uses NOT EXISTS to avoid double-counting episodes that appear in both tables.
-      const { rows: pendingRows } = await pool.query(`
-        SELECT
-          (
-            SELECT COUNT(*)
-            FROM pending_transcript_queue ptq
-            WHERE ptq.status IN ('queued', 'pending')
-              AND NOT EXISTS (
-                SELECT 1 FROM episode_transcripts et
-                WHERE et.podcast_id = ptq.podcast_id
-                  AND (et.episode_guid = ptq.episode_guid
-                    OR lower(trim(et.episode_title)) = lower(trim(ptq.episode_title)))
-              )
-          ) +
-          (
-            SELECT COUNT(*)
-            FROM episode_transcripts et
-            INNER JOIN podcast_directory pd
-              ON pd.itunes_id = et.podcast_id AND pd.status = 'published'
-            WHERE et.fetched_at > NOW() - INTERVAL '3 days'
-              AND NOT EXISTS (
-                SELECT 1 FROM landing_page_recaps lpr
-                WHERE lpr.itunes_id = et.podcast_id
-                  AND lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
-              )
-          ) AS currently_pending
+      // awaitingRecap: transcripts received within the 3-day scheduler window with no recap yet.
+      // This is exactly what the recap scheduler considers "pending" — matches the feed's Pending filter.
+      const { rows: awaitingRows } = await pool.query(`
+        SELECT COUNT(*) AS awaiting_recap
+        FROM episode_transcripts et
+        INNER JOIN podcast_directory pd
+          ON pd.itunes_id = et.podcast_id AND pd.status = 'published'
+        WHERE et.fetched_at > NOW() - INTERVAL '3 days'
+          AND NOT EXISTS (
+            SELECT 1 FROM landing_page_recaps lpr
+            WHERE lpr.itunes_id = et.podcast_id
+              AND lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
+          )
       `);
 
+      // queuePending: webhooks received but transcript not yet fetched from Taddy
+      const { rows: queueRows } = await pool.query(`
+        SELECT COUNT(*) AS queue_pending
+        FROM pending_transcript_queue ptq
+        WHERE ptq.status IN ('queued', 'pending')
+          AND NOT EXISTS (
+            SELECT 1 FROM episode_transcripts et
+            WHERE et.podcast_id = ptq.podcast_id
+              AND (et.episode_guid = ptq.episode_guid
+                OR lower(trim(et.episode_title)) = lower(trim(ptq.episode_title)))
+          )
+      `);
+
+      // transcriptFetchErrors24h: failures in the queue fetching transcripts from Taddy (NOT recap errors)
       const { rows: errorRows } = await pool.query(`
-        SELECT COUNT(*) AS errors_24h
+        SELECT COUNT(*) AS transcript_fetch_errors_24h
         FROM pending_transcript_queue
         WHERE status = 'failed'
           AND COALESCE(last_attempt_at, created_at) > NOW() - INTERVAL '24 hours'
@@ -9433,12 +9432,13 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const transcripts24h = parseInt(transcriptRows[0].transcripts_24h) || 0;
       const transcripts1h = parseInt(transcriptRows[0].transcripts_1h) || 0;
       const recaps24h = parseInt(recapRows[0].recaps_24h) || 0;
-      const currentlyPending = parseInt(pendingRows[0].currently_pending) || 0;
-      const errors24h = parseInt(errorRows[0].errors_24h) || 0;
+      const awaitingRecap = parseInt(awaitingRows[0].awaiting_recap) || 0;
+      const queuePending = parseInt(queueRows[0].queue_pending) || 0;
+      const transcriptFetchErrors24h = parseInt(errorRows[0].transcript_fetch_errors_24h) || 0;
 
-      // Processing rate: avg gap between transcripts in the last hour
+      // Transcript inbound rate: avg gap between transcripts arriving in the last hour
       const times: string[] = transcriptRows[0].transcript_times_1h || [];
-      let processingRate: string = "—";
+      let transcriptRate: string = "—";
       if (times.length >= 2) {
         const sorted = times.map((t: string) => new Date(t).getTime()).sort((a: number, b: number) => a - b);
         const gaps: number[] = [];
@@ -9447,20 +9447,80 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         }
         const avgGapMs = gaps.reduce((s: number, g: number) => s + g, 0) / gaps.length;
         const avgGapMin = Math.max(1, Math.round(avgGapMs / 60000));
-        processingRate = `1 every ${avgGapMin} min`;
+        transcriptRate = `1 every ${avgGapMin}m`;
       }
 
       res.json({
         transcripts24h,
         transcripts1h,
         recaps24h,
-        currentlyPending,
-        errors24h,
-        processingRate,
+        awaitingRecap,
+        queuePending,
+        transcriptFetchErrors24h,
+        transcriptRate,
       });
     } catch (err: any) {
       console.error("[PipelineStats] Error:", err.message);
       res.status(500).json({ message: "Failed to fetch pipeline stats" });
+    }
+  });
+
+  // Live monitoring endpoint — recently completed + pending queue sorted oldest-first (scheduler order)
+  app.get("/api/admin/pipeline-live", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { rows: completedRows } = await pool.query(`
+        SELECT
+          et.id AS transcript_id,
+          et.episode_title,
+          et.fetched_at AS transcript_at,
+          pd.name AS podcast_name,
+          pd.slug AS podcast_slug,
+          lpr.id AS recap_id,
+          lpr.episode_slug,
+          lpr.created_at AS recap_at
+        FROM landing_page_recaps lpr
+        INNER JOIN podcast_directory pd ON pd.slug = lpr.slug
+        INNER JOIN episode_transcripts et
+          ON et.podcast_id = pd.itunes_id
+          AND lower(trim(et.episode_title)) = lower(trim(lpr.episode_title))
+        WHERE lpr.created_at > NOW() - INTERVAL '2 hours'
+          AND lpr.published = true
+        ORDER BY lpr.created_at DESC
+        LIMIT 5
+      `);
+
+      // Pending: transcripts received in the scheduler window (3 days) with no recap yet
+      // Sorted ASC (oldest transcript first) — this is the order the scheduler will process them
+      const { rows: pendingRows } = await pool.query(`
+        SELECT
+          et.id AS transcript_id,
+          et.episode_title,
+          et.podcast_id,
+          et.episode_guid,
+          et.fetched_at AS transcript_at,
+          char_length(et.transcript) AS transcript_chars,
+          pd.name AS podcast_name,
+          pd.slug AS podcast_slug
+        FROM episode_transcripts et
+        INNER JOIN podcast_directory pd
+          ON pd.itunes_id = et.podcast_id AND pd.status = 'published'
+        WHERE et.fetched_at > NOW() - INTERVAL '3 days'
+          AND NOT EXISTS (
+            SELECT 1 FROM landing_page_recaps lpr
+            WHERE lpr.itunes_id = et.podcast_id
+              AND lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
+          )
+        ORDER BY et.fetched_at ASC
+        LIMIT 20
+      `);
+
+      res.json({ recentlyCompleted: completedRows, pendingQueue: pendingRows });
+    } catch (err: any) {
+      console.error("[PipelineLive] Error:", err.message);
+      res.status(500).json({ message: "Failed to fetch live pipeline data" });
     }
   });
 
