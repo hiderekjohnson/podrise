@@ -56,6 +56,13 @@ PodRise is a full-stack web application designed to provide personalized daily p
 
 **Audio Recaps**: ElevenLabs TTS-powered audio narrations of episode recaps. Audio files are stored in Replit Object Storage (persistent across deploys) via `server/audioRecapGenerator.ts`. The generator uses `objectStorageClient` to upload MP3s to the `audio-recaps/` prefix in the default bucket, and the serving route streams directly from storage. The shared `RecapAudioPlayer` component (`client/src/components/RecapAudioPlayer.tsx`) provides both compact (card) and full (recap page) modes. The compact player is embedded in `FeedEpisodeCard`'s `EpisodeContentSection` for logged-in users — it appears on every recap card site-wide (feed, podcast pages, bookmarks, etc.). It fetches `/api/audio-recap/:slug/:episode` per-card; if no audio exists (404), the button silently doesn't render. Database tables: `recap_audio`, `audio_playback_events`. Requires `ELEVENLABS_API_KEY` secret.
 
+## Branding & Logo Usage
+- **Single logo rule**: The PodRise logo files (`/logo-transparent.svg` and `Transparent-square_1773866360595.png`) BOTH contain the full "PodRise" text baked into the image. NEVER place separate "PodRise" text next to either of these images — this creates a duplicate logo.
+- **In React pages**: Always use `<PodRiseWordmark />` from `@/components/PodRiseHeader`. It renders the SVG wordmark. Do NOT add text like `Pod<em>Rise</em>` next to it.
+- **In emails**: Use the hosted logo PNG/SVG at the production URL. Do NOT add an `<img>` logo AND a separate text `PodRise` — the image already has the text.
+- **Standalone pages** (login, register, onboarding): Use `<PodRiseWordmark height={36} />` or `<img src="/logo-transparent.svg" />`. No additional text.
+- **Available logo files**: `/logo-transparent.svg` (wordmark, for web), `/logo-square-transparent.png` (square, for OG/meta), `Transparent-square_1773866360595.png` (square, deprecated — prefer SVG).
+
 ## External Dependencies
 - **Stripe**: Payment processing and subscription management.
 - **OpenAI**: AI models for content generation and chat.
