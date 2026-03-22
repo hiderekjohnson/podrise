@@ -645,6 +645,7 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
   const [retryingId, setRetryingId] = useState<string | null>(null);
 
   const [clearConfirm, setClearConfirm] = useState(false);
+  const [purgeConfirm, setPurgeConfirm] = useState(false);
 
   // Fetch actual queue depth (all pending items, not just visible rows)
   const { data: queueDepth = {} } = useQuery({
@@ -662,6 +663,16 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
       apiRequest("POST", "/api/admin/pipeline/clear-queue", podcastName ? { podcast_name: podcastName } : {}),
     onSuccess: () => {
       setClearConfirm(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline-monitor"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline/queue-depth"] });
+    },
+  });
+
+  const purgeShowMutation = useMutation({
+    mutationFn: (podcastName: string) =>
+      apiRequest("POST", "/api/admin/pipeline/purge-show", { podcast_name: podcastName }),
+    onSuccess: (data: any) => {
+      setPurgeConfirm(false);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline-monitor"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline/queue-depth"] });
     },
@@ -876,6 +887,37 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
                 </button>
               );
             })()}
+            {/* Purge show from pipeline (all stages) */}
+            {showFilter !== "all" && (
+              purgeConfirm ? (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-slate-600 dark:text-slate-400">Delete all unrecapped episodes for <strong>{showFilter}</strong>?</span>
+                  <button
+                    onClick={() => purgeShowMutation.mutate(showFilter)}
+                    disabled={purgeShowMutation.isPending}
+                    className="text-xs px-2.5 py-1.5 rounded-lg border border-red-400 text-white bg-red-500 hover:bg-red-600 font-medium disabled:opacity-50 transition-colors flex items-center gap-1"
+                    data-testid="button-confirm-purge-show"
+                  >
+                    {purgeShowMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Yes, purge"}
+                  </button>
+                  <button
+                    onClick={() => setPurgeConfirm(false)}
+                    className="text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setPurgeConfirm(true)}
+                  className="text-xs px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 font-medium transition-colors flex items-center gap-1.5"
+                  data-testid="button-purge-show"
+                >
+                  <XCircle className="w-3 h-3" />
+                  Purge {showFilter} from pipeline
+                </button>
+              )
+            )}
             {/* Retry all errors */}
             <button
               onClick={() => retryAllMutation.mutate()}
