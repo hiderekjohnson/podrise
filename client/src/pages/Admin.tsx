@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
-import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, FileText, Inbox, Rss, Database, Settings, ShoppingBag, MousePointerClick, DollarSign, Megaphone, Wrench, List, AlertTriangle, Gift, BookOpen, ToggleLeft, Plus, X, ArrowUpDown, ExternalLink, CheckSquare, Square, MinusSquare, ShieldCheck, ShieldOff, Radio } from "lucide-react";
+import { Loader2, LogOut, Shield, Users, Mail, Calendar, Podcast, Search, UserCheck, Trash2, BarChart3, TrendingUp, Headphones, FileText, Inbox, Rss, Database, Settings, ShoppingBag, MousePointerClick, DollarSign, Megaphone, Wrench, List, AlertTriangle, Gift, BookOpen, ToggleLeft, Plus, X, ArrowUpDown, ExternalLink, CheckSquare, Square, MinusSquare, ShieldCheck, ShieldOff, Radio, Send } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 const PendingEmails = lazy(() => import("./PendingEmails"));
@@ -27,6 +27,7 @@ const BackfillManager = lazy(() => import("./BackfillManager"));
 const AdminMTurk = lazy(() => import("./AdminMTurk"));
 const AdminAlerts = lazy(() => import("./AdminAlerts"));
 const AdminTranscriptPipeline = lazy(() => import("./AdminTranscriptPipeline"));
+const AdminDemoEmail = lazy(() => import("./AdminDemoEmail"));
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -144,12 +145,12 @@ export default function Admin() {
 
   type TabType = "cms" | "users" | "advertisers" | "landing-pages" | "product-features" | "internal-tools" | "advanced" | "admin-users";
   type ProductFeaturesSubTabType = "shop" | "categories" | "referrals" | "support-kb";
-  type InternalToolsSubTabType = "mturk" | "pending" | "analytics" | "errors" | "alerts" | "pipeline";
+  type InternalToolsSubTabType = "mturk" | "pending" | "analytics" | "errors" | "alerts" | "pipeline" | "demo-email";
   type AnalyticsSubTabType = "acquisition" | "affiliates" | "growth" | "email" | "elevenlabs" | "features";
   type AdvancedSubTabType = "rss" | "hosts" | "api-costs" | "feature-flags" | "backfill";
 
   const productFeaturesSubTabs: ProductFeaturesSubTabType[] = ["shop", "categories", "referrals", "support-kb"];
-  const internalToolsSubTabs: InternalToolsSubTabType[] = ["mturk", "pending", "analytics", "errors", "alerts", "pipeline"];
+  const internalToolsSubTabs: InternalToolsSubTabType[] = ["mturk", "pending", "analytics", "errors", "alerts", "pipeline", "demo-email"];
   const analyticsSubTabs: AnalyticsSubTabType[] = ["acquisition", "affiliates", "growth", "email", "elevenlabs", "features"];
   const advancedSubTabs: AdvancedSubTabType[] = ["rss", "hosts", "api-costs", "feature-flags", "backfill"];
 
@@ -1024,6 +1025,7 @@ export default function Admin() {
                     { key: "errors" as const, label: "Errors", icon: AlertTriangle },
                     { key: "alerts" as const, label: "Alerts", icon: Shield },
                     { key: "pipeline" as const, label: "Pipeline", icon: Radio },
+                    { key: "demo-email" as const, label: "Demo Email", icon: Send },
                   ]).map(({ key, label, icon: Icon }) => (
                     <button
                       key={key}
@@ -1100,6 +1102,12 @@ export default function Admin() {
                 {internalToolsSubTab === "pipeline" && (
                   <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
                     <AdminTranscriptPipeline />
+                  </Suspense>
+                )}
+
+                {internalToolsSubTab === "demo-email" && (
+                  <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>}>
+                    <AdminDemoEmail />
                   </Suspense>
                 )}
 

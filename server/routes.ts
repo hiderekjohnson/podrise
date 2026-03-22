@@ -8606,6 +8606,104 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
 
 
+  app.post("/api/admin/send-demo-email", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { toEmail } = req.body;
+      if (!toEmail || !toEmail.includes("@")) {
+        return res.status(400).json({ message: "Valid toEmail required" });
+      }
+
+      const { rows: recentRecaps } = await pool.query(`
+        SELECT lpr.podcast_name, lpr.episode_title, lpr.tldl, lpr.what_happened,
+               lpr.key_insights, lpr.slug as podcast_slug, lpr.episode_slug,
+               lpr.hosts, lpr.duration, lpr.publish_date, lpr.artwork_url,
+               lpr.tabloid_headline, lpr.tabloid_sub_headline, lpr.quote, lpr.quote_attribution
+        FROM landing_page_recaps lpr
+        WHERE lpr.status = 'published'
+          AND lpr.what_happened IS NOT NULL AND lpr.what_happened != ''
+          AND lpr.tldl IS NOT NULL AND lpr.tldl != ''
+        ORDER BY lpr.created_at DESC
+        LIMIT 4
+      `);
+
+      if (recentRecaps.length === 0) {
+        return res.status(400).json({ message: "No published recaps found to demo" });
+      }
+
+      let markdownParts: string[] = [];
+      for (const r of recentRecaps) {
+        const insights = (r.key_insights || []).map((i: string) => `- ${i}`).join("\n");
+        const quote = r.quote ? `\n> "${r.quote}"${r.quote_attribution ? ` — ${r.quote_attribution}` : ""}` : "";
+        markdownParts.push(
+          `## ${r.podcast_name}\n\n**${r.episode_title}**\n\n**TL;DL:** ${r.tldl}\n\n### What Happened\n${r.what_happened}\n\n### Key Insights\n${insights}${quote}`
+        );
+      }
+      const summary = markdownParts.join("\n\n---\n\n");
+
+      const epMeta: Record<string, any> = {};
+      for (const r of recentRecaps) {
+        const slug = r.podcast_slug;
+        epMeta[slug] = {
+          podcastSlug: slug,
+          episodeSlug: r.episode_slug,
+          artworkUrl: r.artwork_url,
+          hosts: r.hosts,
+          duration: r.duration,
+          publishDate: r.publish_date,
+          tabloidHeadline: r.tabloid_headline,
+          tabloidSubHeadline: r.tabloid_sub_headline,
+        };
+      }
+
+      const { generateEmailSubjectAndPreview, reorderMarkdownLeadFirst, fetchShopBooks, fetchMissedEpisodes } = await import("./emailScheduler");
+      const epCount = recentRecaps.length;
+      const emailCopy = await generateEmailSubjectAndPreview(summary, epCount);
+      const reordered = reorderMarkdownLeadFirst(summary, emailCopy.leadEpisodePodcast);
+
+      const referralData = {
+        referralCode: "demo-code",
+        referralCount: 3,
+        nextTierName: "Pod Squad Sticker Pack",
+        nextTierThreshold: 5,
+      };
+
+      const demoUser = { podcasts: [], industries: [], interests: [], roles: [] };
+      const [shopBooks, missedEpisodes] = await Promise.all([
+        fetchShopBooks(),
+        fetchMissedEpisodes(demoUser),
+      ]);
+
+      console.log(`[DemoEmail] To: ${toEmail}, recaps: ${recentRecaps.length}, shopBooks: ${shopBooks.length}, missedEpisodes: ${missedEpisodes.length}`);
+
+      const emailHtml = markdownToEmailHtml(reordered, toEmail, epMeta, emailCopy, referralData, shopBooks, missedEpisodes);
+
+      const { client, fromEmail } = await getUncachableResendClient();
+      const result = await client.emails.send({
+        from: `PodRise <${fromEmail}>`,
+        to: toEmail,
+        subject: `[DEMO] ${emailCopy.subject}`,
+        html: emailHtml,
+      });
+
+      if (result.error) {
+        return res.status(500).json({ message: `Send failed: ${result.error.message}` });
+      }
+      res.json({
+        message: `Demo email sent to ${toEmail}`,
+        recapCount: recentRecaps.length,
+        podcasts: recentRecaps.map((r: any) => r.podcast_name),
+        shopBooks: shopBooks.length,
+        missedEpisodes: missedEpisodes.length,
+      });
+    } catch (err: any) {
+      console.error("[DemoEmail] Error:", err);
+      res.status(500).json({ message: err.message || "Failed to send demo email" });
+    }
+  });
+
   app.get("/api/admin/me", async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: "Not authenticated" });
