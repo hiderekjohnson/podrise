@@ -255,8 +255,8 @@ async function runBatch() {
   batchRunning = true;
   batchStartedAt = Date.now();
   try {
-    const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
-    const cutoffTimestamp = Math.floor(fiveDaysAgo.getTime() / 1000);
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+    const cutoffTimestamp = Math.floor(threeDaysAgo.getTime() / 1000);
 
     // Check how many transcripts are awaiting recap so we can adapt batch size
     const { rows: backlogRows } = await pool.query(
@@ -516,15 +516,6 @@ async function runCatchupScan() {
           const datePublished = ep.datePublished
             ? Math.floor(ep.datePublished)
             : null;
-
-          // Skip episodes older than the age limit — prevents back-catalog floods
-          if (datePublished !== null) {
-            const ageDays = (Date.now() / 1000 - datePublished) / 86400;
-            if (ageDays > CATCHUP_MAX_EPISODE_AGE_DAYS) {
-              console.log(`[CatchupScan] Skipping old episode (${Math.round(ageDays)}d): "${ep.name?.slice(0, 50)}"`);
-              continue;
-            }
-          }
 
           await pool.query(
             `INSERT INTO episode_transcripts

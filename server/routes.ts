@@ -9561,6 +9561,42 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  // Delete all episode_transcripts where the episode aired more than 5 days ago and has no recap
+  app.post("/api/admin/pipeline/clean-old-transcripts", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const maxAgeDays = typeof req.body.maxAgeDays === "number" ? req.body.maxAgeDays : 5;
+      const cutoff = Math.floor((Date.now() - maxAgeDays * 86400 * 1000) / 1000);
+
+      // Also clear any pending queue entries for episodes older than the cutoff
+      const { rows: queueRows } = await pool.query(`
+        DELETE FROM pending_transcript_queue ptq
+        WHERE ptq.episode_guid IN (
+          SELECT episode_guid FROM episode_transcripts
+          WHERE date_published IS NOT NULL AND date_published < $1
+        )
+        RETURNING id
+      `, [cutoff]);
+
+      const { rows: transcriptRows } = await pool.query(`
+        DELETE FROM episode_transcripts
+        WHERE date_published IS NOT NULL
+          AND date_published < $1
+          AND NOT EXISTS (
+            SELECT 1 FROM landing_page_recaps lpr
+            WHERE lpr.itunes_id = podcast_id
+              AND ${SQL_NORMALIZE_TITLE('lpr.episode_title')} = ${SQL_NORMALIZE_TITLE('episode_title')}
+          )
+        RETURNING id
+      `, [cutoff]);
+
+      console.log(`[CleanOldTranscripts] Removed ${transcriptRows.length} old transcripts (>${maxAgeDays}d), ${queueRows.length} queue entries`);
+      res.json({ transcripts_deleted: transcriptRows.length, queue_deleted: queueRows.length, max_age_days: maxAgeDays });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   // Bulk delete specific episodes from the pipeline (queue + unrecapped transcripts)
   app.post("/api/admin/pipeline/delete-episodes", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });

@@ -75,9 +75,14 @@ type OverallStatus = "complete" | "pending_recap" | "missed" | "queued" | "faile
 function getOverallStatus(row: PipelineRow): OverallStatus {
   if (row.recap_id) return "complete";
   if (row.transcript_at) {
-    const threeDAgo = Date.now() - 3 * 24 * 60 * 60 * 1000;
+    // If the episode aired more than 5 days ago the recap scheduler won't pick it up
+    if (row.date_published) {
+      const fiveDaysAgo = Date.now() - 5 * 24 * 60 * 60 * 1000;
+      if (new Date(row.date_published).getTime() < fiveDaysAgo) return "missed";
+    }
+    const fiveDaysAgoFetch = Date.now() - 5 * 24 * 60 * 60 * 1000;
     const fetchedMs = new Date(row.transcript_at).getTime();
-    return fetchedMs > threeDAgo ? "pending_recap" : "missed";
+    return fetchedMs > fiveDaysAgoFetch ? "pending_recap" : "missed";
   }
   if (row.queue_status === "failed") return "failed";
   return "queued";
@@ -707,6 +712,14 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
     },
   });
 
+  const cleanOldTranscriptsMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/pipeline/clean-old-transcripts", { maxAgeDays: 5 }),
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline-monitor"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline/queue-depth"] });
+    },
+  });
+
   const deleteSelectedMutation = useMutation({
     mutationFn: (episodes: { episode_guid: string | null; podcast_id: string; episode_title: string }[]) =>
       apiRequest("POST", "/api/admin/pipeline/delete-episodes", { episodes }),
@@ -1031,6 +1044,17 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
             >
               {removePublishedMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
               Remove published
+            </button>
+            {/* Delete transcripts for episodes older than 5 days — cleans up back-catalog floods */}
+            <button
+              onClick={() => cleanOldTranscriptsMutation.mutate()}
+              disabled={cleanOldTranscriptsMutation.isPending}
+              className="text-xs px-3 py-1.5 rounded-lg border border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/40 font-medium disabled:opacity-40 transition-colors flex items-center gap-1.5"
+              data-testid="button-clean-old-transcripts"
+              title="Delete all episode transcripts where the air date is older than 5 days and no recap exists — prevents back-catalog floods from clogging the pipeline"
+            >
+              {cleanOldTranscriptsMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3 h-3" />}
+              Delete old (&gt;5d)
             </button>
           </div>
         </div>
