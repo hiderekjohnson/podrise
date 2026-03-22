@@ -391,8 +391,7 @@ function isUserOnVacation(user: any): boolean {
 export async function fetchShopBooks(): Promise<ShopBookForEmail[]> {
   try {
     const { rows } = await pool.query(`
-      SELECT be.slug, be.book_title, be.author,
-             CASE WHEN be.has_cover AND be.cover_approved THEN '/covers/' || be.slug || '.jpg' ELSE NULL END as cover_url,
+      SELECT be.slug, be.book_title, be.author, be.gb_image_links,
              (SELECT COUNT(*) FROM book_insights bi WHERE bi.book_key = be.book_key) as mention_count
       FROM book_enrichments be
       WHERE be.slug IS NOT NULL
@@ -401,16 +400,23 @@ export async function fetchShopBooks(): Promise<ShopBookForEmail[]> {
         AND EXISTS (
           SELECT 1 FROM book_insights bi WHERE bi.book_key = be.book_key
         )
-      GROUP BY be.slug, be.book_title, be.author, be.has_cover, be.cover_approved, be.book_key
+      GROUP BY be.slug, be.book_title, be.author, be.gb_image_links, be.book_key
       ORDER BY mention_count DESC
       LIMIT 3
     `);
-    return rows.map((r: any) => ({
-      slug: r.slug,
-      bookTitle: r.book_title,
-      author: r.author || null,
-      coverUrl: r.cover_url ? `https://podrise.com${r.cover_url}` : null,
-    }));
+    return rows.map((r: any) => {
+      let coverUrl = null;
+      if (r.gb_image_links && typeof r.gb_image_links === 'object') {
+        // Use thumbnail from Google Books
+        coverUrl = r.gb_image_links.thumbnail || r.gb_image_links.smallThumbnail;
+      }
+      return {
+        slug: r.slug,
+        bookTitle: r.book_title,
+        author: r.author || null,
+        coverUrl: coverUrl,
+      };
+    });
   } catch (err) {
     console.warn("[EmailScheduler] Failed to fetch shop books:", err);
     return [];
