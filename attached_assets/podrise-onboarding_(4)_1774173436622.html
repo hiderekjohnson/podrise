@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Set Up Your Feed | PodRise</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --indigo: #6366F1;
+    --violet: #8B5CF6;
+    --indigo-light: #A5B4FC;
+    --indigo-bg: #EEF2FF;
+    --bg: #F7F7FC;
+    --text: #09090B;
+    --secondary: #52525B;
+    --muted: #71717A;
+    --hint: #A1A1AA;
+    --border: #F0F0F2;
+    --border-med: #E4E4E7;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+  }
+
+  /* ── SHELL ── */
+  .shell {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  /* ── LOGO (top-left, above the white left panel) ── */
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    padding: 14px 0 0 0;
+    /* sits in its own row above the content grid */
+    align-self: flex-start;
+  }
+
+  .logo-icon {
+    width: 26px; height: 26px;
+    background: linear-gradient(145deg, #6366F1, #8B5CF6);
+    border-radius: 22%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .logo-wordmark {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--text);
+  }
+  .logo-wordmark em { font-style: normal; color: var(--indigo); font-weight: 300; }
+
+  /* ── CONTENT (fills entire shell) ── */
+  .content-outer {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 24px 24px; /* bottom pad so content doesn't touch viewport edge */
+  }
+
+  .logo-row {
+    width: 100%;
+    max-width: 860px;
+    padding: 14px 0 10px;
+    flex-shrink: 0;
+  }
+
+  .content {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    width: 100%;
+    max-width: 860px;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  /* ── LEFT PANEL ── */
+  .left {
+    display: flex;
+    flex-direction: column;
+    padding: 28px 28px 20px;
+    overflow: hidden;
+    border-right: 1px solid var(--border);
+    background: #fff;
+    border-radius: 12px 0 0 12px;
+  }
+
+  .page-heading {
+    font-size: 21px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    margin-bottom: 3px;
+    flex-shrink: 0;
+  }
+
+  .page-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    line-height: 1.5;
+    flex-shrink: 0;
+  }
+
+  /* ── SEARCH AREA ── */
+  .search-area {
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+    margin-bottom: 14px;
+  }
+
+  .search-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .search-wrap {
+    position: relative;
+    flex: 1;
+  }
+
+  .search-wrap svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--hint);
+    pointer-events: none;
+  }
+
+  .search-input {
+    width: 100%;
+    height: 40px;
+    padding: 0 34px 0 36px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--bg);
+    border: 1.5px solid var(--border-med);
+    border-radius: 9px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  }
+
+  .search-input::placeholder { color: var(--hint); }
+  .search-input:focus {
+    border-color: var(--indigo);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+    background: #fff;
+  }
+
+  .search-clear {
+    display: none;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--hint);
+    border: none;
+    border-radius: 50%;
+    width: 17px; height: 17px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 9px;
+    padding: 0;
+    transition: background 0.1s;
+  }
+  .search-clear:hover { background: var(--secondary); }
+  .search-clear.visible { display: flex; }
+
+  .spotify-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 40px;
+    padding: 0 14px;
+    background: #fff;
+    border: 1.5px solid var(--border-med);
+    border-radius: 9px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--secondary);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.15s, background 0.15s;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  .spotify-btn:hover { border-color: #1DB954; background: #f0faf2; color: #15803d; }
+
+  .spotify-dot {
+    width: 14px; height: 14px;
+    background: #1DB954;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* ── SEARCH OVERLAY ── */
+  .search-overlay {
+    display: none;
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1.5px solid var(--indigo);
+    border-radius: 11px;
+    box-shadow: 0 8px 32px rgba(99,102,241,0.13), 0 2px 8px rgba(0,0,0,0.06);
+    z-index: 100;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 5px;
+  }
+  .search-overlay.visible { display: block; }
+  .overlay-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--hint);
+    padding: 7px 10px 3px;
+  }
+
+  /* ── PODCAST LIST ── */
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--hint);
+    margin-bottom: 2px;
+    flex-shrink: 0;
+  }
+
+  .section-sub {
+    font-size: 11px;
+    color: var(--indigo);
+    font-weight: 500;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+    display: none;
+    transition: opacity 0.2s;
+  }
+
+  .list-area {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .list-area::-webkit-scrollbar { width: 0; }
+
+  .podcast-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .podcast-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 9px;
+    border-radius: 8px;
+    transition: background 0.1s;
+    cursor: pointer;
+    user-select: none;
+  }
+  .podcast-row:hover { background: var(--bg); }
+
+  .podcast-art-placeholder {
+    width: 38px; height: 38px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .podcast-info { flex: 1; min-width: 0; }
+  .podcast-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 1px;
+  }
+  .podcast-cat { font-size: 11px; color: var(--hint); }
+
+  .add-btn {
+    flex-shrink: 0;
+    height: 27px;
+    padding: 0 13px;
+    background: var(--indigo-bg);
+    color: var(--indigo);
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+  }
+  .add-btn:hover { background: var(--indigo); color: #fff; border-color: var(--indigo); }
+  .add-btn.added { background: #F0FDF4; color: #15803d; border-color: #BBF7D0; pointer-events: none; }
+
+  /* ── RIGHT PANEL ── */
+  .right {
+    display: flex;
+    flex-direction: column;
+    padding: 28px 20px 20px;
+    background: var(--bg);
+    overflow: hidden;
+    border-radius: 0 12px 12px 0;
+  }
+
+  .right-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+  }
+
+  .right-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--hint);
+  }
+
+  .right-count {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--indigo);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── SLOT LIST ── */
+  .selected-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 14px;
+  }
+  .selected-list::-webkit-scrollbar { width: 3px; }
+  .selected-list::-webkit-scrollbar-thumb { background: var(--border-med); border-radius: 2px; }
+
+  .selected-slot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 11px;
+    border-radius: 9px;
+    min-height: 44px;
+    flex-shrink: 0;
+    transition: border-color 0.15s;
+  }
+
+  .selected-slot.filled {
+    background: #fff;
+    border: 1px solid rgba(99,102,241,0.15);
+    animation: slotIn 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  /* The one persistent empty slot */
+  .selected-slot.empty {
+    background: transparent;
+    border: 1.5px dashed var(--border-med);
+    cursor: pointer;
+  }
+  .selected-slot.empty:hover {
+    border-color: var(--indigo-light);
+    background: rgba(99,102,241,0.02);
+  }
+
+  @keyframes slotIn {
+    from { opacity: 0; transform: scale(0.95) translateY(4px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .slot-icon {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .slot-icon.filled-icon { background: var(--indigo-bg); color: var(--indigo); }
+  .slot-icon.empty-icon { background: var(--border); }
+
+  .slot-name {
+    flex: 1;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .slot-empty-text {
+    flex: 1;
+    font-size: 12px;
+    color: var(--hint);
+    font-style: italic;
+  }
+
+  .remove-btn {
+    flex-shrink: 0;
+    width: 18px; height: 18px;
+    border-radius: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--hint);
+    transition: background 0.1s, color 0.1s;
+    opacity: 0;
+  }
+  .selected-slot.filled:hover .remove-btn { opacity: 1; }
+  .remove-btn:hover { background: #FEE2E2; color: #DC2626; }
+
+  /* ── MICROCOPY ── */
+  .microcopy {
+    flex-shrink: 0;
+    font-size: 11px;
+    color: var(--hint);
+    margin-bottom: 12px;
+    min-height: 16px;
+    transition: color 0.2s;
+    line-height: 1.4;
+  }
+  .microcopy.positive { color: var(--indigo); }
+  .microcopy strong { font-weight: 600; }
+
+  /* ── CTA ── */
+  .cta-btn {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 44px;
+    background: linear-gradient(135deg, var(--indigo) 0%, var(--violet) 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s, background 0.3s;
+    letter-spacing: -0.01em;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.08), transparent);
+  }
+  .cta-btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+  .cta-btn:active:not(:disabled) { transform: translateY(0); }
+  .cta-btn:disabled {
+    background: var(--border-med);
+    color: var(--hint);
+    cursor: not-allowed;
+  }
+
+  .cta-sub {
+    text-align: center;
+    font-size: 10px;
+    color: var(--hint);
+    margin-top: 7px;
+    flex-shrink: 0;
+    min-height: 14px;
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Content -->
+  <div class="content-outer">
+
+  <!-- Logo row -->
+  <div class="logo-row">
+    <a href="#" class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 28 28" width="14" height="14" fill="none">
+          <rect x="1" y="11" width="3.5" height="6" rx="1.75" fill="white" opacity="0.5"/>
+          <rect x="6.5" y="7" width="3.5" height="14" rx="1.75" fill="white" opacity="0.75"/>
+          <rect x="12" y="4" width="3.5" height="20" rx="1.75" fill="white"/>
+          <rect x="17.5" y="8" width="3.5" height="12" rx="1.75" fill="white" opacity="0.85"/>
+          <rect x="23" y="5" width="3.5" height="18" rx="1.75" fill="white" opacity="0.6"/>
+        </svg>
+      </div>
+      <span class="logo-wordmark">Pod<em>Rise</em></span>
+    </a>
+  </div>
+
+  <div class="content">
+
+    <!-- LEFT -->
+    <div class="left">
+      <h1 class="page-heading">What podcasts do you listen to?</h1>
+      <p class="page-sub">Add your shows and we'll build your personalized feed and daily briefing.</p>
+
+      <!-- Search + Spotify -->
+      <div class="search-area" id="searchArea">
+        <div class="search-row">
+          <div class="search-wrap">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M11 11L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <input class="search-input" type="text" placeholder="e.g. The Daily, Lex Fridman…" id="searchInput" autocomplete="off" oninput="handleSearch(this.value)">
+            <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+          </div>
+          <a href="#" class="spotify-btn">
+            <div class="spotify-dot">
+              <svg viewBox="0 0 16 16" width="8" height="8" fill="white">
+                <path d="M8 0C3.58 0 0 3.58 0 8s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zm3.66 11.54a.5.5 0 01-.69.16c-1.88-1.15-4.25-1.41-7.03-.77a.5.5 0 01-.22-.97c3.05-.7 5.67-.4 7.78.89a.5.5 0 01.16.69zm.98-2.17a.62.62 0 01-.86.2c-2.15-1.32-5.43-1.7-7.97-.93a.62.62 0 11-.36-1.19c2.9-.88 6.5-.45 8.99 1.06a.62.62 0 01.2.86zm.08-2.26C10.15 5.6 5.9 5.46 3.27 6.23a.75.75 0 01-.43-1.44c2.98-.9 7.63-.72 10.63 1.08a.75.75 0 01-.75 1.3z"/>
+              </svg>
+            </div>
+            Import from Spotify
+          </a>
+        </div>
+        <div class="search-overlay" id="searchOverlay">
+          <div class="overlay-label" id="overlayLabel">Results</div>
+          <div class="podcast-list" id="searchResults"></div>
+        </div>
+      </div>
+
+      <div class="section-label" id="sectionLabel">Staff Picks</div>
+      <div class="section-sub" id="sectionSub"></div>
+      <div class="list-area">
+        <div class="podcast-list" id="staffList"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right">
+      <div class="right-header">
+        <span class="right-label">Your Feed</span>
+        <span class="right-count" id="rightCount">0 added</span>
+      </div>
+
+      <div class="selected-list" id="selectedList"></div>
+
+      <div class="microcopy" id="microcopy">Add 5 podcasts to unlock your feed</div>
+
+      <button class="cta-btn" id="ctaBtn" disabled>Build my feed</button>
+      <div class="cta-sub" id="ctaSub">Add 5 to continue</div>
+    </div>
+
+  </div>
+  </div><!-- /content-outer -->
+</div>
+
+<script>
+  const MIN = 5;
+  let selected = [];
+
+  // Microcopy that changes as count grows — goal gradient + variable reward
+  const MICROCOPY = {
+    0: { text: 'Add 5 podcasts to unlock your feed', positive: false },
+    1: { text: 'Good start — <strong>4 more</strong> to go', positive: false },
+    2: { text: 'Nice. <strong>3 more</strong> and your feed unlocks', positive: false },
+    3: { text: 'Almost halfway — <strong>2 more</strong>', positive: false },
+    4: { text: 'One more and you\'re in', positive: false },
+    5: { text: 'Your feed is ready — or keep going for better recommendations', positive: true },
+    6: { text: 'Getting better — more podcasts = smarter briefings', positive: true },
+    7: { text: 'Your briefing is shaping up nicely', positive: true },
+    8: { text: 'This is a seriously good feed', positive: true },
+    9: { text: 'Almost a perfect starting feed', positive: true },
+    10: { text: 'A great feed. You can always add more later.', positive: true },
+  };
+
+  const CTA_TEXT = {
+    0: 'Build my feed',
+    1: 'Build my feed',
+    2: 'Build my feed',
+    3: 'Build my feed',
+    4: 'Build my feed',
+    5: 'Build my feed →',
+    6: 'Build my feed →',
+    7: 'Build my feed →',
+    8: 'Build my feed →',
+    9: 'Build my feed →',
+    10: 'Build my feed →',
+  };
+
+  // ── FULL PODCAST CATALOG ──────────────────────────────────────────────────
+  // In production this is your full index. Here it's a representative set.
+  const ALL_PODS = [
+    { id: 'iltb',       name: "Invest Like the Best",                          cat: 'Investing',  init: 'IB', bg: '#EEF2FF', fg: '#6366F1' },
+    { id: 'huberman',   name: 'Huberman Lab',                                  cat: 'Health',     init: 'HL', bg: '#F0FDF4', fg: '#15803D' },
+    { id: 'mfm',        name: 'My First Million',                              cat: 'Business',   init: 'MF', bg: '#FDF2F8', fg: '#9D174D' },
+    { id: 'lex',        name: 'Lex Fridman Podcast',                           cat: 'Technology', init: 'LF', bg: '#111827', fg: '#E5E7EB' },
+    { id: 'acquired',   name: 'Acquired',                                      cat: 'Business',   init: 'AC', bg: '#EEF2FF', fg: '#4338CA' },
+    { id: 'rv',         name: 'Real Vision: Finance & Investing',              cat: 'Investing',  init: 'RV', bg: '#1a1a2e', fg: '#818CF8' },
+    { id: 'ai',         name: 'Eye On A.I.',                                   cat: 'Technology', init: 'AI', bg: '#EFF6FF', fg: '#3B82F6' },
+    { id: 'hibt',       name: 'How I Built This',                              cat: 'Business',   init: 'HB', bg: '#F0FDF4', fg: '#16A34A' },
+    { id: 'se',         name: 'Software Engineering Daily',                    cat: 'Technology', init: 'SE', bg: '#0F172A', fg: '#94A3B8' },
+    { id: 'ds',         name: 'Design Soapbox',                                cat: 'Design',     init: 'DS', bg: '#F5F3FF', fg: '#7C3AED' },
+    { id: 'mw',         name: 'Moneywise',                                     cat: 'Business',   init: 'MW', bg: '#FFF7ED', fg: '#EA580C' },
+    { id: 'ss',         name: 'Startup Stories – Mixergy',                     cat: 'Business',   init: 'SS', bg: '#FEF9C3', fg: '#A16207' },
+    { id: 'attia',      name: 'The Peter Attia Drive',                         cat: 'Health',     init: 'PA', bg: '#F0FDF4', fg: '#0D9488' },
+    { id: 'foundr',     name: 'Founder\'s Field Guide',                        cat: 'Business',   init: 'FF', bg: '#FFF7ED', fg: '#B45309' },
+    { id: 'indie',      name: 'Indie Hackers',                                 cat: 'Business',   init: 'IH', bg: '#EFF6FF', fg: '#2563EB' },
+    { id: 'bankless',   name: 'Bankless',                                      cat: 'Crypto',     init: 'BK', bg: '#1E1B4B', fg: '#818CF8' },
+    { id: 'tim',        name: 'The Tim Ferriss Show',                          cat: 'Business',   init: 'TF', bg: '#FDF4FF', fg: '#A21CAF' },
+    { id: 'thirty',     name: '30 for 30 Podcast',                             cat: 'Sports',     init: '30', bg: '#FFF1F2', fg: '#BE123C' },
+    { id: 'yc',         name: 'Y Combinator Podcast',                          cat: 'Startups',   init: 'YC', bg: '#FFF7ED', fg: '#EA580C' },
+    { id: 'knowledge',  name: 'Knowledge Project',                             cat: 'Psychology', init: 'KP', bg: '#F8FAFC', fg: '#475569' },
+    { id: 'masters',    name: 'Masters of Scale',                              cat: 'Business',   init: 'MS', bg: '#FDF2F8', fg: '#BE185D' },
+    { id: 'all_in',     name: 'All-In Podcast',                                cat: 'Tech/VC',    init: 'AI', bg: '#111827', fg: '#F59E0B' },
+    { id: 'conan',      name: 'Conan O\'Brien Needs a Friend',                 cat: 'Comedy',     init: 'CO', bg: '#FFF7ED', fg: '#C2410C' },
+    { id: 'freakonomics',name: 'Freakonomics Radio',                           cat: 'Economics',  init: 'FR', bg: '#EFF6FF', fg: '#1D4ED8' },
+    { id: 'darknet',    name: 'Darknet Diaries',                               cat: 'Technology', init: 'DD', bg: '#0F172A', fg: '#F472B6' },
+    { id: 'diary',      name: 'The Diary of a CEO',                            cat: 'Business',   init: 'DC', bg: '#111827', fg: '#E2E8F0' },
+    { id: 'ologies',    name: 'Ologies with Alie Ward',                        cat: 'Science',    init: 'OL', bg: '#F0FDF4', fg: '#059669' },
+    { id: 'pivot',      name: 'Pivot',                                         cat: 'Tech/VC',    init: 'PV', bg: '#EEF2FF', fg: '#7C3AED' },
+    { id: 'hbr',        name: 'HBR IdeaCast',                                  cat: 'Business',   init: 'HI', bg: '#FFF1F2', fg: '#9F1239' },
+    { id: 'armchair',   name: 'Armchair Expert with Dax Shepard',              cat: 'Culture',    init: 'AE', bg: '#FFFBEB', fg: '#92400E' },
+  ];
+
+  // ── SIMILARITY MAP ────────────────────────────────────────────────────────
+  // For each podcast, ordered list of IDs most likely to appeal to the same listener.
+  // Editorial logic now; replace with collaborative filtering data once you have it.
+  const SIMILAR = {
+    iltb:        ['acquired', 'rv', 'all_in', 'mfm', 'foundr', 'pivot', 'knowledge', 'freakonomics'],
+    huberman:    ['attia', 'knowledge', 'ologies', 'tim', 'diary', 'armchair'],
+    mfm:         ['hibt', 'ss', 'indie', 'yc', 'masters', 'diary', 'foundr', 'tim'],
+    lex:         ['ai', 'se', 'all_in', 'darknet', 'pivot', 'freakonomics', 'ologies'],
+    acquired:    ['iltb', 'all_in', 'rv', 'pivot', 'foundr', 'hbr', 'mfm', 'masters'],
+    rv:          ['iltb', 'acquired', 'bankless', 'all_in', 'mw', 'pivot', 'freakonomics'],
+    ai:          ['lex', 'se', 'darknet', 'all_in', 'pivot', 'freakonomics'],
+    hibt:        ['mfm', 'ss', 'masters', 'yc', 'indie', 'foundr', 'tim', 'diary'],
+    se:          ['ai', 'lex', 'darknet', 'all_in', 'indie', 'yc'],
+    ds:          ['lex', 'knowledge', 'ologies', 'armchair', 'tim'],
+    mw:          ['rv', 'iltb', 'bankless', 'freakonomics', 'hbr'],
+    ss:          ['mfm', 'hibt', 'yc', 'indie', 'foundr', 'masters'],
+    attia:       ['huberman', 'knowledge', 'ologies', 'tim', 'armchair'],
+    foundr:      ['mfm', 'hibt', 'ss', 'yc', 'masters', 'indie', 'diary'],
+    indie:       ['ss', 'mfm', 'yc', 'hibt', 'se', 'foundr'],
+    bankless:    ['rv', 'all_in', 'iltb', 'pivot', 'mw'],
+    tim:         ['huberman', 'attia', 'knowledge', 'diary', 'masters', 'armchair', 'mfm'],
+    yc:          ['mfm', 'ss', 'indie', 'hibt', 'foundr', 'acquired'],
+    knowledge:   ['huberman', 'attia', 'tim', 'diary', 'armchair', 'ologies', 'freakonomics'],
+    masters:     ['hibt', 'mfm', 'diary', 'foundr', 'hbr', 'tim', 'acquired'],
+    all_in:      ['acquired', 'iltb', 'pivot', 'rv', 'lex', 'bankless'],
+    conan:       ['armchair', 'thirty', 'diary', 'tim'],
+    freakonomics:['knowledge', 'hbr', 'ologies', 'rv', 'iltb', 'lex'],
+    darknet:     ['se', 'lex', 'ai', 'diary'],
+    diary:       ['masters', 'tim', 'huberman', 'mfm', 'hibt', 'knowledge', 'armchair'],
+    ologies:     ['huberman', 'attia', 'knowledge', 'freakonomics', 'armchair'],
+    pivot:       ['all_in', 'acquired', 'iltb', 'rv', 'ai', 'lex'],
+    hbr:         ['masters', 'acquired', 'knowledge', 'freakonomics', 'hibt'],
+    armchair:    ['conan', 'tim', 'diary', 'knowledge', 'huberman'],
+    thirty:      ['conan', 'armchair'],
+  };
+
+  // ── STATE ──────────────────────────────────────────────────────────────────
+  // lastAdded: id of the most recently added podcast, drives the "because you added X" label
+  let lastAdded = null;
+
+  // ── SCORING ───────────────────────────────────────────────────────────────
+  // Score every unselected podcast based on how often it appears in the
+  // similarity lists of selected podcasts, weighted by position (earlier = higher score).
+  function getSuggestions() {
+    const selectedIds = new Set(selected.map(s => s.id));
+    const scores = {};
+
+    ALL_PODS.forEach(p => {
+      if (!selectedIds.has(p.id)) scores[p.id] = 0;
+    });
+
+    selected.forEach(s => {
+      const neighbours = SIMILAR[s.id] || [];
+      neighbours.forEach((nid, idx) => {
+        if (!selectedIds.has(nid) && scores[nid] !== undefined) {
+          // Higher weight for earlier positions; decay by rank
+          scores[nid] += (neighbours.length - idx);
+        }
+      });
+    });
+
+    return ALL_PODS
+      .filter(p => !selectedIds.has(p.id))
+      .sort((a, b) => (scores[b.id] || 0) - (scores[a.id] || 0));
+  }
+
+  // ── LIST LABEL ────────────────────────────────────────────────────────────
+  function getListLabel() {
+    if (selected.length === 0) return { text: 'Staff Picks', sub: null };
+    const p = ALL_PODS.find(p => p.id === lastAdded);
+    if (p) return { text: 'Suggested for you', sub: `Because you added ${p.name}` };
+    return { text: 'Suggested for you', sub: null };
+  }
+
+  // ── RENDER SUGGESTION LIST ────────────────────────────────────────────────
+  function renderSuggestions() {
+    const listEl = document.getElementById('staffList');
+    const labelEl = document.getElementById('sectionLabel');
+    const subEl = document.getElementById('sectionSub');
+
+    const { text, sub } = getListLabel();
+    labelEl.textContent = text;
+    if (sub) {
+      subEl.textContent = sub;
+      subEl.style.display = 'block';
+    } else {
+      subEl.style.display = 'none';
+    }
+
+    const suggestions = selected.length === 0
+      ? ALL_PODS.slice(0, 12)   // initial staff picks = first 12
+      : getSuggestions();
+
+    // Animate out rows being replaced, animate in new ones
+    const currentIds = [...listEl.querySelectorAll('.podcast-row')].map(r => r.dataset.id);
+    const newIds = suggestions.map(p => p.id);
+
+    // If list is empty or completely different, just rebuild
+    if (currentIds.length === 0) {
+      listEl.innerHTML = '';
+      suggestions.forEach(p => makeRow(p, listEl));
+      return;
+    }
+
+    // Remove rows no longer in suggestions (added to feed)
+    currentIds.forEach(id => {
+      if (!newIds.includes(id)) {
+        const row = listEl.querySelector(`.podcast-row[data-id="${id}"]`);
+        if (row) {
+          row.style.transition = 'opacity 0.15s, transform 0.15s';
+          row.style.opacity = '0';
+          row.style.transform = 'translateX(-8px)';
+          setTimeout(() => row.remove(), 150);
+        }
+      }
+    });
+
+    // Add new rows that weren't there before (slide in from right)
+    setTimeout(() => {
+      newIds.forEach((id, i) => {
+        if (!currentIds.includes(id)) {
+          const podcast = ALL_PODS.find(p => p.id === id);
+          if (!podcast) return;
+          const row = document.createElement('div');
+          row.className = 'podcast-row';
+          row.dataset.id = podcast.id;
+          row.style.opacity = '0';
+          row.style.transform = 'translateX(10px)';
+          row.innerHTML = `
+            <div class="podcast-art-placeholder" style="background:${podcast.bg};color:${podcast.fg}">${podcast.init}</div>
+            <div class="podcast-info">
+              <div class="podcast-name">${podcast.name}</div>
+              <div class="podcast-cat">${podcast.cat}</div>
+            </div>
+            <button class="add-btn" onclick="togglePodcast(event,'${podcast.id}')">ADD</button>
+          `;
+          // Insert at correct position
+          const allRows = listEl.querySelectorAll('.podcast-row');
+          if (i < allRows.length) {
+            listEl.insertBefore(row, allRows[i]);
+          } else {
+            listEl.appendChild(row);
+          }
+          requestAnimationFrame(() => {
+            row.style.transition = 'opacity 0.2s, transform 0.2s';
+            row.style.opacity = '1';
+            row.style.transform = 'translateX(0)';
+          });
+        }
+      });
+    }, 160);
+  }
+
+  // ── MAKE ROW (search overlay only) ───────────────────────────────────────
+  function makeRow(podcast, container) {
+    const row = document.createElement('div');
+    row.className = 'podcast-row';
+    row.dataset.id = podcast.id;
+    row.innerHTML = `
+      <div class="podcast-art-placeholder" style="background:${podcast.bg};color:${podcast.fg}">${podcast.init}</div>
+      <div class="podcast-info">
+        <div class="podcast-name">${podcast.name}</div>
+        <div class="podcast-cat">${podcast.cat}</div>
+      </div>
+      <button class="add-btn" onclick="togglePodcast(event,'${podcast.id}')">ADD</button>
+    `;
+    container.appendChild(row);
+  }
+
+  // ── RENDER RIGHT PANEL ────────────────────────────────────────────────────
+  function renderRight() {
+    const n = selected.length;
+    const list = document.getElementById('selectedList');
+    list.innerHTML = '';
+
+    selected.forEach(p => {
+      const slot = document.createElement('div');
+      slot.className = 'selected-slot filled';
+      slot.innerHTML = `
+        <div class="slot-icon filled-icon">${p.init}</div>
+        <span class="slot-name">${p.name}</span>
+        <button class="remove-btn" onclick="removePodcast('${p.id}',event)">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+            <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+          </svg>
+        </button>
+      `;
+      list.appendChild(slot);
+    });
+
+    const empty = document.createElement('div');
+    empty.className = 'selected-slot empty';
+    empty.onclick = () => document.getElementById('searchInput').focus();
+    empty.innerHTML = `<div class="slot-icon empty-icon"></div><span class="slot-empty-text">Add another…</span>`;
+    list.appendChild(empty);
+
+    requestAnimationFrame(() => { list.scrollTop = list.scrollHeight; });
+
+    document.getElementById('rightCount').textContent = n === 0 ? '0 added' : `${n} added`;
+
+    const mc = MICROCOPY[Math.min(n, 10)];
+    const mcEl = document.getElementById('microcopy');
+    mcEl.innerHTML = mc.text;
+    mcEl.className = 'microcopy' + (mc.positive ? ' positive' : '');
+
+    const btn = document.getElementById('ctaBtn');
+    const sub = document.getElementById('ctaSub');
+    btn.disabled = n < MIN;
+    btn.textContent = CTA_TEXT[Math.min(n, 10)];
+    if (n >= MIN) {
+      sub.textContent = n < 10 ? `${10 - n} more = smarter briefings` : 'Your feed is ready';
+    } else {
+      const r = MIN - n;
+      sub.textContent = `${r} more podcast${r !== 1 ? 's' : ''} to continue`;
+    }
+  }
+
+  // ── TOGGLE (add or remove) ────────────────────────────────────────────────
+  function togglePodcast(e, id) {
+    e.stopPropagation();
+    const podcast = ALL_PODS.find(p => p.id === id);
+    if (!podcast) return;
+    const idx = selected.findIndex(s => s.id === id);
+    if (idx > -1) {
+      selected.splice(idx, 1);
+      // When removing, don't change lastAdded
+    } else {
+      selected.push(podcast);
+      lastAdded = id;
+    }
+    renderRight();
+    renderSuggestions();
+  }
+
+  function removePodcast(id, e) {
+    e.stopPropagation();
+    selected = selected.filter(s => s.id !== id);
+    renderRight();
+    renderSuggestions();
+  }
+
+  // ── SEARCH ────────────────────────────────────────────────────────────────
+  function searchPodcasts(q) {
+    const lq = q.toLowerCase();
+    const selectedIds = new Set(selected.map(s => s.id));
+    return ALL_PODS.filter(p =>
+      !selectedIds.has(p.id) &&
+      (p.name.toLowerCase().includes(lq) || p.cat.toLowerCase().includes(lq))
+    );
+  }
+
+  function handleSearch(val) {
+    const overlay = document.getElementById('searchOverlay');
+    const clearBtn = document.getElementById('searchClear');
+    const results = document.getElementById('searchResults');
+    const label = document.getElementById('overlayLabel');
+    if (!val.trim()) {
+      overlay.classList.remove('visible');
+      clearBtn.classList.remove('visible');
+      return;
+    }
+    clearBtn.classList.add('visible');
+    const matches = searchPodcasts(val);
+    results.innerHTML = '';
+    if (matches.length === 0) {
+      label.textContent = 'No results';
+      results.innerHTML = `<div style="padding:12px 10px;font-size:13px;color:var(--hint)">No podcasts found for "${val}"</div>`;
+    } else {
+      label.textContent = `${matches.length} result${matches.length !== 1 ? 's' : ''}`;
+      matches.forEach(p => makeRow(p, results));
+    }
+    overlay.classList.add('visible');
+  }
+
+  function clearSearch() {
+    const input = document.getElementById('searchInput');
+    input.value = '';
+    handleSearch('');
+    input.focus();
+  }
+
+  document.addEventListener('click', e => {
+    if (!document.getElementById('searchArea').contains(e.target)) {
+      document.getElementById('searchOverlay').classList.remove('visible');
+    }
+  });
+
+  renderSuggestions();
+  renderRight();
+</script>
+</body>
+</html>
