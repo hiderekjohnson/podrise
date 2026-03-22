@@ -12,6 +12,44 @@ let rateLimitedUntil = 0;
 let lastBudgetSyncAt = 0;
 const BUDGET_SYNC_INTERVAL_MS = 5 * 60 * 1000;
 
+// --- Per-minute sliding-window rate limiter ---
+// Taddy allows 250 req/min. We self-limit to 180 to stay well clear.
+const PER_MINUTE_LIMIT = 180;
+const requestTimestamps: number[] = [];
+
+function perMinuteSlotAvailable(): boolean {
+  const cutoff = Date.now() - 60_000;
+  while (requestTimestamps.length > 0 && requestTimestamps[0] < cutoff) {
+    requestTimestamps.shift();
+  }
+  return requestTimestamps.length < PER_MINUTE_LIMIT;
+}
+
+async function waitForRateLimitSlot(): Promise<void> {
+  const start = Date.now();
+  let logged = false;
+  while (!perMinuteSlotAvailable()) {
+    if (!logged) {
+      const { used } = getTaddyPerMinuteStatus();
+      console.warn(`[TaddyRateLimit] At capacity (${used}/${PER_MINUTE_LIMIT} req/min) — throttling next request`);
+      logged = true;
+    }
+    const waitMs = Math.min((requestTimestamps[0] + 60_000) - Date.now() + 50, 2000);
+    if (waitMs > 0) await new Promise(r => setTimeout(r, waitMs));
+    if (Date.now() - start > 90_000) {
+      console.warn("[TaddyRateLimit] Waited >90s for a slot — proceeding anyway to avoid stall");
+      break;
+    }
+  }
+  requestTimestamps.push(Date.now());
+}
+
+export function getTaddyPerMinuteStatus(): { used: number; limit: number } {
+  const cutoff = Date.now() - 60_000;
+  const recent = requestTimestamps.filter(t => t >= cutoff).length;
+  return { used: recent, limit: PER_MINUTE_LIMIT };
+}
+
 function getCurrentMonthKey(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -529,6 +567,9 @@ async function taddyRequest(query: string, skipBudgetCheck: boolean = false): Pr
   }
 
   await incrementBudgetCounter();
+
+  // Throttle: wait for a per-minute slot before sending the request
+  await waitForRateLimitSlot();
 
   const response = await fetch(TADDY_API_URL, {
     method: "POST",

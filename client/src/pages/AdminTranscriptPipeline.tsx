@@ -380,10 +380,16 @@ export default function AdminTranscriptPipeline() {
     refetchInterval: 60_000,
   });
 
-  const { data: schedulerHealth } = useQuery<{ isRunning: boolean; lastRecapTime: string | null; minutesSinceLastRun: number | null }>({
+  const { data: schedulerHealth } = useQuery<{
+    isRunning: boolean;
+    lastRecapTime: string | null;
+    minutesSinceLastRun: number | null;
+    taddyRateUsed: number;
+    taddyRateLimit: number;
+  }>({
     queryKey: ["/api/admin/scheduler-health"],
     queryFn: () => fetch("/api/admin/scheduler-health").then(r => r.json()),
-    refetchInterval: 30_000,
+    refetchInterval: 15_000,
   });
 
   const { data: healthSnapshot } = useQuery<{
@@ -436,18 +442,35 @@ export default function AdminTranscriptPipeline() {
           <div className="flex items-center gap-2.5">
             <h2 className="text-lg font-bold">Episode Pipeline</h2>
             {schedulerHealth && (
-              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${
-                schedulerHealth.isRunning
-                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400"
-                  : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-              }`}
-              data-testid="scheduler-status">
-                <span className={`w-2 h-2 rounded-full ${schedulerHealth.isRunning ? "bg-emerald-500" : "bg-red-500"} ${schedulerHealth.isRunning ? "" : ""}`} />
-                {schedulerHealth.isRunning ? "✓ Running" : "✗ Stopped"}
-                {schedulerHealth.minutesSinceLastRun !== null && (
-                  <span className="text-[10px] text-muted-foreground ml-1">({schedulerHealth.minutesSinceLastRun}m ago)</span>
-                )}
-              </div>
+              <>
+                <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${
+                  schedulerHealth.isRunning
+                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400"
+                    : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                }`}
+                data-testid="scheduler-status">
+                  <span className={`w-2 h-2 rounded-full ${schedulerHealth.isRunning ? "bg-emerald-500" : "bg-red-500"}`} />
+                  {schedulerHealth.isRunning ? "✓ Running" : "✗ Stopped"}
+                  {schedulerHealth.minutesSinceLastRun !== null && (
+                    <span className="text-[10px] text-muted-foreground ml-1">({schedulerHealth.minutesSinceLastRun}m ago)</span>
+                  )}
+                </div>
+                {schedulerHealth.taddyRateLimit > 0 && (() => {
+                  const pct = Math.round((schedulerHealth.taddyRateUsed / schedulerHealth.taddyRateLimit) * 100);
+                  const isHigh = pct >= 80;
+                  const isMed = pct >= 50;
+                  return (
+                    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${
+                      isHigh ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                        : isMed ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                        : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                    }`} title="Taddy API calls in the last 60 seconds (limit: 180/min)" data-testid="taddy-rate-badge">
+                      <span className={`w-1.5 h-1.5 rounded-full ${isHigh ? "bg-red-500" : isMed ? "bg-amber-500" : "bg-slate-400"}`} />
+                      Taddy {schedulerHealth.taddyRateUsed}/{schedulerHealth.taddyRateLimit} req/min
+                    </div>
+                  );
+                })()}
+              </>
             )}
           </div>
           <p className="text-xs text-muted-foreground mt-0.5 leading-snug">

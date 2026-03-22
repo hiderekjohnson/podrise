@@ -9639,10 +9639,15 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const isRunning = lastRecapTime && (now.getTime() - lastRecapTime.getTime()) < 15 * 60 * 1000; // 15 min threshold
       const minutesSinceLastRun = lastRecapTime ? Math.floor((now.getTime() - lastRecapTime.getTime()) / 60000) : null;
       
+      const { getTaddyPerMinuteStatus } = await import("./taddyClient");
+      const taddyRate = getTaddyPerMinuteStatus();
+
       res.json({
         isRunning: isRunning ?? false,
         lastRecapTime: lastRecapTime?.toISOString() || null,
         minutesSinceLastRun: minutesSinceLastRun,
+        taddyRateUsed: taddyRate.used,
+        taddyRateLimit: taddyRate.limit,
       });
     } catch (err: any) {
       console.error("[SchedulerHealth] Error:", err.message);
