@@ -13,7 +13,9 @@ const HEADLINE_RETRY_COUNT = 2;
 const HEADLINE_RETRY_DELAY_MS = 3000;
 let batchRunning = false;
 let batchStartedAt = 0;
+let lastSuccessfulBatchAt = Date.now();
 let catchUpRunning = false;
+let timeoutEpisodesThisSession = new Set<string>();
 
 async function getPodcastInfo(itunesId: string) {
   const { rows } = await pool.query(
@@ -217,6 +219,13 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
 }
 
 async function runBatch() {
+  // Watchdog: if no successful batch in 30 minutes, force reset (safety valve)
+  const timeSinceLastSuccess = Date.now() - lastSuccessfulBatchAt;
+  if (timeSinceLastSuccess > 30 * 60 * 1000 && batchRunning) {
+    console.error(`[ProdRecap] WATCHDOG: Batch stuck for ${Math.round(timeSinceLastSuccess / 60000)}min — forcing emergency reset`);
+    batchRunning = false;
+  }
+
   if (batchRunning) {
     const elapsed = Date.now() - batchStartedAt;
     if (elapsed > BATCH_TIMEOUT_MS) {
@@ -286,7 +295,9 @@ async function runBatch() {
       const epTitle = ep.episode_title || "Untitled";
       const epSlug = epTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 200);
       const episodeTimeout = new Promise<ProcessEpisodeResult>((resolve) => setTimeout(async () => {
-        console.warn(`[ProdRecap] Episode timed out after 4min: "${epTitle.slice(0, 60)}"`);
+        const episodeId = `${podcastSlug}/${epSlug}`;
+        timeoutEpisodesThisSession.add(episodeId);
+        console.warn(`[ProdRecap] Episode timed out after 4min: "${epTitle.slice(0, 60)}" (${timeoutEpisodesThisSession.size} timeouts in session)`);
         try {
           await pool.query(
             `INSERT INTO landing_page_recaps (user_id, podcast_slug, episode_slug, episode_title, podcast_name, source, status, recap)
@@ -294,7 +305,9 @@ async function runBatch() {
              ON CONFLICT DO NOTHING`,
             [podcastSlug, epSlug, epTitle, podcastName, "Timed out after 4 minutes"]
           );
-        } catch {}
+        } catch (err: any) {
+          console.error(`[ProdRecap] Failed to record timeout for "${epTitle.slice(0, 60)}": ${err.message}`);
+        }
         resolve({ success: false });
       }, 4 * 60 * 1000));
       const result = await Promise.race([processPromise, episodeTimeout]);
@@ -308,9 +321,12 @@ async function runBatch() {
 
     if (generated > 0 || failed > 0) {
       console.log(`[ProdRecap] Batch done: ${generated} generated, ${failed} failed`);
+      if (generated > 0) {
+        lastSuccessfulBatchAt = Date.now();
+      }
     }
   } catch (err: any) {
-    console.error("[ProdRecap] Batch error:", err.message);
+    console.error("[ProdRecap] Batch error:", err.message, err.stack);
   } finally {
     batchRunning = false;
   }
