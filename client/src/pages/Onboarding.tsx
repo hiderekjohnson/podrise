@@ -38,16 +38,16 @@ function getMicrocopy(n: number): { text: string; positive: boolean } {
   if (n === 2) return { text: "Nice. <strong>3 more</strong> and your feed unlocks", positive: false };
   if (n === 3) return { text: "Almost halfway — <strong>2 more</strong>", positive: false };
   if (n === 4) return { text: "One more and you're in", positive: false };
-  if (n <= 7) return { text: "Keep going — more shows = smarter briefings", positive: true };
-  if (n <= 9) return { text: "Your briefing is shaping up nicely", positive: true };
-  if (n <= 12) return { text: "This is a seriously good feed", positive: true };
-  if (n <= 15) return { text: "Almost a perfect starting feed", positive: true };
+  if (n <= 6) return { text: "Keep going — more shows = smarter recaps", positive: true };
+  if (n <= 8) return { text: "Your recap is shaping up nicely", positive: true };
+  if (n === 9) return { text: "One more for a perfect starting feed", positive: true };
   return { text: "A great feed. You can always add more later.", positive: true };
 }
 
 function getProgressPercent(n: number): number {
   if (n === 0) return 0;
-  return Math.min(96, 100 * (1 - Math.exp(-n / 8)));
+  if (n >= 10) return 96;
+  return Math.min(96, (n / 10) * 96);
 }
 
 function CtaButton({ count, isPending, onClick, testId }: { count: number; isPending: boolean; onClick: () => void; testId: string }) {
