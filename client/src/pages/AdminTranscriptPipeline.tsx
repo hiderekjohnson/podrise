@@ -427,6 +427,9 @@ export default function AdminTranscriptPipeline() {
         </select>
       </div>
 
+      {/* Support Prompt - Top & Prominent */}
+      <SupportPrompt />
+
       {/* Stats — grouped by time window */}
       {statsLoading ? (
         <div className="space-y-3">
@@ -547,8 +550,6 @@ export default function AdminTranscriptPipeline() {
           </p>
         </>
       )}
-
-      <SupportPrompt />
     </div>
   );
 }
@@ -567,7 +568,7 @@ The key table is landing_page_recaps (status can be: published, hidden, generati
 The scheduler runs every 5 min and processes 3 episodes per batch in production only.`;
 
 function SupportPrompt() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -577,24 +578,24 @@ function SupportPrompt() {
   };
 
   return (
-    <div className="border-t pt-5 mt-6" data-testid="support-prompt-section">
+    <div className="border-2 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 rounded-xl p-4" data-testid="support-prompt-section">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full"
+        className="flex items-center gap-2 text-sm text-amber-900 dark:text-amber-100 hover:text-amber-800 dark:hover:text-amber-50 transition-colors w-full font-semibold"
         data-testid="button-toggle-support-prompt"
       >
         <Wrench className="w-4 h-4" />
-        <span className="font-semibold">See an issue? Here's what to tell Replit Agent</span>
+        <span>See an issue? Here's what to tell Replit Agent</span>
         {open ? <ChevronUp className="w-4 h-4 ml-auto" /> : <ChevronDown className="w-4 h-4 ml-auto" />}
       </button>
 
       {open && (
         <div className="mt-3 space-y-3">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-amber-800 dark:text-amber-200">
             Copy this prompt and paste it into Replit Agent chat. It will automatically run the right diagnostic checks.
           </p>
           <div className="relative">
-            <pre className="bg-gray-50 dark:bg-zinc-900 border rounded-xl p-4 text-xs text-foreground whitespace-pre-wrap leading-relaxed font-mono">
+            <pre className="bg-white dark:bg-zinc-900 border border-amber-200 dark:border-amber-800 rounded-lg p-4 text-xs text-foreground whitespace-pre-wrap leading-relaxed font-mono overflow-x-auto">
               {SUPPORT_PROMPT}
             </pre>
             <button
