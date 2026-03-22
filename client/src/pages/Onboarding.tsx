@@ -50,6 +50,35 @@ function getProgressPercent(n: number): number {
   return Math.min(96, 100 * (1 - Math.exp(-n / 8)));
 }
 
+function CtaButton({ count, isPending, onClick, testId }: { count: number; isPending: boolean; onClick: () => void; testId: string }) {
+  const isReady = count >= MIN_PICKS;
+  const t = isReady ? Math.min((count - MIN_PICKS) / 5, 1) : 0;
+  const opacity = isReady ? 0.45 + t * 0.55 : 1;
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={!isReady || isPending}
+      className={`flex-shrink-0 w-full h-[44px] flex items-center justify-center rounded-[10px] font-semibold text-[14px] tracking-[-0.01em] transition-all relative overflow-hidden ${
+        isReady
+          ? "text-white hover:-translate-y-[1px] active:translate-y-0 cursor-pointer"
+          : "bg-[#E4E4E7] dark:bg-[#27272A] text-[#A1A1AA] dark:text-[#52525B] cursor-not-allowed"
+      }`}
+      style={isReady ? {
+        background: `linear-gradient(135deg, rgba(99,102,241,${opacity}), rgba(139,92,246,${opacity}))`,
+      } : undefined}
+      data-testid={testId}
+    >
+      {isPending ? (
+        <>
+          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+          Setting up…
+        </>
+      ) : isReady ? "Build my feed →" : "Build my feed"}
+    </button>
+  );
+}
+
 function PodcastRow({
   name,
   artworkUrl,
@@ -421,23 +450,12 @@ export default function Onboarding() {
         />
       </div>
 
-      <button
+      <CtaButton
+        count={count}
+        isPending={completeMutation.isPending}
         onClick={() => completeMutation.mutate()}
-        disabled={!isReady || completeMutation.isPending}
-        className={`flex-shrink-0 w-full h-[44px] flex items-center justify-center rounded-[10px] font-semibold text-[14px] tracking-[-0.01em] transition-all relative overflow-hidden ${
-          isReady && !completeMutation.isPending
-            ? "bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white hover:opacity-90 hover:-translate-y-[1px] active:translate-y-0 cursor-pointer"
-            : "bg-[#E4E4E7] dark:bg-[#27272A] text-[#A1A1AA] dark:text-[#52525B] cursor-not-allowed"
-        }`}
-        data-testid="onboarding-finish"
-      >
-        {completeMutation.isPending ? (
-          <>
-            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-            Setting up…
-          </>
-        ) : isReady ? "Build my feed →" : "Build my feed"}
-      </button>
+        testId="onboarding-finish"
+      />
       <p className="text-center text-[10px] text-[#A1A1AA] mt-[7px] flex-shrink-0 min-h-[14px]" data-testid="text-cta-sub">
         {isReady
           ? "Or keep adding for smarter briefings"
@@ -650,10 +668,13 @@ export default function Onboarding() {
                 }}
                 disabled={completeMutation.isPending}
                 className={`flex-shrink-0 h-10 px-5 rounded-[10px] font-semibold text-[13px] transition-all ${
-                  isReady && !completeMutation.isPending
-                    ? "bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white hover:opacity-90"
+                  isReady
+                    ? "text-white hover:opacity-90"
                     : "bg-[#E4E4E7] dark:bg-[#27272A] text-[#A1A1AA] dark:text-[#52525B]"
                 }`}
+                style={isReady ? {
+                  background: `linear-gradient(135deg, rgba(99,102,241,${0.45 + Math.min((count - MIN_PICKS) / 5, 1) * 0.55}), rgba(139,92,246,${0.45 + Math.min((count - MIN_PICKS) / 5, 1) * 0.55}))`,
+                } : undefined}
                 data-testid="mobile-cta"
               >
                 {completeMutation.isPending ? (
