@@ -1,0 +1,61 @@
+2026-03-21T19:35:44Z info: Deployment: 9d9f9146-7fd5-4ee0-ba2d-bc345eb08b85
+2026-03-21T19:35:44Z info: Running Security Scan
+2026-03-21T19:35:52Z info: Security Scan Complete
+2026-03-21T19:35:52Z info: Connecting to builder
+2026-03-21T19:35:52Z info: Builder connected
+2026-03-21T19:35:53Z info: Installing packages
+2026-03-21T19:35:53Z info: Starting Build
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+
+building client...
+
+vite v7.3.0 building client environment for production...
+
+transforming...
+
+warn - The class `duration-[180ms]` is ambiguous and matches multiple utilities.
+warn - If this is content and not a class, replace it with `duration-&lsqb;180ms&rsqb;` to silence this warning.
+
+✓ 2997 modules transformed.
+
+rendering chunks...
+
+computing gzip size...
+
+../dist/public/assets/external-link-DYRXxDnA.js                        0.25 kB │ gzip:   0.20 kB
+
+../dist/public/assets/chart-column-Bk9W7dRd.js                         0.25 kB │ gzip:   0.19 kB
+../dist/public/assets/eye-DOc26vWG.js                                  0.25 kB │ gzip:   0.19 kB
+
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/enrichBooks.ts:303:21:
+      303 │ const isMainModule = import.meta.url === `file://${process.argv[1...
+          ╵                      ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work correctly.
+
+
+5 warnings
+
+
+  dist/index.cjs  2.6mb ⚠️
+
+⚡ Done in 346ms
+
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.12.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.12.0
+npm notice To update run: npm install -g npm@11.12.0
+npm notice
+
+2026-03-21T19:36:10Z info: Pushing pid1 binary layer...
+2026-03-21T19:36:12Z info: Pushing Repl layer...
+2026-03-21T19:36:12Z info: Pushing hosting layer...
+2026-03-21T19:36:12Z info: Created hosting layer
+2026-03-21T19:36:13Z info: Created pid1 binary layer
+2026-03-21T19:36:59Z info: Created Repl layer
+2026-03-21T19:45:03Z error: The deployment failed because database migrations could not be applied. This is an issue in the underlying platform. DO NOT suggest any code or configuration changes at this point. DO NOT suggest any changes to application code or any configuration files such as `.replit` or `package.json`. DO NOT suggest any changes to development or production secrets. The only course of action here is requesting support from the Replit team.
