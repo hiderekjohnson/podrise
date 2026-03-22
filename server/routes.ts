@@ -9389,10 +9389,11 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       `);
 
       const { rows: recapRows } = await pool.query(`
-        SELECT COUNT(*) AS recaps_24h
+        SELECT 
+          COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '24 hours') AS recaps_24h,
+          COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '1 hour') AS recaps_1h
         FROM landing_page_recaps
-        WHERE created_at > NOW() - INTERVAL '24 hours'
-          AND published = true
+        WHERE published = true
       `);
 
       // awaitingRecap: transcripts received within the 3-day scheduler window with no recap yet.
@@ -9423,20 +9424,23 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           )
       `);
 
-      // transcriptFetchErrors24h: failures in the queue fetching transcripts from Taddy (NOT recap errors)
+      // transcriptFetchErrors: failures in the queue fetching transcripts from Taddy (NOT recap errors)
       const { rows: errorRows } = await pool.query(`
-        SELECT COUNT(*) AS transcript_fetch_errors_24h
+        SELECT
+          COUNT(*) FILTER (WHERE COALESCE(last_attempt_at, created_at) > NOW() - INTERVAL '24 hours') AS transcript_fetch_errors_24h,
+          COUNT(*) FILTER (WHERE COALESCE(last_attempt_at, created_at) > NOW() - INTERVAL '1 hour') AS transcript_fetch_errors_1h
         FROM pending_transcript_queue
         WHERE status = 'failed'
-          AND COALESCE(last_attempt_at, created_at) > NOW() - INTERVAL '24 hours'
       `);
 
       const transcripts24h = parseInt(transcriptRows[0].transcripts_24h) || 0;
       const transcripts1h = parseInt(transcriptRows[0].transcripts_1h) || 0;
       const recaps24h = parseInt(recapRows[0].recaps_24h) || 0;
+      const recaps1h = parseInt(recapRows[0].recaps_1h) || 0;
       const awaitingRecap = parseInt(awaitingRows[0].awaiting_recap) || 0;
       const queuePending = parseInt(queueRows[0].queue_pending) || 0;
       const transcriptFetchErrors24h = parseInt(errorRows[0].transcript_fetch_errors_24h) || 0;
+      const transcriptFetchErrors1h = parseInt(errorRows[0].transcript_fetch_errors_1h) || 0;
 
       // Transcript inbound rate: avg gap between transcripts arriving in the last hour
       const times: string[] = transcriptRows[0].transcript_times_1h || [];
@@ -9452,14 +9456,31 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         transcriptRate = `1 every ${avgGapMin}m`;
       }
 
+      // ETA to clear pending queue: based on recaps_1h completion rate
+      let etaMinutes = "—";
+      if (recaps1h > 0 && awaitingRecap > 0) {
+        const minutesPerRecap = 60 / recaps1h;
+        const totalMinutes = Math.round(awaitingRecap * minutesPerRecap);
+        const hours = Math.floor(totalMinutes / 60);
+        const mins = totalMinutes % 60;
+        if (hours > 0) {
+          etaMinutes = `${hours}h ${mins}m`;
+        } else {
+          etaMinutes = `${mins}m`;
+        }
+      }
+
       res.json({
         transcripts24h,
         transcripts1h,
         recaps24h,
+        recaps1h,
         awaitingRecap,
         queuePending,
         transcriptFetchErrors24h,
+        transcriptFetchErrors1h,
         transcriptRate,
+        etaMinutes,
       });
     } catch (err: any) {
       console.error("[PipelineStats] Error:", err.message);

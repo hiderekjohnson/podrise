@@ -10,10 +10,13 @@ interface PipelineStats {
   transcripts24h: number;
   transcripts1h: number;
   recaps24h: number;
+  recaps1h: number;
   awaitingRecap: number;
   queuePending: number;
   transcriptFetchErrors24h: number;
+  transcriptFetchErrors1h: number;
   transcriptRate: string;
+  etaMinutes: string;
 }
 
 interface LiveCompleted {
@@ -444,16 +447,24 @@ export default function AdminTranscriptPipeline() {
 
           <StatGroup title="Last Hour">
             <StatCard label="Transcripts Received" value={stats.transcripts1h} testId="stat-transcripts-1h" />
+            <StatCard label="Recaps Completed" value={stats.recaps1h} color="text-emerald-600 dark:text-emerald-400" testId="stat-recaps-1h" />
             <StatCard label="Transcript Inbound Rate" value={stats.transcriptRate} subLabel="avg gap between arrivals" testId="stat-rate-1h" />
+            <StatCard label="Transcript Fetch Errors" value={stats.transcriptFetchErrors1h} color={stats.transcriptFetchErrors1h > 0 ? "text-red-500" : ""} testId="stat-errors-1h" />
           </StatGroup>
 
           <StatGroup title="Right Now">
             <StatCard
-              label="Awaiting Recap"
+              label="In Processing"
               value={stats.awaitingRecap}
-              subLabel="transcript ready, recap pending"
+              subLabel="transcript → recap"
               color={stats.awaitingRecap > 10 ? "text-amber-500" : ""}
-              testId="stat-awaiting-recap"
+              testId="stat-in-processing"
+            />
+            <StatCard
+              label="ETA to Clear"
+              value={stats.etaMinutes}
+              subLabel="until all done"
+              testId="stat-eta-clear"
             />
             <StatCard
               label="Queued for Transcript"
