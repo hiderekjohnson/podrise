@@ -9491,6 +9491,22 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/admin/pipeline/queue-depth", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const podcustPodcastId = req.query.podcast_id as string;
+      const { rows } = await pool.query(
+        podcustPodcastId && podcustPodcastId !== "all"
+          ? `SELECT COUNT(*) as count FROM pending_transcript_queue WHERE podcast_id = $1 AND status = 'pending'`
+          : `SELECT COUNT(*) as count FROM pending_transcript_queue WHERE status = 'pending'`,
+        podcustPodcastId && podcustPodcastId !== "all" ? [podcustPodcastId] : []
+      );
+      res.json({ count: parseInt(rows[0].count, 10) });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   app.post("/api/admin/pipeline/clear-queue", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     try {

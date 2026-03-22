@@ -646,12 +646,24 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
 
   const [clearConfirm, setClearConfirm] = useState(false);
 
+  // Fetch actual queue depth (all pending items, not just visible rows)
+  const { data: queueDepth = {} } = useQuery({
+    queryKey: ["/api/admin/pipeline/queue-depth", showFilter],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/pipeline/queue-depth?podcast_id=" + (showFilter !== "all" ? encodeURIComponent(showFilter) : "all"));
+      return res.json();
+    },
+    enabled: !!showFilter,
+    refetchInterval: 10000, // refresh every 10s
+  });
+
   const clearQueueMutation = useMutation({
     mutationFn: (podcast_id: string | null) =>
       apiRequest("POST", "/api/admin/pipeline/clear-queue", podcast_id ? { podcast_id } : {}),
     onSuccess: () => {
       setClearConfirm(false);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline-monitor"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline/queue-depth"] });
     },
   });
 
@@ -829,14 +841,14 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
             </div>
             {/* Clear queue */}
             {(() => {
-              const queuedInFilter = filtered.filter(r => getOverallStatus(r) === "queued");
-              if (queuedInFilter.length === 0) return null;
+              const queueCount = queueDepth?.count ?? 0;
+              if (queueCount === 0) return null;
               const targetPodcastId = showFilter !== "all"
                 ? (rows.find(r => r.podcast_name === showFilter)?.podcast_id ?? null)
                 : null;
               const label = showFilter !== "all"
-                ? `Clear ${showFilter} queue (${queuedInFilter.length})`
-                : `Clear all queued (${queuedInFilter.length})`;
+                ? `Clear ${showFilter} queue (${queueCount})`
+                : `Clear all queued (${queueCount})`;
               return clearConfirm ? (
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs text-slate-600 dark:text-slate-400">Sure?</span>
