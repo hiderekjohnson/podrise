@@ -468,16 +468,17 @@ export default function Onboarding() {
   return (
     <div className="h-screen flex flex-col bg-[#F7F7FC] dark:bg-[#08080F] overflow-hidden" data-testid="onboarding-page">
 
-      <div className="flex-1 min-h-0 overflow-hidden flex flex-col items-center px-4 sm:px-6 pt-3 md:pt-4 pb-0 md:pb-4">
+      <div className="flex-shrink-0 px-5 sm:px-8 py-3">
+        <a href="/" className="block w-fit no-underline">
+          <img src="/logo-transparent.svg" alt="PodRise" className="h-8 w-auto object-contain" />
+        </a>
+      </div>
+
+      <div className="flex-1 min-h-0 overflow-hidden flex flex-col items-center px-4 sm:px-6 pb-0 md:pb-4">
 
         <div className="w-full max-w-[860px] flex-1 min-h-0 overflow-hidden border border-[#F0F0F2] dark:border-[#27272A] rounded-xl grid grid-cols-1 md:grid-cols-[1fr_280px]">
 
-          <div className="flex flex-col px-5 sm:px-7 pt-4 sm:pt-5 pb-4 overflow-hidden md:border-r border-[#F0F0F2] dark:border-[#27272A] bg-white dark:bg-[#111114] rounded-t-xl md:rounded-tr-none md:rounded-l-xl">
-            <div className="flex items-center justify-between mb-4 flex-shrink-0">
-              <a href="/" className="block w-fit no-underline">
-                <img src="/logo-transparent.svg" alt="PodRise" className="h-7 w-auto object-contain" />
-              </a>
-            </div>
+          <div className="flex flex-col px-5 sm:px-7 pt-5 sm:pt-6 pb-4 overflow-hidden md:border-r border-[#F0F0F2] dark:border-[#27272A] bg-white dark:bg-[#111114] rounded-t-xl md:rounded-tr-none md:rounded-l-xl">
             <h1 className="text-[22px] font-bold tracking-[-0.03em] text-[#09090B] dark:text-white mb-1 flex-shrink-0" data-testid="onboarding-search-heading">
               What podcasts do you listen to?
             </h1>
