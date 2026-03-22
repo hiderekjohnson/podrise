@@ -9364,6 +9364,97 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.get("/api/admin/pipeline-stats", async (req, res) => {
+    if (!req.session.isAdmin) {
+      return res.status(401).json({ message: "Not authenticated as admin" });
+    }
+    try {
+      const { rows: transcriptRows } = await pool.query(`
+        SELECT
+          COUNT(*) FILTER (WHERE fetched_at > NOW() - INTERVAL '24 hours') AS transcripts_24h,
+          COUNT(*) FILTER (WHERE fetched_at > NOW() - INTERVAL '1 hour') AS transcripts_1h,
+          ARRAY_AGG(fetched_at ORDER BY fetched_at ASC) FILTER (WHERE fetched_at > NOW() - INTERVAL '1 hour') AS transcript_times_1h
+        FROM episode_transcripts
+      `);
+
+      const { rows: recapRows } = await pool.query(`
+        SELECT COUNT(*) AS recaps_24h
+        FROM landing_page_recaps
+        WHERE created_at > NOW() - INTERVAL '24 hours'
+          AND published = true
+      `);
+
+      // Currently pending = queue-only items (no transcript yet) with status queued/pending
+      //                    + transcript items within 3-day window without a recap (pending_recap)
+      // Uses NOT EXISTS to avoid double-counting episodes that appear in both tables.
+      const { rows: pendingRows } = await pool.query(`
+        SELECT
+          (
+            SELECT COUNT(*)
+            FROM pending_transcript_queue ptq
+            WHERE ptq.status IN ('queued', 'pending')
+              AND NOT EXISTS (
+                SELECT 1 FROM episode_transcripts et
+                WHERE et.podcast_id = ptq.podcast_id
+                  AND (et.episode_guid = ptq.episode_guid
+                    OR lower(trim(et.episode_title)) = lower(trim(ptq.episode_title)))
+              )
+          ) +
+          (
+            SELECT COUNT(*)
+            FROM episode_transcripts et
+            INNER JOIN podcast_directory pd
+              ON pd.itunes_id = et.podcast_id AND pd.status = 'published'
+            WHERE et.fetched_at > NOW() - INTERVAL '3 days'
+              AND NOT EXISTS (
+                SELECT 1 FROM landing_page_recaps lpr
+                WHERE lpr.itunes_id = et.podcast_id
+                  AND lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
+              )
+          ) AS currently_pending
+      `);
+
+      const { rows: errorRows } = await pool.query(`
+        SELECT COUNT(*) AS errors_24h
+        FROM pending_transcript_queue
+        WHERE status = 'failed'
+          AND COALESCE(last_attempt_at, created_at) > NOW() - INTERVAL '24 hours'
+      `);
+
+      const transcripts24h = parseInt(transcriptRows[0].transcripts_24h) || 0;
+      const transcripts1h = parseInt(transcriptRows[0].transcripts_1h) || 0;
+      const recaps24h = parseInt(recapRows[0].recaps_24h) || 0;
+      const currentlyPending = parseInt(pendingRows[0].currently_pending) || 0;
+      const errors24h = parseInt(errorRows[0].errors_24h) || 0;
+
+      // Processing rate: avg gap between transcripts in the last hour
+      const times: string[] = transcriptRows[0].transcript_times_1h || [];
+      let processingRate: string = "—";
+      if (times.length >= 2) {
+        const sorted = times.map((t: string) => new Date(t).getTime()).sort((a: number, b: number) => a - b);
+        const gaps: number[] = [];
+        for (let i = 1; i < sorted.length; i++) {
+          gaps.push(sorted[i] - sorted[i - 1]);
+        }
+        const avgGapMs = gaps.reduce((s: number, g: number) => s + g, 0) / gaps.length;
+        const avgGapMin = Math.max(1, Math.round(avgGapMs / 60000));
+        processingRate = `1 every ${avgGapMin} min`;
+      }
+
+      res.json({
+        transcripts24h,
+        transcripts1h,
+        recaps24h,
+        currentlyPending,
+        errors24h,
+        processingRate,
+      });
+    } catch (err: any) {
+      console.error("[PipelineStats] Error:", err.message);
+      res.status(500).json({ message: "Failed to fetch pipeline stats" });
+    }
+  });
+
   app.get("/api/admin/transcripts/:id", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });

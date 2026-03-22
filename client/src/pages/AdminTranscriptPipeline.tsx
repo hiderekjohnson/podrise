@@ -2,7 +2,17 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, RefreshCw, CheckCircle2, Clock, AlertTriangle, XCircle, ExternalLink, Zap, Radio } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { queryClient } from "@/lib/queryClient";
+
+interface PipelineStats {
+  transcripts24h: number;
+  transcripts1h: number;
+  recaps24h: number;
+  currentlyPending: number;
+  errors24h: number;
+  processingRate: string;
+}
 
 interface PipelineRow {
   source: "transcript" | "queue_only";
@@ -182,6 +192,12 @@ export default function AdminTranscriptPipeline() {
   const [days, setDays] = useState(7);
   const [filter, setFilter] = useState<FilterType>("all");
 
+  const { data: stats, isLoading: statsLoading } = useQuery<PipelineStats>({
+    queryKey: ["/api/admin/pipeline-stats"],
+    queryFn: () => fetch("/api/admin/pipeline-stats").then(r => r.json()),
+    refetchInterval: 60_000,
+  });
+
   const { data: rows = [], isLoading, isFetching } = useQuery<PipelineRow[]>({
     queryKey: ["/api/admin/pipeline-monitor", days],
     queryFn: () => fetch(`/api/admin/pipeline-monitor?days=${days}`).then(r => r.json()),
@@ -228,7 +244,10 @@ export default function AdminTranscriptPipeline() {
             size="sm"
             variant="outline"
             className="gap-1.5 text-xs h-8 px-2.5"
-            onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline-monitor"] })}
+            onClick={() => {
+              queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline-monitor"] });
+              queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline-stats"] });
+            }}
             data-testid="pipeline-refresh"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? "animate-spin" : ""}`} />
@@ -236,6 +255,42 @@ export default function AdminTranscriptPipeline() {
           </Button>
         </div>
       </div>
+
+      {/* Stats Bar */}
+      {statsLoading ? (
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2" data-testid="pipeline-stats-skeleton">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 rounded-xl" />
+          ))}
+        </div>
+      ) : stats ? (
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2" data-testid="pipeline-stats-bar">
+          <div className="flex flex-col items-center justify-center border rounded-xl p-2.5 bg-card text-center gap-0.5" data-testid="stat-transcripts-24h">
+            <span className="text-[10px] text-muted-foreground font-medium leading-tight">Transcripts 24h</span>
+            <span className="text-xl font-bold tabular-nums">{stats.transcripts24h}</span>
+          </div>
+          <div className="flex flex-col items-center justify-center border rounded-xl p-2.5 bg-card text-center gap-0.5" data-testid="stat-transcripts-1h">
+            <span className="text-[10px] text-muted-foreground font-medium leading-tight">Transcripts 1h</span>
+            <span className="text-xl font-bold tabular-nums">{stats.transcripts1h}</span>
+          </div>
+          <div className="flex flex-col items-center justify-center border rounded-xl p-2.5 bg-card text-center gap-0.5" data-testid="stat-recaps-24h">
+            <span className="text-[10px] text-muted-foreground font-medium leading-tight">Recaps (24h)</span>
+            <span className="text-xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{stats.recaps24h}</span>
+          </div>
+          <div className="flex flex-col items-center justify-center border rounded-xl p-2.5 bg-card text-center gap-0.5" data-testid="stat-currently-pending">
+            <span className="text-[10px] text-muted-foreground font-medium leading-tight">Pending now</span>
+            <span className={`text-xl font-bold tabular-nums ${stats.currentlyPending > 10 ? "text-amber-500" : ""}`}>{stats.currentlyPending}</span>
+          </div>
+          <div className="flex flex-col items-center justify-center border rounded-xl p-2.5 bg-card text-center gap-0.5" data-testid="stat-errors-24h">
+            <span className="text-[10px] text-muted-foreground font-medium leading-tight">Errors (24h)</span>
+            <span className={`text-xl font-bold tabular-nums ${stats.errors24h > 0 ? "text-red-500" : ""}`}>{stats.errors24h}</span>
+          </div>
+          <div className="flex flex-col items-center justify-center border rounded-xl p-2.5 bg-card text-center gap-0.5" data-testid="stat-processing-rate">
+            <span className="text-[10px] text-muted-foreground font-medium leading-tight">Rate (1h)</span>
+            <span className="text-sm font-bold tabular-nums leading-tight">{stats.processingRate}</span>
+          </div>
+        </div>
+      ) : null}
 
       {/* Filter pills — scrollable on mobile */}
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
