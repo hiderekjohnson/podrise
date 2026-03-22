@@ -9474,6 +9474,38 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.post("/api/admin/pipeline/retry", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { episode_guid, podcast_id, episode_title } = req.body;
+      const { rows } = await pool.query(`
+        UPDATE pending_transcript_queue
+        SET status = 'pending', attempts = 0, error_message = NULL, last_attempt_at = NULL
+        WHERE (episode_guid = $1 OR (podcast_id = $2 AND lower(trim(episode_title)) = lower(trim($3))))
+          AND status = 'failed'
+        RETURNING id
+      `, [episode_guid || null, podcast_id || null, episode_title || null]);
+      res.json({ retried: rows.length });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.post("/api/admin/pipeline/retry-all", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { rows } = await pool.query(`
+        UPDATE pending_transcript_queue
+        SET status = 'pending', attempts = 0, error_message = NULL, last_attempt_at = NULL
+        WHERE status = 'failed'
+        RETURNING id
+      `);
+      res.json({ retried: rows.length });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   app.get("/api/admin/pipeline-stats", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });

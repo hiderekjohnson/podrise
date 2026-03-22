@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Loader2, CheckCircle2, Clock, AlertTriangle, XCircle,
   ExternalLink, Zap, Radio, ArrowDown, Activity,
   Copy, Check, ChevronDown, ChevronUp, Wrench, HelpCircle,
+  RefreshCw, Search, Filter,
 } from "lucide-react";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 
 interface PipelineStats {
   transcripts24h: number;
@@ -615,142 +616,263 @@ interface PipelineTableProps {
 }
 
 function PipelineTable({ rows, counts }: PipelineTableProps) {
+  const [stageFilter, setStageFilter] = useState<string>("all");
+  const [showFilter, setShowFilter] = useState<string>("all");
+  const [search, setSearch] = useState("");
+  const [retryingId, setRetryingId] = useState<string | null>(null);
+
+  const retryAllMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/pipeline/retry-all", {}),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline-monitor"] }),
+  });
+
+  const retryOneMutation = useMutation({
+    mutationFn: (row: PipelineRow) =>
+      apiRequest("POST", "/api/admin/pipeline/retry", {
+        episode_guid: row.episode_guid,
+        podcast_id: row.podcast_id,
+        episode_title: row.episode_title,
+      }),
+    onSuccess: () => {
+      setRetryingId(null);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline-monitor"] });
+    },
+  });
+
+  // Compute stage counts from actual data
+  const webhookCount = rows.filter(r => r.source === "queue_only" && r.queue_status === "pending").length;
+  const fetchingCount = rows.filter(r => r.source === "queue_only" && r.queue_status === "fetching").length;
+  const inQueueCount = rows.filter(r => getOverallStatus(r) === "pending_recap").length;
+  const aiRecapCount = rows.filter(r => r.queue_status === "running").length;
+  const publishedCount = rows.filter(r => getOverallStatus(r) === "complete").length;
+
   const stages = [
-    { name: 'Webhook', count: 1, icon: '1', color: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300' },
-    { name: 'Taddy fetch', count: counts.queued || 0, icon: '2', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' },
-    { name: 'In queue', count: counts.queued || 0, icon: '3', color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' },
-    { name: 'AI recap', count: counts.queued || 0, icon: '4', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' },
-    { name: 'Published', count: counts.complete || 0, icon: '5', color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' },
+    { name: "Webhook",     count: webhookCount,   num: "1", circleClass: "border-2 border-indigo-300 text-indigo-700 dark:text-indigo-300 bg-white dark:bg-slate-900" },
+    { name: "Taddy fetch", count: fetchingCount,  num: "2", circleClass: "border-2 border-blue-300 text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-900" },
+    { name: "In queue",    count: inQueueCount,   num: "3", circleClass: "border-2 border-amber-300 text-amber-700 dark:text-amber-300 bg-white dark:bg-slate-900" },
+    { name: "AI recap",    count: aiRecapCount,   num: "4", circleClass: "border-2 border-orange-300 text-orange-700 dark:text-orange-300 bg-white dark:bg-slate-900" },
+    { name: "Published",   count: publishedCount, num: "5", circleClass: "border-2 border-emerald-400 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20" },
   ];
 
+  const errorCount  = rows.filter(r => getOverallStatus(r) === "failed").length;
   const metricCards = [
-    { label: 'Queue depth', value: counts.queued || 0, subtext: 'episodes waiting', color: 'text-slate-900 dark:text-white' },
-    { label: 'Processing', value: counts.pending_recap || 0, subtext: 'AI recap active', color: 'text-indigo-600 dark:text-indigo-400' },
-    { label: 'Errors', value: counts.failed || 0, subtext: 'need attention', color: 'text-red-600 dark:text-red-400' },
-    { label: 'Published today', value: counts.complete || 0, subtext: 'episodes live', color: 'text-emerald-600 dark:text-emerald-400' },
-    { label: 'Fetching', value: 0, subtext: 'from Taddy', color: 'text-slate-600 dark:text-slate-400' },
-    { label: 'Pending', value: 0, subtext: 'webhook only', color: 'text-slate-600 dark:text-slate-400' },
+    { label: "Queue depth",     value: inQueueCount,             sub: "episodes waiting",  valClass: "text-slate-900 dark:text-white" },
+    { label: "Processing",      value: aiRecapCount,             sub: "AI recap active",   valClass: "text-indigo-600 dark:text-indigo-400" },
+    { label: "Errors",          value: errorCount,               sub: "need attention",    valClass: "text-red-600 dark:text-red-400" },
+    { label: "Published today", value: publishedCount,           sub: "episodes live",     valClass: "text-emerald-600 dark:text-emerald-400" },
+    { label: "Fetching",        value: fetchingCount,            sub: "from Taddy",        valClass: "text-slate-600 dark:text-slate-400" },
+    { label: "Pending",         value: webhookCount,             sub: "webhook only",      valClass: "text-slate-600 dark:text-slate-400" },
   ];
 
-  const getAgeMinutes = (dateStr: string | null) => {
+  // Helpers
+  const ageMinutes = (dateStr: string | null) => {
     if (!dateStr) return null;
-    const minutes = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
-    if (minutes < 60) return `${minutes}m`;
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h${mins > 0 ? ` ${mins}m` : ''}`;
+    return Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
   };
 
-  const getDurationSeconds = (transcriptChars: number | null) => {
-    if (!transcriptChars) return null;
-    const estimatedSeconds = Math.ceil(transcriptChars / 15);
-    return `${estimatedSeconds}s`;
+  const formatAge = (mins: number | null) => {
+    if (mins === null) return "—";
+    if (mins < 60) return `${mins}m ago`;
+    const h = Math.floor(mins / 60), m = mins % 60;
+    return `${h}h${m > 0 ? ` ${m}m` : ""} ago`;
   };
 
-  const getStageColor = (status: OverallStatus) => {
-    const colors = {
-      complete: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
-      queued: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
-      pending_recap: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
-      missed: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300',
-      failed: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
+  const formatDur = (chars: number | null) => {
+    if (!chars) return "—";
+    return `${Math.round(chars / 900)}m`;
+  };
+
+  const stageBadge = (status: OverallStatus) => {
+    const cfg: Record<OverallStatus, { dot: string; label: string; cls: string }> = {
+      complete:      { dot: "bg-emerald-500", label: "Published",     cls: "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20" },
+      pending_recap: { dot: "bg-amber-500",   label: "AI processing", cls: "text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20" },
+      queued:        { dot: "bg-blue-500",    label: "In queue",      cls: "text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20" },
+      missed:        { dot: "bg-cyan-500",    label: "Fetching",      cls: "text-cyan-700 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-900/20" },
+      failed:        { dot: "bg-red-500",     label: "Error",         cls: "text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20" },
     };
-    return colors[status] || 'bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300';
+    const c = cfg[status];
+    return (
+      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium ${c.cls}`}>
+        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${c.dot}`} />
+        {c.label}
+      </span>
+    );
   };
 
-  const getStageLabel = (status: OverallStatus) => {
-    const labels = {
-      complete: '✓ Published',
-      queued: '⏳ In queue',
-      pending_recap: '🔄 AI processing',
-      missed: '⚠ Fetching',
-      failed: '✗ Error',
+  // All unique show names for dropdown
+  const allShows = Array.from(new Set(rows.map(r => r.podcast_name))).sort();
+
+  // Filtered rows
+  const filtered = rows.filter(r => {
+    const status = getOverallStatus(r);
+    const stageMap: Record<string, OverallStatus> = {
+      published: "complete", processing: "pending_recap",
+      "in-queue": "queued", fetching: "missed", error: "failed",
     };
-    return labels[status] || status;
-  };
-
-  const displayRows = rows.slice(0, 20); // Show top 20 for performance
+    if (stageFilter !== "all" && status !== stageMap[stageFilter]) return false;
+    if (showFilter !== "all" && r.podcast_name !== showFilter) return false;
+    if (search && !r.episode_title.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
 
   return (
-    <div className="space-y-5" data-testid="pipeline-table-view">
-      {/* Pipeline Stage Visualization */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
-        <div className="p-5 space-y-5">
-          {/* Stage Flow */}
-          <div className="flex items-start justify-between gap-2">
-            {stages.map((stage, i) => (
-              <div key={stage.name} className="flex-1 flex flex-col items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${stage.color} mb-2`}>
-                  {stage.icon}
+    <div className="space-y-4" data-testid="pipeline-table-view">
+      {/* Stage Flow + Metrics */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5 space-y-5">
+        {/* Stage flow with connectors */}
+        <div className="flex items-start">
+          {stages.map((stage, i) => (
+            <div key={stage.name} className="flex items-start flex-1">
+              <div className="flex flex-col items-center flex-1">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm ${stage.circleClass}`}>
+                  {stage.num}
                 </div>
-                <div className="text-center">
-                  <div className="text-xs font-semibold text-slate-900 dark:text-white">{stage.name}</div>
-                  <div className="text-lg font-bold text-slate-900 dark:text-white">{stage.count}</div>
+                <div className="mt-1.5 text-center">
+                  <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">{stage.name}</div>
+                  <div className="text-base font-bold text-slate-900 dark:text-white">{stage.count}</div>
                 </div>
               </div>
-            ))}
-          </div>
+              {i < stages.length - 1 && (
+                <div className="flex-shrink-0 w-8 h-px bg-slate-300 dark:bg-slate-600 mt-4" />
+              )}
+            </div>
+          ))}
+        </div>
 
-          {/* Metrics Cards */}
-          <div className="grid grid-cols-3 gap-3 pt-3 border-t border-slate-200 dark:border-slate-700">
-            {metricCards.map((card, i) => (
-              <div key={i} className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3">
-                <div className="text-xs text-slate-600 dark:text-slate-400 font-medium uppercase mb-1">{card.label}</div>
-                <div className={`text-2xl font-bold ${card.color} mb-0.5`}>{card.value}</div>
-                <div className="text-xs text-slate-600 dark:text-slate-400">{card.subtext}</div>
-              </div>
-            ))}
-          </div>
+        {/* Metric cards */}
+        <div className="grid grid-cols-6 gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+          {metricCards.map((c, i) => (
+            <div key={i} className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3">
+              <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">{c.label}</div>
+              <div className={`text-2xl font-bold mb-0.5 ${c.valClass}`}>{c.value}</div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400">{c.sub}</div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Detailed Episodes Table */}
+      {/* Episode Table */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
-        <div className="border-b border-slate-200 dark:border-slate-700 px-5 py-3 bg-slate-50 dark:bg-slate-800/50">
-          <h3 className="text-sm font-semibold text-slate-900 dark:text-white">All episodes</h3>
+        {/* Table header with filters */}
+        <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex-wrap">
+          <span className="text-sm font-semibold text-slate-900 dark:text-white">All episodes</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Stage filter */}
+            <select
+              value={stageFilter}
+              onChange={e => setStageFilter(e.target.value)}
+              className="text-xs border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              data-testid="select-stage-filter"
+            >
+              <option value="all">All stages</option>
+              <option value="published">Published</option>
+              <option value="processing">AI processing</option>
+              <option value="in-queue">In queue</option>
+              <option value="fetching">Fetching</option>
+              <option value="error">Error</option>
+            </select>
+            {/* Show filter */}
+            <select
+              value={showFilter}
+              onChange={e => setShowFilter(e.target.value)}
+              className="text-xs border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500 max-w-[160px]"
+              data-testid="select-show-filter"
+            >
+              <option value="all">All shows</option>
+              {allShows.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="text-xs pl-6 pr-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500 w-28"
+                data-testid="input-search-episodes"
+              />
+            </div>
+            {/* Retry all errors */}
+            <button
+              onClick={() => retryAllMutation.mutate()}
+              disabled={retryAllMutation.isPending || errorCount === 0}
+              className="text-xs px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
+              data-testid="button-retry-all-errors"
+            >
+              {retryAllMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+              Retry all errors
+            </button>
+          </div>
         </div>
+
+        {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                <th className="text-left px-4 py-2.5 font-semibold text-slate-700 dark:text-slate-300 text-xs">Episode</th>
-                <th className="text-left px-4 py-2.5 font-semibold text-slate-700 dark:text-slate-300 text-xs">Show</th>
-                <th className="text-left px-4 py-2.5 font-semibold text-slate-700 dark:text-slate-300 text-xs">Stage</th>
-                <th className="text-left px-4 py-2.5 font-semibold text-slate-700 dark:text-slate-300 text-xs">Age</th>
-                <th className="text-left px-4 py-2.5 font-semibold text-slate-700 dark:text-slate-300 text-xs">Queued</th>
-                <th className="text-left px-4 py-2.5 font-semibold text-slate-700 dark:text-slate-300 text-xs">Dur.</th>
-                <th className="text-center px-4 py-2.5 font-semibold text-slate-700 dark:text-slate-300 text-xs">Tries</th>
+              <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
+                <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Episode</th>
+                <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Show</th>
+                <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Stage</th>
+                <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Age</th>
+                <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Queued</th>
+                <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Dur.</th>
+                <th className="text-center px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Tries</th>
+                <th className="px-4 py-2.5" />
               </tr>
             </thead>
             <tbody>
-              {displayRows.map((row, i) => {
+              {filtered.slice(0, 50).map((row, i) => {
                 const status = getOverallStatus(row);
-                const ageMin = getAgeMinutes(row.transcript_created_at);
-                const queuedMin = getAgeMinutes(row.transcript_created_at);
+                const isError = status === "failed";
+                const ageMins = ageMinutes(row.transcript_at || row.queued_at);
+                const queuedMins = ageMinutes(row.queued_at);
+                const isOld = ageMins !== null && ageMins > 60;
                 return (
-                  <tr key={i} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                    <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100 truncate max-w-xs text-xs">
-                      {row.episode_title}
+                  <tr key={i} className="border-b border-slate-50 dark:border-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                    <td className="px-4 py-3 max-w-[220px]">
+                      <span
+                        className={`text-xs font-medium truncate block ${isError ? "text-red-600 dark:text-red-400" : "text-slate-900 dark:text-slate-100"}`}
+                        title={row.episode_title}
+                      >
+                        {row.episode_title.length > 42 ? row.episode_title.slice(0, 42) + "…" : row.episode_title}
+                      </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400 text-xs truncate max-w-xs">
+                    <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 max-w-[140px] truncate" title={row.podcast_name}>
                       {row.podcast_name}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`px-2.5 py-1 rounded text-xs font-semibold whitespace-nowrap inline-block ${getStageColor(status)}`}>
-                        {getStageLabel(status)}
-                      </span>
+                      {stageBadge(status)}
                     </td>
-                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400 text-xs whitespace-nowrap">
-                      {ageMin || '—'}
+                    <td className={`px-4 py-3 text-xs whitespace-nowrap font-medium ${isOld ? "text-orange-600 dark:text-orange-400" : "text-slate-500 dark:text-slate-400"}`}>
+                      {formatAge(ageMins)}
                     </td>
-                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400 text-xs whitespace-nowrap">
-                      {queuedMin || '—'}
+                    <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                      {formatAge(queuedMins)}
                     </td>
-                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400 text-xs whitespace-nowrap">
-                      {getDurationSeconds(row.transcript_chars) || '—'}
+                    <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                      {formatDur(row.transcript_chars)}
                     </td>
-                    <td className="px-4 py-3 text-center text-slate-600 dark:text-slate-400 text-xs">
-                      1
+                    <td className="px-4 py-3 text-center text-xs text-slate-500 dark:text-slate-400">
+                      {row.queue_attempts ?? 1}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {isError && (
+                        <button
+                          onClick={() => {
+                            setRetryingId(row.episode_guid || row.episode_title);
+                            retryOneMutation.mutate(row);
+                          }}
+                          disabled={retryOneMutation.isPending && retryingId === (row.episode_guid || row.episode_title)}
+                          className="text-xs px-2.5 py-1 rounded border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 font-medium disabled:opacity-50 transition-colors"
+                          data-testid={`button-retry-episode-${i}`}
+                        >
+                          {retryOneMutation.isPending && retryingId === (row.episode_guid || row.episode_title)
+                            ? <Loader2 className="w-3 h-3 animate-spin" />
+                            : "Retry"
+                          }
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );
@@ -758,9 +880,14 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
             </tbody>
           </table>
         </div>
-        {displayRows.length === 0 && (
-          <div className="text-center py-12 text-slate-500 dark:text-slate-400 text-xs">
-            No episodes to display
+        {filtered.length === 0 && (
+          <div className="text-center py-12 text-slate-500 dark:text-slate-400 text-sm">
+            No episodes match your filters
+          </div>
+        )}
+        {filtered.length > 50 && (
+          <div className="text-center py-3 text-xs text-slate-400 border-t border-slate-100 dark:border-slate-800">
+            Showing 50 of {filtered.length} episodes
           </div>
         )}
       </div>
