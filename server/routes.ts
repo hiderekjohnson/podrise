@@ -9527,6 +9527,52 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  // Bulk delete specific episodes from the pipeline (queue + unrecapped transcripts)
+  app.post("/api/admin/pipeline/delete-episodes", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { episodes } = req.body as { episodes: { episode_guid: string | null; podcast_id: string; episode_title: string }[] };
+      if (!Array.isArray(episodes) || episodes.length === 0) return res.status(400).json({ message: "episodes array required" });
+
+      let queueCleared = 0;
+      let transcriptsCleared = 0;
+      for (const ep of episodes) {
+        const { episode_guid, podcast_id, episode_title } = ep;
+        if (episode_guid) {
+          const { rows: q } = await pool.query(
+            `DELETE FROM pending_transcript_queue WHERE podcast_id = $1 AND episode_guid = $2 RETURNING id`,
+            [podcast_id, episode_guid]
+          );
+          queueCleared += q.length;
+          const { rows: t } = await pool.query(
+            `DELETE FROM episode_transcripts WHERE podcast_id = $1 AND episode_guid = $2
+             AND NOT EXISTS (SELECT 1 FROM landing_page_recaps lpr WHERE lpr.itunes_id = $1 AND lower(trim(lpr.episode_title)) = lower(trim(episode_title)))
+             RETURNING id`,
+            [podcast_id, episode_guid]
+          );
+          transcriptsCleared += t.length;
+        } else {
+          const { rows: q } = await pool.query(
+            `DELETE FROM pending_transcript_queue WHERE podcast_id = $1 AND lower(trim(episode_title)) = lower(trim($2)) RETURNING id`,
+            [podcast_id, episode_title]
+          );
+          queueCleared += q.length;
+          const { rows: t } = await pool.query(
+            `DELETE FROM episode_transcripts WHERE podcast_id = $1 AND lower(trim(episode_title)) = lower(trim($2))
+             AND NOT EXISTS (SELECT 1 FROM landing_page_recaps lpr WHERE lpr.itunes_id = $1 AND lower(trim(lpr.episode_title)) = lower(trim($2)))
+             RETURNING id`,
+            [podcast_id, episode_title]
+          );
+          transcriptsCleared += t.length;
+        }
+      }
+      console.log(`[DeleteEpisodes] Removed ${queueCleared} queue items, ${transcriptsCleared} transcripts for ${episodes.length} episodes`);
+      res.json({ queue_cleared: queueCleared, transcripts_cleared: transcriptsCleared, episodes_requested: episodes.length });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   // Purge all pipeline state for a show (pending queue + unrecapped transcripts)
   app.post("/api/admin/pipeline/purge-show", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });

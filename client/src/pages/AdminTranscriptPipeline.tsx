@@ -646,6 +646,8 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
 
   const [clearConfirm, setClearConfirm] = useState(false);
   const [purgeConfirm, setPurgeConfirm] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const lastCheckedIdxRef = useRef<number | null>(null);
 
   // Fetch actual queue depth (all pending items, not just visible rows)
   const { data: queueDepth = {} } = useQuery({
@@ -673,6 +675,17 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
       apiRequest("POST", "/api/admin/pipeline/purge-show", { podcast_name: podcastName }),
     onSuccess: (data: any) => {
       setPurgeConfirm(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline-monitor"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline/queue-depth"] });
+    },
+  });
+
+  const deleteSelectedMutation = useMutation({
+    mutationFn: (episodes: { episode_guid: string | null; podcast_id: string; episode_title: string }[]) =>
+      apiRequest("POST", "/api/admin/pipeline/delete-episodes", { episodes }),
+    onSuccess: () => {
+      setSelectedIds(new Set());
+      lastCheckedIdxRef.current = null;
       queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline-monitor"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline/queue-depth"] });
     },
@@ -887,6 +900,25 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
                 </button>
               );
             })()}
+            {/* Delete selected */}
+            {selectedIds.size > 0 && (
+              <button
+                onClick={() => {
+                  const toDelete = filtered
+                    .filter(r => selectedIds.has(r.episode_guid || (r.podcast_id + '|' + r.episode_title)))
+                    .map(r => ({ episode_guid: r.episode_guid, podcast_id: r.podcast_id, episode_title: r.episode_title }));
+                  deleteSelectedMutation.mutate(toDelete);
+                }}
+                disabled={deleteSelectedMutation.isPending}
+                className="text-xs px-3 py-1.5 rounded-lg border border-red-400 text-white bg-red-500 hover:bg-red-600 font-medium disabled:opacity-50 transition-colors flex items-center gap-1.5"
+                data-testid="button-delete-selected"
+              >
+                {deleteSelectedMutation.isPending
+                  ? <Loader2 className="w-3 h-3 animate-spin" />
+                  : <XCircle className="w-3 h-3" />}
+                Delete selected ({selectedIds.size})
+              </button>
+            )}
             {/* Purge show from pipeline (all stages) */}
             {showFilter !== "all" && (
               purgeConfirm ? (
@@ -933,96 +965,160 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
-                <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Episode</th>
-                <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Show</th>
-                <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Stage</th>
-                <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Age</th>
-                <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Queued</th>
-                <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Dur.</th>
-                <th className="text-center px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Tries</th>
-                <th className="px-4 py-2.5" />
-              </tr>
-            </thead>
-            <tbody>
-              {(() => {
-                // Show all queued/processing items, but limit published to 50
-                const isPublishedView = stageFilter === "published" || stageFilter === "all";
-                const displayRows = isPublishedView ? filtered.slice(0, 50) : filtered;
-                return displayRows.map((row, i) => {
-                const status = getOverallStatus(row);
-                const isError = status === "failed";
-                const ageMins = ageMinutes(row.transcript_at || row.queued_at);
-                const queuedMins = ageMinutes(row.queued_at);
-                const isOld = ageMins !== null && ageMins > 60;
-                return (
-                  <tr key={i} className="border-b border-slate-50 dark:border-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                    <td className="px-4 py-3 max-w-[220px]">
-                      <span
-                        className={`text-xs font-medium truncate block ${isError ? "text-red-600 dark:text-red-400" : "text-slate-900 dark:text-slate-100"}`}
-                        title={row.episode_title}
-                      >
-                        {row.episode_title.length > 42 ? row.episode_title.slice(0, 42) + "…" : row.episode_title}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 max-w-[140px] truncate" title={row.podcast_name}>
-                      {row.podcast_name}
-                    </td>
-                    <td className="px-4 py-3">
-                      {stageBadge(status)}
-                    </td>
-                    <td className={`px-4 py-3 text-xs whitespace-nowrap font-medium ${isOld ? "text-orange-600 dark:text-orange-400" : "text-slate-500 dark:text-slate-400"}`}>
-                      {formatAge(ageMins)}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                      {formatAge(queuedMins)}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                      {formatDur(row.transcript_chars)}
-                    </td>
-                    <td className="px-4 py-3 text-center text-xs text-slate-500 dark:text-slate-400">
-                      {row.queue_attempts ?? 1}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {isError && (
-                        <button
-                          onClick={() => {
-                            setRetryingId(row.episode_guid || row.episode_title);
-                            retryOneMutation.mutate(row);
-                          }}
-                          disabled={retryOneMutation.isPending && retryingId === (row.episode_guid || row.episode_title)}
-                          className="text-xs px-2.5 py-1 rounded border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 font-medium disabled:opacity-50 transition-colors"
-                          data-testid={`button-retry-episode-${i}`}
-                        >
-                          {retryOneMutation.isPending && retryingId === (row.episode_guid || row.episode_title)
-                            ? <Loader2 className="w-3 h-3 animate-spin" />
-                            : "Retry"
-                          }
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
+          {(() => {
+            // Only cap rows when viewing ALL shows in all/published stage — prevents slowdowns
+            // from thousands of published episodes. A specific show filter always shows all rows.
+            const capRows = (stageFilter === "all" || stageFilter === "published") && showFilter === "all";
+            const displayRows = capRows ? filtered.slice(0, 50) : filtered;
+            const rowKey = (r: PipelineRow) => r.episode_guid || (r.podcast_id + '|' + r.episode_title);
+            const allDisplayKeys = displayRows.map(rowKey);
+            const allSelected = allDisplayKeys.length > 0 && allDisplayKeys.every(k => selectedIds.has(k));
+            const someSelected = !allSelected && allDisplayKeys.some(k => selectedIds.has(k));
+
+            const toggleAll = () => {
+              setSelectedIds(prev => {
+                const next = new Set(prev);
+                if (allSelected) {
+                  allDisplayKeys.forEach(k => next.delete(k));
+                } else {
+                  allDisplayKeys.forEach(k => next.add(k));
+                }
+                return next;
               });
-              })()}
-            </tbody>
-          </table>
+            };
+
+            const toggleRow = (idx: number, shiftKey: boolean) => {
+              const key = rowKey(displayRows[idx]);
+              setSelectedIds(prev => {
+                const next = new Set(prev);
+                if (shiftKey && lastCheckedIdxRef.current !== null) {
+                  const from = Math.min(lastCheckedIdxRef.current, idx);
+                  const to = Math.max(lastCheckedIdxRef.current, idx);
+                  const shouldSelect = !prev.has(rowKey(displayRows[lastCheckedIdxRef.current]));
+                  for (let j = from; j <= to; j++) {
+                    if (shouldSelect) next.add(rowKey(displayRows[j]));
+                    else next.delete(rowKey(displayRows[j]));
+                  }
+                } else {
+                  if (next.has(key)) next.delete(key);
+                  else next.add(key);
+                }
+                lastCheckedIdxRef.current = idx;
+                return next;
+              });
+            };
+
+            return (
+              <>
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
+                      <th className="px-3 py-2.5 w-8">
+                        <input
+                          type="checkbox"
+                          checked={allSelected}
+                          ref={el => { if (el) el.indeterminate = someSelected; }}
+                          onChange={toggleAll}
+                          className="w-3.5 h-3.5 rounded cursor-pointer accent-slate-600"
+                          data-testid="checkbox-select-all"
+                        />
+                      </th>
+                      <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Episode</th>
+                      <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Show</th>
+                      <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Stage</th>
+                      <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Age</th>
+                      <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Queued</th>
+                      <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Dur.</th>
+                      <th className="text-center px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Tries</th>
+                      <th className="px-4 py-2.5" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {displayRows.map((row, i) => {
+                      const status = getOverallStatus(row);
+                      const isError = status === "failed";
+                      const ageMins = ageMinutes(row.transcript_at || row.queued_at);
+                      const queuedMins = ageMinutes(row.queued_at);
+                      const isOld = ageMins !== null && ageMins > 60;
+                      const key = rowKey(row);
+                      const isChecked = selectedIds.has(key);
+                      return (
+                        <tr
+                          key={i}
+                          className={`border-b border-slate-50 dark:border-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors ${isChecked ? "bg-blue-50/60 dark:bg-blue-900/10" : ""}`}
+                        >
+                          <td className="px-3 py-3 w-8">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={e => toggleRow(i, !!(e.nativeEvent as any).shiftKey)}
+                              className="w-3.5 h-3.5 rounded cursor-pointer accent-slate-600"
+                              data-testid={`checkbox-episode-${i}`}
+                            />
+                          </td>
+                          <td className="px-4 py-3 max-w-[220px]">
+                            <span
+                              className={`text-xs font-medium truncate block ${isError ? "text-red-600 dark:text-red-400" : "text-slate-900 dark:text-slate-100"}`}
+                              title={row.episode_title}
+                            >
+                              {row.episode_title.length > 42 ? row.episode_title.slice(0, 42) + "…" : row.episode_title}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 max-w-[140px] truncate" title={row.podcast_name}>
+                            {row.podcast_name}
+                          </td>
+                          <td className="px-4 py-3">
+                            {stageBadge(status)}
+                          </td>
+                          <td className={`px-4 py-3 text-xs whitespace-nowrap font-medium ${isOld ? "text-orange-600 dark:text-orange-400" : "text-slate-500 dark:text-slate-400"}`}>
+                            {formatAge(ageMins)}
+                          </td>
+                          <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                            {formatAge(queuedMins)}
+                          </td>
+                          <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                            {formatDur(row.transcript_chars)}
+                          </td>
+                          <td className="px-4 py-3 text-center text-xs text-slate-500 dark:text-slate-400">
+                            {row.queue_attempts ?? 1}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            {isError && (
+                              <button
+                                onClick={() => {
+                                  setRetryingId(row.episode_guid || row.episode_title);
+                                  retryOneMutation.mutate(row);
+                                }}
+                                disabled={retryOneMutation.isPending && retryingId === (row.episode_guid || row.episode_title)}
+                                className="text-xs px-2.5 py-1 rounded border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 font-medium disabled:opacity-50 transition-colors"
+                                data-testid={`button-retry-episode-${i}`}
+                              >
+                                {retryOneMutation.isPending && retryingId === (row.episode_guid || row.episode_title)
+                                  ? <Loader2 className="w-3 h-3 animate-spin" />
+                                  : "Retry"
+                                }
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                {filtered.length === 0 && (
+                  <div className="text-center py-12 text-slate-500 dark:text-slate-400 text-sm">
+                    No episodes match your filters
+                  </div>
+                )}
+                {capRows && filtered.length > 50 && (
+                  <div className="text-center py-3 text-xs text-slate-400 border-t border-slate-100 dark:border-slate-800">
+                    Showing 50 of {filtered.length} episodes · select a specific show to see all
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
-        {filtered.length === 0 && (
-          <div className="text-center py-12 text-slate-500 dark:text-slate-400 text-sm">
-            No episodes match your filters
-          </div>
-        )}
-        {(() => {
-          const isPublishedView = stageFilter === "published" || stageFilter === "all";
-          return isPublishedView && filtered.length > 50 ? (
-            <div className="text-center py-3 text-xs text-slate-400 border-t border-slate-100 dark:border-slate-800">
-              Showing 50 of {filtered.length} episodes
-            </div>
-          ) : null;
-        })()}
       </div>
     </div>
   );
