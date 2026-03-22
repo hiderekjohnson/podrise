@@ -665,6 +665,7 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
   const [clearConfirm, setClearConfirm] = useState(false);
   const [purgeConfirm, setPurgeConfirm] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [airedSort, setAiredSort] = useState<"asc" | "desc" | null>(null);
   const lastCheckedIdxRef = useRef<number | null>(null);
 
   // Fetch actual queue depth (all pending items, not just visible rows)
@@ -819,6 +820,14 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
     if (search && !r.episode_title.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
+
+  const sortedFiltered = airedSort
+    ? [...filtered].sort((a, b) => {
+        const ta = a.date_published ? new Date(a.date_published).getTime() : 0;
+        const tb = b.date_published ? new Date(b.date_published).getTime() : 0;
+        return airedSort === "asc" ? ta - tb : tb - ta;
+      })
+    : filtered;
 
   return (
     <div className="space-y-4" data-testid="pipeline-table-view">
@@ -1032,7 +1041,7 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
             // Only cap rows when viewing ALL shows in all/published stage — prevents slowdowns
             // from thousands of published episodes. A specific show filter always shows all rows.
             const capRows = (stageFilter === "all" || stageFilter === "published") && showFilter === "all";
-            const displayRows = capRows ? filtered.slice(0, 50) : filtered;
+            const displayRows = capRows ? sortedFiltered.slice(0, 50) : sortedFiltered;
             const rowKey = (r: PipelineRow) => r.episode_guid || (r.podcast_id + '|' + r.episode_title);
             const allDisplayKeys = displayRows.map(rowKey);
             const allSelected = allDisplayKeys.length > 0 && allDisplayKeys.every(k => selectedIds.has(k));
@@ -1089,7 +1098,20 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
                       <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Episode</th>
                       <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Show</th>
                       <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Stage</th>
-                      <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Aired</th>
+                      <th className="px-4 py-2.5">
+                        <button
+                          onClick={() => setAiredSort(s => s === "desc" ? "asc" : s === "asc" ? null : "desc")}
+                          className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+                          data-testid="sort-aired"
+                          title="Sort by air date"
+                        >
+                          Aired
+                          <span className="flex flex-col -space-y-1">
+                            <ChevronUp className={`w-2.5 h-2.5 ${airedSort === "asc" ? "text-blue-500" : "text-slate-300 dark:text-slate-600"}`} />
+                            <ChevronDown className={`w-2.5 h-2.5 ${airedSort === "desc" ? "text-blue-500" : "text-slate-300 dark:text-slate-600"}`} />
+                          </span>
+                        </button>
+                      </th>
                       <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Age</th>
                       <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Queued</th>
                       <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Dur.</th>
