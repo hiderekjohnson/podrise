@@ -1162,7 +1162,7 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
                               const isCurrentYear = d.getFullYear() === new Date().getFullYear();
                               return d.toLocaleDateString("en-US", {
                                 month: "short", day: "numeric",
-                                ...(!isCurrentYear && { year: "2-digit" }),
+                                ...(!isCurrentYear && { year: "numeric" }),
                               });
                             })() : "—"}
                           </td>
