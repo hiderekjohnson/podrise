@@ -9712,6 +9712,122 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.post("/api/admin/pipeline/catchup", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const days = parseInt(req.body.days) || 7;
+
+      const { rows: missingRecaps } = await pool.query(`
+        SELECT et.podcast_id, et.episode_guid, et.episode_title, pd.name as podcast_name
+        FROM episode_transcripts et
+        INNER JOIN podcast_directory pd ON pd.itunes_id = et.podcast_id AND pd.status = 'published'
+        WHERE et.transcript IS NOT NULL AND et.transcript != ''
+          AND et.date_published IS NOT NULL
+          AND et.date_published >= EXTRACT(EPOCH FROM (NOW() - INTERVAL '${days} days'))::int
+          AND NOT EXISTS (
+            SELECT 1 FROM landing_page_recaps lpr
+            WHERE lpr.itunes_id = et.podcast_id
+              AND lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM pending_transcript_queue ptq
+            WHERE ptq.podcast_id = et.podcast_id
+              AND ptq.episode_guid = et.episode_guid
+              AND ptq.status IN ('queued', 'transcript_ready', 'fetching', 'generating_recap')
+          )
+        ORDER BY et.fetched_at ASC
+      `);
+
+      let queued = 0;
+      for (const ep of missingRecaps) {
+        try {
+          await pool.query(`
+            INSERT INTO pending_transcript_queue (podcast_id, podcast_name, episode_guid, episode_title, status, priority, attempts)
+            VALUES ($1, $2, $3, $4, 'transcript_ready', 5, 0)
+            ON CONFLICT DO NOTHING
+          `, [ep.podcast_id, ep.podcast_name, ep.episode_guid, ep.episode_title]);
+          queued++;
+        } catch {}
+      }
+
+      console.log(`[Admin] Pipeline catch-up: found ${missingRecaps.length} episodes missing recaps, queued ${queued} as transcript_ready`);
+      res.json({
+        found: missingRecaps.length,
+        queued,
+        message: `Found ${missingRecaps.length} episode(s) with transcripts but no recaps in the last ${days} days. Queued ${queued} into the pipeline as "transcript_ready" — the recap generator will process them one at a time every 5 minutes.`,
+      });
+    } catch (err: any) {
+      console.error("[Admin] Pipeline catch-up error:", err.message);
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.post("/api/admin/pipeline/queue-new-episodes", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const days = parseInt(req.body.days) || 5;
+      const { rows: stalePodcasts } = await pool.query(`
+        SELECT pd.itunes_id, pd.name
+        FROM podcast_directory pd
+        WHERE pd.status = 'published'
+        ORDER BY pd.name
+      `);
+
+      let totalQueued = 0;
+      let podcastsChecked = 0;
+      const { getEpisodesByItunesId, isTaddyBudgetExhausted } = await import("./taddyClient");
+
+      res.json({ started: true, podcasts: stalePodcasts.length, message: `Scanning ${stalePodcasts.length} podcasts for missed episodes (last ${days} days). Episodes will appear in the pipeline queue.` });
+
+      (async () => {
+        for (const podcast of stalePodcasts) {
+          if (isTaddyBudgetExhausted()) {
+            console.log(`[Admin] Queue new episodes: Taddy budget exhausted after ${podcastsChecked} podcasts, ${totalQueued} queued`);
+            break;
+          }
+          try {
+            const episodes = await getEpisodesByItunesId(podcast.itunes_id, 3, podcast.name);
+            if (!episodes || episodes.length === 0) { podcastsChecked++; continue; }
+
+            for (const ep of episodes) {
+              if (!ep.uuid || !ep.name) continue;
+              if (ep.datePublished) {
+                const ageDays = (Date.now() / 1000 - ep.datePublished) / 86400;
+                if (ageDays > days) continue;
+              }
+              const { rows: existing } = await pool.query(
+                `SELECT id FROM episode_transcripts WHERE episode_guid = $1 LIMIT 1`, [ep.uuid]
+              );
+              if (existing.length > 0) continue;
+              const { rows: queueExisting } = await pool.query(
+                `SELECT id FROM pending_transcript_queue WHERE episode_guid = $1 AND status NOT IN ('failed', 'completed') LIMIT 1`, [ep.uuid]
+              );
+              if (queueExisting.length > 0) continue;
+
+              await storage.queueTranscriptFetch({
+                podcastId: podcast.itunes_id,
+                podcastName: podcast.name,
+                episodeGuid: ep.uuid,
+                episodeTitle: ep.name,
+                priority: 15,
+              });
+              totalQueued++;
+            }
+            podcastsChecked++;
+            await new Promise(r => setTimeout(r, 300));
+          } catch (err: any) {
+            console.error(`[Admin] Queue new episodes error for "${podcast.name}": ${err.message}`);
+            podcastsChecked++;
+          }
+        }
+        console.log(`[Admin] Queue new episodes complete: checked ${podcastsChecked} podcasts, queued ${totalQueued} episodes`);
+      })();
+    } catch (err: any) {
+      console.error("[Admin] Queue new episodes error:", err.message);
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   app.get("/api/admin/pipeline-stats", async (req, res) => {
     if (!req.session.isAdmin) {
       return res.status(401).json({ message: "Not authenticated as admin" });

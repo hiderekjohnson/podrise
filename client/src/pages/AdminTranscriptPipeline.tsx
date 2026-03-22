@@ -465,6 +465,81 @@ function CountdownTimer({ targetMs, label, busy, currentEpisode }: {
   );
 }
 
+function PipelineCatchupActions() {
+  const { toast } = useToast();
+  const [catchupDays, setCatchupDays] = useState(7);
+
+  const catchupMutation = useMutation({
+    mutationFn: async (days: number) => {
+      const res = await apiRequest("POST", "/api/admin/pipeline/catchup", { days });
+      return res.json();
+    },
+    onSuccess: (data: any) => {
+      toast({ title: "Catch-up complete", description: data.message });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline/status"] });
+    },
+    onError: (err: any) => {
+      toast({ title: "Catch-up failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const scanMutation = useMutation({
+    mutationFn: async (days: number) => {
+      const res = await apiRequest("POST", "/api/admin/pipeline/queue-new-episodes", { days });
+      return res.json();
+    },
+    onSuccess: (data: any) => {
+      toast({ title: "Scan started", description: data.message });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline/status"] });
+    },
+    onError: (err: any) => {
+      toast({ title: "Scan failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  return (
+    <div className="border rounded-xl p-4 bg-card space-y-3">
+      <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Catch-Up Actions</div>
+      <div className="flex items-center gap-3 flex-wrap">
+        <select
+          value={catchupDays}
+          onChange={e => setCatchupDays(Number(e.target.value))}
+          className="text-xs border rounded-lg px-2 py-1.5 bg-background"
+          data-testid="catchup-days-select"
+        >
+          <option value={3}>Last 3 days</option>
+          <option value={5}>Last 5 days</option>
+          <option value={7}>Last 7 days</option>
+          <option value={14}>Last 14 days</option>
+        </select>
+        <button
+          onClick={() => catchupMutation.mutate(catchupDays)}
+          disabled={catchupMutation.isPending}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+          data-testid="btn-catchup-recaps"
+        >
+          {catchupMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+          Generate Missing Recaps
+        </button>
+        <button
+          onClick={() => scanMutation.mutate(catchupDays)}
+          disabled={scanMutation.isPending}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
+          data-testid="btn-scan-episodes"
+        >
+          {scanMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
+          Scan Taddy for Missing Episodes
+        </button>
+      </div>
+      <p className="text-[10px] text-muted-foreground leading-snug">
+        <strong>Generate Missing Recaps:</strong> Finds episodes that already have transcripts but no recap, and queues them for recap generation (one every 5 min).
+        <br />
+        <strong>Scan Taddy:</strong> Checks all published podcasts against Taddy's API for episodes we may have missed, then queues them for transcript fetching (one every 90s).
+      </p>
+    </div>
+  );
+}
+
 function PipelineDashboard() {
   const { data, isLoading } = useQuery<PipelineStatusData>({
     queryKey: ["/api/admin/pipeline/status"],
@@ -547,6 +622,8 @@ function PipelineDashboard() {
           })}
         </div>
       </div>
+
+      <PipelineCatchupActions />
 
       {queue.length > 0 && (
         <div className="border rounded-xl p-4 bg-card space-y-3">
