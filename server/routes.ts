@@ -17697,6 +17697,19 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
 
         const epTitle = epData.name || "";
         const epUuid = epData.uuid || "";
+
+        // Reject episodes older than 5 days — prevents back-catalog floods
+        const MAX_EPISODE_AGE_DAYS = 5;
+        if (epData.datePublished) {
+          const pubDate = new Date(epData.datePublished * 1000);
+          const ageMs = Date.now() - pubDate.getTime();
+          const ageDays = ageMs / (1000 * 60 * 60 * 24);
+          if (ageDays > MAX_EPISODE_AGE_DAYS) {
+            console.log(`[TaddyWebhook] Episode too old (${Math.round(ageDays)}d), skipping: "${podcast.name}" - "${epTitle.slice(0, 60)}"`);
+            return res.status(200).json({ success: true, skipped: "too_old" });
+          }
+        }
+
         console.log(`[TaddyWebhook] New episode: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
 
         res.status(200).json({ success: true, podcast: podcast.name, episode: epTitle.slice(0, 60) });
