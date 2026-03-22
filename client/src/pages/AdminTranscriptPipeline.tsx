@@ -1045,6 +1045,7 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
                       <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Episode</th>
                       <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Show</th>
                       <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Stage</th>
+                      <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Aired</th>
                       <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Age</th>
                       <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Queued</th>
                       <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Dur.</th>
@@ -1088,6 +1089,16 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
                           </td>
                           <td className="px-4 py-3">
                             {stageBadge(status)}
+                          </td>
+                          <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                            {row.date_published ? (() => {
+                              const d = new Date(row.date_published);
+                              const isCurrentYear = d.getFullYear() === new Date().getFullYear();
+                              return d.toLocaleDateString("en-US", {
+                                month: "short", day: "numeric",
+                                ...(!isCurrentYear && { year: "2-digit" }),
+                              });
+                            })() : "—"}
                           </td>
                           <td className={`px-4 py-3 text-xs whitespace-nowrap font-medium ${isOld ? "text-orange-600 dark:text-orange-400" : "text-slate-500 dark:text-slate-400"}`}>
                             {formatAge(ageMins)}
