@@ -704,6 +704,15 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline-monitor"] }),
   });
 
+  const [recapBatchTriggered, setRecapBatchTriggered] = useState(false);
+  const runRecapBatchMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/pipeline/run-recap-batch", {}),
+    onSuccess: () => {
+      setRecapBatchTriggered(true);
+      setTimeout(() => setRecapBatchTriggered(false), 4000);
+    },
+  });
+
   const retryOneMutation = useMutation({
     mutationFn: (row: PipelineRow) =>
       apiRequest("POST", "/api/admin/pipeline/retry", {
@@ -763,7 +772,7 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
   const stageBadge = (status: OverallStatus) => {
     const cfg: Record<OverallStatus, { dot: string; label: string; cls: string }> = {
       complete:      { dot: "bg-emerald-500", label: "Published",     cls: "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20" },
-      pending_recap: { dot: "bg-amber-500",   label: "AI processing", cls: "text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20" },
+      pending_recap: { dot: "bg-amber-500",   label: "Awaiting recap", cls: "text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20" },
       queued:        { dot: "bg-blue-500",    label: "In queue",      cls: "text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20" },
       missed:        { dot: "bg-cyan-500",    label: "Fetching",      cls: "text-cyan-700 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-900/20" },
       failed:        { dot: "bg-red-500",     label: "Error",         cls: "text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20" },
@@ -844,7 +853,7 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
             >
               <option value="all">All stages</option>
               <option value="published">Published</option>
-              <option value="processing">AI processing</option>
+              <option value="processing">Awaiting recap</option>
               <option value="in-queue">In queue</option>
               <option value="fetching">Fetching</option>
               <option value="error">Error</option>
@@ -958,6 +967,23 @@ function PipelineTable({ rows, counts }: PipelineTableProps) {
                 </button>
               )
             )}
+            {/* Manually trigger a recap batch immediately */}
+            <button
+              onClick={() => runRecapBatchMutation.mutate()}
+              disabled={runRecapBatchMutation.isPending || recapBatchTriggered}
+              className="text-xs px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/40 font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
+              data-testid="button-run-recap-batch"
+              title="Trigger an immediate recap generation batch — does not wait for the next 5-min tick"
+            >
+              {runRecapBatchMutation.isPending ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : recapBatchTriggered ? (
+                <Check className="w-3 h-3" />
+              ) : (
+                <Zap className="w-3 h-3" />
+              )}
+              {recapBatchTriggered ? "Batch started" : "Run recaps now"}
+            </button>
             {/* Retry all errors */}
             <button
               onClick={() => retryAllMutation.mutate()}

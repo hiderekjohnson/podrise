@@ -6,6 +6,8 @@ import { ITUNES_ID_TO_SLUG } from "./podcastLandingMap";
 const INTERVAL_MS = 5 * 60 * 1000;
 const HEADLINE_CATCHUP_INTERVAL_MS = 15 * 60 * 1000;
 const BATCH_SIZE = 3;
+const BATCH_SIZE_CATCHUP = 10;
+const CATCHUP_BACKLOG_THRESHOLD = 10;
 const PER_PODCAST = 3;
 // 3 episodes × 4min timeout + 30s delays + buffer = ~14min minimum, set to 20min for headroom
 const BATCH_TIMEOUT_MS = 20 * 60 * 1000;
@@ -218,6 +220,10 @@ async function processEpisode(ep: any, podcastSlug: string, podcastName: string,
   }
 }
 
+export async function triggerRecapBatch() {
+  return runBatch();
+}
+
 async function runBatch() {
   // Watchdog: if no successful batch in 30 minutes, force reset (safety valve)
   const timeSinceLastSuccess = Date.now() - lastSuccessfulBatchAt;
@@ -241,6 +247,31 @@ async function runBatch() {
   try {
     const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
     const cutoffTimestamp = Math.floor(threeDaysAgo.getTime() / 1000);
+
+    // Check how many transcripts are awaiting recap so we can adapt batch size
+    const { rows: backlogRows } = await pool.query(
+      `SELECT COUNT(*) AS cnt
+       FROM episode_transcripts et
+       INNER JOIN podcast_directory pd ON pd.itunes_id = et.podcast_id AND pd.status = 'published'
+       WHERE et.transcript IS NOT NULL AND et.transcript != ''
+         AND et.date_published IS NOT NULL
+         AND et.date_published >= $1
+         AND NOT EXISTS (
+           SELECT 1 FROM landing_page_recaps lpr
+           WHERE lpr.itunes_id = et.podcast_id
+             AND (lower(trim(lpr.episode_title)) = lower(trim(et.episode_title))
+               OR lpr.episode_slug = lower(regexp_replace(trim(et.episode_title), '[^a-zA-Z0-9]+', '-', 'g')))
+         )`,
+      [cutoffTimestamp]
+    );
+    const backlogCount = parseInt(backlogRows[0]?.cnt ?? "0", 10);
+    const isCatchup = backlogCount >= CATCHUP_BACKLOG_THRESHOLD;
+    const effectiveBatchSize = isCatchup ? BATCH_SIZE_CATCHUP : BATCH_SIZE;
+    const interEpisodeDelayMs = isCatchup ? 5_000 : 30_000;
+    if (isCatchup) {
+      console.log(`[ProdRecap] Catchup mode: ${backlogCount} awaiting recap — using batch size ${effectiveBatchSize} with ${interEpisodeDelayMs / 1000}s delays`);
+    }
+
     const { rows: episodes } = await pool.query(
       `WITH ranked AS (
          SELECT et.id, et.podcast_id, et.episode_title, et.transcript, et.description,
@@ -264,7 +295,7 @@ async function runBatch() {
        WHERE rn <= $1
        ORDER BY date_published DESC
        LIMIT $2`,
-      [PER_PODCAST, BATCH_SIZE, cutoffTimestamp]
+      [PER_PODCAST, effectiveBatchSize, cutoffTimestamp]
     );
 
     if (episodes.length === 0) {
@@ -315,7 +346,7 @@ async function runBatch() {
       else failed++;
 
       if (episodes.indexOf(ep) < episodes.length - 1) {
-        await new Promise(r => setTimeout(r, 30_000));
+        await new Promise(r => setTimeout(r, interEpisodeDelayMs));
       }
     }
 

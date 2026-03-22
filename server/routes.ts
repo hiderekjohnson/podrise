@@ -20,6 +20,7 @@ import { readFileSync, writeFileSync, mkdirSync, copyFileSync, unlinkSync, exist
 import multer from "multer";
 import path from "path";
 import { authenticateRequest, getAuthUserId } from "./jwt";
+import { triggerRecapBatch } from "./productionRecapScheduler";
 
 declare module "express-session" {
   interface SessionData {
@@ -9656,6 +9657,16 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         RETURNING id
       `);
       res.json({ retried: rows.length });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.post("/api/admin/pipeline/run-recap-batch", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      triggerRecapBatch().catch((err: any) => console.error("[Admin] Triggered batch error:", err.message));
+      res.json({ triggered: true });
     } catch (err: any) {
       res.status(500).json({ message: err.message });
     }
