@@ -611,7 +611,7 @@ export function markdownToEmailHtml(markdown: string, recipientEmail: string, ep
   <table width="100%" cellpadding="0" cellspacing="0" role="presentation"><tr>
     <td valign="middle" style="padding-right:12px;">
       <a href="https://podrise.com" style="text-decoration:none;white-space:nowrap;">
-        <img src="${escapeHtml(logoUrl)}" alt="PodRise" width="36" height="36" style="width:36px;height:36px;border-radius:8px;display:inline-block;vertical-align:middle;" />
+        <img src="${escapeHtml(logoUrl)}" alt="PodRise" width="72" height="72" style="width:72px;height:72px;border-radius:8px;display:inline-block;vertical-align:middle;" />
       </a>
     </td>
     <td align="right" valign="middle" style="white-space:nowrap;"><span class="topbar-date" style="font-size:12px;color:#A1A1AA;font-family:'Courier New',monospace;">${escapeHtml(shortDateStr)}</span></td>
@@ -659,7 +659,7 @@ ${episodeCardsHtml}
       <table cellpadding="0" cellspacing="0" role="presentation"><tr><td style="background:#6366F1;border-radius:8px;">
         <a href="https://podrise.com/login?redirect=%2Fpod-squad" style="display:inline-block;color:#ffffff;text-decoration:none;padding:14px 32px;font-size:15px;font-weight:700;">Click to Share</a>
       </td></tr></table>
-      ${referralData ? `<p style="font-size:13px;color:#6B7280;margin:16px 0 0;line-height:1.5;">Or copy &amp; paste your referral link to others:<br/><a href="https://podrise.com/ref/${escapeHtml(referralData.referralCode)}" style="color:#6366F1;text-decoration:underline;">podrise.com/ref/${escapeHtml(referralData.referralCode)}</a></p>` : ""}
+      ${referralData ? `<p style="font-size:16px;color:#6B7280;margin:16px 0 0;line-height:1.5;">Or copy &amp; paste your referral link to others:<br/><a href="https://podrise.com/ref/${escapeHtml(referralData.referralCode)}" style="color:#6366F1;text-decoration:underline;">podrise.com/ref/${escapeHtml(referralData.referralCode)}</a></p>` : ""}
     </td></tr>
     <tr><td style="padding:16px;"></td></tr>
   </table>

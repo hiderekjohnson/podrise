@@ -8646,10 +8646,14 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const epMeta: Record<string, any> = {};
       for (const r of recentRecaps) {
         const slug = r.podcast_slug;
+        let artworkUrl = r.artwork_url || "";
+        if (artworkUrl && !artworkUrl.startsWith("http")) {
+          artworkUrl = `https://podrise.com${artworkUrl.startsWith("/") ? artworkUrl : "/" + artworkUrl}`;
+        }
         epMeta[slug] = {
           podcastSlug: slug,
           episodeSlug: r.episode_slug,
-          artworkUrl: r.artwork_url,
+          artworkUrl: artworkUrl,
           hosts: r.hosts,
           duration: r.duration,
           publishDate: r.publish_date,
