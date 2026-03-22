@@ -220,9 +220,10 @@ export default function Onboarding() {
     queryKey: ["/api/onboarding/suggestions"],
   });
 
-  const allStaffPicks = staffPicksData?.podcasts?.slice(0, 20) || [];
+  const allStaffPicks = staffPicksData?.podcasts || [];
 
-  const visiblePicks = allStaffPicks.filter(p => !selectedPodcasts.has(p.slug));
+  const VISIBLE_PICK_COUNT = 6;
+  const visiblePicks = allStaffPicks.filter(p => !selectedPodcasts.has(p.slug)).slice(0, VISIBLE_PICK_COUNT);
 
   useEffect(() => {
     document.title = "Set Up Your Feed | PodRise";
