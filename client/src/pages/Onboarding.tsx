@@ -476,7 +476,7 @@ export default function Onboarding() {
 
       <div className="flex-1 min-h-0 overflow-hidden flex flex-col items-center px-4 sm:px-6 pb-0 md:pb-2">
 
-        <div className="w-full max-w-[860px] flex-1 min-h-0 overflow-hidden border border-[#F0F0F2] dark:border-[#27272A] rounded-xl grid grid-cols-1 md:grid-cols-[1fr_280px]">
+        <div className="w-full max-w-[860px] flex-1 min-h-0 max-h-[520px] overflow-hidden border border-[#F0F0F2] dark:border-[#27272A] rounded-xl grid grid-cols-1 md:grid-cols-[1fr_280px]">
 
           <div className="flex flex-col px-5 sm:px-7 pt-4 sm:pt-5 pb-3 overflow-hidden md:border-r border-[#F0F0F2] dark:border-[#27272A] bg-white dark:bg-[#111114] rounded-t-xl md:rounded-tr-none md:rounded-l-xl">
             <h1 className="text-[22px] font-bold tracking-[-0.03em] text-[#09090B] dark:text-white mb-0.5 flex-shrink-0" data-testid="onboarding-search-heading">
