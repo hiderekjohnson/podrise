@@ -1209,34 +1209,56 @@ function StageDistribution({ counts }: StageDistributionProps) {
   );
 }
 
-const SUPPORT_PROMPT = `The episode recap pipeline seems broken. Please diagnose it.
+const SUPPORT_PROMPT = `The episode recap pipeline needs diagnosis. Please investigate and fix it.
 
-The pipeline flow is: Taddy webhook → transcript received → OpenAI recap → published
+Pipeline flow: Taddy webhook → transcript fetched → OpenAI recap → published
 
-⚠️ IMPORTANT: You are diagnosing PRODUCTION ONLY
-—do NOT start with dev database ($DATABASE_URL). Use fetch_deployment_logs for production 
-logs and /api/admin/sql endpoint for production database queries.
+⚠️ PRODUCTION ONLY — do NOT use dev database ($DATABASE_URL).
+You have two tools to query production yourself — use both, do not ask the user to paste data:
+  1. executeSql({ sqlQuery: "...", environment: "production" }) — read-only production DB
+  2. fetch_deployment_logs — production server logs
 
-CONTEXT FOR YOU:
-- Scheduler runs every 5 min, processes 3 episodes/batch (production only)
-- Individual episode timeout: 4 minutes (marked as generation_failed)
-- Batch timeout: 20 minutes (watchdog resets if hung > 30 min)
-- Key table: landing_page_recaps (published, hidden, generation_failed, running)
-- Webhook source: Taddy (podcap.io)
+SYSTEM CONTEXT:
+- Scheduler: runs every 5 min, 3 episodes/batch, production only
+- Timeouts: per-episode 4 min → status='generation_failed'; batch 20 min; watchdog resets if hung >30 min
+- Taddy API: self-limited to 60 req/min (their limit is 250). Rate limit hits → episodes stop ingesting
+- Tables: landing_page_recaps (status: published/hidden/generation_failed/running), pending_transcript_queue (status: pending/fetching/failed)
 
-WHAT TO CHECK (in order):
-1. Scheduler status: Is it running? Last recap published when? (check scheduler-health endpoint via browser network tab or ask user for screenshot)
-2. Database queries to run FIRST:
-   - SELECT COUNT(*) FILTER (WHERE status = 'published') as published_24h, COUNT(*) FILTER (WHERE status = 'generation_failed') as timeouts_24h, MAX(created_at) as latest_recap FROM landing_page_recaps WHERE created_at > NOW() - INTERVAL '24 hours'
-   - SELECT MAX(created_at) as most_recent FROM landing_page_recaps (compare to current time—if gap > 15min, scheduler likely stuck)
-3. Deployment logs: Search for [ProdRecap], [WATCHDOG], [TaddyWebhook] errors (timeouts, crashes, API 503s)
-4. Determine root cause: (a) Scheduler crashed, (b) Taddy webhooks stopped, (c) Episodes timing out, (d) OpenAI/validation issues
+RUN THESE QUERIES IMMEDIATELY (do not ask the user first):
 
-TELL ME:
-- How long has it been broken?
-- Current scheduler status (Running/Stopped)?
-- What you observe in the UI (no new episodes, errors, etc.)
-- Recent deployments or changes?`;
+1. Overall health:
+SELECT 
+  COUNT(*) FILTER (WHERE status='published' AND created_at > NOW()-INTERVAL '24h') AS published_24h,
+  COUNT(*) FILTER (WHERE status='generation_failed' AND created_at > NOW()-INTERVAL '24h') AS timeouts_24h,
+  MAX(created_at) AS latest_recap
+FROM landing_page_recaps;
+
+2. Queue status:
+SELECT ptq.podcast_id, pd.name, ptq.status, COUNT(*) as cnt,
+       MIN(ptq.created_at) as oldest, MAX(ptq.created_at) as newest
+FROM pending_transcript_queue ptq
+LEFT JOIN podcast_directory pd ON pd.itunes_id = ptq.podcast_id
+GROUP BY ptq.podcast_id, pd.name, ptq.status
+ORDER BY cnt DESC LIMIT 20;
+
+3. Recent failures:
+SELECT episode_title, podcast_name, status, created_at
+FROM landing_page_recaps
+WHERE status = 'generation_failed' AND created_at > NOW()-INTERVAL '24h'
+ORDER BY created_at DESC LIMIT 10;
+
+4. Check deployment logs for: [ProdRecap], [WATCHDOG], [TaddyWebhook], [TaddyRateLimit]
+
+AFTER QUERYING, determine root cause:
+(a) Scheduler stopped — no recent [ProdRecap] logs
+(b) Taddy rate limit — [TaddyRateLimit] logs, queue items stuck in 'pending' with 0 attempts
+(c) Queue clogged with stale episodes — check query 2 for old episodes flooding the queue
+(d) Episodes timing out — high generation_failed count in query 1
+(e) Taddy webhooks stopped — no new pending_transcript_queue entries in last hour
+
+USER NOTES:
+- There is a "Clear queue" button per-podcast on the pipeline page (use it for stale floods)
+- The pipeline page shows Taddy req/min badge (green=ok, amber=busy, red=near limit)`;
 
 
 interface HealthSnapshotProps {
