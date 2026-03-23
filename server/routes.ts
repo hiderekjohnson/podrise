@@ -18731,13 +18731,16 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
         }
 
         const { rows: existing } = await pool.query(
-          `SELECT id FROM episode_transcripts WHERE podcast_id = $1 AND (episode_guid = $2 OR ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$3')}) LIMIT 1`,
-          [podcastId, epUuid, epTitle]
+          `SELECT id FROM episode_transcripts WHERE podcast_id = $1 AND episode_guid = $2 LIMIT 1`,
+          [podcastId, epUuid]
         );
 
         const { rows: recapCheck } = await pool.query(
-          `SELECT 1 FROM landing_page_recaps WHERE itunes_id = $1 AND ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$2')} LIMIT 1`,
-          [podcastId, epTitle]
+          `SELECT 1 FROM landing_page_recaps WHERE itunes_id = $1 AND (
+            (episode_guid IS NOT NULL AND episode_guid = $2)
+            OR (episode_guid IS NULL AND ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$3')})
+          ) LIMIT 1`,
+          [podcastId, epUuid, epTitle]
         );
 
         if (existing.length > 0 || recapCheck.length > 0) {

@@ -611,21 +611,28 @@ export class DatabaseStorage implements IStorage {
       resources: data.resources,
       published: data.published,
       topicContexts: data.topicContexts,
+      episodeGuid: data.episodeGuid ?? sql`${landingPageRecaps.episodeGuid}`,
       tabloidHeadline: data.tabloidHeadline ?? sql`${landingPageRecaps.tabloidHeadline}`,
       tabloidSubHeadline: data.tabloidSubHeadline ?? sql`${landingPageRecaps.tabloidSubHeadline}`,
     };
 
-    const contentConditions = data.itunesId
-      ? and(
-          eq(landingPageRecaps.itunesId, data.itunesId),
-          eq(landingPageRecaps.episodeTitle, data.episodeTitle),
-          eq(landingPageRecaps.publishDate, data.publishDate)
-        )
-      : and(
-          eq(landingPageRecaps.slug, data.slug),
-          eq(landingPageRecaps.episodeTitle, data.episodeTitle),
-          eq(landingPageRecaps.publishDate, data.publishDate)
-        );
+    // When an episode_guid is available, prefer matching by guid (handles same-title shows like "CBS News: On The Hour")
+    let contentConditions;
+    if (data.episodeGuid && data.itunesId) {
+      contentConditions = eq(landingPageRecaps.episodeGuid, data.episodeGuid);
+    } else if (data.itunesId) {
+      contentConditions = and(
+        eq(landingPageRecaps.itunesId, data.itunesId),
+        eq(landingPageRecaps.episodeTitle, data.episodeTitle),
+        eq(landingPageRecaps.publishDate, data.publishDate)
+      );
+    } else {
+      contentConditions = and(
+        eq(landingPageRecaps.slug, data.slug),
+        eq(landingPageRecaps.episodeTitle, data.episodeTitle),
+        eq(landingPageRecaps.publishDate, data.publishDate)
+      );
+    }
     const existingByContent = await db
       .select()
       .from(landingPageRecaps)

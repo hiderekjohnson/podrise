@@ -351,6 +351,14 @@ process.on("uncaughtException", (err) => {
           console.warn("alert_subscriptions migration skipped:", err);
         }
 
+        try {
+          await pool.query(`ALTER TABLE landing_page_recaps ADD COLUMN IF NOT EXISTS episode_guid TEXT`);
+          await pool.query(`CREATE INDEX IF NOT EXISTS idx_landing_page_recaps_episode_guid ON landing_page_recaps (episode_guid) WHERE episode_guid IS NOT NULL`);
+          console.log("landing_page_recaps episode_guid column ready");
+        } catch (err) {
+          console.warn("landing_page_recaps episode_guid migration skipped:", err);
+        }
+
       })();
 
       startEmailScheduler();

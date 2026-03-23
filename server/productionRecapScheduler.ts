@@ -194,8 +194,14 @@ async function generateOneRecap() {
     const epSlug = makeEpisodeSlug(epTitle);
 
     const { rows: existingRows } = await pool.query(
-      `SELECT id FROM landing_page_recaps WHERE itunes_id = $1 AND lower(trim(episode_title)) = lower(trim($2)) LIMIT 1`,
-      [item.podcast_id, epTitle]
+      `SELECT id FROM landing_page_recaps
+       WHERE itunes_id = $1
+         AND (
+           (episode_guid IS NOT NULL AND episode_guid = $2)
+           OR (episode_guid IS NULL AND lower(trim(episode_title)) = lower(trim($3)))
+         )
+       LIMIT 1`,
+      [item.podcast_id, item.episode_guid, epTitle]
     );
     if (existingRows.length > 0) {
       console.log(`[Pipeline] Recap already exists: "${epTitle.slice(0, 60)}"`);
@@ -263,6 +269,7 @@ async function generateOneRecap() {
       episodeTitle: epTitle,
       episodeSlug: epSlug,
       publishDate,
+      episodeGuid: item.episode_guid || null,
       duration: item.duration ? String(item.duration) : null,
       artworkUrl: podcast?.artwork_url || "",
       hosts: podcast?.hosts || "",
