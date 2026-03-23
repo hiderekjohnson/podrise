@@ -131,12 +131,12 @@ function formatKB(chars: number | null): string {
 }
 
 const STATUS_CONFIG: Record<OverallStatus, { label: string; color: string; icon: React.FC<{ className?: string }> }> = {
-  complete:      { label: "Complete",   color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400", icon: CheckCircle2 },
-  generating:    { label: "Generating", color: "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400",    icon: Zap },
-  pending_recap: { label: "Pending",    color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",            icon: Clock },
-  missed:        { label: "Missed",     color: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",        icon: AlertTriangle },
-  queued:        { label: "Queued",     color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",   icon: Radio },
-  failed:        { label: "Failed",     color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",               icon: XCircle },
+  complete:      { label: "Published",              color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400", icon: CheckCircle2 },
+  generating:    { label: "Writing recap",          color: "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400",    icon: Zap },
+  pending_recap: { label: "Waiting for recap",      color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",            icon: Clock },
+  missed:        { label: "Missed",                 color: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",        icon: AlertTriangle },
+  queued:        { label: "Waiting for transcript", color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",   icon: Radio },
+  failed:        { label: "Error",                  color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",               icon: XCircle },
 };
 
 type FilterType = "all" | OverallStatus;
@@ -417,12 +417,13 @@ interface PipelineStatusData {
 }
 
 const STAGE_LABELS: Record<string, { label: string; color: string; icon: React.FC<{ className?: string }> }> = {
-  queued:           { label: "Queued",              color: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",      icon: Clock },
-  fetching:         { label: "Fetching Transcript", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",      icon: Loader2 },
-  transcript_ready: { label: "Transcript Ready",    color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400", icon: CheckCircle2 },
-  generating_recap: { label: "Generating Recap",    color: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400", icon: Zap },
-  completed:        { label: "Published",           color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400", icon: CheckCircle2 },
-  failed:           { label: "Failed",              color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",          icon: XCircle },
+  queued:           { label: "Waiting for transcript",  color: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",      icon: Clock },
+  pending:          { label: "Waiting for transcript",  color: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",      icon: Clock },
+  fetching:         { label: "Getting transcript",      color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",      icon: Loader2 },
+  transcript_ready: { label: "Waiting for recap",       color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400", icon: CheckCircle2 },
+  generating_recap: { label: "Writing recap",           color: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400", icon: Zap },
+  completed:        { label: "Published",               color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400", icon: CheckCircle2 },
+  failed:           { label: "Error",                   color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",          icon: XCircle },
 };
 
 function CountdownTimer({ targetMs, label, busy, currentEpisode }: {
@@ -1126,21 +1127,21 @@ function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableP
   const publishedCount  = rows.filter(r => getOverallStatus(r, currentlyGeneratingGuid) === "complete").length;
 
   const stages = [
-    { name: "Webhook",        count: webhookCount,    num: "1", circleClass: "border-2 border-indigo-300 text-indigo-700 dark:text-indigo-300 bg-white dark:bg-slate-900" },
-    { name: "Taddy fetch",    count: fetchingCount,   num: "2", circleClass: "border-2 border-blue-300 text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-900" },
-    { name: "In recap queue", count: inQueueCount,    num: "3", circleClass: "border-2 border-amber-300 text-amber-700 dark:text-amber-300 bg-white dark:bg-slate-900" },
-    { name: "Generating",     count: generatingCount, num: "4", circleClass: generatingCount > 0 ? "border-2 border-violet-400 text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/20 animate-pulse" : "border-2 border-violet-300 text-violet-700 dark:text-violet-300 bg-white dark:bg-slate-900" },
-    { name: "Published",      count: publishedCount,  num: "5", circleClass: "border-2 border-emerald-400 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20" },
+    { name: "Waiting for transcript", count: webhookCount,    num: "1", circleClass: "border-2 border-indigo-300 text-indigo-700 dark:text-indigo-300 bg-white dark:bg-slate-900" },
+    { name: "Getting transcript",     count: fetchingCount,   num: "2", circleClass: "border-2 border-blue-300 text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-900" },
+    { name: "Waiting for recap",      count: inQueueCount,    num: "3", circleClass: "border-2 border-amber-300 text-amber-700 dark:text-amber-300 bg-white dark:bg-slate-900" },
+    { name: "Writing recap",          count: generatingCount, num: "4", circleClass: generatingCount > 0 ? "border-2 border-violet-400 text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/20 animate-pulse" : "border-2 border-violet-300 text-violet-700 dark:text-violet-300 bg-white dark:bg-slate-900" },
+    { name: "Published",              count: publishedCount,  num: "5", circleClass: "border-2 border-emerald-400 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20" },
   ];
 
   const errorCount  = rows.filter(r => getOverallStatus(r, currentlyGeneratingGuid) === "failed").length;
   const metricCards = [
-    { label: "In recap queue", value: inQueueCount,    sub: "waiting for AI",   valClass: "text-slate-900 dark:text-white" },
-    { label: "Generating",     value: generatingCount, sub: "AI writing now",   valClass: "text-violet-600 dark:text-violet-400" },
-    { label: "Errors",         value: errorCount,      sub: "need attention",   valClass: "text-red-600 dark:text-red-400" },
-    { label: "Published today",value: publishedCount,  sub: "episodes live",    valClass: "text-emerald-600 dark:text-emerald-400" },
-    { label: "Fetching",       value: fetchingCount,   sub: "from Taddy",       valClass: "text-slate-600 dark:text-slate-400" },
-    { label: "Pending",        value: webhookCount,    sub: "webhook only",     valClass: "text-slate-600 dark:text-slate-400" },
+    { label: "Waiting for recap",      value: inQueueCount,    sub: "have transcript, need recap", valClass: "text-slate-900 dark:text-white" },
+    { label: "Writing recap",          value: generatingCount, sub: "AI writing now",              valClass: "text-violet-600 dark:text-violet-400" },
+    { label: "Errors",                 value: errorCount,      sub: "need attention",              valClass: "text-red-600 dark:text-red-400" },
+    { label: "Published today",        value: publishedCount,  sub: "episodes live",               valClass: "text-emerald-600 dark:text-emerald-400" },
+    { label: "Getting transcript",     value: fetchingCount,   sub: "downloading now",             valClass: "text-slate-600 dark:text-slate-400" },
+    { label: "Waiting for transcript", value: webhookCount,    sub: "in line to download",         valClass: "text-slate-600 dark:text-slate-400" },
   ];
 
   // Helpers
@@ -1163,12 +1164,12 @@ function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableP
 
   const stageBadge = (status: OverallStatus) => {
     const cfg: Record<OverallStatus, { dot: string; label: string; cls: string; pulse?: boolean }> = {
-      complete:      { dot: "bg-emerald-500", label: "Published",       cls: "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20" },
-      generating:    { dot: "bg-violet-500",  label: "Generating",      cls: "text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/20", pulse: true },
-      pending_recap: { dot: "bg-amber-500",   label: "In recap queue",  cls: "text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20" },
-      queued:        { dot: "bg-blue-500",    label: "In queue",        cls: "text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20" },
-      missed:        { dot: "bg-cyan-500",    label: "Fetching",        cls: "text-cyan-700 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-900/20" },
-      failed:        { dot: "bg-red-500",     label: "Error",           cls: "text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20" },
+      complete:      { dot: "bg-emerald-500", label: "Published",               cls: "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20" },
+      generating:    { dot: "bg-violet-500",  label: "Writing recap",           cls: "text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/20", pulse: true },
+      pending_recap: { dot: "bg-amber-500",   label: "Waiting for recap",       cls: "text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20" },
+      queued:        { dot: "bg-blue-500",    label: "Waiting for transcript",  cls: "text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20" },
+      missed:        { dot: "bg-cyan-500",    label: "Missed",                  cls: "text-cyan-700 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-900/20" },
+      failed:        { dot: "bg-red-500",     label: "Error",                   cls: "text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20" },
     };
     const c = cfg[status];
     return (
@@ -1254,10 +1255,10 @@ function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableP
             >
               <option value="all">All stages</option>
               <option value="published">Published</option>
-              <option value="generating">Generating</option>
-              <option value="processing">In recap queue</option>
-              <option value="in-queue">In queue</option>
-              <option value="fetching">Fetching</option>
+              <option value="generating">Writing recap</option>
+              <option value="processing">Waiting for recap</option>
+              <option value="in-queue">Waiting for transcript</option>
+              <option value="fetching">Getting transcript</option>
               <option value="error">Error</option>
             </select>
             {/* Show filter */}
