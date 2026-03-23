@@ -18258,14 +18258,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
         return res.status(200).json({ success: true });
       }
 
-      const INTAKE_PAUSED = false;
-
-      if (INTAKE_PAUSED && taddyType === "podcastepisode" && action === "created") {
-        console.log(`[TaddyWebhook] Intake paused, ignoring episode: ${(data?.name || "").slice(0, 60)}`);
-        return res.status(200).json({ success: true, skipped: "intake_paused" });
-      }
-
-      if (!INTAKE_PAUSED && taddyType === "podcastepisode" && action === "created") {
+      if (taddyType === "podcastepisode" && action === "created") {
         const epData = data;
         const seriesItunesId = String(epData.podcastSeries?.itunesId || "");
         const seriesUuid = epData.podcastSeries?.uuid || "";
@@ -18326,8 +18319,6 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
             }
           }
         }
-
-        console.log(`[TaddyWebhook] New episode: ${podcastName} - "${epTitle.slice(0, 60)}" (iTunes ${podcastId}${!podcast ? " — not in directory" : ""})`);
 
         const { rows: existing } = await pool.query(
           `SELECT id FROM episode_transcripts WHERE podcast_id = $1 AND (episode_guid = $2 OR ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$3')}) LIMIT 1`,
