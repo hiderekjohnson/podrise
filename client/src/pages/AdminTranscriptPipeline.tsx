@@ -1240,6 +1240,20 @@ function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableP
         </div>
       </div>
 
+      {/* How the pipeline works */}
+      <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded-xl px-5 py-4 text-xs text-slate-600 dark:text-slate-400 leading-relaxed space-y-2">
+        <div className="font-semibold text-slate-800 dark:text-slate-200 text-[13px]">How episodes move through the pipeline</div>
+        <ol className="list-decimal list-inside space-y-1.5">
+          <li><strong className="text-slate-700 dark:text-slate-300">Taddy sends a webhook</strong> when a new episode is published. We save it to the queue with its aired date.</li>
+          <li><strong className="text-slate-700 dark:text-slate-300">Waiting for transcript</strong> — the episode is in line. The system downloads one transcript at a time, every 90 seconds.</li>
+          <li><strong className="text-slate-700 dark:text-slate-300">Getting transcript</strong> — the system is actively downloading the transcript from Taddy right now (takes a few seconds).</li>
+          <li><strong className="text-slate-700 dark:text-slate-300">Waiting for recap</strong> — the transcript is downloaded. The episode is in line for the AI to write a recap.</li>
+          <li><strong className="text-slate-700 dark:text-slate-300">Writing recap</strong> — the AI is actively writing the recap right now. One episode at a time, every 5 minutes.</li>
+          <li><strong className="text-slate-700 dark:text-slate-300">Published</strong> — the recap is live on the website.</li>
+        </ol>
+        <p className="text-[11px] text-slate-500 dark:text-slate-500">Deploying changes briefly pauses the pipeline (10-30 seconds) but nothing is lost — episodes in progress are automatically retried on restart.</p>
+      </div>
+
       {/* Episode Table */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
         {/* Table header with filters */}
