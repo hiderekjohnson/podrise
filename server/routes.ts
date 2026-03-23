@@ -14922,8 +14922,27 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         [status, id]
       );
       if (rows.length === 0) return res.status(404).json({ message: "Podcast not found" });
-      console.log(`[PodcastDirectory] Status updated: "${rows[0].name}" → ${status}`);
-      res.json(rows[0]);
+      const updated = rows[0];
+      console.log(`[PodcastDirectory] Status updated: "${updated.name}" → ${status}`);
+      res.json(updated);
+
+      // Auto-sync Taddy webhook filters whenever a podcast is published or unpublished
+      void (async () => {
+        try {
+          const { getMyWebhooks, addWebhookFilter } = await import("./taddyClient");
+          const webhookData = await getMyWebhooks();
+          const webhook = webhookData?.webhooks?.[0];
+          if (!webhook) return;
+          const directoryRows = await storage.getPodcastDirectory();
+          const uuids = directoryRows
+            .filter((p: any) => p.status === "published" && p.taddyUuid)
+            .map((p: any) => p.taddyUuid as string);
+          await addWebhookFilter(webhook.id, { eventType: "podcastepisode.created", includedUuids: uuids });
+          console.log(`[TaddyWebhooks] Auto-synced filters after status change: "${updated.name}" → ${status} (${uuids.length} UUIDs)`);
+        } catch (syncErr: any) {
+          console.warn("[TaddyWebhooks] Auto-sync after status change failed:", syncErr?.message);
+        }
+      })();
     } catch (err: any) {
       res.status(500).json({ message: "Failed to update status" });
     }
