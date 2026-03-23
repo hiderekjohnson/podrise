@@ -13787,6 +13787,14 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
           let taddySeries = await getPodcastSeriesWithEpisodes({ itunesId: numericItunesId }, epLimit);
 
+          // Auto-save Taddy UUID to podcast_directory if we don't have it yet
+          if (taddySeries?.uuid && !podcast.taddy_uuid) {
+            await pool.query(
+              `UPDATE podcast_directory SET taddy_uuid = $1 WHERE slug = $2 AND taddy_uuid IS NULL`,
+              [taddySeries.uuid, podcast.slug]
+            ).catch(() => {});
+          }
+
           if (taddySeries?.uuid && (!taddySeries.episodes || taddySeries.episodes.length === 0)) {
             await new Promise(resolve => setTimeout(resolve, 1000));
             const retrySeries = await getPodcastSeriesWithEpisodes({ uuid: taddySeries.uuid }, epLimit);
