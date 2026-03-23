@@ -170,16 +170,10 @@ async function generateOneRecap() {
 
     const item = rows[0];
     const podcast = await getPodcastInfo(item.podcast_id);
-    if (!podcast) {
-      console.log(`[Pipeline] No podcast info for itunesId=${item.podcast_id}, skipping`);
-      await pool.query(
-        `UPDATE pending_transcript_queue SET status = 'failed', error_message = 'Podcast not found in directory' WHERE id = $1`,
-        [item.id]
-      );
-      return;
-    }
 
-    const podcastSlug = ITUNES_ID_TO_SLUG[item.podcast_id] || podcast.slug || podcast.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 80);
+    // Fall back to queue metadata for podcasts not in the directory
+    const podcastName = podcast?.name || item.podcast_name || "Unknown Podcast";
+    const podcastSlug = ITUNES_ID_TO_SLUG[item.podcast_id] || podcast?.slug || podcastName.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 80);
     const epTitle = item.episode_title || "Untitled";
     const epSlug = makeEpisodeSlug(epTitle);
 
@@ -196,8 +190,8 @@ async function generateOneRecap() {
       return;
     }
 
-    console.log(`[Pipeline] Generating recap: "${epTitle.slice(0, 60)}" (${podcast.name})`);
-    currentlyGeneratingEpisode = { guid: item.episode_guid, title: epTitle, podcastName: podcast.name };
+    console.log(`[Pipeline] Generating recap: "${epTitle.slice(0, 60)}" (${podcastName})`);
+    currentlyGeneratingEpisode = { guid: item.episode_guid, title: epTitle, podcastName };
     currentlyGeneratingGuid = item.episode_guid;
     currentlyGeneratingTitle = epTitle;
 
@@ -207,7 +201,7 @@ async function generateOneRecap() {
     );
 
     const recapPromise = generateRecapFromFullTranscript(
-      item.transcript, podcast.name, epTitle, item.description || null
+      item.transcript, podcastName, epTitle, item.description || null
     );
     const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), EPISODE_TIMEOUT_MS));
     const recap = await Promise.race([recapPromise, timeoutPromise]);
@@ -231,7 +225,7 @@ async function generateOneRecap() {
       const { generateTabloidHeadline } = await import("./emailScheduler");
       for (let attempt = 1; attempt <= HEADLINE_RETRY_COUNT + 1; attempt++) {
         try {
-          const headlinePromise = generateTabloidHeadline(epTitle, podcast.name, "", recap.whatHappened, recap.keyInsights || []);
+          const headlinePromise = generateTabloidHeadline(epTitle, podcastName, "", recap.whatHappened, recap.keyInsights || []);
           const headlineTimeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 30_000));
           const result = await Promise.race([headlinePromise, headlineTimeout]);
           if (result) {
@@ -249,13 +243,13 @@ async function generateOneRecap() {
     const upsertedRecap = await storage.upsertLandingPageRecap({
       slug: podcastSlug,
       itunesId: item.podcast_id,
-      podcastName: podcast.name,
+      podcastName,
       episodeTitle: epTitle,
       episodeSlug: epSlug,
       publishDate,
       duration: item.duration ? String(item.duration) : null,
-      artworkUrl: podcast.artwork_url || "",
-      hosts: podcast.hosts || "",
+      artworkUrl: podcast?.artwork_url || "",
+      hosts: podcast?.hosts || "",
       tldl: "",
       whatHappened: recap.whatHappened,
       keyInsights: recap.keyInsights || [],
@@ -274,8 +268,8 @@ async function generateOneRecap() {
       try {
         const { validateAndEnrichRecap } = await import("./recapValidator");
         await validateAndEnrichRecap(
-          upsertedRecap.id, podcastSlug, upsertedRecap.episodeSlug, podcast.name,
-          epTitle, item.podcast_id, item.transcript || null, podcast.hosts || null
+          upsertedRecap.id, podcastSlug, upsertedRecap.episodeSlug, podcastName,
+          epTitle, item.podcast_id, item.transcript || null, podcast?.hosts || null
         );
       } catch (valErr) {
         console.warn(`[Pipeline] Validation failed for "${epTitle.slice(0, 50)}":`, valErr);
@@ -287,7 +281,7 @@ async function generateOneRecap() {
       [item.id]
     );
 
-    console.log(`[Pipeline] Published: "${epTitle.slice(0, 60)}" (${podcast.name})`);
+    console.log(`[Pipeline] Published: "${epTitle.slice(0, 60)}" (${podcastName})`);
   } catch (err: any) {
     console.error(`[Pipeline] Recap generation error: ${err.message}`);
   } finally {

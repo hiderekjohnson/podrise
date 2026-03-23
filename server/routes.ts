@@ -18273,18 +18273,22 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
           [seriesItunesId, seriesUuid]
         );
 
-        if (!podcast) {
-          console.log(`[TaddyWebhook] Episode for untracked podcast (iTunes ${seriesItunesId}), ignoring`);
-          return res.status(200).json({ success: true });
-        }
-
-        if (podcast.status !== "published") {
+        if (podcast?.status && podcast.status !== "published") {
           console.log(`[TaddyWebhook] Episode for non-published podcast "${podcast.name}" (status=${podcast.status}), ignoring`);
           return res.status(200).json({ success: true });
         }
 
-        if (!podcast.taddy_uuid && seriesUuid) {
+        if (!podcast?.taddy_uuid && seriesUuid && podcast) {
           await pool.query(`UPDATE podcast_directory SET taddy_uuid = $1 WHERE itunes_id = $2`, [seriesUuid, podcast.itunes_id]);
+        }
+
+        // Use directory info if available, fall back to webhook payload
+        const podcastName = podcast?.name || epData.podcastSeries?.name || "Unknown Podcast";
+        const podcastId = podcast?.itunes_id || seriesItunesId;
+
+        if (!podcastId) {
+          console.log("[TaddyWebhook] No podcast ID available, ignoring");
+          return res.status(200).json({ success: true });
         }
 
         const epTitle = epData.name || "";
@@ -18297,7 +18301,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
           const ageMs = Date.now() - pubDate.getTime();
           const ageDays = ageMs / (1000 * 60 * 60 * 24);
           if (ageDays > MAX_EPISODE_AGE_DAYS) {
-            console.log(`[TaddyWebhook] Episode too old (${Math.round(ageDays)}d), skipping: "${podcast.name}" - "${epTitle.slice(0, 60)}"`);
+            console.log(`[TaddyWebhook] Episode too old (${Math.round(ageDays)}d), skipping: "${podcastName}" - "${epTitle.slice(0, 60)}"`);
             return res.status(200).json({ success: true, skipped: "too_old" });
           }
         }
@@ -18305,21 +18309,21 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
         // Per-podcast rate limiter: max 10 webhook events per 60 seconds per podcast
         {
           const now = Date.now();
-          const rlKey = podcast.itunes_id;
+          const rlKey = podcastId;
           const rlEntry = _webhookRateLimiter.get(rlKey);
           if (!rlEntry || now - rlEntry.windowStart > WEBHOOK_RATE_WINDOW_MS) {
             _webhookRateLimiter.set(rlKey, { count: 1, windowStart: now });
           } else {
             rlEntry.count += 1;
             if (rlEntry.count > WEBHOOK_RATE_LIMIT) {
-              console.warn(`[TaddyWebhook] FLOOD DETECTED — "${podcast.name}" sent ${rlEntry.count} webhooks in 60s, dropping`);
+              console.warn(`[TaddyWebhook] FLOOD DETECTED — "${podcastName}" sent ${rlEntry.count} webhooks in 60s, dropping`);
               if (rlEntry.count === WEBHOOK_RATE_LIMIT + 1) {
                 import("./adminAlertService").then(({ sendCriticalApiAlert }) =>
                   sendCriticalApiAlert({
                     apiName: "TaddyWebhook",
                     errorType: "webhook_flood",
                     severity: "critical",
-                    errorMessage: `Webhook flood detected for podcast "${podcast.name}" (iTunes ID: ${podcast.itunes_id}). ${rlEntry!.count}+ webhook events received within 60 seconds. All excess events are being dropped automatically. This may indicate Taddy re-sending back-catalog episodes. Check the pipeline admin page.`,
+                    errorMessage: `Webhook flood detected for podcast "${podcastName}" (iTunes ID: ${podcastId}). ${rlEntry!.count}+ webhook events received within 60 seconds. All excess events are being dropped automatically. This may indicate Taddy re-sending back-catalog episodes. Check the pipeline admin page.`,
                     adminPath: "/admin/pipeline",
                   })
                 ).catch(() => {});
@@ -18329,16 +18333,16 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
           }
         }
 
-        console.log(`[TaddyWebhook] New episode: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
+        console.log(`[TaddyWebhook] New episode: ${podcastName} - "${epTitle.slice(0, 60)}" (iTunes ${podcastId}${!podcast ? " — not in directory" : ""})`);
 
         const { rows: existing } = await pool.query(
           `SELECT id FROM episode_transcripts WHERE podcast_id = $1 AND (episode_guid = $2 OR ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$3')}) LIMIT 1`,
-          [podcast.itunes_id, epUuid, epTitle]
+          [podcastId, epUuid, epTitle]
         );
 
         const { rows: recapCheck } = await pool.query(
           `SELECT 1 FROM landing_page_recaps WHERE itunes_id = $1 AND ${SQL_NORMALIZE_TITLE('episode_title')} = ${SQL_NORMALIZE_TITLE('$2')} LIMIT 1`,
-          [podcast.itunes_id, epTitle]
+          [podcastId, epTitle]
         );
 
         if (existing.length > 0 || recapCheck.length > 0) {
@@ -18347,17 +18351,17 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
         }
 
         await storage.queueTranscriptFetch({
-          podcastId: podcast.itunes_id,
-          podcastName: podcast.name,
+          podcastId,
+          podcastName,
           episodeGuid: epUuid,
           episodeTitle: epTitle,
-          taddyUuid: podcast.taddy_uuid || seriesUuid || undefined,
+          taddyUuid: podcast?.taddy_uuid || seriesUuid || undefined,
           priority: 10,
           datePublished: epData.datePublished ? Number(epData.datePublished) : null,
         });
 
-        console.log(`[TaddyWebhook] Queued for pipeline: ${podcast.name} - "${epTitle.slice(0, 60)}"`);
-        return res.status(200).json({ success: true, queued: true, podcast: podcast.name, episode: epTitle.slice(0, 60) });
+        console.log(`[TaddyWebhook] Queued for pipeline: ${podcastName} - "${epTitle.slice(0, 60)}"`);
+        return res.status(200).json({ success: true, queued: true, podcast: podcastName, episode: epTitle.slice(0, 60) });
       }
 
       if (taddyType === "podcastepisode" && action === "updated") {
