@@ -165,6 +165,7 @@ interface CMSPodcastDetail extends CMSPodcast {
   hosts_data: PodcastHost[];
   top_questions_data: PodcastFAQ[];
   stats: PodcastStats;
+  taddy_uuid: string | null;
 }
 
 interface CMSEpisodeListItem {
@@ -271,6 +272,7 @@ interface PodcastForm {
   avgEpisodeLength: number;
   yearStarted: number;
   aboutPodcast: string;
+  taddyUuid: string;
 }
 
 interface ExtractedProduct {
@@ -1508,6 +1510,7 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
         avgEpisodeLength: podcast.avg_episode_length || 0,
         yearStarted: podcast.year_started || 0,
         aboutPodcast: podcast.about_podcast || "",
+        taddyUuid: podcast.taddy_uuid || "",
       });
     }
   }, [podcast]);
@@ -1738,6 +1741,19 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
                 <label className="block text-xs font-medium text-muted-foreground mb-1">YouTube URL</label>
                 <input type="text" value={form.youtubeUrl} onChange={(e) => setForm({ ...form, youtubeUrl: e.target.value })} className="w-full px-3 py-2 border border-border rounded-lg text-sm" data-testid="input-cms-podcast-youtube" />
               </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
+                Taddy ID <span className="font-normal text-muted-foreground/60">(used for new episode webhooks)</span>
+              </label>
+              <input
+                type="text"
+                value={form.taddyUuid}
+                onChange={(e) => setForm({ ...form, taddyUuid: e.target.value })}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm font-mono"
+                placeholder="e.g. a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                data-testid="input-cms-podcast-taddy-uuid"
+              />
             </div>
           </div>
 

@@ -12121,6 +12121,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         websiteUrl: "website_url", storeUrl: "store_url", category: "category",
         frequency: "frequency", avgEpisodeLength: "avg_episode_length",
         yearStarted: "year_started", aboutPodcast: "about_podcast",
+        taddyUuid: "taddy_uuid",
       };
       const sets: string[] = [];
       const params: any[] = [];
