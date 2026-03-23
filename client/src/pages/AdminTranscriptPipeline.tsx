@@ -407,6 +407,7 @@ interface PipelineStatusData {
     error_message: string | null;
     created_at: string;
     priority: number;
+    date_published: number | null;
   }>;
   recentCompleted: Array<{
     id: number;
@@ -1834,8 +1835,8 @@ interface ErrorQueueProps {
 
 function ErrorQueue({ rows }: ErrorQueueProps) {
   const failures = rows.filter(r => getOverallStatus(r) === 'failed').sort((a, b) => {
-    const aTime = a.recap_created_at ? new Date(a.recap_created_at).getTime() : 0;
-    const bTime = b.recap_created_at ? new Date(b.recap_created_at).getTime() : 0;
+    const aTime = a.recap_at ? new Date(a.recap_at).getTime() : 0;
+    const bTime = b.recap_at ? new Date(b.recap_at).getTime() : 0;
     return bTime - aTime;
   });
 
@@ -1878,7 +1879,7 @@ function ErrorQueue({ rows }: ErrorQueueProps) {
               </tr>
             ) : (
               failures.slice(0, 10).map((row, i) => {
-                const ageMin = getAgeMinutes(row.recap_created_at);
+                const ageMin = getAgeMinutes(row.recap_at);
                 return (
                   <tr key={i} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                     <td className="px-5 py-3 font-medium text-slate-900 dark:text-slate-100 truncate max-w-xs">
@@ -1919,8 +1920,8 @@ function QueueHealth({ rows }: QueueHealthProps) {
   const avgWaitMin = pending.length > 0
     ? Math.round(
         pending.reduce((sum, r) => {
-          const waitMs = r.transcript_created_at
-            ? Date.now() - new Date(r.transcript_created_at).getTime()
+          const waitMs = r.transcript_at
+            ? Date.now() - new Date(r.transcript_at).getTime()
             : 0;
           return sum + waitMs;
         }, 0) / pending.length / 60000
@@ -1931,7 +1932,7 @@ function QueueHealth({ rows }: QueueHealthProps) {
     ? Math.round(
         Math.max(
           ...pending.map(r =>
-            r.transcript_created_at ? Date.now() - new Date(r.transcript_created_at).getTime() : 0
+            r.transcript_at ? Date.now() - new Date(r.transcript_at).getTime() : 0
           )
         ) / 60000
       )
@@ -2136,7 +2137,7 @@ interface HealthSnapshotProps {
   };
 }
 
-function Tooltip({ text, children }: { text: string; children: React.ReactNode }) {
+function Tooltip({ text, children }: { text: string; children?: React.ReactNode }) {
   const [visible, setVisible] = useState(false);
   return (
     <div className="relative inline-block">
