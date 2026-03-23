@@ -11,7 +11,7 @@ import {
   Image, Clock, Calendar, Hash, Eye, EyeOff, AlertCircle,
   Globe, Star, CheckCircle, XCircle, Copy, Check, Sparkles,
   CircleDot, Link, BookOpen, Tag, Newspaper, X,
-  Download, Headphones, Play, Pause, Volume2, Youtube, Music, BarChart3, TrendingUp
+  Download, Headphones, Play, Pause, Volume2, Youtube, Music, BarChart3, TrendingUp, Wand2
 } from "lucide-react";
 
 function useDebouncedValue(value: string, delay = 300) {
@@ -1526,6 +1526,18 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
     },
   });
 
+  const lookupTaddyUuidMutation = useMutation({
+    mutationFn: () => apiRequest("POST", `/api/admin/taddy/lookup-uuid/${slug}`),
+    onSuccess: (res: any) => {
+      setForm(f => f ? { ...f, taddyUuid: res.uuid } : f);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/podcasts", slug] });
+      toast({ title: "Taddy ID found", description: res.uuid });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Lookup failed", description: err.message, variant: "destructive" });
+    },
+  });
+
   if (isLoading || !form || !podcast) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -1746,14 +1758,29 @@ function PodcastDetail({ slug, onNavigate }: { slug: string; onNavigate: (view: 
               <label className="block text-xs font-medium text-muted-foreground mb-1">
                 Taddy ID <span className="font-normal text-muted-foreground/60">(used for new episode webhooks)</span>
               </label>
-              <input
-                type="text"
-                value={form.taddyUuid}
-                onChange={(e) => setForm({ ...form, taddyUuid: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-lg text-sm font-mono"
-                placeholder="e.g. a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-                data-testid="input-cms-podcast-taddy-uuid"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={form.taddyUuid}
+                  onChange={(e) => setForm({ ...form, taddyUuid: e.target.value })}
+                  className="flex-1 px-3 py-2 border border-border rounded-lg text-sm font-mono"
+                  placeholder="e.g. a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                  data-testid="input-cms-podcast-taddy-uuid"
+                />
+                <button
+                  type="button"
+                  onClick={() => lookupTaddyUuidMutation.mutate()}
+                  disabled={lookupTaddyUuidMutation.isPending}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-sm font-medium hover:bg-muted transition-all shrink-0 disabled:opacity-50"
+                  data-testid="button-lookup-taddy-uuid"
+                  title="Look up Taddy ID from iTunes ID"
+                >
+                  {lookupTaddyUuidMutation.isPending
+                    ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    : <Wand2 className="w-3.5 h-3.5" />}
+                  Look Up
+                </button>
+              </div>
             </div>
           </div>
 

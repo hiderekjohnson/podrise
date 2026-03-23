@@ -15046,6 +15046,32 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  // Look up and save Taddy UUID for a single podcast by slug
+  app.post("/api/admin/taddy/lookup-uuid/:slug", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { slug } = req.params;
+      const { rows } = await pool.query(
+        `SELECT id, name, itunes_id, taddy_uuid FROM podcast_directory WHERE slug = $1`, [slug]
+      );
+      if (rows.length === 0) return res.status(404).json({ message: "Podcast not found" });
+      const pod = rows[0];
+      if (!pod.itunes_id) return res.status(400).json({ message: "This podcast has no iTunes ID — cannot look up Taddy ID." });
+      const { getPodcastSeriesWithEpisodes } = await import("./taddyClient");
+      const series = await getPodcastSeriesWithEpisodes({ itunesId: Number(pod.itunes_id) }, 0);
+      if (!series?.uuid) return res.status(404).json({ message: "Podcast not found in Taddy's database. You may need to add the ID manually." });
+      await pool.query(
+        `UPDATE podcast_directory SET taddy_uuid = $1, updated_at = NOW() WHERE id = $2`,
+        [series.uuid, pod.id]
+      );
+      console.log(`[TaddyLookup] Saved UUID for "${pod.name}": ${series.uuid}`);
+      res.json({ uuid: series.uuid, name: pod.name });
+    } catch (err: any) {
+      console.error("[TaddyLookup] Failed:", err?.message);
+      res.status(500).json({ message: err?.message || "Lookup failed" });
+    }
+  });
+
   // Backfill Taddy UUIDs for all published podcasts that don't have one yet
   app.post("/api/admin/taddy/backfill-uuids", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
