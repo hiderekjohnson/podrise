@@ -1244,7 +1244,22 @@ function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableP
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
         {/* Table header with filters */}
         <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex-wrap">
-          <span className="text-sm font-semibold text-slate-900 dark:text-white">All episodes</span>
+          <span className="text-sm font-semibold text-slate-900 dark:text-white">
+            {stageFilter === "all" ? "All episodes" : (
+              <>
+                {sortedFiltered.length} episode{sortedFiltered.length !== 1 ? "s" : ""}
+                {" "}
+                <span className="font-normal text-slate-500 dark:text-slate-400">
+                  {stageFilter === "published" ? "published" :
+                   stageFilter === "generating" ? "writing recap" :
+                   stageFilter === "processing" ? "waiting for recap" :
+                   stageFilter === "in-queue" ? "waiting for transcript" :
+                   stageFilter === "fetching" ? "getting transcript" :
+                   stageFilter === "error" ? "with errors" : ""}
+                </span>
+              </>
+            )}
+          </span>
           <div className="flex items-center gap-2 flex-wrap">
             {/* Stage filter */}
             <select
