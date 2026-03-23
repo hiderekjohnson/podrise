@@ -14806,6 +14806,100 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  // ── Taddy Webhook Management ─────────────────────────────────────────────
+
+  app.get("/api/admin/taddy/webhook-status", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { getMyWebhooks } = await import("./taddyClient");
+      const [webhookData, directoryRows] = await Promise.all([
+        getMyWebhooks(),
+        storage.getPodcastDirectory(),
+      ]);
+      const published = directoryRows.filter((p: any) => p.status === "published");
+      const publishedWithUuid = published.filter((p: any) => p.taddyUuid);
+      const webhook = webhookData?.webhooks?.[0] ?? null;
+      const filterUuids: string[] = webhook?.filters?.[0]?.includedUuids ?? [];
+      const publishedUuids = new Set(publishedWithUuid.map((p: any) => p.taddyUuid));
+      const inFilter = publishedWithUuid.filter((p: any) => filterUuids.includes(p.taddyUuid));
+      const missingFromFilter = publishedWithUuid.filter((p: any) => !filterUuids.includes(p.taddyUuid));
+      const inFilterButUnpublished = filterUuids.filter((u: string) => !publishedUuids.has(u));
+      res.json({
+        webhook,
+        filterUuids,
+        stats: {
+          totalInDirectory: directoryRows.length,
+          published: published.length,
+          publishedWithUuid: publishedWithUuid.length,
+          inFilter: inFilter.length,
+          missingFromFilter: missingFromFilter.length,
+          stalledInFilter: inFilterButUnpublished.length,
+        },
+        podcasts: directoryRows.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          slug: p.slug,
+          status: p.status,
+          taddyUuid: p.taddyUuid,
+          artworkUrl: p.artworkUrl,
+          inTaddyFilter: p.taddyUuid ? filterUuids.includes(p.taddyUuid) : false,
+        })),
+      });
+    } catch (err: any) {
+      console.error("[TaddyWebhooks] Failed to fetch webhook status:", err?.message);
+      res.status(500).json({ message: "Failed to fetch Taddy webhook status" });
+    }
+  });
+
+  app.patch("/api/admin/podcast-directory/:id/status", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const id = Number(req.params.id);
+      if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ message: "Invalid id" });
+      const { status } = req.body;
+      if (!["published", "unlisted", "requested"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status. Must be published, unlisted, or requested." });
+      }
+      const { rows } = await pool.query(
+        `UPDATE podcast_directory SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING id, name, slug, status, taddy_uuid AS "taddyUuid"`,
+        [status, id]
+      );
+      if (rows.length === 0) return res.status(404).json({ message: "Podcast not found" });
+      console.log(`[PodcastDirectory] Status updated: "${rows[0].name}" → ${status}`);
+      res.json(rows[0]);
+    } catch (err: any) {
+      res.status(500).json({ message: "Failed to update status" });
+    }
+  });
+
+  app.post("/api/admin/taddy/sync-filters", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { getMyWebhooks, addWebhookFilter } = await import("./taddyClient");
+      // Get current webhook
+      const webhookData = await getMyWebhooks();
+      const webhook = webhookData?.webhooks?.[0];
+      if (!webhook) return res.status(400).json({ message: "No Taddy webhook registered" });
+
+      // Build UUID list from published podcasts that have a taddyUuid
+      const directoryRows = await storage.getPodcastDirectory();
+      const uuids = directoryRows
+        .filter((p: any) => p.status === "published" && p.taddyUuid)
+        .map((p: any) => p.taddyUuid as string);
+
+      const result = await addWebhookFilter(webhook.id, {
+        eventType: "podcastepisode.created",
+        includedUuids: uuids,
+      });
+
+      console.log(`[TaddyWebhooks] Synced filters: ${uuids.length} published UUIDs pushed to webhook ${webhook.id}`);
+      res.json({ success: true, webhookId: webhook.id, uuidCount: uuids.length, result });
+    } catch (err: any) {
+      console.error("[TaddyWebhooks] Sync failed:", err?.message);
+      res.status(500).json({ message: "Failed to sync Taddy filters" });
+    }
+  });
+
   app.post("/api/admin/cms/podcasts/bulk-delete", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {

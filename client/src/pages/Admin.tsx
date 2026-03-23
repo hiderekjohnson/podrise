@@ -28,6 +28,7 @@ const AdminMTurk = lazy(() => import("./AdminMTurk"));
 const AdminAlerts = lazy(() => import("./AdminAlerts"));
 const AdminTranscriptPipeline = lazy(() => import("./AdminTranscriptPipeline"));
 const AdminDemoEmail = lazy(() => import("./AdminDemoEmail"));
+const AdminTaddyWebhooks = lazy(() => import("./AdminTaddyWebhooks"));
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -147,12 +148,12 @@ export default function Admin() {
   type ProductFeaturesSubTabType = "shop" | "categories" | "referrals" | "support-kb";
   type InternalToolsSubTabType = "mturk" | "pending" | "analytics" | "errors" | "alerts" | "pipeline" | "demo-email";
   type AnalyticsSubTabType = "acquisition" | "affiliates" | "growth" | "email" | "elevenlabs" | "features";
-  type AdvancedSubTabType = "rss" | "hosts" | "api-costs" | "feature-flags" | "backfill";
+  type AdvancedSubTabType = "rss" | "hosts" | "api-costs" | "feature-flags" | "backfill" | "webhooks";
 
   const productFeaturesSubTabs: ProductFeaturesSubTabType[] = ["shop", "categories", "referrals", "support-kb"];
   const internalToolsSubTabs: InternalToolsSubTabType[] = ["mturk", "pending", "analytics", "errors", "alerts", "pipeline", "demo-email"];
   const analyticsSubTabs: AnalyticsSubTabType[] = ["acquisition", "affiliates", "growth", "email", "elevenlabs", "features"];
-  const advancedSubTabs: AdvancedSubTabType[] = ["rss", "hosts", "api-costs", "feature-flags", "backfill"];
+  const advancedSubTabs: AdvancedSubTabType[] = ["rss", "hosts", "api-costs", "feature-flags", "backfill", "webhooks"];
 
   const deriveTabFromPath = useCallback((path: string): { tab: TabType; productFeaturesSub: ProductFeaturesSubTabType; internalToolsSub: InternalToolsSubTabType; analyticsSub: AnalyticsSubTabType; advancedSub: AdvancedSubTabType } => {
     const result = {
@@ -1178,6 +1179,18 @@ export default function Admin() {
                     <Database className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
                     Backfill
                   </button>
+                  <button
+                    data-testid="advanced-subtab-webhooks"
+                    onClick={() => switchAdvancedSubTab("webhooks")}
+                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                      advancedSubTab === "webhooks"
+                        ? "bg-white text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Radio className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
+                    Webhooks
+                  </button>
                 </div>
 
                 {advancedSubTab === "rss" && (
@@ -1205,6 +1218,11 @@ export default function Admin() {
                 {advancedSubTab === "backfill" && (
                   <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}>
                     <BackfillManager />
+                  </Suspense>
+                )}
+                {advancedSubTab === "webhooks" && (
+                  <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}>
+                    <AdminTaddyWebhooks />
                   </Suspense>
                 )}
               </div>
