@@ -382,6 +382,7 @@ interface PipelineStatusData {
       lastRunAt: number;
       nextRunAt: number;
       currentEpisode: { guid: string; title: string; podcastName: string } | null;
+      nextEpisode: { podcast_name: string; episode_title: string; date_published: number | null } | null;
       intervalMs: number;
     };
     recapGenerator: {
@@ -389,6 +390,7 @@ interface PipelineStatusData {
       lastRunAt: number;
       nextRunAt: number;
       currentEpisode: { guid: string; title: string; podcastName: string } | null;
+      nextEpisode: { podcast_name: string; episode_title: string; date_published: number | null } | null;
       intervalMs: number;
     };
   };
@@ -426,11 +428,12 @@ const STAGE_LABELS: Record<string, { label: string; color: string; icon: React.F
   failed:           { label: "Error",                           color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",          icon: XCircle },
 };
 
-function CountdownTimer({ targetMs, label, busy, currentEpisode }: {
+function CountdownTimer({ targetMs, label, busy, currentEpisode, nextEpisode }: {
   targetMs: number;
   label: string;
   busy: boolean;
   currentEpisode: { title: string; podcastName: string } | null;
+  nextEpisode: { podcast_name: string; episode_title: string; date_published: number | null } | null;
 }) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
@@ -438,30 +441,48 @@ function CountdownTimer({ targetMs, label, busy, currentEpisode }: {
     return () => clearInterval(id);
   }, []);
 
-  if (busy && currentEpisode) {
-    return (
-      <div className="flex items-center gap-2 text-xs" data-testid={`timer-${label}`}>
-        <Loader2 className="w-3.5 h-3.5 animate-spin text-violet-500" />
-        <span className="font-semibold text-violet-600 dark:text-violet-400">Processing:</span>
-        <span className="truncate max-w-[250px]" title={currentEpisode.title}>
-          {currentEpisode.title.slice(0, 50)}
-        </span>
-        <span className="text-muted-foreground">({currentEpisode.podcastName})</span>
-      </div>
-    );
-  }
-
   const remaining = Math.max(0, Math.floor((targetMs - now) / 1000));
   const mins = Math.floor(remaining / 60);
   const secs = remaining % 60;
 
+  const airDate = nextEpisode?.date_published
+    ? new Date(nextEpisode.date_published * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    : null;
+
   return (
-    <div className="flex items-center gap-2 text-xs" data-testid={`timer-${label}`}>
-      <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-      <span className="text-muted-foreground">{label}:</span>
-      <span className="font-mono font-semibold tabular-nums text-foreground">
-        {remaining > 0 ? `${mins}:${String(secs).padStart(2, "0")}` : "now"}
-      </span>
+    <div className="space-y-2" data-testid={`timer-${label}`}>
+      {busy && currentEpisode ? (
+        <div className="flex items-start gap-2 text-xs">
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-violet-500 mt-0.5 shrink-0" />
+          <div className="min-w-0">
+            <span className="font-semibold text-violet-600 dark:text-violet-400">Processing now</span>
+            <div className="text-foreground font-medium truncate" title={currentEpisode.title}>{currentEpisode.title}</div>
+            <div className="text-muted-foreground">{currentEpisode.podcastName}</div>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 text-xs">
+          <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+          <span className="text-muted-foreground">{label}:</span>
+          <span className="font-mono font-semibold tabular-nums text-foreground">
+            {remaining > 0 ? `${mins}:${String(secs).padStart(2, "0")}` : "now"}
+          </span>
+        </div>
+      )}
+      {nextEpisode ? (
+        <div className="flex items-start gap-2 text-xs border-t pt-2 mt-1">
+          <div className="w-3.5 h-3.5 shrink-0 mt-0.5 flex items-center justify-center">
+            <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+          </div>
+          <div className="min-w-0">
+            <span className="text-muted-foreground font-medium">Up next</span>
+            <div className="text-foreground font-medium truncate" title={nextEpisode.episode_title}>{nextEpisode.episode_title}</div>
+            <div className="text-muted-foreground">{nextEpisode.podcast_name}{airDate ? ` · aired ${airDate}` : ""}</div>
+          </div>
+        </div>
+      ) : (
+        <div className="text-[10px] text-muted-foreground border-t pt-2 mt-1 italic">Queue is empty</div>
+      )}
     </div>
   );
 }
@@ -590,6 +611,7 @@ function PipelineDashboard() {
               label="Next fetch"
               busy={pipeline.transcriptFetcher.busy}
               currentEpisode={pipeline.transcriptFetcher.currentEpisode}
+              nextEpisode={pipeline.transcriptFetcher.nextEpisode}
             />
             <div className="text-[10px] text-muted-foreground">
               Interval: {Math.round(pipeline.transcriptFetcher.intervalMs / 1000)}s
@@ -602,6 +624,7 @@ function PipelineDashboard() {
               label="Next recap"
               busy={pipeline.recapGenerator.busy}
               currentEpisode={pipeline.recapGenerator.currentEpisode}
+              nextEpisode={pipeline.recapGenerator.nextEpisode}
             />
             <div className="text-[10px] text-muted-foreground">
               Interval: {Math.round(pipeline.recapGenerator.intervalMs / 60000)}min

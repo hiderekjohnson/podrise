@@ -10168,8 +10168,36 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         LIMIT 10
       `);
 
+      const currentlyFetchingGuid = pipelineState.transcriptFetcher.currentEpisode?.guid;
+      const currentlyGeneratingGuid = pipelineState.recapGenerator.currentEpisode?.guid;
+
+      const { rows: nextTranscriptRows } = await pool.query(`
+        SELECT podcast_name, episode_title, date_published
+        FROM pending_transcript_queue
+        WHERE status IN ('queued', 'pending')
+        ${currentlyFetchingGuid ? `AND episode_guid != $1` : ''}
+        ORDER BY priority ASC, created_at ASC
+        LIMIT 1
+      `, currentlyFetchingGuid ? [currentlyFetchingGuid] : []);
+
+      const { rows: nextRecapRows } = await pool.query(`
+        SELECT podcast_name, episode_title, date_published
+        FROM pending_transcript_queue
+        WHERE status = 'transcript_ready'
+        ${currentlyGeneratingGuid ? `AND episode_guid != $1` : ''}
+        ORDER BY priority ASC, created_at ASC
+        LIMIT 1
+      `, currentlyGeneratingGuid ? [currentlyGeneratingGuid] : []);
+
+      const nextTranscriptEpisode = nextTranscriptRows[0] || null;
+      const nextRecapEpisode = nextRecapRows[0] || null;
+
       res.json({
-        pipeline: pipelineState,
+        pipeline: {
+          ...pipelineState,
+          transcriptFetcher: { ...pipelineState.transcriptFetcher, nextEpisode: nextTranscriptEpisode },
+          recapGenerator: { ...pipelineState.recapGenerator, nextEpisode: nextRecapEpisode },
+        },
         stageCounts: stageCounts.reduce((acc: any, r: any) => { acc[r.status] = r.count; return acc; }, {}),
         queue: queueItems,
         recentCompleted,
