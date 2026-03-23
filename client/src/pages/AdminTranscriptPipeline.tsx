@@ -1546,6 +1546,7 @@ function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableP
                       </th>
                       <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Age</th>
                       <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Queued</th>
+                      <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Published</th>
                       <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Dur.</th>
                       <th className="text-center px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Tries</th>
                       <th className="px-4 py-2.5" />
@@ -1603,6 +1604,16 @@ function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableP
                           </td>
                           <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
                             {formatAge(queuedMins)}
+                          </td>
+                          <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                            {row.recap_at ? (() => {
+                              const d = new Date(row.recap_at);
+                              const isCurrentYear = d.getFullYear() === new Date().getFullYear();
+                              return d.toLocaleDateString("en-US", {
+                                month: "short", day: "numeric",
+                                ...(!isCurrentYear && { year: "numeric" }),
+                              });
+                            })() : "—"}
                           </td>
                           <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
                             {formatDur(row.transcript_chars)}
