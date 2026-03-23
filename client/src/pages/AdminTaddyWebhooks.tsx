@@ -4,7 +4,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
   RefreshCw, CheckCircle2, XCircle, AlertTriangle, Search,
-  Radio, ExternalLink, Zap, Pencil, Check, X, Wand2,
+  Radio, ExternalLink, Zap, Pencil, Check, X, Wand2, ShieldCheck,
 } from "lucide-react";
 
 interface PodcastRow {
@@ -74,7 +74,10 @@ export default function AdminTaddyWebhooks() {
     onError: () => toast({ title: "Backfill failed", description: "Could not look up IDs. Try again.", variant: "destructive" }),
   });
 
-  const { webhook, stats, podcasts = [] } = data ?? {};
+  const { webhook, stats, podcasts = [], filterUuids = [] } = data ?? {};
+  const liveFilterCount = filterUuids.length;
+  const dbCount = stats?.publishedWithUuid ?? 0;
+  const filterInSync = liveFilterCount >= dbCount && dbCount > 0;
 
   const publishedPodcasts = podcasts.filter(p => p.status === "published");
   const q = search.trim().toLowerCase();
@@ -169,6 +172,58 @@ export default function AdminTaddyWebhooks() {
               <span className="flex items-center gap-1 text-muted-foreground text-xs">Not verified by Taddy yet</span>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Live Filter Count Card */}
+      {data && (
+        <div className={`rounded-xl border px-5 py-4 flex flex-wrap items-center gap-4 ${
+          filterInSync
+            ? "border-green-200 bg-green-50/60 dark:border-green-900/40 dark:bg-green-950/20"
+            : "border-amber-200 bg-amber-50/60 dark:border-amber-800/40 dark:bg-amber-950/20"
+        }`}>
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <ShieldCheck className={`w-7 h-7 shrink-0 ${filterInSync ? "text-green-600" : "text-amber-500"}`} />
+            <div>
+              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-0.5">
+                Live Taddy Filter (checked just now)
+              </div>
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <span className={`text-2xl font-bold tabular-nums ${filterInSync ? "text-green-700 dark:text-green-400" : "text-amber-700 dark:text-amber-400"}`}>
+                  {liveFilterCount}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  podcast UUID{liveFilterCount !== 1 ? "s" : ""} in Taddy's watch list
+                </span>
+                <span className="text-muted-foreground/50 text-sm">·</span>
+                <span className="text-sm text-muted-foreground">
+                  {dbCount} in your DB
+                </span>
+                {filterInSync ? (
+                  <span className="flex items-center gap-1 text-xs font-semibold text-green-700 dark:text-green-400">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> In sync
+                  </span>
+                ) : liveFilterCount < dbCount ? (
+                  <span className="flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-400">
+                    <AlertTriangle className="w-3.5 h-3.5" /> Filter has {dbCount - liveFilterCount} fewer than DB — run Sync
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <AlertTriangle className="w-3.5 h-3.5" /> No published podcasts with Taddy UUIDs yet
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-border bg-white dark:bg-background text-sm font-semibold hover:bg-muted transition-all shrink-0 disabled:opacity-60"
+            data-testid="button-check-live-filter"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? "animate-spin" : ""}`} />
+            {isFetching ? "Checking…" : "Re-check Live Filter"}
+          </button>
         </div>
       )}
 
