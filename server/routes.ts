@@ -18260,12 +18260,12 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
 
       const INTAKE_PAUSED = false;
 
-      if (INTAKE_PAUSED && taddyType === "podcastepisode" && (action === "created" || action === "updated")) {
+      if (INTAKE_PAUSED && taddyType === "podcastepisode" && action === "created") {
         console.log(`[TaddyWebhook] Intake paused, ignoring episode: ${(data?.name || "").slice(0, 60)}`);
         return res.status(200).json({ success: true, skipped: "intake_paused" });
       }
 
-      if (!INTAKE_PAUSED && taddyType === "podcastepisode" && (action === "created" || action === "updated")) {
+      if (!INTAKE_PAUSED && taddyType === "podcastepisode" && action === "created") {
         const epData = data;
         const seriesItunesId = String(epData.podcastSeries?.itunesId || "");
         const seriesUuid = epData.podcastSeries?.uuid || "";
