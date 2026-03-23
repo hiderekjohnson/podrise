@@ -14959,6 +14959,30 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       // Auto-sync Taddy webhook filters whenever a podcast is published or unpublished
       void (async () => {
         try {
+          // If newly published and missing a Taddy UUID, auto-fetch it from Taddy via iTunes ID
+          if (status === "published" && !updated.taddyUuid) {
+            try {
+              const { rows: podRows } = await pool.query(
+                `SELECT itunes_id FROM podcast_directory WHERE id = $1`, [id]
+              );
+              const itunesId = podRows[0]?.itunes_id;
+              if (itunesId) {
+                const { getPodcastSeriesWithEpisodes } = await import("./taddyClient");
+                const series = await getPodcastSeriesWithEpisodes({ itunesId: Number(itunesId) }, 0);
+                if (series?.uuid) {
+                  await pool.query(
+                    `UPDATE podcast_directory SET taddy_uuid = $1, updated_at = NOW() WHERE id = $2 AND taddy_uuid IS NULL`,
+                    [series.uuid, id]
+                  );
+                  updated.taddyUuid = series.uuid;
+                  console.log(`[TaddyWebhooks] Auto-saved Taddy UUID for "${updated.name}": ${series.uuid}`);
+                }
+              }
+            } catch (uuidErr: any) {
+              console.warn(`[TaddyWebhooks] Could not auto-fetch Taddy UUID for "${updated.name}":`, uuidErr?.message);
+            }
+          }
+
           const { getMyWebhooks, removeWebhookFilter, addWebhookFilter } = await import("./taddyClient");
           const webhookData = await getMyWebhooks();
           const webhook = webhookData?.webhooks?.[0];
