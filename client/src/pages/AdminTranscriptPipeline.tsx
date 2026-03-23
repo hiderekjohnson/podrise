@@ -1593,10 +1593,14 @@ function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableP
                             {row.date_published ? (() => {
                               const d = new Date(row.date_published);
                               const isCurrentYear = d.getFullYear() === new Date().getFullYear();
-                              return d.toLocaleDateString("en-US", {
+                              const datePart = d.toLocaleDateString("en-US", {
                                 month: "short", day: "numeric",
                                 ...(!isCurrentYear && { year: "numeric" }),
                               });
+                              const timePart = d.toLocaleTimeString("en-US", {
+                                hour: "numeric", minute: "2-digit",
+                              });
+                              return `${datePart}, ${timePart}`;
                             })() : "—"}
                           </td>
                           <td className={`px-4 py-3 text-xs whitespace-nowrap font-medium ${isOld ? "text-orange-600 dark:text-orange-400" : "text-slate-500 dark:text-slate-400"}`}>
