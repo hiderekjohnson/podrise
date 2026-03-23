@@ -199,12 +199,12 @@ export default function Admin() {
         if (segments[2] && analyticsSubTabs.includes(segments[2] as AnalyticsSubTabType)) {
           result.analyticsSub = segments[2] as AnalyticsSubTabType;
         }
-      } else if (sub && (["mturk", "pending", "errors", "alerts"] as string[]).includes(sub)) {
+      } else if (sub && (["mturk", "pending", "errors", "alerts", "pipeline", "demo-email"] as string[]).includes(sub)) {
         result.internalToolsSub = sub as InternalToolsSubTabType;
       }
       return result;
     }
-    if ((["mturk", "pending", "errors", "alerts"] as string[]).includes(first)) {
+    if ((["mturk", "pending", "errors", "alerts", "pipeline", "demo-email"] as string[]).includes(first)) {
       result.tab = "internal-tools";
       result.internalToolsSub = first as InternalToolsSubTabType;
       return result;
