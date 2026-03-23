@@ -1295,7 +1295,7 @@ function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableP
         </div>
 
         {/* Metric cards */}
-        <div className="grid grid-cols-6 gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
           {metricCards.map((c, i) => (
             <div key={i} className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3">
               <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">{c.label}</div>
@@ -1323,29 +1323,31 @@ function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableP
       {/* Episode Table */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
         {/* Table header with filters */}
-        <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex-wrap">
-          <span className="text-sm font-semibold text-slate-900 dark:text-white">
-            {stageFilter === "all" ? "All episodes" : (
-              <>
-                {sortedFiltered.length} episode{sortedFiltered.length !== 1 ? "s" : ""}
-                {" "}
-                <span className="font-normal text-slate-500 dark:text-slate-400">
-                  {stageFilter === "published" ? "published" :
-                   stageFilter === "generating" ? "writing recap" :
-                   stageFilter === "processing" ? "waiting for recap" :
-                   stageFilter === "in-queue" ? "waiting for transcript" :
-                   stageFilter === "fetching" ? "getting transcript" :
-                   stageFilter === "error" ? "with errors" : ""}
-                </span>
-              </>
-            )}
-          </span>
+        <div className="flex flex-col gap-2 px-4 py-3 border-b border-slate-200 dark:border-slate-700">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold text-slate-900 dark:text-white">
+              {stageFilter === "all" ? "All episodes" : (
+                <>
+                  {sortedFiltered.length} episode{sortedFiltered.length !== 1 ? "s" : ""}
+                  {" "}
+                  <span className="font-normal text-slate-500 dark:text-slate-400">
+                    {stageFilter === "published" ? "published" :
+                     stageFilter === "generating" ? "writing recap" :
+                     stageFilter === "processing" ? "waiting for recap" :
+                     stageFilter === "in-queue" ? "waiting for transcript" :
+                     stageFilter === "fetching" ? "getting transcript" :
+                     stageFilter === "error" ? "with errors" : ""}
+                  </span>
+                </>
+              )}
+            </span>
+          </div>
           <div className="flex items-center gap-2 flex-wrap">
             {/* Stage filter */}
             <select
               value={stageFilter}
               onChange={e => setStageFilter(e.target.value)}
-              className="text-xs border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="flex-1 min-w-[130px] text-xs border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
               data-testid="select-stage-filter"
             >
               <option value="all">All stages</option>
@@ -1360,24 +1362,27 @@ function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableP
             <select
               value={showFilter}
               onChange={e => setShowFilter(e.target.value)}
-              className="text-xs border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500 max-w-[160px]"
+              className="flex-1 min-w-[130px] text-xs border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
               data-testid="select-show-filter"
             >
               <option value="all">All shows</option>
               {allShows.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
             {/* Search */}
-            <div className="relative">
+            <div className="relative flex-1 min-w-[130px]">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="text-xs pl-6 pr-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500 w-28"
+                className="w-full text-xs pl-6 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 data-testid="input-search-episodes"
               />
             </div>
+          </div>
+          {/* Action buttons */}
+          <div className="flex flex-wrap gap-2">
             {/* Clear queue */}
             {(() => {
               const queueCount = queueDepth?.count ?? 0;
@@ -1548,7 +1553,7 @@ function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableP
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
+        <div>
           {(() => {
             // Only cap rows when viewing ALL shows in all/published stage — prevents slowdowns
             // from thousands of published episodes. A specific show filter always shows all rows.
@@ -1592,156 +1597,227 @@ function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableP
               });
             };
 
+            const renderRow = (row: PipelineRow, i: number) => {
+              const status = getOverallStatus(row, currentlyGeneratingGuid);
+              const isError = status === "failed";
+              const ageMins = ageMinutes(row.transcript_at || row.queued_at);
+              const queuedMins = ageMinutes(row.queued_at);
+              const isOld = ageMins !== null && ageMins > 60;
+              const key = rowKey(row);
+              const isChecked = selectedIds.has(key);
+              return { status, isError, ageMins, queuedMins, isOld, isChecked };
+            };
+
             return (
               <>
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
-                      <th className="px-3 py-2.5 w-8">
-                        <input
-                          type="checkbox"
-                          checked={allSelected}
-                          ref={el => { if (el) el.indeterminate = someSelected; }}
-                          onChange={toggleAll}
-                          className="w-3.5 h-3.5 rounded cursor-pointer accent-slate-600"
-                          data-testid="checkbox-select-all"
-                        />
-                      </th>
-                      <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Episode</th>
-                      <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Show</th>
-                      <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Stage</th>
-                      <th className="px-4 py-2.5">
-                        <button
-                          onClick={() => setAiredSort(s => s === "desc" ? "asc" : s === "asc" ? null : "desc")}
-                          className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
-                          data-testid="sort-aired"
-                          title="Sort by air date"
-                        >
-                          Aired
-                          <span className="flex flex-col -space-y-1">
-                            <ChevronUp className={`w-2.5 h-2.5 ${airedSort === "asc" ? "text-blue-500" : "text-slate-300 dark:text-slate-600"}`} />
-                            <ChevronDown className={`w-2.5 h-2.5 ${airedSort === "desc" ? "text-blue-500" : "text-slate-300 dark:text-slate-600"}`} />
-                          </span>
-                        </button>
-                      </th>
-                      <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Age</th>
-                      <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Queued</th>
-                      <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Published</th>
-                      <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Dur.</th>
-                      <th className="text-center px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Tries</th>
-                      <th className="px-4 py-2.5" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {displayRows.map((row, i) => {
-                      const status = getOverallStatus(row, currentlyGeneratingGuid);
-                      const isError = status === "failed";
-                      const ageMins = ageMinutes(row.transcript_at || row.queued_at);
-                      const queuedMins = ageMinutes(row.queued_at);
-                      const isOld = ageMins !== null && ageMins > 60;
-                      const key = rowKey(row);
-                      const isChecked = selectedIds.has(key);
-                      return (
-                        <tr
-                          key={i}
-                          className={`border-b border-slate-50 dark:border-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors ${isChecked ? "bg-blue-50/60 dark:bg-blue-900/10" : ""}`}
-                        >
-                          <td className="px-3 py-3 w-8">
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={() => toggleRow(i, shiftPressedRef.current)}
-                              className="w-3.5 h-3.5 rounded cursor-pointer accent-slate-600"
-                              data-testid={`checkbox-episode-${i}`}
-                            />
-                          </td>
-                          <td className="px-4 py-3 max-w-[220px]">
-                            <span
-                              className={`text-xs font-medium truncate block ${isError ? "text-red-600 dark:text-red-400" : "text-slate-900 dark:text-slate-100"}`}
-                              title={row.episode_title}
-                            >
-                              {row.episode_title.length > 42 ? row.episode_title.slice(0, 42) + "…" : row.episode_title}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 max-w-[140px] truncate" title={row.podcast_name}>
-                            {row.podcast_name}
-                          </td>
-                          <td className="px-4 py-3">
-                            {stageBadge(status)}
-                          </td>
-                          <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                            {row.date_published ? (() => {
-                              const d = new Date(row.date_published);
-                              const isCurrentYear = d.getFullYear() === new Date().getFullYear();
-                              const datePart = d.toLocaleDateString("en-US", {
-                                month: "short", day: "numeric",
-                                ...(!isCurrentYear && { year: "numeric" }),
-                              });
-                              const timePart = d.toLocaleTimeString("en-US", {
-                                hour: "numeric", minute: "2-digit",
-                              });
-                              return `${datePart}, ${timePart}`;
-                            })() : "—"}
-                          </td>
-                          <td className={`px-4 py-3 text-xs whitespace-nowrap font-medium ${isOld ? "text-orange-600 dark:text-orange-400" : "text-slate-500 dark:text-slate-400"}`}>
-                            {formatAge(ageMins)}
-                          </td>
-                          <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                            {formatAge(queuedMins)}
-                          </td>
-                          <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                            {row.recap_at ? (() => {
-                              const d = new Date(row.recap_at);
-                              const isCurrentYear = d.getFullYear() === new Date().getFullYear();
-                              const datePart = d.toLocaleDateString("en-US", {
-                                month: "short", day: "numeric",
-                                ...(!isCurrentYear && { year: "numeric" }),
-                              });
-                              const timePart = d.toLocaleTimeString("en-US", {
-                                hour: "numeric", minute: "2-digit",
-                              });
-                              return <><div>{datePart}</div><div className="text-[10px] text-slate-400 dark:text-slate-500">{timePart}</div></>;
-                            })() : "—"}
-                          </td>
-                          <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                            {formatDur(row.transcript_chars)}
-                          </td>
-                          <td className="px-4 py-3 text-center text-xs text-slate-500 dark:text-slate-400">
-                            {row.queue_attempts ?? 1}
-                          </td>
-                          <td className="px-4 py-3 text-right">
+                {/* ── Mobile card list (hidden on md+) ── */}
+                <div className="block md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+                  {displayRows.length === 0 && (
+                    <div className="text-center py-10 text-slate-500 dark:text-slate-400 text-sm">
+                      No episodes match your filters
+                    </div>
+                  )}
+                  {displayRows.map((row, i) => {
+                    const { status, isError, ageMins, isOld, isChecked } = renderRow(row, i);
+                    const key = rowKey(row);
+                    return (
+                      <div
+                        key={i}
+                        className={`px-4 py-3.5 ${isChecked ? "bg-blue-50/60 dark:bg-blue-900/10" : ""}`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => toggleRow(i, false)}
+                            className="w-4 h-4 rounded cursor-pointer accent-slate-600 mt-0.5 flex-shrink-0"
+                            data-testid={`checkbox-episode-mobile-${i}`}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <span className={`text-xs font-semibold leading-snug flex-1 ${isError ? "text-red-600 dark:text-red-400" : "text-slate-900 dark:text-slate-100"}`}>
+                                {row.episode_title}
+                              </span>
+                              <div className="flex-shrink-0">{stageBadge(status)}</div>
+                            </div>
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{row.podcast_name}</div>
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1.5">
+                              {row.date_published && (
+                                <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                                  Aired {new Date(row.date_published).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                </span>
+                              )}
+                              {ageMins !== null && (
+                                <span className={`text-[11px] font-medium ${isOld ? "text-orange-500 dark:text-orange-400" : "text-slate-400 dark:text-slate-500"}`}>
+                                  {formatAge(ageMins)} in pipeline
+                                </span>
+                              )}
+                              {row.recap_at && (
+                                <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                                  Published {new Date(row.recap_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}{" "}
+                                  {new Date(row.recap_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                                </span>
+                              )}
+                              {row.transcript_chars && (
+                                <span className="text-[11px] text-slate-400 dark:text-slate-500">{formatDur(row.transcript_chars)}</span>
+                              )}
+                            </div>
                             {isError && (
                               <button
-                                onClick={() => {
-                                  setRetryingId(row.episode_guid || row.episode_title);
-                                  retryOneMutation.mutate(row);
-                                }}
+                                onClick={() => { setRetryingId(row.episode_guid || row.episode_title); retryOneMutation.mutate(row); }}
                                 disabled={retryOneMutation.isPending && retryingId === (row.episode_guid || row.episode_title)}
-                                className="text-xs px-2.5 py-1 rounded border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 font-medium disabled:opacity-50 transition-colors"
-                                data-testid={`button-retry-episode-${i}`}
+                                className="mt-2 text-xs px-3 py-1.5 rounded border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 font-medium disabled:opacity-50 transition-colors inline-flex items-center gap-1"
+                                data-testid={`button-retry-episode-mobile-${i}`}
                               >
                                 {retryOneMutation.isPending && retryingId === (row.episode_guid || row.episode_title)
                                   ? <Loader2 className="w-3 h-3 animate-spin" />
-                                  : "Retry"
-                                }
+                                  : "Retry"}
                               </button>
                             )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-                {filtered.length === 0 && (
-                  <div className="text-center py-12 text-slate-500 dark:text-slate-400 text-sm">
-                    No episodes match your filters
-                  </div>
-                )}
-                {capRows && filtered.length > 50 && (
-                  <div className="text-center py-3 text-xs text-slate-400 border-t border-slate-100 dark:border-slate-800">
-                    Showing 50 of {filtered.length} episodes · select a specific show to see all
-                  </div>
-                )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {capRows && filtered.length > 50 && (
+                    <div className="text-center py-3 text-xs text-slate-400 border-t border-slate-100 dark:border-slate-800">
+                      Showing 50 of {filtered.length} · filter by show to see all
+                    </div>
+                  )}
+                </div>
+
+                {/* ── Desktop table (hidden on mobile) ── */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
+                        <th className="px-3 py-2.5 w-8">
+                          <input
+                            type="checkbox"
+                            checked={allSelected}
+                            ref={el => { if (el) el.indeterminate = someSelected; }}
+                            onChange={toggleAll}
+                            className="w-3.5 h-3.5 rounded cursor-pointer accent-slate-600"
+                            data-testid="checkbox-select-all"
+                          />
+                        </th>
+                        <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Episode</th>
+                        <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Show</th>
+                        <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Stage</th>
+                        <th className="px-4 py-2.5">
+                          <button
+                            onClick={() => setAiredSort(s => s === "desc" ? "asc" : s === "asc" ? null : "desc")}
+                            className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+                            data-testid="sort-aired"
+                            title="Sort by air date"
+                          >
+                            Aired
+                            <span className="flex flex-col -space-y-1">
+                              <ChevronUp className={`w-2.5 h-2.5 ${airedSort === "asc" ? "text-blue-500" : "text-slate-300 dark:text-slate-600"}`} />
+                              <ChevronDown className={`w-2.5 h-2.5 ${airedSort === "desc" ? "text-blue-500" : "text-slate-300 dark:text-slate-600"}`} />
+                            </span>
+                          </button>
+                        </th>
+                        <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Age</th>
+                        <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Queued</th>
+                        <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Published</th>
+                        <th className="text-left px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Dur.</th>
+                        <th className="text-center px-4 py-2.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Tries</th>
+                        <th className="px-4 py-2.5" />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {displayRows.map((row, i) => {
+                        const { status, isError, ageMins, queuedMins, isOld, isChecked } = renderRow(row, i);
+                        const key = rowKey(row);
+                        return (
+                          <tr
+                            key={i}
+                            className={`border-b border-slate-50 dark:border-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors ${isChecked ? "bg-blue-50/60 dark:bg-blue-900/10" : ""}`}
+                          >
+                            <td className="px-3 py-3 w-8">
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={() => toggleRow(i, shiftPressedRef.current)}
+                                className="w-3.5 h-3.5 rounded cursor-pointer accent-slate-600"
+                                data-testid={`checkbox-episode-${i}`}
+                              />
+                            </td>
+                            <td className="px-4 py-3 max-w-[220px]">
+                              <span
+                                className={`text-xs font-medium truncate block ${isError ? "text-red-600 dark:text-red-400" : "text-slate-900 dark:text-slate-100"}`}
+                                title={row.episode_title}
+                              >
+                                {row.episode_title.length > 42 ? row.episode_title.slice(0, 42) + "…" : row.episode_title}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 max-w-[140px] truncate" title={row.podcast_name}>
+                              {row.podcast_name}
+                            </td>
+                            <td className="px-4 py-3">
+                              {stageBadge(status)}
+                            </td>
+                            <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                              {row.date_published ? (() => {
+                                const d = new Date(row.date_published);
+                                const isCurrentYear = d.getFullYear() === new Date().getFullYear();
+                                const datePart = d.toLocaleDateString("en-US", { month: "short", day: "numeric", ...(!isCurrentYear && { year: "numeric" }) });
+                                const timePart = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+                                return `${datePart}, ${timePart}`;
+                              })() : "—"}
+                            </td>
+                            <td className={`px-4 py-3 text-xs whitespace-nowrap font-medium ${isOld ? "text-orange-600 dark:text-orange-400" : "text-slate-500 dark:text-slate-400"}`}>
+                              {formatAge(ageMins)}
+                            </td>
+                            <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                              {formatAge(queuedMins)}
+                            </td>
+                            <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                              {row.recap_at ? (() => {
+                                const d = new Date(row.recap_at);
+                                const isCurrentYear = d.getFullYear() === new Date().getFullYear();
+                                const datePart = d.toLocaleDateString("en-US", { month: "short", day: "numeric", ...(!isCurrentYear && { year: "numeric" }) });
+                                const timePart = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+                                return <><div>{datePart}</div><div className="text-[10px] text-slate-400 dark:text-slate-500">{timePart}</div></>;
+                              })() : "—"}
+                            </td>
+                            <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                              {formatDur(row.transcript_chars)}
+                            </td>
+                            <td className="px-4 py-3 text-center text-xs text-slate-500 dark:text-slate-400">
+                              {row.queue_attempts ?? 1}
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              {isError && (
+                                <button
+                                  onClick={() => { setRetryingId(row.episode_guid || row.episode_title); retryOneMutation.mutate(row); }}
+                                  disabled={retryOneMutation.isPending && retryingId === (row.episode_guid || row.episode_title)}
+                                  className="text-xs px-2.5 py-1 rounded border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 font-medium disabled:opacity-50 transition-colors"
+                                  data-testid={`button-retry-episode-${i}`}
+                                >
+                                  {retryOneMutation.isPending && retryingId === (row.episode_guid || row.episode_title)
+                                    ? <Loader2 className="w-3 h-3 animate-spin" />
+                                    : "Retry"}
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  {filtered.length === 0 && (
+                    <div className="text-center py-12 text-slate-500 dark:text-slate-400 text-sm">
+                      No episodes match your filters
+                    </div>
+                  )}
+                  {capRows && filtered.length > 50 && (
+                    <div className="text-center py-3 text-xs text-slate-400 border-t border-slate-100 dark:border-slate-800">
+                      Showing 50 of {filtered.length} episodes · select a specific show to see all
+                    </div>
+                  )}
+                </div>
               </>
             );
           })()}
@@ -2094,7 +2170,7 @@ function HealthSnapshot({ data }: HealthSnapshotProps) {
       <h3 className="font-semibold text-sm text-slate-900 dark:text-white">Pipeline Health</h3>
 
       {/* Three-column grid */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {/* Webhooks */}
         <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-3">
           <div className="flex items-center gap-2 mb-1">
