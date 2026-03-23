@@ -15046,6 +15046,51 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  // Backfill Taddy UUIDs for all published podcasts that don't have one yet
+  app.post("/api/admin/taddy/backfill-uuids", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const { rows: missing } = await pool.query(
+        `SELECT id, name, slug, itunes_id FROM podcast_directory
+         WHERE status = 'published' AND taddy_uuid IS NULL AND itunes_id IS NOT NULL
+         ORDER BY name`
+      );
+      if (missing.length === 0) {
+        return res.json({ found: 0, saved: 0, failed: 0, results: [] });
+      }
+      const { getPodcastSeriesWithEpisodes } = await import("./taddyClient");
+      const results: Array<{ name: string; uuid: string | null; error?: string }> = [];
+      let saved = 0;
+      let failed = 0;
+      for (const pod of missing) {
+        try {
+          const series = await getPodcastSeriesWithEpisodes({ itunesId: Number(pod.itunes_id) }, 0);
+          if (series?.uuid) {
+            await pool.query(
+              `UPDATE podcast_directory SET taddy_uuid = $1, updated_at = NOW() WHERE id = $2 AND taddy_uuid IS NULL`,
+              [series.uuid, pod.id]
+            );
+            results.push({ name: pod.name, uuid: series.uuid });
+            saved++;
+            console.log(`[TaddyBackfill] Saved UUID for "${pod.name}": ${series.uuid}`);
+          } else {
+            results.push({ name: pod.name, uuid: null, error: "Not found in Taddy" });
+            failed++;
+          }
+        } catch (podErr: any) {
+          results.push({ name: pod.name, uuid: null, error: podErr?.message || "Unknown error" });
+          failed++;
+          console.warn(`[TaddyBackfill] Error for "${pod.name}":`, podErr?.message);
+        }
+      }
+      console.log(`[TaddyBackfill] Complete: ${saved} saved, ${failed} failed of ${missing.length} checked`);
+      res.json({ found: missing.length, saved, failed, results });
+    } catch (err: any) {
+      console.error("[TaddyBackfill] Failed:", err?.message);
+      res.status(500).json({ message: "Backfill failed: " + (err?.message || "Unknown error") });
+    }
+  });
+
   app.post("/api/admin/cms/podcasts/bulk-delete", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {

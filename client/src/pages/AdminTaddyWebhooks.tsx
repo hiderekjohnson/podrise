@@ -4,7 +4,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
   RefreshCw, CheckCircle2, XCircle, AlertTriangle, Search,
-  Radio, ExternalLink, Zap, Pencil, Check, X,
+  Radio, ExternalLink, Zap, Pencil, Check, X, Wand2,
 } from "lucide-react";
 
 interface PodcastRow {
@@ -52,6 +52,20 @@ export default function AdminTaddyWebhooks() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/taddy/webhook-status"] });
     },
     onError: () => toast({ title: "Sync failed", description: "Could not update Taddy. Try again.", variant: "destructive" }),
+  });
+
+  const backfillMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/taddy/backfill-uuids"),
+    onSuccess: (res: any) => {
+      if (res.found === 0) {
+        toast({ title: "All good", description: "Every published podcast already has a Taddy ID." });
+      } else {
+        const desc = `Found ${res.saved} of ${res.found}. ${res.failed > 0 ? `${res.failed} not in Taddy yet.` : ""}`.trim();
+        toast({ title: `Backfill complete`, description: desc });
+      }
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/taddy/webhook-status"] });
+    },
+    onError: () => toast({ title: "Backfill failed", description: "Could not look up IDs. Try again.", variant: "destructive" }),
   });
 
   const { webhook, stats, podcasts = [] } = data ?? {};
@@ -206,14 +220,27 @@ export default function AdminTaddyWebhooks() {
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
-          <h3 className="font-bold text-base">
+          <h3 className="font-bold text-base flex-1">
             Taddy is <span className="text-amber-600">not</span> watching{" "}
             <span className="text-amber-600">{missingUuid.length}</span>{" "}
             published podcast{missingUuid.length !== 1 ? "s" : ""}
           </h3>
+          {missingUuid.length > 0 && (
+            <button
+              onClick={() => backfillMutation.mutate()}
+              disabled={backfillMutation.isPending}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700 text-amber-700 dark:text-amber-400 text-sm font-medium hover:bg-amber-100 dark:hover:bg-amber-950/50 transition-all shrink-0 disabled:opacity-60"
+              data-testid="button-backfill-taddy-uuids"
+            >
+              {backfillMutation.isPending
+                ? <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                : <Wand2 className="w-3.5 h-3.5" />}
+              {backfillMutation.isPending ? "Looking up…" : "Look Up Missing IDs"}
+            </button>
+          )}
         </div>
         <p className="text-sm text-muted-foreground -mt-1">
-          These podcasts are published but we don't have their Taddy UUID yet, so Taddy can't notify us about new episodes. Paste the UUID from Taddy's dashboard to activate them.
+          These podcasts are missing a Taddy ID, so Taddy can't notify us about new episodes. Click <strong>Look Up Missing IDs</strong> to auto-fetch them from Taddy using the iTunes ID, or paste one in manually.
         </p>
 
         {missingUuid.length === 0 ? (
