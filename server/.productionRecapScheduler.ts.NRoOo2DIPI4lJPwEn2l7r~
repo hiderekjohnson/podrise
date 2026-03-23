@@ -467,7 +467,7 @@ async function runCatchupScan() {
        GROUP BY pd.itunes_id, pd.name, pd.slug
        HAVING MAX(et.fetched_at) IS NULL
            OR MAX(et.fetched_at) < $1
-       ORDER BY MAX(et.fetched_at) DESC NULLS LAST
+       ORDER BY MAX(et.fetched_at) ASC NULLS FIRST
        LIMIT $2`,
       [stalenessThreshold, CATCHUP_SCAN_MAX_PODCASTS]
     );
