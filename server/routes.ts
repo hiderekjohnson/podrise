@@ -18703,6 +18703,11 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
         const epTitle = epData.name || "";
         const epUuid = epData.uuid || "";
 
+        if (!epUuid) {
+          console.log(`[TaddyWebhook] Episode event missing UUID, ignoring (podcast: ${podcastName})`);
+          return res.status(200).json({ success: true, skipped: "no_episode_uuid" });
+        }
+
         // Per-podcast rate limiter: max 10 webhook events per 60 seconds per podcast
         {
           const now = Date.now();
@@ -18748,15 +18753,21 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
           return res.status(200).json({ success: true, skipped: "already_exists" });
         }
 
-        await storage.queueTranscriptFetch({
-          podcastId,
-          podcastName,
-          episodeGuid: epUuid,
-          episodeTitle: epTitle,
-          taddyUuid: podcast.taddy_uuid || seriesUuid || undefined,
-          priority: 10,
-          datePublished: epData.datePublished ? Number(epData.datePublished) : null,
-        });
+        try {
+          await storage.queueTranscriptFetch({
+            podcastId,
+            podcastName,
+            episodeGuid: epUuid,
+            episodeTitle: epTitle,
+            taddyUuid: podcast.taddy_uuid || seriesUuid || undefined,
+            priority: 10,
+            datePublished: epData.datePublished ? Number(epData.datePublished) : null,
+          });
+        } catch (queueErr: any) {
+          // Queue flood protection — acknowledge to Taddy so it does not retry
+          console.warn(`[TaddyWebhook] Could not queue episode "${epTitle.slice(0, 60)}" for ${podcastName}: ${queueErr.message}`);
+          return res.status(200).json({ success: true, skipped: "queue_full", reason: queueErr.message });
+        }
 
         // Fire alert email async — never blocks the webhook response
         (async () => {

@@ -150,6 +150,18 @@ async function fetchOneTranscript() {
     console.log(`[Pipeline] Transcript saved: "${item.episode_title?.slice(0, 60)}" (${item.podcast_name})`);
   } catch (err: any) {
     console.error(`[Pipeline] Transcript fetch error: ${err.message}`);
+    // Reset any item left in 'fetching' so it can be retried on the next tick
+    try {
+      await pool.query(
+        `UPDATE pending_transcript_queue
+         SET status = 'queued', attempts = COALESCE(attempts, 0) + 1,
+             error_message = $1, last_attempt_at = NOW()
+         WHERE status = 'fetching'`,
+        [`Uncaught error: ${err.message?.slice(0, 200)}`]
+      );
+    } catch (resetErr: any) {
+      console.error(`[Pipeline] Failed to reset stuck fetching item: ${resetErr.message}`);
+    }
   } finally {
     transcriptFetcherBusy = false;
     currentlyFetchingEpisode = null;
@@ -262,6 +274,10 @@ async function generateOneRecap() {
       }
     } catch {}
 
+    if (!tabloidHeadline) {
+      console.warn(`[Pipeline] No headline generated for "${epTitle.slice(0, 60)}" — recap will publish without one; catchUpMissingHeadlines will backfill it`);
+    }
+
     const upsertedRecap = await storage.upsertLandingPageRecap({
       slug: podcastSlug,
       itunesId: item.podcast_id,
@@ -307,6 +323,18 @@ async function generateOneRecap() {
     console.log(`[Pipeline] Published: "${epTitle.slice(0, 60)}" (${podcastName})`);
   } catch (err: any) {
     console.error(`[Pipeline] Recap generation error: ${err.message}`);
+    // Reset any item left in 'generating_recap' so it can be retried on the next tick
+    try {
+      await pool.query(
+        `UPDATE pending_transcript_queue
+         SET status = 'transcript_ready',
+             error_message = $1, last_attempt_at = NOW()
+         WHERE status = 'generating_recap'`,
+        [`Uncaught error: ${err.message?.slice(0, 200)}`]
+      );
+    } catch (resetErr: any) {
+      console.error(`[Pipeline] Failed to reset stuck generating_recap item: ${resetErr.message}`);
+    }
   } finally {
     recapGeneratorBusy = false;
     currentlyGeneratingEpisode = null;
@@ -415,17 +443,22 @@ async function catchUpMissingHeadlines() {
 
 async function cleanupDuplicateRecaps() {
   try {
+    // Prefer records WITH episode_guid over title-only records.
+    // When both or neither have a guid, keep the older record (lower id).
     const { rows } = await pool.query(`
       DELETE FROM landing_page_recaps
       WHERE id IN (
-        SELECT lpr.id FROM landing_page_recaps lpr
-        WHERE lpr.created_at >= NOW() - INTERVAL '7 days'
-          AND EXISTS (
-            SELECT 1 FROM landing_page_recaps older
-            WHERE older.itunes_id = lpr.itunes_id
-              AND lower(trim(older.episode_title)) = lower(trim(lpr.episode_title))
-              AND older.id < lpr.id
-          )
+        SELECT
+          CASE
+            WHEN newer.episode_guid IS NOT NULL AND older.episode_guid IS NULL THEN older.id
+            ELSE newer.id
+          END
+        FROM landing_page_recaps older
+        JOIN landing_page_recaps newer
+          ON newer.itunes_id = older.itunes_id
+         AND lower(trim(newer.episode_title)) = lower(trim(older.episode_title))
+         AND newer.id > older.id
+        WHERE newer.created_at >= NOW() - INTERVAL '7 days'
       )
       RETURNING id, episode_title
     `);

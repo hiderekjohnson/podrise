@@ -616,10 +616,14 @@ export class DatabaseStorage implements IStorage {
       tabloidSubHeadline: data.tabloidSubHeadline ?? sql`${landingPageRecaps.tabloidSubHeadline}`,
     };
 
-    // When an episode_guid is available, prefer matching by guid (handles same-title shows like "CBS News: On The Hour")
+    // When an episode_guid is available, prefer matching by guid scoped to the same podcast.
+    // Always include the podcast (itunesId or slug) to prevent cross-podcast guid collisions.
     let contentConditions;
     if (data.episodeGuid && data.itunesId) {
-      contentConditions = eq(landingPageRecaps.episodeGuid, data.episodeGuid);
+      contentConditions = and(
+        eq(landingPageRecaps.itunesId, data.itunesId),
+        eq(landingPageRecaps.episodeGuid, data.episodeGuid)
+      );
     } else if (data.itunesId) {
       contentConditions = and(
         eq(landingPageRecaps.itunesId, data.itunesId),
