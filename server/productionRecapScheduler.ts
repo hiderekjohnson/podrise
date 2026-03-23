@@ -42,6 +42,14 @@ function makeEpisodeSlug(title: string): string {
 
 async function fetchOneTranscript() {
   if (transcriptFetcherBusy) return;
+
+  const { rows: flagRows } = await pool.query(
+    `SELECT enabled FROM feature_flags WHERE key = 'pipeline_transcript_fetch_enabled' LIMIT 1`
+  );
+  if (flagRows.length > 0 && flagRows[0].enabled === false) {
+    return;
+  }
+
   transcriptFetcherBusy = true;
   transcriptFetcherLastRunAt = Date.now();
 
@@ -151,6 +159,14 @@ async function fetchOneTranscript() {
 
 async function generateOneRecap() {
   if (recapGeneratorBusy) return;
+
+  const { rows: flagRows } = await pool.query(
+    `SELECT enabled FROM feature_flags WHERE key = 'pipeline_recap_generation_enabled' LIMIT 1`
+  );
+  if (flagRows.length > 0 && flagRows[0].enabled === false) {
+    return;
+  }
+
   recapGeneratorBusy = true;
   recapGeneratorLastRunAt = Date.now();
 

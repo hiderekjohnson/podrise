@@ -762,6 +762,20 @@ export default function AdminTranscriptPipeline() {
     enabled: isLiveMode,
   });
 
+  const { data: pipelineFlags, refetch: refetchFlags } = useQuery<{ id: number; key: string; enabled: boolean }[]>({
+    queryKey: ["/api/admin/feature-flags"],
+    queryFn: () => fetch("/api/admin/feature-flags").then(r => r.json()),
+    refetchInterval: 10_000,
+  });
+  const transcriptFlag = pipelineFlags?.find(f => f.key === "pipeline_transcript_fetch_enabled");
+  const recapFlag = pipelineFlags?.find(f => f.key === "pipeline_recap_generation_enabled");
+
+  const toggleFlagMutation = useMutation({
+    mutationFn: ({ id, enabled }: { id: number; enabled: boolean }) =>
+      apiRequest("PATCH", `/api/admin/feature-flags/${id}`, { enabled }),
+    onSuccess: () => { refetchFlags(); },
+  });
+
   const withStatus = rows.map(r => ({ ...r, status: getOverallStatus(r, currentlyGeneratingGuid) }));
   const counts: Record<OverallStatus | "all", number> = {
     all: withStatus.length,
@@ -845,6 +859,35 @@ export default function AdminTranscriptPipeline() {
           <option value={14}>14 days</option>
         </select>
       </div>
+
+      {/* Pipeline Kill Switches */}
+      {(transcriptFlag || recapFlag) && (
+        <div className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
+          <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide shrink-0">Kill Switches</div>
+          <div className="flex items-center gap-4 flex-wrap">
+            {[
+              { flag: transcriptFlag, label: "Transcript Fetch (Taddy)", offColor: "bg-red-500" },
+              { flag: recapFlag, label: "Recap Generation (OpenAI)", offColor: "bg-red-500" },
+            ].map(({ flag, label }) => flag ? (
+              <button
+                key={flag.key}
+                data-testid={`kill-switch-${flag.key}`}
+                onClick={() => toggleFlagMutation.mutate({ id: flag.id, enabled: !flag.enabled })}
+                disabled={toggleFlagMutation.isPending}
+                className="flex items-center gap-2.5 cursor-pointer select-none group"
+              >
+                <div className={`relative w-9 h-5 rounded-full transition-colors duration-200 ${flag.enabled ? "bg-emerald-500" : "bg-red-500"}`}>
+                  <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${flag.enabled ? "translate-x-4" : "translate-x-0"}`} />
+                </div>
+                <span className={`text-xs font-medium ${flag.enabled ? "text-slate-700 dark:text-slate-300" : "text-red-600 dark:text-red-400 font-semibold"}`}>
+                  {label}
+                  {!flag.enabled && <span className="ml-1.5 px-1.5 py-0.5 bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 rounded text-[10px] font-bold">STOPPED</span>}
+                </span>
+              </button>
+            ) : null)}
+          </div>
+        </div>
+      )}
 
       {/* Pipeline Dashboard */}
       <PipelineDashboard />

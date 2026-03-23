@@ -1195,6 +1195,8 @@ export class DatabaseStorage implements IStorage {
     const defaults = [
       { key: "upgrade", description: "Controls visibility of upgrade/pricing flow", enabled: false },
       { key: "show_non_book_products", description: "Show non-book products (tools, physical products, experiences) in the shop. When off, only books are shown.", enabled: false },
+      { key: "pipeline_transcript_fetch_enabled", description: "Kill switch: when OFF, the transcript fetcher stops pulling from Taddy. Saves Taddy API cost immediately.", enabled: true },
+      { key: "pipeline_recap_generation_enabled", description: "Kill switch: when OFF, the recap generator stops sending to OpenAI. Saves AI cost immediately.", enabled: true },
     ];
     for (const flag of defaults) {
       const existing = await this.getFeatureFlagByKey(flag.key);
