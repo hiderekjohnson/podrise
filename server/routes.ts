@@ -18258,7 +18258,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
         return res.status(200).json({ success: true });
       }
 
-      const INTAKE_PAUSED = true;
+      const INTAKE_PAUSED = false;
 
       if (INTAKE_PAUSED && taddyType === "podcastepisode" && (action === "created" || action === "updated")) {
         console.log(`[TaddyWebhook] Intake paused, ignoring episode: ${(data?.name || "").slice(0, 60)}`);
