@@ -626,9 +626,10 @@ export function startProductionRecapScheduler() {
     checkRecapPipelineHealth();
     setInterval(checkRecapPipelineHealth, RECAP_HEALTH_INTERVAL_MS);
 
-    setTimeout(() => {
-      runCatchupScan();
-      setInterval(runCatchupScan, CATCHUP_SCAN_INTERVAL_MS);
-    }, 60 * 1000);
+    // CatchupScan disabled — processing existing queue only
+    // setTimeout(() => {
+    //   runCatchupScan();
+    //   setInterval(runCatchupScan, CATCHUP_SCAN_INTERVAL_MS);
+    // }, 60 * 1000);
   }, 30_000);
 }

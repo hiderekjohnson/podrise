@@ -18273,23 +18273,22 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
           [seriesItunesId, seriesUuid]
         );
 
-        if (podcast?.status && podcast.status !== "published") {
+        if (!podcast) {
+          console.log(`[TaddyWebhook] Episode for untracked podcast (iTunes ${seriesItunesId}), ignoring`);
+          return res.status(200).json({ success: true });
+        }
+
+        if (podcast.status !== "published") {
           console.log(`[TaddyWebhook] Episode for non-published podcast "${podcast.name}" (status=${podcast.status}), ignoring`);
           return res.status(200).json({ success: true });
         }
 
-        if (!podcast?.taddy_uuid && seriesUuid && podcast) {
+        if (!podcast.taddy_uuid && seriesUuid) {
           await pool.query(`UPDATE podcast_directory SET taddy_uuid = $1 WHERE itunes_id = $2`, [seriesUuid, podcast.itunes_id]);
         }
 
-        // Use directory info if available, fall back to webhook payload
-        const podcastName = podcast?.name || epData.podcastSeries?.name || "Unknown Podcast";
-        const podcastId = podcast?.itunes_id || seriesItunesId;
-
-        if (!podcastId) {
-          console.log("[TaddyWebhook] No podcast ID available, ignoring");
-          return res.status(200).json({ success: true });
-        }
+        const podcastName = podcast.name;
+        const podcastId = podcast.itunes_id;
 
         const epTitle = epData.name || "";
         const epUuid = epData.uuid || "";
@@ -18355,7 +18354,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
           podcastName,
           episodeGuid: epUuid,
           episodeTitle: epTitle,
-          taddyUuid: podcast?.taddy_uuid || seriesUuid || undefined,
+          taddyUuid: podcast.taddy_uuid || seriesUuid || undefined,
           priority: 10,
           datePublished: epData.datePublished ? Number(epData.datePublished) : null,
         });
