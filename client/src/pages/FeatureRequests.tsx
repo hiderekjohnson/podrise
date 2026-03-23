@@ -212,6 +212,7 @@ export default function FeatureRequests() {
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [website, setWebsite] = useState("");
   const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -269,6 +270,7 @@ export default function FeatureRequests() {
         email: email || "anonymous",
         subject: "Feature Request",
         message: `[FEATURE REQUEST]\n\n${message}`,
+        website,
       });
       setSent(true);
       toast({ title: "Thanks for the idea!", description: "We read every suggestion." });
@@ -382,6 +384,10 @@ export default function FeatureRequests() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4" data-testid="form-feature-request">
+                {/* Honeypot — hidden from real users, bots fill it in */}
+                <div style={{ position: "absolute", left: "-9999px", opacity: 0, height: 0, overflow: "hidden" }} aria-hidden="true">
+                  <input tabIndex={-1} type="text" value={website} onChange={e => setWebsite(e.target.value)} autoComplete="off" />
+                </div>
                 <div>
                   <textarea
                     value={message}

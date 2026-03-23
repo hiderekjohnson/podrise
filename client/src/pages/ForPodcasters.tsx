@@ -24,10 +24,11 @@ function ContactSection() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [sent, setSent] = useState(false);
+  const [website, setWebsite] = useState("");
 
   const submitMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", "/api/support", { email, message });
+      await apiRequest("POST", "/api/support", { email, message, website });
     },
     onSuccess: () => {
       toast({ title: "Message sent", description: "We will get back to you as soon as possible." });
@@ -73,6 +74,10 @@ function ContactSection() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="bg-card border border-border rounded-2xl p-6 sm:p-8 space-y-4" data-testid="form-contact">
+            {/* Honeypot — hidden from real users, bots fill it in */}
+            <div style={{ position: "absolute", left: "-9999px", opacity: 0, height: 0, overflow: "hidden" }} aria-hidden="true">
+              <input tabIndex={-1} type="text" value={website} onChange={e => setWebsite(e.target.value)} autoComplete="off" />
+            </div>
             <div>
               <label htmlFor="podcaster-email" className="block text-base font-display font-semibold mb-1.5">
                 Your email

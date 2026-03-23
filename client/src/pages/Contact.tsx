@@ -10,10 +10,11 @@ export default function Contact() {
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [website, setWebsite] = useState("");
 
   const submitMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", "/api/support", { email, message });
+      await apiRequest("POST", "/api/support", { email, message, website });
     },
     onSuccess: () => {
       toast({ title: "Message sent", description: "We'll get back to you as soon as possible." });
@@ -85,6 +86,10 @@ export default function Contact() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4" data-testid="form-contact">
+              {/* Honeypot — hidden from real users, bots fill it in */}
+              <div style={{ position: "absolute", left: "-9999px", opacity: 0, height: 0, overflow: "hidden" }} aria-hidden="true">
+                <input tabIndex={-1} type="text" value={website} onChange={e => setWebsite(e.target.value)} autoComplete="off" />
+              </div>
               <div>
                 <label htmlFor="contact-email" className="block text-base font-semibold mb-1.5">Email address</label>
                 <input

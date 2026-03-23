@@ -1551,10 +1551,48 @@ export async function registerRoutes(
   });
 
   app.post("/api/support", async (req, res) => {
-    const { email, message } = req.body;
+    const { email, message, website } = req.body;
     if (!email || !message) {
       return res.status(400).json({ message: "Email and message are required" });
     }
+
+    // Honeypot: bots fill hidden fields, humans don't
+    if (website) {
+      console.log(`[Support] Honeypot triggered from ${email}`);
+      return res.json({ message: "Support request sent" }); // silent drop
+    }
+
+    // Spam checks
+    const trimmed = message.trim();
+
+    // 1. Must have at least one space — real messages are multiple words
+    if (!trimmed.includes(" ")) {
+      console.log(`[Support] Spam blocked (no spaces) from ${email}: ${trimmed.slice(0, 40)}`);
+      return res.json({ message: "Support request sent" }); // silent drop
+    }
+
+    // 2. Gibberish detector — flag messages that look like random base64/token strings
+    //    Real messages have mostly lowercase letters and common punctuation.
+    //    Bot strings are mixed case with high entropy and no common short words.
+    const words = trimmed.split(/\s+/);
+    const hasRealWords = words.some(w => /^(the|a|an|is|it|i|we|my|hi|hello|help|need|want|can|you|please|not|have|has|this|that|with|for|are|was|but|and|or|in|on|at|to|do|be|get|got|just|one|new|more|how|why|what|when|where|who|its|im|id|no|yes|ok|re|if)$/i.test(w));
+    const avgWordLen = words.reduce((s, w) => s + w.length, 0) / words.length;
+    const upperRatio = (trimmed.match(/[A-Z]/g) || []).length / trimmed.replace(/\s/g, "").length;
+    const isGibberish = !hasRealWords && avgWordLen > 8 && upperRatio > 0.25;
+    if (isGibberish) {
+      console.log(`[Support] Spam blocked (gibberish) from ${email}: ${trimmed.slice(0, 40)}`);
+      return res.json({ message: "Support request sent" }); // silent drop
+    }
+
+    // 3. Suspicious email pattern — dots-and-numbers spam accounts (e.g. j.oh.n.s.o.n.liu.1.1.1.9@gmail.com)
+    const localPart = email.split("@")[0] || "";
+    const dotSegments = localPart.split(".");
+    const hasSpammyEmail = dotSegments.length > 4 && dotSegments.some(s => /^\d+$/.test(s));
+    if (hasSpammyEmail) {
+      console.log(`[Support] Spam blocked (suspicious email) from ${email}`);
+      return res.json({ message: "Support request sent" }); // silent drop
+    }
+
     try {
       const { client, fromEmail } = await getUncachableResendClient();
       await client.emails.send({
