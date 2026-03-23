@@ -344,6 +344,13 @@ process.on("uncaughtException", (err) => {
           console.warn("pending_transcript_queue date_published migration skipped:", err);
         }
 
+        try {
+          const { ensureAlertSubscriptionsTable } = await import("./alertSubscriptionService");
+          await ensureAlertSubscriptionsTable();
+        } catch (err) {
+          console.warn("alert_subscriptions migration skipped:", err);
+        }
+
       })();
 
       startEmailScheduler();

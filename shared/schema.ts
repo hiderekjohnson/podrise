@@ -1117,6 +1117,21 @@ export const insertAudioPlaybackEventSchema = createInsertSchema(audioPlaybackEv
 export type InsertAudioPlaybackEvent = z.infer<typeof insertAudioPlaybackEventSchema>;
 export type AudioPlaybackEvent = typeof audioPlaybackEvents.$inferSelect;
 
+export const alertSubscriptions = pgTable("alert_subscriptions", {
+  id: serial("id").primaryKey(),
+  alertType: text("alert_type").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description"),
+  enabled: boolean("enabled").notNull().default(true),
+  emails: text("emails").array().notNull().default([]),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertAlertSubscriptionSchema = createInsertSchema(alertSubscriptions).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertAlertSubscription = z.infer<typeof insertAlertSubscriptionSchema>;
+export type AlertSubscription = typeof alertSubscriptions.$inferSelect;
+
 export const backfillJobs = pgTable("backfill_jobs", {
   id: serial("id").primaryKey(),
   key: text("key").notNull().unique(),

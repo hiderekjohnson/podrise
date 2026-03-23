@@ -8905,6 +8905,63 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  // ── Alert Subscription Routes ─────────────────────────────────────────────
+
+  app.get("/api/admin/alert-subscriptions", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const { getAlertSubscriptions } = await import("./alertSubscriptionService");
+      const subs = await getAlertSubscriptions();
+      res.json(subs);
+    } catch (err: any) {
+      res.status(500).json({ message: "Failed to fetch alert subscriptions" });
+    }
+  });
+
+  app.patch("/api/admin/alert-subscriptions/:id", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const id = Number(req.params.id);
+      if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ message: "Invalid id" });
+      const { enabled, emails, name, description } = req.body;
+      if (emails !== undefined && !Array.isArray(emails)) {
+        return res.status(400).json({ message: "emails must be an array of strings" });
+      }
+      if (emails) {
+        const invalid = emails.filter((e: any) => typeof e !== "string" || !e.includes("@"));
+        if (invalid.length > 0) return res.status(400).json({ message: `Invalid email(s): ${invalid.join(", ")}` });
+      }
+      const { updateAlertSubscription } = await import("./alertSubscriptionService");
+      const updated = await updateAlertSubscription(id, { enabled, emails, name, description });
+      if (!updated) return res.status(404).json({ message: "Alert subscription not found" });
+      res.json(updated);
+    } catch (err: any) {
+      res.status(500).json({ message: "Failed to update alert subscription" });
+    }
+  });
+
+  app.post("/api/admin/alert-subscriptions/:id/test", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const id = Number(req.params.id);
+      const { getAlertSubscriptions, sendNewEpisodeQueuedAlert } = await import("./alertSubscriptionService");
+      const subs = await getAlertSubscriptions();
+      const sub = subs.find((s: any) => s.id === id);
+      if (!sub) return res.status(404).json({ message: "Alert subscription not found" });
+      if (sub.alertType === "new_episode_queued") {
+        await sendNewEpisodeQueuedAlert({
+          podcastName: "Test Podcast",
+          episodeTitle: "Test Episode — Pipeline Alert Check",
+          datePublished: Math.floor(Date.now() / 1000),
+          episodeGuid: "test-guid-12345",
+        });
+      }
+      res.json({ success: true, message: `Test alert sent to ${sub.emails.join(", ")}` });
+    } catch (err: any) {
+      res.status(500).json({ message: "Failed to send test alert" });
+    }
+  });
+
   app.get("/api/admin/admin-users", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     const { db } = await import("./db");
@@ -18478,6 +18535,21 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
           priority: 10,
           datePublished: epData.datePublished ? Number(epData.datePublished) : null,
         });
+
+        // Fire alert email async — never blocks the webhook response
+        (async () => {
+          try {
+            const { sendNewEpisodeQueuedAlert } = await import("./alertSubscriptionService");
+            await sendNewEpisodeQueuedAlert({
+              podcastName,
+              episodeTitle: epTitle,
+              datePublished: epData.datePublished ? Number(epData.datePublished) : null,
+              episodeGuid: epUuid,
+            });
+          } catch (alertErr: any) {
+            console.warn("[TaddyWebhook] Alert email failed (non-blocking):", alertErr?.message);
+          }
+        })();
 
         console.log(`[TaddyWebhook] Queued for pipeline: ${podcastName} - "${epTitle.slice(0, 60)}"`);
         return res.status(200).json({ success: true, queued: true, podcast: podcastName, episode: epTitle.slice(0, 60) });

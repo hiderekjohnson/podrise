@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { AlertTriangle, AlertCircle, Bell, CheckCircle, Clock, Filter, ChevronDown, ChevronUp, Activity, RefreshCw } from "lucide-react";
+import { AlertTriangle, AlertCircle, Bell, CheckCircle, Clock, Filter, ChevronDown, ChevronUp, Activity, RefreshCw, Loader2 } from "lucide-react";
+const AdminEmailAlerts = lazy(() => import("./AdminEmailAlerts"));
 
 interface AdminAlert {
   id: number;
@@ -206,7 +207,21 @@ export default function AdminAlerts() {
   const apiNames = [...new Set(alerts.map(a => a.apiName))];
 
   return (
-    <div className="space-y-6" data-testid="admin-alerts-page">
+    <div className="space-y-8" data-testid="admin-alerts-page">
+
+      {/* Email Alert Subscriptions */}
+      <Suspense fallback={<div className="flex items-center justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>}>
+        <AdminEmailAlerts />
+      </Suspense>
+
+      {/* Divider */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1 border-t border-border" />
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Alert Log</span>
+        <div className="flex-1 border-t border-border" />
+      </div>
+
+      {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="glass-panel rounded-xl p-4 text-center" data-testid="stat-active-critical">
           <div className="flex items-center justify-center gap-2 mb-1">
