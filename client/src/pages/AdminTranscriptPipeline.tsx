@@ -131,12 +131,12 @@ function formatKB(chars: number | null): string {
 }
 
 const STATUS_CONFIG: Record<OverallStatus, { label: string; color: string; icon: React.FC<{ className?: string }> }> = {
-  complete:      { label: "Published",              color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400", icon: CheckCircle2 },
-  generating:    { label: "Writing recap",          color: "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400",    icon: Zap },
-  pending_recap: { label: "Waiting for recap",      color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",            icon: Clock },
-  missed:        { label: "Missed",                 color: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",        icon: AlertTriangle },
-  queued:        { label: "Waiting for transcript", color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",   icon: Radio },
-  failed:        { label: "Error",                  color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",               icon: XCircle },
+  complete:      { label: "Published",                   color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400", icon: CheckCircle2 },
+  generating:    { label: "Generating recap",            color: "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400",    icon: Zap },
+  pending_recap: { label: "In queue for recap",          color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",            icon: Clock },
+  missed:        { label: "Missed",                      color: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",        icon: AlertTriangle },
+  queued:        { label: "In queue to request transcript", color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",   icon: Radio },
+  failed:        { label: "Error",                       color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",               icon: XCircle },
 };
 
 type FilterType = "all" | OverallStatus;
@@ -417,13 +417,13 @@ interface PipelineStatusData {
 }
 
 const STAGE_LABELS: Record<string, { label: string; color: string; icon: React.FC<{ className?: string }> }> = {
-  queued:           { label: "Waiting for transcript",  color: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",      icon: Clock },
-  pending:          { label: "Waiting for transcript",  color: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",      icon: Clock },
-  fetching:         { label: "Getting transcript",      color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",      icon: Loader2 },
-  transcript_ready: { label: "Waiting for recap",       color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400", icon: CheckCircle2 },
-  generating_recap: { label: "Writing recap",           color: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400", icon: Zap },
-  completed:        { label: "Published",               color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400", icon: CheckCircle2 },
-  failed:           { label: "Error",                   color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",          icon: XCircle },
+  queued:           { label: "In queue to request transcript",  color: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",      icon: Clock },
+  pending:          { label: "In queue to request transcript",  color: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",      icon: Clock },
+  fetching:         { label: "Requesting transcript",           color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",      icon: Loader2 },
+  transcript_ready: { label: "In queue for recap",              color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400", icon: CheckCircle2 },
+  generating_recap: { label: "Generating recap",                color: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400", icon: Zap },
+  completed:        { label: "Published",                       color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400", icon: CheckCircle2 },
+  failed:           { label: "Error",                           color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",          icon: XCircle },
 };
 
 function CountdownTimer({ targetMs, label, busy, currentEpisode }: {
@@ -1127,21 +1127,21 @@ function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableP
   const publishedCount  = rows.filter(r => getOverallStatus(r, currentlyGeneratingGuid) === "complete").length;
 
   const stages = [
-    { name: "Waiting for transcript", count: webhookCount,    num: "1", circleClass: "border-2 border-indigo-300 text-indigo-700 dark:text-indigo-300 bg-white dark:bg-slate-900" },
-    { name: "Getting transcript",     count: fetchingCount,   num: "2", circleClass: "border-2 border-blue-300 text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-900" },
-    { name: "Waiting for recap",      count: inQueueCount,    num: "3", circleClass: "border-2 border-amber-300 text-amber-700 dark:text-amber-300 bg-white dark:bg-slate-900" },
-    { name: "Writing recap",          count: generatingCount, num: "4", circleClass: generatingCount > 0 ? "border-2 border-violet-400 text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/20 animate-pulse" : "border-2 border-violet-300 text-violet-700 dark:text-violet-300 bg-white dark:bg-slate-900" },
-    { name: "Published",              count: publishedCount,  num: "5", circleClass: "border-2 border-emerald-400 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20" },
+    { name: "In queue to request transcript", count: webhookCount,    num: "1", circleClass: "border-2 border-indigo-300 text-indigo-700 dark:text-indigo-300 bg-white dark:bg-slate-900" },
+    { name: "Requesting transcript",          count: fetchingCount,   num: "2", circleClass: "border-2 border-blue-300 text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-900" },
+    { name: "In queue for recap",             count: inQueueCount,    num: "3", circleClass: "border-2 border-amber-300 text-amber-700 dark:text-amber-300 bg-white dark:bg-slate-900" },
+    { name: "Generating recap",               count: generatingCount, num: "4", circleClass: generatingCount > 0 ? "border-2 border-violet-400 text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/20 animate-pulse" : "border-2 border-violet-300 text-violet-700 dark:text-violet-300 bg-white dark:bg-slate-900" },
+    { name: "Published",                      count: publishedCount,  num: "5", circleClass: "border-2 border-emerald-400 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20" },
   ];
 
   const errorCount  = rows.filter(r => getOverallStatus(r, currentlyGeneratingGuid) === "failed").length;
   const metricCards = [
-    { label: "Waiting for recap",      value: inQueueCount,    sub: "have transcript, need recap", valClass: "text-slate-900 dark:text-white" },
-    { label: "Writing recap",          value: generatingCount, sub: "AI writing now",              valClass: "text-violet-600 dark:text-violet-400" },
-    { label: "Errors",                 value: errorCount,      sub: "need attention",              valClass: "text-red-600 dark:text-red-400" },
-    { label: "Published today",        value: publishedCount,  sub: "episodes live",               valClass: "text-emerald-600 dark:text-emerald-400" },
-    { label: "Getting transcript",     value: fetchingCount,   sub: "downloading now",             valClass: "text-slate-600 dark:text-slate-400" },
-    { label: "Waiting for transcript", value: webhookCount,    sub: "in line to download",         valClass: "text-slate-600 dark:text-slate-400" },
+    { label: "In queue for recap",           value: inQueueCount,    sub: "have transcript, need recap", valClass: "text-slate-900 dark:text-white" },
+    { label: "Generating recap",             value: generatingCount, sub: "AI writing now",              valClass: "text-violet-600 dark:text-violet-400" },
+    { label: "Errors",                       value: errorCount,      sub: "need attention",              valClass: "text-red-600 dark:text-red-400" },
+    { label: "Published today",              value: publishedCount,  sub: "episodes live",               valClass: "text-emerald-600 dark:text-emerald-400" },
+    { label: "Requesting transcript",        value: fetchingCount,   sub: "downloading now",             valClass: "text-slate-600 dark:text-slate-400" },
+    { label: "In queue to request transcript", value: webhookCount,    sub: "in line to download",         valClass: "text-slate-600 dark:text-slate-400" },
   ];
 
   // Helpers
@@ -1164,12 +1164,12 @@ function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableP
 
   const stageBadge = (status: OverallStatus) => {
     const cfg: Record<OverallStatus, { dot: string; label: string; cls: string; pulse?: boolean }> = {
-      complete:      { dot: "bg-emerald-500", label: "Published",               cls: "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20" },
-      generating:    { dot: "bg-violet-500",  label: "Writing recap",           cls: "text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/20", pulse: true },
-      pending_recap: { dot: "bg-amber-500",   label: "Waiting for recap",       cls: "text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20" },
-      queued:        { dot: "bg-blue-500",    label: "Waiting for transcript",  cls: "text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20" },
-      missed:        { dot: "bg-cyan-500",    label: "Missed",                  cls: "text-cyan-700 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-900/20" },
-      failed:        { dot: "bg-red-500",     label: "Error",                   cls: "text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20" },
+      complete:      { dot: "bg-emerald-500", label: "Published",                    cls: "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20" },
+      generating:    { dot: "bg-violet-500",  label: "Generating recap",             cls: "text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/20", pulse: true },
+      pending_recap: { dot: "bg-amber-500",   label: "In queue for recap",           cls: "text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20" },
+      queued:        { dot: "bg-blue-500",    label: "In queue to request transcript", cls: "text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20" },
+      missed:        { dot: "bg-cyan-500",    label: "Missed",                       cls: "text-cyan-700 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-900/20" },
+      failed:        { dot: "bg-red-500",     label: "Error",                        cls: "text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20" },
     };
     const c = cfg[status];
     return (
@@ -1245,10 +1245,10 @@ function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableP
         <div className="font-semibold text-slate-800 dark:text-slate-200 text-[13px]">How episodes move through the pipeline</div>
         <ol className="list-decimal list-inside space-y-1.5">
           <li><strong className="text-slate-700 dark:text-slate-300">Taddy sends a webhook</strong> when a new episode is published. We save it to the queue with its aired date.</li>
-          <li><strong className="text-slate-700 dark:text-slate-300">Waiting for transcript</strong> — the episode is in line. The system downloads one transcript at a time, every 90 seconds.</li>
-          <li><strong className="text-slate-700 dark:text-slate-300">Getting transcript</strong> — the system is actively downloading the transcript from Taddy right now (takes a few seconds).</li>
-          <li><strong className="text-slate-700 dark:text-slate-300">Waiting for recap</strong> — the transcript is downloaded. The episode is in line for the AI to write a recap.</li>
-          <li><strong className="text-slate-700 dark:text-slate-300">Writing recap</strong> — the AI is actively writing the recap right now. One episode at a time, every 5 minutes.</li>
+          <li><strong className="text-slate-700 dark:text-slate-300">In queue to request transcript</strong> — the episode is in line. The system requests one transcript at a time, every 90 seconds.</li>
+          <li><strong className="text-slate-700 dark:text-slate-300">Requesting transcript</strong> — the system is actively requesting and downloading the transcript from Taddy right now (takes a few seconds).</li>
+          <li><strong className="text-slate-700 dark:text-slate-300">In queue for recap</strong> — the transcript is downloaded. The episode is in line for the AI to generate a recap.</li>
+          <li><strong className="text-slate-700 dark:text-slate-300">Generating recap</strong> — the AI is actively generating the recap right now. One episode at a time, every 5 minutes.</li>
           <li><strong className="text-slate-700 dark:text-slate-300">Published</strong> — the recap is live on the website.</li>
         </ol>
         <p className="text-[11px] text-slate-500 dark:text-slate-500">Deploying changes briefly pauses the pipeline (10-30 seconds) but nothing is lost — episodes in progress are automatically retried on restart.</p>
@@ -1284,10 +1284,10 @@ function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableP
             >
               <option value="all">All stages</option>
               <option value="published">Published</option>
-              <option value="generating">Writing recap</option>
-              <option value="processing">Waiting for recap</option>
-              <option value="in-queue">Waiting for transcript</option>
-              <option value="fetching">Getting transcript</option>
+              <option value="generating">Generating recap</option>
+              <option value="processing">In queue for recap</option>
+              <option value="in-queue">In queue to request transcript</option>
+              <option value="fetching">Requesting transcript</option>
               <option value="error">Error</option>
             </select>
             {/* Show filter */}
