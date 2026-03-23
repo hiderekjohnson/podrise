@@ -14909,6 +14909,26 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     }
   });
 
+  app.patch("/api/admin/podcast-directory/:id/taddy-uuid", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const id = Number(req.params.id);
+      if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ message: "Invalid id" });
+      const { taddyUuid } = req.body;
+      if (typeof taddyUuid !== "string") return res.status(400).json({ message: "taddyUuid must be a string" });
+      const uuid = taddyUuid.trim() || null;
+      const { rows } = await pool.query(
+        `UPDATE podcast_directory SET taddy_uuid = $1, updated_at = NOW() WHERE id = $2 RETURNING id, name, slug, status, taddy_uuid AS "taddyUuid"`,
+        [uuid, id]
+      );
+      if (rows.length === 0) return res.status(404).json({ message: "Podcast not found" });
+      console.log(`[PodcastDirectory] Taddy UUID updated: "${rows[0].name}" → ${uuid ?? "null"}`);
+      res.json(rows[0]);
+    } catch (err: any) {
+      res.status(500).json({ message: "Failed to update Taddy UUID" });
+    }
+  });
+
   app.patch("/api/admin/podcast-directory/:id/status", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {
