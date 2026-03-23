@@ -446,7 +446,7 @@ function CountdownTimer({ targetMs, label, busy, currentEpisode, nextEpisode }: 
   const secs = remaining % 60;
 
   const airDate = nextEpisode?.date_published
-    ? new Date(nextEpisode.date_published * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    ? new Date(nextEpisode.date_published * 1000).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true })
     : null;
 
   return (
@@ -666,7 +666,7 @@ function PipelineDashboard() {
                   <span className="text-muted-foreground shrink-0">({item.podcast_name})</span>
                   {item.date_published ? (
                     <span className="text-muted-foreground/60 shrink-0">
-                      · Aired {new Date(item.date_published * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      · Aired {new Date(item.date_published * 1000).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
                     </span>
                   ) : null}
                   {item.attempts > 0 && <span className="text-muted-foreground/60 shrink-0">· {item.attempts} tries</span>}
@@ -1644,7 +1644,7 @@ function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableP
                             <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1.5">
                               {row.date_published && (
                                 <span className="text-[11px] text-slate-400 dark:text-slate-500">
-                                  Aired {new Date(row.date_published).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                  Aired {new Date(row.date_published).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
                                 </span>
                               )}
                               {ageMins !== null && (
