@@ -46,17 +46,23 @@ export default function AdminTaddyWebhooks() {
   });
 
   const syncMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/admin/taddy/sync-filters"),
-    onSuccess: (res: any) => {
-      toast({ title: "Sync complete", description: `Taddy is now watching ${res.uuidCount} podcasts.` });
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/admin/taddy/sync-filters");
+      return res.json() as Promise<{ success: boolean; uuidCount: number }>;
+    },
+    onSuccess: (data) => {
+      toast({ title: "Sync complete", description: `Taddy is now watching ${data.uuidCount} podcasts.` });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/taddy/webhook-status"] });
     },
     onError: () => toast({ title: "Sync failed", description: "Could not update Taddy. Try again.", variant: "destructive" }),
   });
 
   const backfillMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/admin/taddy/backfill-uuids"),
-    onSuccess: (res: any) => {
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/admin/taddy/backfill-uuids");
+      return res.json() as Promise<{ found: number; saved: number; failed: number }>;
+    },
+    onSuccess: (res) => {
       if (res.found === 0) {
         toast({ title: "All good", description: "Every published podcast already has a Taddy ID." });
       } else {
@@ -79,7 +85,7 @@ export default function AdminTaddyWebhooks() {
   const watching = filtered.filter(p => p.taddyUuid);
   const missingUuid = filtered.filter(p => !p.taddyUuid);
 
-  const needsSync = (stats?.missingFromFilter ?? 0) > 0 || (stats?.stalledInFilter ?? 0) > 0;
+  const needsSync = !syncMutation.isSuccess && ((stats?.missingFromFilter ?? 0) > 0 || (stats?.stalledInFilter ?? 0) > 0);
 
   if (isLoading) {
     return (
