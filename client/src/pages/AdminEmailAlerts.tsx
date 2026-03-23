@@ -84,8 +84,8 @@ function AlertCard({ sub }: { sub: AlertSub }) {
     try {
       const res = await apiRequest("POST", `/api/admin/alert-subscriptions/${sub.id}/test`);
       toast({ title: "Test sent!", description: (res as any).message });
-    } catch {
-      toast({ title: "Test failed", variant: "destructive" });
+    } catch (err: any) {
+      toast({ title: "Test failed", description: err?.message ?? "An unexpected error occurred.", variant: "destructive" });
     } finally {
       setIsTesting(false);
     }

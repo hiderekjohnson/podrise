@@ -8944,21 +8944,80 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
     try {
       const id = Number(req.params.id);
-      const { getAlertSubscriptions, sendNewEpisodeQueuedAlert } = await import("./alertSubscriptionService");
+      const { getAlertSubscriptions } = await import("./alertSubscriptionService");
+      const { getUncachableResendClient } = await import("./resendClient");
       const subs = await getAlertSubscriptions();
       const sub = subs.find((s: any) => s.id === id);
       if (!sub) return res.status(404).json({ message: "Alert subscription not found" });
-      if (sub.alertType === "new_episode_queued") {
-        await sendNewEpisodeQueuedAlert({
-          podcastName: "Test Podcast",
-          episodeTitle: "Test Episode — Pipeline Alert Check",
-          datePublished: Math.floor(Date.now() / 1000),
-          episodeGuid: "test-guid-12345",
-        });
+      if (!sub.emails?.length) return res.status(400).json({ message: "No email addresses configured for this alert" });
+
+      console.log(`[AlertTest] Sending test for alertType=${sub.alertType} to ${sub.emails.join(", ")}`);
+
+      const labelMap: Record<string, string> = {
+        new_episode_queued: "New Episode Queued",
+        recap_generated: "Recap Generated",
+        transcript_error: "Transcript Fetch Error",
+      };
+      const alertLabel = labelMap[sub.alertType] ?? sub.alertType;
+      const now = new Date().toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true, timeZone: "America/New_York" });
+
+      const { client, fromEmail } = await getUncachableResendClient();
+      const result = await client.emails.send({
+        from: `PodRise Pipeline <${fromEmail}>`,
+        to: sub.emails,
+        subject: `[TEST] PodRise Alert — ${alertLabel}`,
+        html: `
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e4e4e7;">
+        <tr>
+          <td style="background:#6366f1;padding:20px 28px;">
+            <p style="margin:0;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.75);">PodRise · Pipeline Alert</p>
+            <p style="margin:6px 0 0;font-size:20px;font-weight:800;color:#ffffff;">Test Alert — ${alertLabel}</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:24px 28px;">
+            <p style="margin:0;font-size:15px;color:#3f3f46;line-height:1.6;">
+              This is a <strong>test alert</strong> confirming that PodRise pipeline email notifications are working correctly for the <strong>${alertLabel}</strong> alert type.
+            </p>
+            <p style="margin:16px 0 0;font-size:13px;color:#71717a;">Sent at: ${now} ET</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0 28px 24px;">
+            <a href="https://podrise.com/admin/internal-tools/alerts"
+               style="display:inline-block;padding:11px 22px;background:#6366f1;color:#ffffff;text-decoration:none;font-size:13px;font-weight:700;border-radius:9px;">
+              Manage Alerts →
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:14px 28px;background:#f9fafb;border-top:1px solid #e4e4e7;">
+            <p style="margin:0;font-size:11px;color:#a1a1aa;text-align:center;">PodRise Pipeline · You received this because you are subscribed to pipeline alerts.</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+      });
+
+      if (result.error) {
+        console.error(`[AlertTest] Resend error for alertType=${sub.alertType}:`, result.error);
+        return res.status(500).json({ message: `Resend error: ${result.error.message ?? JSON.stringify(result.error)}` });
       }
+
+      console.log(`[AlertTest] Test email sent successfully for alertType=${sub.alertType} id=${result.data?.id}`);
       res.json({ success: true, message: `Test alert sent to ${sub.emails.join(", ")}` });
     } catch (err: any) {
-      res.status(500).json({ message: "Failed to send test alert" });
+      console.error(`[AlertTest] Unexpected error:`, err?.message);
+      res.status(500).json({ message: `Failed to send test alert: ${err?.message ?? "Unknown error"}` });
     }
   });
 
