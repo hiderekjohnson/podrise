@@ -15048,7 +15048,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           if (!webhook) return;
           // Remove existing filters first to avoid duplicates
           for (const f of webhook.filters ?? []) {
-            if (f.uuid) await removeWebhookFilter(f.uuid).catch(() => {});
+            if (f.uuid) await removeWebhookFilter(webhook.id, f.uuid).catch(() => {});
           }
           const directoryRows = await storage.getPodcastDirectory();
           const uuids = directoryRows
@@ -15078,7 +15078,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       for (const f of existingFilters) {
         if (f.uuid) {
           try {
-            await removeWebhookFilter(f.uuid);
+            await removeWebhookFilter(webhook.id, f.uuid);
             console.log(`[TaddyWebhooks] Removed old filter ${f.uuid} (${f.eventType})`);
           } catch (rmErr: any) {
             console.warn(`[TaddyWebhooks] Could not remove filter ${f.uuid}:`, rmErr?.message);

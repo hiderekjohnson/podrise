@@ -531,15 +531,21 @@ export async function registerWebhook(endpointUrl: string, events: string[] = ["
 
 export async function addWebhookFilter(webhookId: string, filter: { eventType: string; includedUuids?: string[] }): Promise<any> {
   const uuidsStr = filter.includedUuids ? `[${filter.includedUuids.map(u => `"${u}"`).join(", ")}]` : "[]";
-  const query = `mutation { addWebhookFilter(webhookId: "${webhookId}", filter: { eventType: "${filter.eventType}", includedUuids: ${uuidsStr} }) { uuid eventType hasIncludedUuids includedUuids } }`;
+  const query = `mutation { addWebhookFilter(webhookId: "${webhookId}", filter: { eventType: "${filter.eventType}", includedUuids: ${uuidsStr} }) { id } }`;
   const data = await taddyRequest(query);
+  if (data?.errors?.length) {
+    throw new Error(`Taddy addWebhookFilter error: ${data.errors[0]?.message}`);
+  }
   return data?.data?.addWebhookFilter;
 }
 
-export async function removeWebhookFilter(filterUuid: string): Promise<any> {
-  const query = `mutation { removeWebhookFilter(uuid: "${filterUuid}") { uuid } }`;
+export async function removeWebhookFilter(webhookId: string, filterUuid: string): Promise<any> {
+  const query = `mutation { deleteWebhookFilter(webhookId: "${webhookId}", filterUuid: "${filterUuid}") { id } }`;
   const data = await taddyRequest(query);
-  return data?.data?.removeWebhookFilter;
+  if (data?.errors?.length) {
+    throw new Error(`Taddy deleteWebhookFilter error: ${data.errors[0]?.message}`);
+  }
+  return data?.data?.deleteWebhookFilter;
 }
 
 export async function getMyWebhooks(): Promise<any> {
