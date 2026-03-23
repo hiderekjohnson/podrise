@@ -1158,7 +1158,8 @@ export async function registerRoutes(
     console.error("[startup] Referral backfill error:", e.message);
   }
 
-  try {
+  void (async () => {
+    try {
     const { ENTITY_PEOPLE, ENTITY_COMPANIES } = await import("./entityContextGenerator");
     const { pool: seedPool } = await import("./db");
     const { rows: existingPeople } = await seedPool.query(`SELECT count(*)::int as cnt FROM entity_people`);
@@ -1219,6 +1220,7 @@ export async function registerRoutes(
   } catch (e: any) {
     console.error("[startup] Entity seed error:", e.message);
   }
+  })();
 
   app.use((req, res, next) => {
     if (req.path.startsWith("/api/webhooks/")) return next();
