@@ -536,6 +536,12 @@ export async function addWebhookFilter(webhookId: string, filter: { eventType: s
   return data?.data?.addWebhookFilter;
 }
 
+export async function removeWebhookFilter(filterUuid: string): Promise<any> {
+  const query = `mutation { removeWebhookFilter(uuid: "${filterUuid}") { uuid } }`;
+  const data = await taddyRequest(query);
+  return data?.data?.removeWebhookFilter;
+}
+
 export async function getMyWebhooks(): Promise<any> {
   const query = `{ getMyDeveloperWebhooks { userId webhooks { id endpointUrl isVerified isActive events webhookSecret filters { uuid eventType hasIncludedUuids includedUuids } } } }`;
   const data = await taddyRequest(query);

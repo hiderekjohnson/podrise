@@ -14876,7 +14876,8 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       const published = directoryRows.filter((p: any) => p.status === "published");
       const publishedWithUuid = published.filter((p: any) => p.taddyUuid);
       const webhook = webhookData?.webhooks?.[0] ?? null;
-      const filterUuids: string[] = webhook?.filters?.[0]?.includedUuids ?? [];
+      const allFilters: any[] = webhook?.filters ?? [];
+      const filterUuids: string[] = Array.from(new Set(allFilters.flatMap((f: any) => f.includedUuids ?? [])));
       const publishedUuids = new Set(publishedWithUuid.map((p: any) => p.taddyUuid));
       const inFilter = publishedWithUuid.filter((p: any) => filterUuids.includes(p.taddyUuid));
       const missingFromFilter = publishedWithUuid.filter((p: any) => !filterUuids.includes(p.taddyUuid));
@@ -14929,10 +14930,14 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       // Auto-sync Taddy webhook filters whenever a podcast is published or unpublished
       void (async () => {
         try {
-          const { getMyWebhooks, addWebhookFilter } = await import("./taddyClient");
+          const { getMyWebhooks, removeWebhookFilter, addWebhookFilter } = await import("./taddyClient");
           const webhookData = await getMyWebhooks();
           const webhook = webhookData?.webhooks?.[0];
           if (!webhook) return;
+          // Remove existing filters first to avoid duplicates
+          for (const f of webhook.filters ?? []) {
+            if (f.uuid) await removeWebhookFilter(f.uuid).catch(() => {});
+          }
           const directoryRows = await storage.getPodcastDirectory();
           const uuids = directoryRows
             .filter((p: any) => p.status === "published" && p.taddyUuid)
@@ -14951,11 +14956,23 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
   app.post("/api/admin/taddy/sync-filters", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Unauthorized" });
     try {
-      const { getMyWebhooks, addWebhookFilter } = await import("./taddyClient");
-      // Get current webhook
+      const { getMyWebhooks, removeWebhookFilter, addWebhookFilter } = await import("./taddyClient");
       const webhookData = await getMyWebhooks();
       const webhook = webhookData?.webhooks?.[0];
       if (!webhook) return res.status(400).json({ message: "No Taddy webhook registered" });
+
+      // Remove all existing filters first so we start clean
+      const existingFilters: any[] = webhook.filters ?? [];
+      for (const f of existingFilters) {
+        if (f.uuid) {
+          try {
+            await removeWebhookFilter(f.uuid);
+            console.log(`[TaddyWebhooks] Removed old filter ${f.uuid} (${f.eventType})`);
+          } catch (rmErr: any) {
+            console.warn(`[TaddyWebhooks] Could not remove filter ${f.uuid}:`, rmErr?.message);
+          }
+        }
+      }
 
       // Build UUID list from published podcasts that have a taddyUuid
       const directoryRows = await storage.getPodcastDirectory();
