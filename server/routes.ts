@@ -18259,6 +18259,10 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       }
 
       if (taddyType === "podcastepisode" && (action === "created" || action === "updated")) {
+        // INTAKE PAUSED — not queueing any new episodes until re-enabled
+        console.log(`[TaddyWebhook] Intake paused, ignoring episode: ${data?.name?.slice(0, 60)}`);
+        return res.status(200).json({ success: true, skipped: "intake_paused" });
+
         const epData = data;
         const seriesItunesId = String(epData.podcastSeries?.itunesId || "");
         const seriesUuid = epData.podcastSeries?.uuid || "";
