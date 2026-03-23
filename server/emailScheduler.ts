@@ -1410,6 +1410,8 @@ export async function refreshNewTranscripts(options?: { force?: boolean }) {
             continue;
           }
 
+          const epDatePublished = ep.releaseDate ? Math.floor(new Date(ep.releaseDate).getTime() / 1000) : null;
+
           if (isTaddyBudgetExhausted()) {
             await storage.queueTranscriptFetch({
               podcastId: podcast.itunesId,
@@ -1418,6 +1420,7 @@ export async function refreshNewTranscripts(options?: { force?: boolean }) {
               episodeTitle: epTitle,
               taddyUuid: podcast.taddyUuid || undefined,
               priority: podcast.priority,
+              datePublished: epDatePublished,
             });
             totalQueued++;
             continue;
@@ -1440,6 +1443,7 @@ export async function refreshNewTranscripts(options?: { force?: boolean }) {
               episodeGuid: epGuid,
               episodeTitle: epTitle,
               priority: podcast.priority,
+              datePublished: epDatePublished,
             });
             totalQueued++;
             continue;
@@ -1484,6 +1488,7 @@ export async function refreshNewTranscripts(options?: { force?: boolean }) {
                   episodeTitle: epTitle,
                   taddyUuid: podcast.taddyUuid || undefined,
                   priority: podcast.priority,
+                  datePublished: epDatePublished,
                 });
                 totalQueued++;
               }
@@ -1495,6 +1500,7 @@ export async function refreshNewTranscripts(options?: { force?: boolean }) {
                 episodeTitle: epTitle,
                 taddyUuid: podcast.taddyUuid || undefined,
                 priority: podcast.priority,
+                datePublished: epDatePublished,
               });
               totalQueued++;
             }
@@ -1509,6 +1515,7 @@ export async function refreshNewTranscripts(options?: { force?: boolean }) {
               episodeTitle: epTitle,
               taddyUuid: podcast.taddyUuid || undefined,
               priority: podcast.priority,
+              datePublished: epDatePublished,
             });
             totalQueued++;
           }

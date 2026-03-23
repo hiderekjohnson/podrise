@@ -640,6 +640,11 @@ function PipelineDashboard() {
                   </div>
                   <span className="truncate font-medium max-w-[300px]" title={item.episode_title}>{item.episode_title}</span>
                   <span className="text-muted-foreground shrink-0">({item.podcast_name})</span>
+                  {item.date_published ? (
+                    <span className="text-muted-foreground/60 shrink-0">
+                      · Aired {new Date(item.date_published * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </span>
+                  ) : null}
                   {item.attempts > 0 && <span className="text-muted-foreground/60 shrink-0">· {item.attempts} tries</span>}
                   {item.error_message && <span className="text-red-400 truncate max-w-[200px]" title={item.error_message}>{item.error_message}</span>}
                   <span className="ml-auto text-muted-foreground/60 shrink-0">{timeAgo(item.created_at)}</span>

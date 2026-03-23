@@ -337,6 +337,13 @@ process.on("uncaughtException", (err) => {
           console.warn("site_settings migration skipped:", err);
         }
 
+        try {
+          await pool.query(`ALTER TABLE pending_transcript_queue ADD COLUMN IF NOT EXISTS date_published INTEGER`);
+          console.log("pending_transcript_queue date_published column ready");
+        } catch (err) {
+          console.warn("pending_transcript_queue date_published migration skipped:", err);
+        }
+
       })();
 
       startEmailScheduler();

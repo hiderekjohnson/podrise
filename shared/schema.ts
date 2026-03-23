@@ -257,6 +257,7 @@ export const pendingTranscriptQueue = pgTable("pending_transcript_queue", {
   attempts: integer("attempts").notNull().default(0),
   lastAttemptAt: timestamp("last_attempt_at"),
   errorMessage: text("error_message"),
+  datePublished: integer("date_published"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

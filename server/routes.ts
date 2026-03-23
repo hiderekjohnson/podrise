@@ -9810,6 +9810,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
                 episodeGuid: ep.uuid,
                 episodeTitle: ep.name,
                 priority: 15,
+                datePublished: ep.datePublished ? Math.floor(ep.datePublished) : null,
               });
               totalQueued++;
             }
@@ -10143,7 +10144,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
       const { rows: queueItems } = await pool.query(`
         SELECT id, podcast_id, podcast_name, episode_guid, episode_title, status,
-               attempts, last_attempt_at, error_message, created_at, priority
+               attempts, last_attempt_at, error_message, created_at, priority, date_published
         FROM pending_transcript_queue
         WHERE status NOT IN ('completed')
         ORDER BY
@@ -18324,6 +18325,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
           episodeTitle: epTitle,
           taddyUuid: podcast.taddy_uuid || seriesUuid || undefined,
           priority: 10,
+          datePublished: epData.datePublished ? Number(epData.datePublished) : null,
         });
 
         console.log(`[TaddyWebhook] Queued for pipeline: ${podcast.name} - "${epTitle.slice(0, 60)}"`);

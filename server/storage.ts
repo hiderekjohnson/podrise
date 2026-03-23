@@ -127,7 +127,7 @@ export interface IStorage {
   getAdEventsByAdId(adId: number, startDate?: Date, endDate?: Date): Promise<AdEvent[]>;
   getSiteSetting(key: string): Promise<any | undefined>;
   setSiteSetting(key: string, value: any): Promise<SiteSetting>;
-  queueTranscriptFetch(data: { podcastId: string; podcastName: string; episodeGuid: string; episodeTitle: string; taddyUuid?: string; priority?: number }): Promise<PendingTranscriptQueueItem>;
+  queueTranscriptFetch(data: { podcastId: string; podcastName: string; episodeGuid: string; episodeTitle: string; taddyUuid?: string; priority?: number; datePublished?: number | null }): Promise<PendingTranscriptQueueItem>;
   getPendingTranscriptQueue(limit?: number): Promise<PendingTranscriptQueueItem[]>;
   updateTranscriptQueueStatus(id: number, status: string, errorMessage?: string): Promise<void>;
   getTranscriptQueueDepth(): Promise<number>;
@@ -1233,7 +1233,7 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async queueTranscriptFetch(data: { podcastId: string; podcastName: string; episodeGuid: string; episodeTitle: string; taddyUuid?: string; priority?: number }): Promise<PendingTranscriptQueueItem> {
+  async queueTranscriptFetch(data: { podcastId: string; podcastName: string; episodeGuid: string; episodeTitle: string; taddyUuid?: string; priority?: number; datePublished?: number | null }): Promise<PendingTranscriptQueueItem> {
     const existing = await db
       .select()
       .from(pendingTranscriptQueue)
@@ -1280,6 +1280,7 @@ export class DatabaseStorage implements IStorage {
         priority: data.priority || 50,
         status: "queued",
         attempts: 0,
+        datePublished: data.datePublished ?? null,
       })
       .returning();
     return item;

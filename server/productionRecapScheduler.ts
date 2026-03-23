@@ -47,7 +47,7 @@ async function fetchOneTranscript() {
 
   try {
     const { rows } = await pool.query(
-      `SELECT id, podcast_id, podcast_name, episode_guid, episode_title, taddy_uuid, attempts
+      `SELECT id, podcast_id, podcast_name, episode_guid, episode_title, taddy_uuid, attempts, date_published
        FROM pending_transcript_queue
        WHERE status IN ('queued', 'pending')
        ORDER BY priority ASC, created_at ASC
@@ -109,20 +109,22 @@ async function fetchOneTranscript() {
     const podcast = await getPodcastInfo(item.podcast_id);
 
     if (epRows.length === 0) {
-      let datePublished: number | null = null;
-      try {
-        const { getEpisodesByItunesId } = await import("./taddyClient");
-        const episodes = await getEpisodesByItunesId(item.podcast_id, 5, item.podcast_name);
-        const match = episodes?.find((e: any) => e.uuid === item.episode_guid);
-        if (match?.datePublished) {
-          datePublished = Math.floor(match.datePublished);
-        }
-      } catch {}
+      let datePublished: number | null = item.date_published ? Number(item.date_published) : null;
+      if (!datePublished) {
+        try {
+          const { getEpisodesByItunesId } = await import("./taddyClient");
+          const episodes = await getEpisodesByItunesId(item.podcast_id, 5, item.podcast_name);
+          const match = episodes?.find((e: any) => e.uuid === item.episode_guid);
+          if (match?.datePublished) {
+            datePublished = Math.floor(match.datePublished);
+          }
+        } catch {}
+      }
 
       await pool.query(
         `INSERT INTO episode_transcripts (podcast_id, episode_guid, episode_title, transcript, fetched_at, date_published)
          VALUES ($1, $2, $3, $4, NOW(), $5)
-         ON CONFLICT (episode_guid) DO UPDATE SET transcript = EXCLUDED.transcript, fetched_at = NOW()`,
+         ON CONFLICT (episode_guid) DO UPDATE SET transcript = EXCLUDED.transcript, fetched_at = NOW(), date_published = COALESCE(EXCLUDED.date_published, episode_transcripts.date_published)`,
         [item.podcast_id, item.episode_guid, item.episode_title, transcript, datePublished]
       );
     } else {
@@ -508,6 +510,7 @@ async function runCatchupScan() {
             episodeGuid: ep.uuid,
             episodeTitle: ep.name,
             priority: 20,
+            datePublished: ep.datePublished ? Math.floor(ep.datePublished) : null,
           });
           queued++;
           console.log(`[CatchupScan] Queued missed episode: "${ep.name?.slice(0, 60)}" (${podcast.name})`);
