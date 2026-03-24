@@ -257,6 +257,14 @@ process.on("uncaughtException", (err) => {
         }
 
         try {
+          await pool.query(`ALTER TABLE podcast_directory ADD COLUMN IF NOT EXISTS daily_episode_cap INTEGER`);
+          await pool.query(`UPDATE podcast_directory SET daily_episode_cap = 24 WHERE slug = 'npr-news-now' AND (daily_episode_cap IS NULL OR daily_episode_cap != 24)`);
+          console.log("podcast_directory daily_episode_cap column ready");
+        } catch (err) {
+          console.warn("podcast_directory daily_episode_cap migration skipped:", err);
+        }
+
+        try {
           await pool.query(`CREATE TABLE IF NOT EXISTS landing_page_visits (
             id SERIAL PRIMARY KEY,
             page_slug TEXT NOT NULL,
