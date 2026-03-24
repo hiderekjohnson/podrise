@@ -18679,7 +18679,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
         }
 
         const { rows: [podcast] } = await pool.query(
-          `SELECT name, slug, itunes_id, taddy_uuid, hosts, artwork_url, status FROM podcast_directory WHERE (itunes_id = $1 OR taddy_uuid = $2) LIMIT 1`,
+          `SELECT name, slug, itunes_id, taddy_uuid, hosts, artwork_url, status, daily_episode_cap FROM podcast_directory WHERE (itunes_id = $1 OR taddy_uuid = $2) LIMIT 1`,
           [seriesItunesId, seriesUuid]
         );
 
@@ -18699,6 +18699,20 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
 
         const podcastName = podcast.name;
         const podcastId = podcast.itunes_id;
+
+        // Per-podcast daily episode cap — e.g. 24 for hourly test podcasts
+        if (podcast.daily_episode_cap != null) {
+          const { rows: [capRow] } = await pool.query(
+            `SELECT COUNT(*)::int AS count FROM pending_transcript_queue
+             WHERE podcast_id = $1 AND created_at >= NOW() - INTERVAL '24 hours'`,
+            [podcastId]
+          );
+          const todayCount = capRow?.count ?? 0;
+          if (todayCount >= podcast.daily_episode_cap) {
+            console.log(`[TaddyWebhook] Daily cap reached for "${podcastName}" (${todayCount}/${podcast.daily_episode_cap}), skipping`);
+            return res.status(200).json({ success: true, skipped: "daily_cap_reached", count: todayCount, cap: podcast.daily_episode_cap });
+          }
+        }
 
         const epTitle = epData.name || "";
         const epUuid = epData.uuid || "";

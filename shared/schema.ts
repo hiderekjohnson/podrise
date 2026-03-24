@@ -455,6 +455,7 @@ export const podcastDirectory = pgTable("podcast_directory", {
   hasLandingPage: boolean("has_landing_page").default(false),
   status: text("status").notNull().default("published"),
   isProtected: boolean("is_protected").default(false),
+  dailyEpisodeCap: integer("daily_episode_cap"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
