@@ -3,7 +3,7 @@ import { registerRoutes, warmDirectoryCaches } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import { startEmailScheduler } from "./emailScheduler";
-import { startProductionRecapScheduler } from "./productionRecapScheduler";
+import { startProductionRecapScheduler, forceResetScheduler } from "./productionRecapScheduler";
 
 const app = express();
 const httpServer = createServer(app);
@@ -398,6 +398,7 @@ process.on("uncaughtException", (err) => {
 
       startEmailScheduler();
       startProductionRecapScheduler();
+      forceResetScheduler().catch(err => console.warn("Auto-reset stuck episodes skipped:", err));
       warmDirectoryCaches().catch(err => console.error("[Cache] Warm failed:", err));
     },
   );
