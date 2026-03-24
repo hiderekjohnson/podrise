@@ -355,6 +355,39 @@ export function getSchedulerStatus() {
   };
 }
 
+export async function forceResetScheduler(): Promise<{ resetRecap: boolean; resetTranscript: boolean; resetQueueItems: number }> {
+  const wasRecapBusy = recapGeneratorBusy;
+  const wasTranscriptBusy = transcriptFetcherBusy;
+
+  recapGeneratorBusy = false;
+  currentlyGeneratingEpisode = null;
+  currentlyGeneratingGuid = null;
+  currentlyGeneratingTitle = null;
+
+  transcriptFetcherBusy = false;
+  currentlyFetchingEpisode = null;
+
+  const { rowCount } = await pool.query(
+    `UPDATE pending_transcript_queue
+     SET status = 'transcript_ready', error_message = 'Reset by admin', last_attempt_at = NOW()
+     WHERE status = 'generating_recap'`
+  );
+
+  const { rowCount: fetchingReset } = await pool.query(
+    `UPDATE pending_transcript_queue
+     SET status = 'queued', error_message = 'Reset by admin', last_attempt_at = NOW()
+     WHERE status = 'fetching'`
+  );
+
+  console.log(`[Pipeline] Admin force-reset: recap=${wasRecapBusy}, transcript=${wasTranscriptBusy}, generating_recap reset=${rowCount}, fetching reset=${fetchingReset}`);
+
+  return {
+    resetRecap: wasRecapBusy,
+    resetTranscript: wasTranscriptBusy,
+    resetQueueItems: (rowCount || 0) + (fetchingReset || 0),
+  };
+}
+
 export function getPipelineStatus() {
   return {
     isSchedulerStarted,

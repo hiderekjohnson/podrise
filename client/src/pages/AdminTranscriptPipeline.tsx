@@ -1098,6 +1098,16 @@ function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableP
     },
   });
 
+  const [schedulerResetDone, setSchedulerResetDone] = useState(false);
+  const resetSchedulerMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/admin/pipeline/reset-scheduler", {}),
+    onSuccess: () => {
+      setSchedulerResetDone(true);
+      setTimeout(() => setSchedulerResetDone(false), 5000);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/pipeline-monitor"] });
+    },
+  });
+
   const retryOneMutation = useMutation({
     mutationFn: (row: PipelineRow) =>
       apiRequest("POST", "/api/admin/pipeline/retry", {
@@ -1413,6 +1423,25 @@ function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableP
               )}
               {recapBatchTriggered ? "Batch started" : "Run recaps now"}
             </button>
+            {/* Reset stuck scheduler — only shown when batch is stuck */}
+            {schedulerHealth?.batchStuck && (
+              <button
+                onClick={() => resetSchedulerMutation.mutate()}
+                disabled={resetSchedulerMutation.isPending || schedulerResetDone}
+                className="text-xs px-3 py-1.5 rounded-lg border border-orange-300 dark:border-orange-700 text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/40 font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
+                data-testid="button-reset-scheduler"
+                title="Force-reset the stuck scheduler — clears the busy flag and returns any in-flight queue items to a retryable state"
+              >
+                {resetSchedulerMutation.isPending ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : schedulerResetDone ? (
+                  <Check className="w-3 h-3" />
+                ) : (
+                  <RefreshCw className="w-3 h-3" />
+                )}
+                {schedulerResetDone ? "Scheduler reset" : "Reset stuck scheduler"}
+              </button>
+            )}
             {/* Retry all errors */}
             <button
               onClick={() => retryAllMutation.mutate()}
