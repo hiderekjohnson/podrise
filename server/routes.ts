@@ -9870,6 +9870,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
   app.post("/api/admin/pipeline/catchup", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    return res.status(410).json({ message: "Disabled. The pipeline only processes new episodes arriving via Taddy webhooks. Backfill/catchup scanning is permanently turned off." });
     try {
       const days = parseInt(req.body.days) || 7;
 
@@ -9920,6 +9921,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
 
   app.post("/api/admin/pipeline/queue-new-episodes", async (req, res) => {
     if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    return res.status(410).json({ message: "Disabled. The pipeline only processes new episodes arriving via Taddy webhooks. Backfill/catchup scanning is permanently turned off." });
     try {
       const days = parseInt(req.body.days) || 5;
       const { rows: stalePodcasts } = await pool.query(`
