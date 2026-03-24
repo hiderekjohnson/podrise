@@ -15094,13 +15094,26 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         .filter((p: any) => p.status === "published" && p.taddyUuid)
         .map((p: any) => p.taddyUuid as string);
 
-      const result = await addWebhookFilter(webhook.id, {
+      // Add filter for created events (new episodes)
+      await addWebhookFilter(webhook.id, {
         eventType: "podcastepisode.created",
         includedUuids: uuids,
       });
 
-      console.log(`[TaddyWebhooks] Synced filters: ${uuids.length} published UUIDs pushed to webhook ${webhook.id}`);
-      res.json({ success: true, webhookId: webhook.id, uuidCount: uuids.length, result });
+      // Also add filter for updated events — without this Taddy sends updates for ALL podcasts in their index
+      await addWebhookFilter(webhook.id, {
+        eventType: "podcastepisode.updated",
+        includedUuids: uuids,
+      });
+
+      // Also filter series updated events
+      await addWebhookFilter(webhook.id, {
+        eventType: "podcastseries.updated",
+        includedUuids: uuids,
+      });
+
+      console.log(`[TaddyWebhooks] Synced filters: ${uuids.length} published UUIDs pushed for created+updated events on webhook ${webhook.id}`);
+      res.json({ success: true, webhookId: webhook.id, uuidCount: uuids.length });
     } catch (err: any) {
       console.error("[TaddyWebhooks] Sync failed:", err?.message);
       res.status(500).json({ message: "Failed to sync Taddy filters" });
