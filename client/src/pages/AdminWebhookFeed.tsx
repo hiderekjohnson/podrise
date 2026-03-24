@@ -4,7 +4,7 @@ import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw, Activity, Code, Search, Filter, Clock, AlertCircle, CheckCircle2, XCircle, MinusCircle, Info } from "lucide-react";
+import { RefreshCw, Activity, Code, Search, Filter, Clock, AlertCircle, CheckCircle2, XCircle, MinusCircle, Info, Hash, Wifi, Volume2, GitBranch } from "lucide-react";
 
 type WebhookEvent = {
   id: number;
@@ -18,7 +18,22 @@ type WebhookEvent = {
   outcome: string | null;
   outcome_detail: string | null;
   date_published: number | null;
+  audio_url: string | null;
+  sender_ip: string | null;
+  queue_entry_id: number | null;
+  pipeline_status: string | null;
+  pipeline_error: string | null;
+  pipeline_updated_at: string | null;
   raw_payload: any;
+};
+
+const PIPELINE_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
+  queued:           { label: "Pending",         color: "bg-yellow-100 text-yellow-700" },
+  fetching:         { label: "Fetching transcript", color: "bg-blue-100 text-blue-700" },
+  transcript_ready: { label: "Transcript ready", color: "bg-cyan-100 text-cyan-700" },
+  generating_recap: { label: "Generating recap", color: "bg-purple-100 text-purple-700" },
+  completed:        { label: "Completed",        color: "bg-green-100 text-green-700" },
+  failed:           { label: "Failed",           color: "bg-red-100 text-red-700" },
 };
 
 type OutcomeCount = { outcome: string; count: number };
@@ -127,17 +142,68 @@ function HumanReadableFeed({ events }: { events: WebhookEvent[] }) {
                 {ev.outcome_detail && !isExpanded && (
                   <p className="text-xs text-muted-foreground mt-0.5 truncate">{ev.outcome_detail}</p>
                 )}
+                {/* Pipeline status badge for queued events */}
+                {ev.queue_entry_id && ev.pipeline_status && (
+                  <div className="mt-1">
+                    {(() => {
+                      const pCfg = PIPELINE_STATUS_CONFIG[ev.pipeline_status];
+                      return (
+                        <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium ${pCfg?.color ?? "bg-muted text-muted-foreground"}`}>
+                          <GitBranch className="w-3 h-3" />
+                          Pipeline: {pCfg?.label ?? ev.pipeline_status}
+                          {ev.pipeline_updated_at && ` · ${formatRelativeTime(ev.pipeline_updated_at)}`}
+                        </span>
+                      );
+                    })()}
+                    {ev.pipeline_status === "failed" && ev.pipeline_error && !isExpanded && (
+                      <span className="text-xs text-red-500 ml-2">{ev.pipeline_error.slice(0, 60)}</span>
+                    )}
+                  </div>
+                )}
                 {isExpanded && (
-                  <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+                  <div className="mt-2 space-y-1.5 text-xs text-muted-foreground border-t border-border/50 pt-2">
                     {detail && <p className="text-foreground/70 italic">{detail.description}</p>}
                     {ev.outcome_detail && <p><span className="font-medium text-foreground">Detail:</span> {ev.outcome_detail}</p>}
-                    {ev.episode_uuid && <p><span className="font-medium text-foreground">Episode UUID:</span> <code className="bg-muted px-1 rounded">{ev.episode_uuid}</code></p>}
-                    {ev.podcast_id && <p><span className="font-medium text-foreground">Podcast iTunes ID:</span> <code className="bg-muted px-1 rounded">{ev.podcast_id}</code></p>}
+
+                    {/* Timestamps */}
                     {ev.date_published && (
                       <p><span className="font-medium text-foreground">Episode aired:</span> {formatPublishedDate(ev.date_published)}</p>
                     )}
                     <p><span className="font-medium text-foreground">We received it:</span> {formatDateTime(ev.received_at)}</p>
-                    <p className="text-foreground/40 text-[10px]">Event ID #{ev.id} — click again to collapse</p>
+
+                    {/* Identifiers */}
+                    {ev.episode_uuid && <p><span className="font-medium text-foreground">Episode UUID:</span> <code className="bg-muted px-1 rounded text-[10px]">{ev.episode_uuid}</code></p>}
+                    {ev.podcast_id && <p><span className="font-medium text-foreground">Podcast iTunes ID:</span> <code className="bg-muted px-1 rounded text-[10px]">{ev.podcast_id}</code></p>}
+
+                    {/* Audio URL */}
+                    {ev.audio_url && (
+                      <p>
+                        <span className="font-medium text-foreground">Audio URL:</span>{" "}
+                        <a href={ev.audio_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate inline-block max-w-[300px] align-bottom" title={ev.audio_url}>
+                          {ev.audio_url.replace(/^https?:\/\//, "").slice(0, 60)}{ev.audio_url.length > 60 ? "…" : ""}
+                        </a>
+                      </p>
+                    )}
+
+                    {/* Pipeline status */}
+                    {ev.queue_entry_id && (
+                      <p>
+                        <span className="font-medium text-foreground">Queue entry:</span>{" "}
+                        <code className="bg-muted px-1 rounded text-[10px]">#{ev.queue_entry_id}</code>
+                        {ev.pipeline_status && (() => {
+                          const pCfg = PIPELINE_STATUS_CONFIG[ev.pipeline_status];
+                          return <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium ${pCfg?.color ?? ""}`}>{pCfg?.label ?? ev.pipeline_status}</span>;
+                        })()}
+                      </p>
+                    )}
+                    {ev.pipeline_status === "failed" && ev.pipeline_error && (
+                      <p className="text-red-500"><span className="font-medium">Pipeline error:</span> {ev.pipeline_error}</p>
+                    )}
+
+                    {/* Network */}
+                    {ev.sender_ip && <p><span className="font-medium text-foreground">Sender IP:</span> <code className="bg-muted px-1 rounded text-[10px]">{ev.sender_ip}</code></p>}
+
+                    <p className="text-foreground/40 text-[10px] pt-1">Event ID #{ev.id} — click again to collapse</p>
                   </div>
                 )}
               </div>
@@ -216,6 +282,7 @@ export default function AdminWebhookFeed() {
   const [outcomeFilter, setOutcomeFilter] = useState<string>("all");
   const [podcastSearch, setPodcastSearch] = useState("");
   const [debouncedPodcast, setDebouncedPodcast] = useState("");
+  const [eventIdSearch, setEventIdSearch] = useState("");
   const [autoRefresh, setAutoRefresh] = useState(true);
 
   const handlePodcastInput = useCallback((val: string) => {
@@ -236,7 +303,10 @@ export default function AdminWebhookFeed() {
     staleTime: 5000,
   });
 
-  const events = data?.events ?? [];
+  const allEvents = data?.events ?? [];
+  const events = eventIdSearch.trim()
+    ? allEvents.filter(ev => String(ev.id).startsWith(eventIdSearch.trim()))
+    : allEvents;
   const total = data?.total ?? 0;
   const outcomeCounts = data?.outcomeCounts ?? [];
 
@@ -318,6 +388,19 @@ export default function AdminWebhookFeed() {
             value={podcastSearch}
             onChange={e => handlePodcastInput(e.target.value)}
             className="pl-8 h-8 text-sm"
+          />
+        </div>
+
+        <div className="relative w-32">
+          <Hash className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+          <Input
+            data-testid="event-id-search-input"
+            placeholder="Event ID"
+            value={eventIdSearch}
+            onChange={e => setEventIdSearch(e.target.value.replace(/\D/g, ""))}
+            className="pl-8 h-8 text-sm"
+            type="text"
+            inputMode="numeric"
           />
         </div>
 

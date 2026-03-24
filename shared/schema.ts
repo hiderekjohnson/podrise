@@ -1162,6 +1162,9 @@ export const webhookEvents = pgTable("webhook_events", {
   outcome: text("outcome"),
   outcomeDetail: text("outcome_detail"),
   datePublished: bigint("date_published", { mode: "number" }),
+  audioUrl: text("audio_url"),
+  senderIp: text("sender_ip"),
+  queueEntryId: integer("queue_entry_id"),
   rawPayload: jsonb("raw_payload"),
 });
 export type WebhookEvent = typeof webhookEvents.$inferSelect;
