@@ -847,7 +847,7 @@ export default function AdminTranscriptPipeline() {
       <QueueHealth rows={rows} />
 
       {/* Comprehensive Pipeline Table - NEW */}
-      <PipelineTable rows={rows} counts={counts} currentlyGeneratingGuid={currentlyGeneratingGuid} />
+      <PipelineTable rows={rows} counts={counts} currentlyGeneratingGuid={currentlyGeneratingGuid} schedulerHealth={schedulerHealth} />
 
       {/* Support Prompt - Top & Prominent */}
       <SupportPrompt />
@@ -977,13 +977,25 @@ export default function AdminTranscriptPipeline() {
 }
 
 // NEW: Comprehensive Pipeline Table Component
+interface SchedulerHealth {
+  isRunning: boolean;
+  devMode: boolean;
+  batchRunning: boolean;
+  batchStuck: boolean;
+  lastRecapTime: string | null;
+  minutesSinceLastRun: number | null;
+  taddyRateUsed: number;
+  taddyRateLimit: number;
+}
+
 interface PipelineTableProps {
   rows: PipelineRow[];
   counts: Record<string, number>;
   currentlyGeneratingGuid: string | null;
+  schedulerHealth?: SchedulerHealth;
 }
 
-function PipelineTable({ rows, counts, currentlyGeneratingGuid }: PipelineTableProps) {
+function PipelineTable({ rows, counts, currentlyGeneratingGuid, schedulerHealth }: PipelineTableProps) {
   const { toast } = useToast();
   const [stageFilter, setStageFilter] = useState<string>("all");
   const [showFilter, setShowFilter] = useState<string>("all");
