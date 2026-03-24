@@ -18862,25 +18862,41 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       if (taddyType === "podcastepisode" && action === "updated") {
         const epData = data;
         const seriesItunesId = String(epData.podcastSeries?.itunesId || "");
+        // Only process updates for podcasts we actually track — drop everything else silently
         if (seriesItunesId && epData.uuid) {
+          const { rows: [trackedPodcast] } = await pool.query(
+            `SELECT name FROM podcast_directory WHERE itunes_id = $1 AND status = 'published' LIMIT 1`,
+            [seriesItunesId]
+          );
+          if (!trackedPodcast) {
+            return res.status(200).json({ success: true });
+          }
           await pool.query(
             `UPDATE episode_transcripts SET description = COALESCE($1, description), duration = COALESCE($2, duration), audio_url = COALESCE($3, audio_url), image_url = COALESCE($4, image_url), subtitle = COALESCE($5, subtitle) WHERE podcast_id = $6 AND episode_guid = $7`,
             [epData.description, epData.duration, epData.audioUrl, epData.imageUrl, epData.subtitle, seriesItunesId, epData.uuid]
           );
+          logWebhookEvent({ taddyType, action, episodeUuid: epData.uuid, episodeTitle: epData.name, podcastName: trackedPodcast.name, podcastId: seriesItunesId, audioUrl: epData.audioUrl || null, outcome: "updated_metadata", outcomeDetail: "Episode metadata fields updated", senderIp, rawPayload: payload });
         }
-        logWebhookEvent({ taddyType, action, episodeUuid: epData.uuid, episodeTitle: epData.name, podcastId: seriesItunesId, audioUrl: epData.audioUrl || null, outcome: "updated_metadata", outcomeDetail: "Episode metadata fields updated if transcript exists", senderIp, rawPayload: payload });
         return res.status(200).json({ success: true });
       }
 
       if (taddyType === "podcastseries" && action === "updated") {
         const seriesData = data;
+        // Only process updates for series we actually track — drop everything else silently
         if (seriesData.itunesId) {
+          const { rows: [trackedSeries] } = await pool.query(
+            `SELECT name FROM podcast_directory WHERE itunes_id = $1 AND status = 'published' LIMIT 1`,
+            [String(seriesData.itunesId)]
+          );
+          if (!trackedSeries) {
+            return res.status(200).json({ success: true });
+          }
           await pool.query(
             `UPDATE podcast_directory SET artwork_url = COALESCE($1, artwork_url), description = COALESCE($2, description) WHERE itunes_id = $3`,
             [seriesData.imageUrl, seriesData.description, String(seriesData.itunesId)]
           );
+          logWebhookEvent({ taddyType, action, podcastId: String(seriesData.itunesId || ""), podcastName: trackedSeries.name, outcome: "updated_series_metadata", outcomeDetail: "Series artwork/description updated", senderIp, rawPayload: payload });
         }
-        logWebhookEvent({ taddyType, action, podcastId: String(seriesData.itunesId || ""), podcastName: seriesData.name, outcome: "updated_series_metadata", outcomeDetail: "Series artwork/description updated", senderIp, rawPayload: payload });
         return res.status(200).json({ success: true });
       }
 
