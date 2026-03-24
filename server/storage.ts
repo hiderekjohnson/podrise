@@ -542,9 +542,9 @@ export class DatabaseStorage implements IStorage {
       return entry;
     } catch (err: any) {
       if (err?.code === '23505' && err?.constraint?.includes('slug')) {
-        const [existing] = await db.select().from(podcastDirectory).where(eq(podcastDirectory.slug, data.slug)).limit(1);
+        const [existing] = await db.select().from(podcastDirectory).where(eq(podcastDirectory.slug, data.slug!)).limit(1);
         if (existing) {
-          const [updated] = await db.update(podcastDirectory).set(safeUpdateFields).where(eq(podcastDirectory.slug, data.slug)).returning();
+          const [updated] = await db.update(podcastDirectory).set(safeUpdateFields).where(eq(podcastDirectory.slug, data.slug!)).returning();
           return updated;
         }
       }

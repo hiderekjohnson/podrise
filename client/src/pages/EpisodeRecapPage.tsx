@@ -700,7 +700,7 @@ export default function EpisodeRecapPage() {
     enabled: !!podcastSlug && !!episodeSlug,
   });
 
-  const { data: bookSlugMap = {} } = useQuery<Record<string, { slug: string; rating: number | null; pageCount: number | null; publishYear: number | null; asin: string | null; description: string | null; author: string | null; googleBooksId: string | null; podcastCount: number | null }>>({
+  const { data: bookSlugMap = {} } = useQuery<Record<string, { slug: string; rating: number | null; pageCount: number | null; publishYear: number | null; asin: string | null; description: string | null; author: string | null; googleBooksId: string | null; podcastCount: number | null; isbn: string | null; hasCover: boolean | null }>>({
     queryKey: ["/api/book-slugs"],
     queryFn: async () => {
       const res = await fetch("/api/book-slugs");

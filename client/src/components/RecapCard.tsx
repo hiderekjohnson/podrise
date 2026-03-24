@@ -150,6 +150,8 @@ export interface RecapCardProps {
     products: ProductEntry[];
   };
   guests?: string | null;
+  totalEpisodes?: number;
+  yearStarted?: number;
   isFollowing?: boolean;
   isBookmarked?: boolean;
   onFollowToggle?: (slug: string, follow: boolean) => void;

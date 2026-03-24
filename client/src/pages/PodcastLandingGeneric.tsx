@@ -50,6 +50,7 @@ interface PodcastBook {
   googleBooksId: string | null;
   isbn: string | null;
   hasCover: boolean | null;
+  podcastCount?: number | null;
 }
 
 function PodcastBooksTab({ slug, podcastName, isLoggedIn, enabled = true }: { slug: string; podcastName: string; isLoggedIn: boolean; enabled?: boolean }) {
@@ -215,7 +216,7 @@ function PodcastBooksTab({ slug, podcastName, isLoggedIn, enabled = true }: { sl
                         </p>
                       )}
                       <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                        <PodcastMicBadge count={book.podcastCount} size="sm" />
+                        <PodcastMicBadge count={book.podcastCount ?? 0} size="sm" />
                         {book.pageCount && (
                           <span className="text-[16px] text-muted-foreground">{book.pageCount} pages</span>
                         )}
@@ -262,6 +263,7 @@ interface PodcastProduct {
   episodes: { slug: string; title: string }[];
   mentionCount: number;
   isAmazon: boolean;
+  podcastCount?: number | null;
 }
 
 function PodcastShopTab({ slug, podcastName, enabled = true }: { slug: string; podcastName: string; enabled?: boolean }) {
@@ -379,9 +381,9 @@ function PodcastShopTab({ slug, podcastName, enabled = true }: { slug: string; p
                         {getTypeLabel(product.type)}
                       </span>
                     </div>
-                    {product.podcastCount > 0 && (
+                    {(product.podcastCount ?? 0) > 0 && (
                       <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                        <PodcastMicBadge count={product.podcastCount} size="sm" />
+                        <PodcastMicBadge count={product.podcastCount ?? 0} size="sm" />
                       </div>
                     )}
                   </div>

@@ -1391,7 +1391,7 @@ export async function registerRoutes(
 
     for (const recap of recaps) {
       const episodeUrl = `${DOMAIN}/podcasts/${recap.slug}/${recap.episodeSlug}`;
-      const pubDate = recap.publishDate ? new Date(recap.publishDate).toUTCString() : new Date(recap.createdAt).toUTCString();
+      const pubDate = recap.publishDate ? new Date(recap.publishDate).toUTCString() : new Date(recap.createdAt ?? new Date()).toUTCString();
 
       const itemTitle = recap.tabloidHeadline
         ? recap.tabloidHeadline
@@ -1575,8 +1575,8 @@ export async function registerRoutes(
     //    Real messages have mostly lowercase letters and common punctuation.
     //    Bot strings are mixed case with high entropy and no common short words.
     const words = trimmed.split(/\s+/);
-    const hasRealWords = words.some(w => /^(the|a|an|is|it|i|we|my|hi|hello|help|need|want|can|you|please|not|have|has|this|that|with|for|are|was|but|and|or|in|on|at|to|do|be|get|got|just|one|new|more|how|why|what|when|where|who|its|im|id|no|yes|ok|re|if)$/i.test(w));
-    const avgWordLen = words.reduce((s, w) => s + w.length, 0) / words.length;
+    const hasRealWords = words.some((w: string) => /^(the|a|an|is|it|i|we|my|hi|hello|help|need|want|can|you|please|not|have|has|this|that|with|for|are|was|but|and|or|in|on|at|to|do|be|get|got|just|one|new|more|how|why|what|when|where|who|its|im|id|no|yes|ok|re|if)$/i.test(w));
+    const avgWordLen = words.reduce((s: number, w: string) => s + w.length, 0) / words.length;
     const upperRatio = (trimmed.match(/[A-Z]/g) || []).length / trimmed.replace(/\s/g, "").length;
     const isGibberish = !hasRealWords && avgWordLen > 8 && upperRatio > 0.25;
     if (isGibberish) {
@@ -1587,7 +1587,7 @@ export async function registerRoutes(
     // 3. Suspicious email pattern — dots-and-numbers spam accounts (e.g. j.oh.n.s.o.n.liu.1.1.1.9@gmail.com)
     const localPart = email.split("@")[0] || "";
     const dotSegments = localPart.split(".");
-    const hasSpammyEmail = dotSegments.length > 4 && dotSegments.some(s => /^\d+$/.test(s));
+    const hasSpammyEmail = dotSegments.length > 4 && dotSegments.some((s: string) => /^\d+$/.test(s));
     if (hasSpammyEmail) {
       console.log(`[Support] Spam blocked (suspicious email) from ${email}`);
       return res.json({ message: "Support request sent" }); // silent drop
@@ -2159,7 +2159,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       if (req.body.imageUrl !== undefined) updates.imageUrl = req.body.imageUrl?.trim() || null;
       if (req.body.sortOrder !== undefined) updates.sortOrder = Number(req.body.sortOrder);
       if (req.body.active !== undefined) updates.active = !!req.body.active;
-      const tier = await storage.updateReferralTier(Number(req.params.id), updates);
+      const tier = await storage.updateReferralTier(Number(req.params.id), updates as any);
       res.json(tier);
     } catch (err) {
       res.status(500).json({ message: "Failed to update tier" });
@@ -6396,7 +6396,7 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
         if (insight) ep.context = insight;
       }
 
-      const datedEpisodes = episodes.filter(e => e.publishedAt).map(e => new Date(e.publishedAt).getTime());
+      const datedEpisodes = episodes.filter(e => e.publishedAt).map(e => new Date(e.publishedAt!).getTime());
       const firstMentioned = datedEpisodes.length > 0 ? new Date(Math.min(...datedEpisodes)).toISOString() : null;
       const lastMentioned = datedEpisodes.length > 0 ? new Date(Math.max(...datedEpisodes)).toISOString() : null;
 
@@ -6744,8 +6744,8 @@ Only include the marker if the user is genuinely requesting or suggesting a feat
       if (allMatchedSlugs.length > 0) {
         let cached: Record<string, string> | null = null;
         try {
-          if (recap.entity_contexts_cache) {
-            const parsed = JSON.parse(recap.entity_contexts_cache);
+          if ((recap as any).entity_contexts_cache) {
+            const parsed = JSON.parse((recap as any).entity_contexts_cache);
             const cachedSlugs = Object.keys(parsed).sort().join(',');
             const currentSlugs = allMatchedSlugs.sort().join(',');
             if (cachedSlugs === currentSlugs) {
@@ -6834,7 +6834,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
         }
       }
 
-      const { entity_contexts_cache: _ecc, ...recapWithoutCache } = recap;
+      const { entity_contexts_cache: _ecc, ...recapWithoutCache } = recap as any;
       const isEmptyField = (v: any) => !v || typeof v !== 'string' || !v.trim() || v.trim() === '[]' || v.trim() === 'null';
       const hostsFromPodcast = podcastHosts.map(h => h.name).join(", ");
       const resolvedHosts = isEmptyField(recap.hosts) ? hostsFromPodcast : recap.hosts;
@@ -11885,16 +11885,13 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       );
       if (transcriptRows.length === 0) return res.status(404).json({ message: "Transcript not found" });
 
-      const { processFullTranscript } = await import("./transcriptChunker");
-      const processedTranscript = processFullTranscript(transcriptRows[0].transcript);
-
       const { rows: pdRows } = await pool.query(`SELECT name FROM podcast_directory WHERE slug = $1`, [podcastSlug]);
       const podcastName = pdRows[0]?.name || podcastSlug;
 
       const showNotes = transcriptRows[0].description || null;
 
       const { generateRecapFromTranscript } = await import("./recapGenerator");
-      const recap = await generateRecapFromTranscript(processedTranscript, podcastName, episode_title, showNotes);
+      const recap = await generateRecapFromTranscript(transcriptRows[0].transcript, podcastName, episode_title, showNotes);
       if (!recap) return res.status(500).json({ message: "AI generation failed" });
 
       const { rows: existingRows } = await pool.query(
@@ -13860,7 +13857,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
           let taddySeries = await getPodcastSeriesWithEpisodes({ itunesId: numericItunesId }, epLimit);
 
           // Auto-save Taddy UUID to podcast_directory if we don't have it yet
-          if (taddySeries?.uuid && !podcast.taddy_uuid) {
+          if (taddySeries?.uuid && !(podcast as any).taddy_uuid) {
             await pool.query(
               `UPDATE podcast_directory SET taddy_uuid = $1 WHERE slug = $2 AND taddy_uuid IS NULL`,
               [taddySeries.uuid, podcast.slug]
@@ -14446,7 +14443,7 @@ Use these exact slugs: ${entityList.map(e => e.slug).join(', ')}`
       return res.status(400).json({ message: "Invalid plan. Must be 'free' or 'pro'." });
     }
     try {
-      await storage.updateUser(userId, { plan });
+      await storage.updateUser(userId, { plan } as any);
       res.json({ message: `User ${userId} updated to ${plan} plan` });
     } catch (err) {
       console.error("Failed to update user plan:", err);
@@ -20300,6 +20297,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
           title: ep.episode_title || "Episode Recap",
           description: ep.tldl || "",
           imageUrl: ep.artwork_url || "",
+          destinationUrl: "",
           podcastSlug: ep.slug,
           episodeSlug: ep.episode_slug,
           episodeTitle: ep.episode_title,

@@ -1187,7 +1187,7 @@ export async function bulkDownloadTranscripts() {
         const numId = parseInt(podcast.itunesId, 10);
         if (isNaN(numId)) continue;
 
-        const existing = recapCounts[podcast.slug] || 0;
+        const existing = recapCounts[podcast.slug ?? ''] || 0;
         const needed = TARGET - existing;
         const epLimit = Math.min(needed + 5, 25);
 

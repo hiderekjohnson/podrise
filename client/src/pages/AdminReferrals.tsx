@@ -143,7 +143,7 @@ export default function AdminReferrals() {
     setForm({
       threshold: tier.threshold,
       rewardName: tier.rewardName,
-      rewardDescription: tier.rewardDescription,
+      rewardDescription: tier.rewardDescription ?? "",
       imageUrl: tier.imageUrl || "",
       sortOrder: tier.sortOrder,
       active: tier.active,
@@ -153,7 +153,7 @@ export default function AdminReferrals() {
   const handleSave = () => {
     const data = { ...form, imageUrl: form.imageUrl || null };
     if (editingTier) {
-      updateTierMutation.mutate({ id: editingTier.id, data });
+      updateTierMutation.mutate({ id: editingTier.id, data: data as any });
     } else {
       createTierMutation.mutate({ ...form, imageUrl: form.imageUrl || "" });
     }

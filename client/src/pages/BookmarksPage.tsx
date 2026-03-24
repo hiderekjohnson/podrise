@@ -20,10 +20,12 @@ interface EnrichedBookmark {
   publishDate: string | null;
   artworkUrl: string | null;
   tldl: string | null;
+  tabloidSubHeadline?: string | null;
   keyInsights: string[] | null;
   whatHappened: string | null;
   quote: string | null;
   quoteAttribution: string | null;
+  duration?: string | null;
   spotifyEpisodeUrl: string | null;
   spotifyUrl: string | null;
   youtubeUrl: string | null;
@@ -176,7 +178,7 @@ export default function BookmarksPage() {
                         keyInsights={bm.keyInsights}
                         quote={bm.quote}
                         quoteAttribution={bm.quoteAttribution}
-                        duration={bm.duration}
+                        duration={bm.duration ?? undefined}
                         hosts={podcastMeta?.hosts}
                         totalEpisodes={podcastMeta?.totalEpisodes}
                         yearStarted={podcastMeta?.yearStarted}

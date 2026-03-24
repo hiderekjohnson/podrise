@@ -441,14 +441,14 @@ export default function ApiUsageDashboard() {
               <XAxis dataKey="date" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
               <YAxis tick={{ fontSize: 11 }} tickFormatter={(v: number) => `$${v.toFixed(2)}`} />
               <Tooltip
-                formatter={(value: number, name: string) => {
+                formatter={((value: number, name: string) => {
                   const labels: Record<string, string> = {
                     openai: "OpenAI Actual",
                     internal: "PodCap Tracked",
                     gap: "Replit / Other",
                   };
                   return [`$${value.toFixed(4)}`, labels[name] || name];
-                }}
+                }) as any}
                 labelStyle={{ fontWeight: 600, fontSize: 12 }}
                 contentStyle={{ borderRadius: 12, fontSize: 12, border: "1px solid rgba(0,0,0,0.08)" }}
               />

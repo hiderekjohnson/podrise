@@ -107,6 +107,12 @@ export interface ParsedEpisode {
   keyInsights: string[];
   guests?: { name: string; title: string }[];
   resources?: { name: string; type: string; description: string; url?: string; author?: string; context?: string }[];
+  tldl?: string;
+  quote?: string;
+  quoteAttribution?: string;
+  keyTopics?: string[];
+  topicContexts?: Record<string, string>;
+  sponsors?: string[];
 }
 
 interface RecapResult {

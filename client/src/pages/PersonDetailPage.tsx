@@ -30,6 +30,21 @@ interface EpisodeEntry {
   type?: "guest" | "mention";
   hasTranscript?: boolean;
   relevanceScore?: number;
+  id?: number;
+  tabloid_sub_headline?: string;
+  key_insights?: string[];
+  quote?: string;
+  quote_attribution?: string;
+  duration?: string;
+  what_happened?: string;
+  spotify_episode_url?: string;
+  pdSpotifyUrl?: string;
+  youtube_url?: string;
+  pdYoutubeUrl?: string;
+  mentions?: { people: any[]; companies: any[]; products: any[] };
+  pdHosts?: string;
+  pdTotalEpisodes?: number;
+  pdYearStarted?: number;
 }
 
 interface TopicEntry {

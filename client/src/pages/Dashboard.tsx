@@ -212,7 +212,7 @@ export default function Dashboard() {
     if (params.get("tab")) {
       const t = params.get("tab") as TabKey;
       if (["emails", "settings", "recaps"].includes(t)) setActiveTab(t);
-      else if (t === "podcasts" || t === "topics") setActiveTab("emails");
+      else if ((t as string) === "podcasts" || (t as string) === "topics") setActiveTab("emails");
       window.history.replaceState({}, "", "/dashboard");
     }
   }, [user]);
