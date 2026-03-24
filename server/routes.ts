@@ -18642,6 +18642,37 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
   const WEBHOOK_RATE_LIMIT = 10;
   const WEBHOOK_RATE_WINDOW_MS = 60_000;
 
+  // Fire-and-forget: log every incoming Taddy webhook to webhook_events table
+  const logWebhookEvent = (params: {
+    taddyType?: string;
+    action?: string;
+    episodeUuid?: string;
+    episodeTitle?: string;
+    podcastName?: string;
+    podcastId?: string;
+    outcome: string;
+    outcomeDetail?: string;
+    rawPayload?: any;
+  }) => {
+    pool.query(
+      `INSERT INTO webhook_events (taddy_type, action, episode_uuid, episode_title, podcast_name, podcast_id, outcome, outcome_detail, raw_payload)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      [
+        params.taddyType ?? null,
+        params.action ?? null,
+        params.episodeUuid ?? null,
+        params.episodeTitle ?? null,
+        params.podcastName ?? null,
+        params.podcastId ?? null,
+        params.outcome,
+        params.outcomeDetail ?? null,
+        params.rawPayload != null ? JSON.stringify(params.rawPayload) : null,
+      ]
+    ).catch((logErr: any) => {
+      console.warn("[TaddyWebhook] Failed to log webhook event:", logErr?.message);
+    });
+  };
+
   app.get("/api/webhooks/taddy", (_req, res) => {
     res.status(200).json({ status: "ok", message: "Taddy webhook endpoint active. Use POST to deliver events." });
   });
@@ -18665,6 +18696,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
       console.log(`[TaddyWebhook] Received: taddyType=${taddyType} action=${action} uuid=${data?.uuid?.slice(0, 12)}... host=${req.hostname}`);
 
       if (!taddyType || !action || !data) {
+        logWebhookEvent({ taddyType, action, outcome: "malformed", outcomeDetail: "Missing taddyType, action, or data", rawPayload: payload });
         return res.status(200).json({ success: true });
       }
 
@@ -18675,6 +18707,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
 
         if (!seriesItunesId && !seriesUuid) {
           console.log("[TaddyWebhook] No podcast identifier in episode event, ignoring");
+          logWebhookEvent({ taddyType, action, episodeUuid: epData.uuid, episodeTitle: epData.name, outcome: "ignored_no_identifier", outcomeDetail: "Episode event has no iTunes ID or Taddy UUID", rawPayload: payload });
           return res.status(200).json({ success: true });
         }
 
@@ -18685,11 +18718,13 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
 
         if (!podcast) {
           console.log(`[TaddyWebhook] Episode for untracked podcast (iTunes ${seriesItunesId}), ignoring`);
+          logWebhookEvent({ taddyType, action, episodeUuid: epData.uuid, episodeTitle: epData.name, podcastId: seriesItunesId || seriesUuid, outcome: "ignored_untracked", outcomeDetail: `Podcast not in directory (iTunes: ${seriesItunesId})`, rawPayload: payload });
           return res.status(200).json({ success: true });
         }
 
         if (podcast.status !== "published") {
           console.log(`[TaddyWebhook] Episode for non-published podcast "${podcast.name}" (status=${podcast.status}), ignoring`);
+          logWebhookEvent({ taddyType, action, episodeUuid: epData.uuid, episodeTitle: epData.name, podcastName: podcast.name, podcastId: podcast.itunes_id, outcome: "ignored_not_published", outcomeDetail: `Podcast status is "${podcast.status}"`, rawPayload: payload });
           return res.status(200).json({ success: true });
         }
 
@@ -18710,6 +18745,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
           const todayCount = capRow?.count ?? 0;
           if (todayCount >= podcast.daily_episode_cap) {
             console.log(`[TaddyWebhook] Daily cap reached for "${podcastName}" (${todayCount}/${podcast.daily_episode_cap}), skipping`);
+            logWebhookEvent({ taddyType, action, episodeUuid: epData.uuid, episodeTitle: epData.name, podcastName, podcastId, outcome: "skipped_daily_cap", outcomeDetail: `${todayCount}/${podcast.daily_episode_cap} episodes queued in last 24h`, rawPayload: payload });
             return res.status(200).json({ success: true, skipped: "daily_cap_reached", count: todayCount, cap: podcast.daily_episode_cap });
           }
         }
@@ -18719,6 +18755,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
 
         if (!epUuid) {
           console.log(`[TaddyWebhook] Episode event missing UUID, ignoring (podcast: ${podcastName})`);
+          logWebhookEvent({ taddyType, action, episodeTitle: epTitle, podcastName, podcastId, outcome: "skipped_no_uuid", outcomeDetail: "Episode UUID missing from payload", rawPayload: payload });
           return res.status(200).json({ success: true, skipped: "no_episode_uuid" });
         }
 
@@ -18744,6 +18781,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
                   })
                 ).catch(() => {});
               }
+              logWebhookEvent({ taddyType, action, episodeUuid: epUuid, episodeTitle: epTitle, podcastName, podcastId, outcome: "skipped_rate_limited", outcomeDetail: `${rlEntry.count} webhooks in 60s (limit: ${WEBHOOK_RATE_LIMIT})`, rawPayload: payload });
               return res.status(200).json({ success: true, skipped: "rate_limited" });
             }
           }
@@ -18763,7 +18801,9 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
         );
 
         if (existing.length > 0 || recapCheck.length > 0) {
+          const reason = existing.length > 0 ? "transcript exists" : "recap exists";
           console.log(`[TaddyWebhook] Episode already processed, skipping: "${epTitle.slice(0, 60)}"`);
+          logWebhookEvent({ taddyType, action, episodeUuid: epUuid, episodeTitle: epTitle, podcastName, podcastId, outcome: "skipped_duplicate", outcomeDetail: `Already processed (${reason})`, rawPayload: payload });
           return res.status(200).json({ success: true, skipped: "already_exists" });
         }
 
@@ -18780,6 +18820,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
         } catch (queueErr: any) {
           // Queue flood protection — acknowledge to Taddy so it does not retry
           console.warn(`[TaddyWebhook] Could not queue episode "${epTitle.slice(0, 60)}" for ${podcastName}: ${queueErr.message}`);
+          logWebhookEvent({ taddyType, action, episodeUuid: epUuid, episodeTitle: epTitle, podcastName, podcastId, outcome: "skipped_queue_error", outcomeDetail: queueErr.message, rawPayload: payload });
           return res.status(200).json({ success: true, skipped: "queue_full", reason: queueErr.message });
         }
 
@@ -18798,6 +18839,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
           }
         })();
 
+        logWebhookEvent({ taddyType, action, episodeUuid: epUuid, episodeTitle: epTitle, podcastName, podcastId, outcome: "queued", outcomeDetail: "Episode queued for transcript fetch", rawPayload: payload });
         console.log(`[TaddyWebhook] Queued for pipeline: ${podcastName} - "${epTitle.slice(0, 60)}"`);
         return res.status(200).json({ success: true, queued: true, podcast: podcastName, episode: epTitle.slice(0, 60) });
       }
@@ -18811,6 +18853,7 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
             [epData.description, epData.duration, epData.audioUrl, epData.imageUrl, epData.subtitle, seriesItunesId, epData.uuid]
           );
         }
+        logWebhookEvent({ taddyType, action, episodeUuid: epData.uuid, episodeTitle: epData.name, podcastId: seriesItunesId, outcome: "updated_metadata", outcomeDetail: "Episode metadata fields updated if transcript exists", rawPayload: payload });
         return res.status(200).json({ success: true });
       }
 
@@ -18822,13 +18865,53 @@ Respond with ONLY the buzz paragraph text, no quotes or labels.`
             [seriesData.imageUrl, seriesData.description, String(seriesData.itunesId)]
           );
         }
+        logWebhookEvent({ taddyType, action, podcastId: String(seriesData.itunesId || ""), podcastName: seriesData.name, outcome: "updated_series_metadata", outcomeDetail: "Series artwork/description updated", rawPayload: payload });
         return res.status(200).json({ success: true });
       }
 
+      logWebhookEvent({ taddyType, action, outcome: "unhandled", outcomeDetail: `No handler for taddyType="${taddyType}" action="${action}"`, rawPayload: payload });
       res.status(200).json({ success: true });
     } catch (err) {
       console.error("[TaddyWebhook] Error:", err);
       res.status(200).json({ success: true });
+    }
+  });
+
+  app.get("/api/admin/webhook-events", async (req, res) => {
+    if (!req.session.isAdmin) return res.status(401).json({ message: "Not authenticated as admin" });
+    try {
+      const limit = Math.min(parseInt(String(req.query.limit || "200"), 10), 500);
+      const offset = parseInt(String(req.query.offset || "0"), 10);
+      const outcomeFilter = req.query.outcome ? String(req.query.outcome) : null;
+      const podcastFilter = req.query.podcast ? String(req.query.podcast) : null;
+
+      const conditions: string[] = [];
+      const filterParams: any[] = [];
+      if (outcomeFilter) { conditions.push(`outcome = $${filterParams.length + 1}`); filterParams.push(outcomeFilter); }
+      if (podcastFilter) {
+        conditions.push(`(podcast_name ILIKE $${filterParams.length + 1} OR podcast_id = $${filterParams.length + 2})`);
+        filterParams.push(`%${podcastFilter}%`);
+        filterParams.push(podcastFilter);
+      }
+      const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+      const { rows } = await pool.query(
+        `SELECT id, received_at, taddy_type, action, episode_uuid, episode_title, podcast_name, podcast_id, outcome, outcome_detail, raw_payload
+         FROM webhook_events ${where}
+         ORDER BY received_at DESC LIMIT $${filterParams.length + 1} OFFSET $${filterParams.length + 2}`,
+        [...filterParams, limit, offset]
+      );
+      const { rows: [countRow] } = await pool.query(
+        `SELECT COUNT(*)::int AS total FROM webhook_events ${where}`,
+        filterParams
+      );
+      const { rows: outcomeCounts } = await pool.query(
+        `SELECT outcome, COUNT(*)::int AS count FROM webhook_events GROUP BY outcome ORDER BY count DESC`
+      );
+      res.json({ events: rows, total: countRow?.total ?? 0, outcomeCounts });
+    } catch (err: any) {
+      console.error("[WebhookEvents API] Error:", err?.message);
+      res.status(500).json({ message: "Failed to fetch webhook events" });
     }
   });
 

@@ -265,6 +265,29 @@ process.on("uncaughtException", (err) => {
         }
 
         try {
+          await pool.query(`
+            CREATE TABLE IF NOT EXISTS webhook_events (
+              id SERIAL PRIMARY KEY,
+              received_at TIMESTAMP DEFAULT NOW(),
+              taddy_type TEXT,
+              action TEXT,
+              episode_uuid TEXT,
+              episode_title TEXT,
+              podcast_name TEXT,
+              podcast_id TEXT,
+              outcome TEXT,
+              outcome_detail TEXT,
+              raw_payload JSONB
+            )
+          `);
+          await pool.query(`CREATE INDEX IF NOT EXISTS idx_webhook_events_received_at ON webhook_events(received_at DESC)`);
+          await pool.query(`CREATE INDEX IF NOT EXISTS idx_webhook_events_outcome ON webhook_events(outcome)`);
+          console.log("webhook_events table ready");
+        } catch (err) {
+          console.warn("webhook_events migration skipped:", err);
+        }
+
+        try {
           await pool.query(`CREATE TABLE IF NOT EXISTS landing_page_visits (
             id SERIAL PRIMARY KEY,
             page_slug TEXT NOT NULL,
