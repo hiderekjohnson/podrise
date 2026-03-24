@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, timestamp, date, boolean, jsonb, real, unique, check } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, bigint, text, timestamp, date, boolean, jsonb, real, unique, check } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -1161,6 +1161,7 @@ export const webhookEvents = pgTable("webhook_events", {
   podcastId: text("podcast_id"),
   outcome: text("outcome"),
   outcomeDetail: text("outcome_detail"),
+  datePublished: bigint("date_published", { mode: "number" }),
   rawPayload: jsonb("raw_payload"),
 });
 export type WebhookEvent = typeof webhookEvents.$inferSelect;

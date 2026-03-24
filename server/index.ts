@@ -282,6 +282,7 @@ process.on("uncaughtException", (err) => {
           `);
           await pool.query(`CREATE INDEX IF NOT EXISTS idx_webhook_events_received_at ON webhook_events(received_at DESC)`);
           await pool.query(`CREATE INDEX IF NOT EXISTS idx_webhook_events_outcome ON webhook_events(outcome)`);
+          await pool.query(`ALTER TABLE webhook_events ADD COLUMN IF NOT EXISTS date_published BIGINT`);
           console.log("webhook_events table ready");
         } catch (err) {
           console.warn("webhook_events migration skipped:", err);

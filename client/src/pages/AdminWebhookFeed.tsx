@@ -17,6 +17,7 @@ type WebhookEvent = {
   podcast_id: string | null;
   outcome: string | null;
   outcome_detail: string | null;
+  date_published: number | null;
   raw_payload: any;
 };
 
@@ -67,6 +68,14 @@ function formatRelativeTime(dateStr: string) {
 function formatDateTime(dateStr: string) {
   return new Date(dateStr).toLocaleString(undefined, {
     month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit"
+  });
+}
+
+function formatPublishedDate(unixSeconds: number | null): string | null {
+  if (!unixSeconds) return null;
+  const d = new Date(unixSeconds * 1000);
+  return d.toLocaleString(undefined, {
+    month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit"
   });
 }
 
@@ -124,14 +133,24 @@ function HumanReadableFeed({ events }: { events: WebhookEvent[] }) {
                     {ev.outcome_detail && <p><span className="font-medium text-foreground">Detail:</span> {ev.outcome_detail}</p>}
                     {ev.episode_uuid && <p><span className="font-medium text-foreground">Episode UUID:</span> <code className="bg-muted px-1 rounded">{ev.episode_uuid}</code></p>}
                     {ev.podcast_id && <p><span className="font-medium text-foreground">Podcast iTunes ID:</span> <code className="bg-muted px-1 rounded">{ev.podcast_id}</code></p>}
-                    <p><span className="font-medium text-foreground">Received:</span> {formatDateTime(ev.received_at)}</p>
+                    {ev.date_published && (
+                      <p><span className="font-medium text-foreground">Episode aired:</span> {formatPublishedDate(ev.date_published)}</p>
+                    )}
+                    <p><span className="font-medium text-foreground">We received it:</span> {formatDateTime(ev.received_at)}</p>
                     <p className="text-foreground/40 text-[10px]">Event ID #{ev.id} — click again to collapse</p>
                   </div>
                 )}
               </div>
-              <span className="text-xs text-muted-foreground whitespace-nowrap mt-0.5" title={formatDateTime(ev.received_at)}>
-                {formatRelativeTime(ev.received_at)}
-              </span>
+              <div className="text-right shrink-0 mt-0.5 min-w-[90px]">
+                <div className="text-xs text-muted-foreground whitespace-nowrap" title={formatDateTime(ev.received_at)}>
+                  {formatRelativeTime(ev.received_at)}
+                </div>
+                {ev.date_published && (
+                  <div className="text-[10px] text-muted-foreground/60 whitespace-nowrap mt-0.5" title={`Aired: ${formatPublishedDate(ev.date_published)}`}>
+                    aired {formatRelativeTime(new Date(ev.date_published * 1000).toISOString())}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         );
@@ -162,7 +181,12 @@ function RawFeed({ events }: { events: WebhookEvent[] }) {
               className="flex items-center gap-3 cursor-pointer hover:text-foreground transition-colors"
               onClick={() => setExpandedId(isExpanded ? null : ev.id)}
             >
-              <span className="text-muted-foreground w-28 shrink-0">{formatDateTime(ev.received_at)}</span>
+              <div className="shrink-0 w-44">
+                <div className="text-muted-foreground text-[11px]">rcvd: {formatDateTime(ev.received_at)}</div>
+                {ev.date_published ? (
+                  <div className="text-muted-foreground/60 text-[10px]">aired: {formatPublishedDate(ev.date_published)}</div>
+                ) : null}
+              </div>
               <span className={`shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold ${
                 ev.outcome === "queued" ? "bg-green-100 text-green-700" :
                 ev.outcome?.startsWith("ignored") ? "bg-gray-100 text-gray-500" :
